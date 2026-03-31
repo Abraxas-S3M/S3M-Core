@@ -76,6 +76,8 @@ class CorrelateRequest(BaseModel):
 
 class CorrelationResponse(BaseModel):
     correlations: List[Dict[str, Any]]
+    escalations: Optional[List[Dict[str, Any]]] = None
+    summary: Optional[str] = None
 
 
 class OSINTAnalyzeRequest(BaseModel):
@@ -123,12 +125,18 @@ class DroneMissionRequest(BaseModel):
     num_agents: int = Field(default=1, ge=1, le=32)
     roe: str = Field(default="weapons_tight", min_length=1, max_length=128)
     platform_type: str = Field(default="quadrotor", min_length=1, max_length=128)
+    description: str = Field(default="", max_length=2048)
 
 
 class DroneMissionResponse(BaseModel):
-    mission: Dict[str, Any]
-    autopilot_connected: bool
-    timestamp: str
+    mission: Optional[Dict[str, Any]] = None
+    autopilot_connected: Optional[bool] = None
+    timestamp: Optional[str] = None
+    mission_id: Optional[str] = None
+    mission_type: Optional[str] = None
+    status: Optional[str] = None
+    agents_assigned: Optional[Dict[str, str]] = None
+    waypoints: Optional[List[Tuple[float, float, float]]] = None
 
 
 class NLMissionRequest(BaseModel):

@@ -5,6 +5,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import os
+import sys
+
+# Ensure project root is importable when run directly.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.apps.threat_hunting import ThreatHuntingModule
 

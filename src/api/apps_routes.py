@@ -61,7 +61,7 @@ async def apps_battle_opord(req: MissionBriefRequest) -> OPORDResponse:
             opord = _battle.ops_generator.generate_arabic(req.brief)
         else:
             opord = _battle.ops_generator.generate(req.brief, context=req.options or {})
-        return OPORDResponse(**opord)
+        return OPORDResponse(opord=opord)
     except Exception as exc:
         raise _as_http_error(exc) from exc
 
@@ -121,7 +121,7 @@ async def apps_logistics_inventory(category: Optional[str] = None, location: Opt
 async def apps_logistics_restock_check() -> RestockResponse:
     try:
         items = _logistics.check_inventory()
-        return RestockResponse(items=items, total=len(items))
+        return RestockResponse(restock_items=items, total=len(items))
     except Exception as exc:
         raise _as_http_error(exc) from exc
 
@@ -131,11 +131,7 @@ async def apps_logistics_restock_check() -> RestockResponse:
 async def apps_threats_correlate(req: CorrelateRequest) -> CorrelationResponse:
     try:
         result = _threats.hunt(events=req.events)
-        return CorrelationResponse(
-            correlations=result.get("correlations", []),
-            escalations=result.get("escalations", []),
-            summary=result.get("summary", ""),
-        )
+        return CorrelationResponse(correlations=result.get("correlations", []))
     except Exception as exc:
         raise _as_http_error(exc) from exc
 
@@ -151,7 +147,7 @@ async def apps_threats_osint_analyze(req: OSINTAnalyzeRequest) -> IntelResponse:
 @apps_router.get("/apps/threats/escalations", response_model=EscalationResponse)
 async def apps_threats_escalations() -> EscalationResponse:
     active = _threats.escalation.get_active_escalations()
-    return EscalationResponse(active=active, total=len(active))
+    return EscalationResponse(escalations=active, total=len(active))
 
 
 @apps_router.post("/apps/threats/escalations/rules")
@@ -179,7 +175,7 @@ async def apps_threats_escalation_rules(body: dict[str, Any]) -> dict[str, Any]:
 async def apps_geo_analyze(body: dict[str, Any]) -> RiskAnalysisResponse:
     try:
         result = _geo.analyze_event(description=str(body.get("description", "")), region=str(body.get("region", "")))
-        return RiskAnalysisResponse(**result)
+        return RiskAnalysisResponse(result=result)
     except Exception as exc:
         raise _as_http_error(exc) from exc
 
@@ -195,7 +191,7 @@ async def apps_geo_forecast(body: dict[str, Any]) -> ForecastResponse:
     try:
         region = str(body.get("region", ""))
         days = int(body.get("days", 30))
-        return ForecastResponse(**_geo.get_forecast(region, days))
+        return ForecastResponse(forecast=_geo.get_forecast(region, days))
     except Exception as exc:
         raise _as_http_error(exc) from exc
 
@@ -219,13 +215,10 @@ async def apps_drone_mission(req: DroneMissionRequest) -> DroneMissionResponse:
             "description": req.description,
         }
         result = _drone.launch_mission(payload)
-        mission = result.get("mission", {})
         return DroneMissionResponse(
-            mission_id=mission.get("mission_id", ""),
-            mission_type=mission.get("mission_type", ""),
-            status=mission.get("status", "planned"),
-            agents_assigned=mission.get("agents_assigned", {}),
-            waypoints=mission.get("waypoints", []),
+            mission=result.get("mission", {}),
+            autopilot_connected=bool(result.get("autopilot_connected", False)),
+            timestamp=str(result.get("timestamp", "")),
         )
     except Exception as exc:
         raise _as_http_error(exc) from exc
@@ -235,13 +228,10 @@ async def apps_drone_mission(req: DroneMissionRequest) -> DroneMissionResponse:
 async def apps_drone_mission_nl(req: NLMissionRequest) -> DroneMissionResponse:
     try:
         result = _drone.launch_from_nl(req.text, language=req.language)
-        mission = result.get("mission", {})
         return DroneMissionResponse(
-            mission_id=mission.get("mission_id", ""),
-            mission_type=mission.get("mission_type", ""),
-            status=mission.get("status", "planned"),
-            agents_assigned=mission.get("agents_assigned", {}),
-            waypoints=mission.get("waypoints", []),
+            mission=result.get("mission", {}),
+            autopilot_connected=bool(result.get("autopilot_connected", False)),
+            timestamp=str(result.get("timestamp", "")),
         )
     except Exception as exc:
         raise _as_http_error(exc) from exc
