@@ -1,0 +1,53 @@
+# S3M Phase 7 — Simulation & Wargaming Configuration
+# UNCLASSIFIED - FOUO
+
+adapters:
+  builtin:
+    enabled: true
+    max_entities: 200
+    default_dt: 0.1
+  gazebo:
+    enabled: false
+    host: "localhost"
+    port: 11345
+    world_file: "worlds/military_urban.sdf"
+    headless: true
+  airsim:
+    enabled: false
+    host: "localhost"
+    port: 41451
+    headless: true
+  jsbsim:
+    enabled: false
+    aircraft_model: "f16"
+    dt: 0.00833
+  panopticon:
+    enabled: false
+    host: "localhost"
+    port: 5000
+
+wargame:
+  scenarios_dir: "configs/scenarios/"
+  opfor:
+    default_strategy: "adaptive"
+    default_difficulty: "medium"
+    llm_query_interval_ticks: 50
+    llm_domain: "reasoning"
+  aar:
+    llm_domain: "planning"
+    auto_generate: true
+
+synthetic:
+  output_dir: "data/synthetic/"
+  manifest_dir: "data/manifests/"
+  defaults:
+    network_traffic_records: 10000
+    sensor_telemetry_records: 5000
+    logistics_records: 2000
+    attack_ratio: 0.1
+    anomaly_ratio: 0.05
+
+replays:
+  output_dir: "data/replays/"
+  max_file_size_mb: 500
+  auto_record: true

@@ -1,0 +1,41 @@
+scenario:
+  name: "Urban Patrol — Sector Alpha"
+  type: "patrol"
+  description: "4-UAV patrol through urban sector with possible ambush by enemy infantry and UAV interceptors"
+  terrain:
+    bounds: [[0, 0, 0], [1000, 1000, 200]]
+    type: "urban"
+    obstacles:
+      - {position: [300, 400, 0], radius: 40, type: "building_cluster"}
+      - {position: [600, 200, 0], radius: 30, type: "tower"}
+      - {position: [500, 700, 0], radius: 60, type: "industrial_complex"}
+  weather:
+    visibility: 0.85
+    wind_speed: 8.0
+    wind_direction: 225
+    precipitation: "none"
+  forces:
+    - name: "Blue Force — Eagle Patrol"
+      allegiance: "friendly"
+      units:
+        - {type: "FRIENDLY_UAV", count: 4, position: [50, 50, 80], behavior: "patrol"}
+    - name: "Red Force — Urban Militia"
+      allegiance: "enemy"
+      units:
+        - {type: "ENEMY_INFANTRY", count: 8, position: [500, 500, 0], behavior: "ambush"}
+        - {type: "ENEMY_UAV", count: 2, position: [800, 300, 100], behavior: "intercept"}
+  objectives:
+    - description: "Complete patrol of all 4 waypoints"
+      success_condition: "all_waypoints_visited"
+      priority: 1
+    - description: "Maintain zero friendly UAV losses"
+      success_condition: "friendly_losses == 0"
+      priority: 2
+    - description: "Detect and report all enemy positions"
+      success_condition: "enemies_detected >= 8"
+      priority: 3
+  rules_of_engagement: "weapons_tight"
+  duration_seconds: 600
+  parameters:
+    patrol_waypoints: [[200, 200, 80], [400, 600, 80], [700, 400, 80], [300, 800, 80]]
+    patrol_speed: 12.0
