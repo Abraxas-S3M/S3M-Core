@@ -110,8 +110,19 @@ class SystemHealthProvider:
             from src.api.server import app
 
             route_paths = {getattr(route, "path", "") for route in app.routes}
+            alias_prefix = {
+                "/threats": ["/threats", "/sensors"],
+                "/autonomy": ["/autonomy", "/dashboard/autonomy"],
+                "/simulation": ["/simulation", "/dashboard/system"],
+                "/navigation": ["/navigation", "/dashboard/system"],
+            }
             for prefix in targets:
-                if any(path == prefix or path.startswith(f"{prefix}/") for path in route_paths):
+                probes = alias_prefix.get(prefix, [prefix])
+                if any(
+                    path == probe or path.startswith(f"{probe}/")
+                    for probe in probes
+                    for path in route_paths
+                ):
                     healthy += 1
                 else:
                     unhealthy += 1

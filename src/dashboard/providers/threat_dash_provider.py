@@ -33,22 +33,34 @@ class ThreatDashProvider:
 
     def _init_clients(self) -> None:
         try:
-            from src.threat_detection.threat_manager import ThreatManager
+            from src.api.threat_routes import _threat_manager
 
-            self._threat_manager = ThreatManager()
+            self._threat_manager = _threat_manager
             self._available["threat_manager"] = True
         except Exception:
-            self._threat_manager = None
-            self._available["threat_manager"] = False
+            try:
+                from src.threat_detection.threat_manager import ThreatManager
+
+                self._threat_manager = ThreatManager()
+                self._available["threat_manager"] = True
+            except Exception:
+                self._threat_manager = None
+                self._available["threat_manager"] = False
 
         try:
-            from src.sensor_fusion.sensor_manager import SensorManager
+            from src.api.threat_routes import _sensor_manager
 
-            self._sensor_manager = SensorManager()
+            self._sensor_manager = _sensor_manager
             self._available["sensor_manager"] = True
         except Exception:
-            self._sensor_manager = None
-            self._available["sensor_manager"] = False
+            try:
+                from src.sensor_fusion.sensor_manager import SensorManager
+
+                self._sensor_manager = SensorManager()
+                self._available["sensor_manager"] = True
+            except Exception:
+                self._sensor_manager = None
+                self._available["sensor_manager"] = False
 
     def _normalize_event(self, event: Any) -> Dict[str, Any]:
         if hasattr(event, "to_dict"):

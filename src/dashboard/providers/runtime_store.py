@@ -1,9 +1,16 @@
-"""Fallback in-memory tactical state for dashboard data providers."""
+"""Fallback tactical state for dashboard data providers.
+
+This store is intentionally file-backed so standalone scripts (for example
+demo loaders) can seed data that a separately running API server process can
+read without shared memory.
+"""
 
 from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime, timezone
+import json
+import os
 from typing import Any, Dict, List
 
 
@@ -37,20 +44,56 @@ _DEFAULT_STATE: Dict[str, Any] = {
     "last_updated": _now_iso(),
 }
 
+_STATE_FILE = os.environ.get("S3M_DASHBOARD_STATE_FILE", "/tmp/s3m_dashboard_runtime_state.json")
+
+
+def _persist() -> None:
+    try:
+        directory = os.path.dirname(_STATE_FILE)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        tmp_file = f"{_STATE_FILE}.tmp"
+        with open(tmp_file, "w", encoding="utf-8") as handle:
+            json.dump(_STATE, handle)
+        os.replace(tmp_file, _STATE_FILE)
+    except Exception:
+        # Persistence failures must not break tactical dashboard operation.
+        return
+
+
+def _reload_from_disk() -> None:
+    global _STATE
+    try:
+        if not os.path.exists(_STATE_FILE):
+            return
+        with open(_STATE_FILE, "r", encoding="utf-8") as handle:
+            loaded = json.load(handle)
+        if isinstance(loaded, dict):
+            merged = deepcopy(_DEFAULT_STATE)
+            merged.update(loaded)
+            _STATE = merged
+    except Exception:
+        return
+
+
 _STATE: Dict[str, Any] = deepcopy(_DEFAULT_STATE)
+_reload_from_disk()
 
 
 def get_runtime_state() -> Dict[str, Any]:
+    _reload_from_disk()
     return _STATE
 
 
 def reset_runtime_state() -> None:
     global _STATE
     _STATE = deepcopy(_DEFAULT_STATE)
+    _persist()
 
 
 def mark_updated() -> None:
     _STATE["last_updated"] = _now_iso()
+    _persist()
 
 
 def _set_list(key: str, values: List[Dict[str, Any]]) -> None:

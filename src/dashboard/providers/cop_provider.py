@@ -31,6 +31,8 @@ class COPDataProvider:
         self._runtime = get_runtime_state()
         self._swarm_cls = None
         self._threat_cls = None
+        self._threat_manager = None
+        self._sensor_manager = None
         self._track_fuser_cls = None
         self._planning_cls = None
         self._formation_cls = None
@@ -57,6 +59,16 @@ class COPDataProvider:
             self._threat_cls = ThreatManager
         except Exception:
             self._threat_cls = None
+
+        # Prefer shared in-process managers used by API routes.
+        try:
+            from src.api import threat_routes
+
+            self._threat_manager = getattr(threat_routes, "_threat_manager", None)
+            self._sensor_manager = getattr(threat_routes, "_sensor_manager", None)
+        except Exception:
+            self._threat_manager = None
+            self._sensor_manager = None
 
         try:
             from src.sensor_fusion.track_fuser import TrackFuser
@@ -145,7 +157,11 @@ class COPDataProvider:
         return output
 
     def get_threats(self) -> List[Dict[str, Any]]:
-        manager = self._safe_instance(self._threat_cls)
+        manager = self._threat_manager
+        if self._threat_cls is not None:
+            manager = self._safe_instance(self._threat_cls)
+        if manager is None:
+            manager = self._threat_manager
         if manager is None:
             return []
         try:
@@ -172,13 +188,20 @@ class COPDataProvider:
         return output
 
     def get_tracks(self) -> List[Dict[str, Any]]:
-        fuser = self._safe_instance(self._track_fuser_cls)
-        if fuser is None:
-            return []
-        try:
-            tracks = fuser.get_tracks()
-        except Exception:
-            return []
+        tracks: List[Any] = []
+        if self._sensor_manager is not None and hasattr(self._sensor_manager, "get_fused_tracks"):
+            try:
+                tracks = self._sensor_manager.get_fused_tracks()
+            except Exception:
+                tracks = []
+        if not tracks:
+            fuser = self._safe_instance(self._track_fuser_cls)
+            if fuser is None:
+                return []
+            try:
+                tracks = fuser.get_tracks()
+            except Exception:
+                return []
 
         output: List[Dict[str, Any]] = []
         for track in tracks if isinstance(tracks, list) else []:

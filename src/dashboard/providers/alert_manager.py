@@ -171,7 +171,7 @@ class AlertManager:
                 str(item.get("timestamp", "")),
             )
         )
-        self._active = ordered[: self.max_alerts]
+        self._active = ordered[-self.max_alerts :]
         if level:
             target = self._normalized_level(level)
             return [a for a in self._active if self._normalized_level(a.get("level")) == target][:safe_limit]

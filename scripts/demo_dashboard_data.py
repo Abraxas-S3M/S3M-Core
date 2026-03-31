@@ -24,6 +24,9 @@ from src.dashboard.providers.runtime_store import (
     set_sensors,
     set_threats,
 )
+from src.api.threat_routes import _sensor_manager, _threat_manager
+from src.sensor_fusion.models import SensorType
+from src.threat_detection.models import ThreatCategory, ThreatLevel
 
 
 def _now() -> datetime:
@@ -178,8 +181,49 @@ def main() -> None:
     random.seed(23)
 
     # Threat + sensor fusion feeds.
-    set_threats(_sample_threats())
-    set_sensors(_sample_sensors())
+    threat_rows = _sample_threats()
+    sensor_rows = _sample_sensors()
+    set_threats(threat_rows)
+    set_sensors(sensor_rows)
+
+    # Also seed shared in-process managers so providers can read live objects.
+    try:
+        _threat_manager.clear_log()
+    except Exception:
+        pass
+    for row in threat_rows:
+        try:
+            _threat_manager.ingest_manual(
+                title=str(row.get("title", "Threat event")),
+                description=str(row.get("description", "Dashboard demo threat")),
+                level=str(row.get("level", ThreatLevel.INFO.name)),
+                category=str(row.get("category", ThreatCategory.UNKNOWN.value)),
+            )
+        except Exception:
+            continue
+
+    for sensor in sensor_rows:
+        sensor_id = str(sensor.get("sensor_id", "sensor-demo"))
+        sensor_type = str(sensor.get("type", "RADAR"))
+        try:
+            _sensor_manager.register_sensor(sensor_id=sensor_id, sensor_type=SensorType.from_value(sensor_type))
+        except Exception:
+            pass
+    for i in range(30):
+        sensor_id = f"sensor-{(i % 5) + 1}"
+        try:
+            _sensor_manager.ingest(
+                sensor_id=sensor_id,
+                data={"classification": "vehicle", "x": 100 + i * 8, "y": 120 + i * 5, "z": 0},
+                position=(100 + i * 8, 120 + i * 5, 0.0),
+                confidence=0.75,
+            )
+        except Exception:
+            continue
+    try:
+        _sensor_manager.process()
+    except Exception:
+        pass
 
     # Autonomy mission state and decisions.
     set_agents(_sample_agents())
