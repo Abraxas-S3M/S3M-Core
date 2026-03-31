@@ -1,0 +1,10 @@
+# S3M Phase 10 — Security & Interoperability Dependencies
+# Install with: pip install -r requirements-security.txt
+
+# Encryption (optional — stdlib XOR fallback available for dev/test)
+cryptography>=41.0.0
+
+# Already in base requirements
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
