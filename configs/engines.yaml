@@ -1,0 +1,62 @@
+# S3M Quad-Engine Configuration
+# UNCLASSIFIED - FOUO
+
+engines:
+  phi3:
+    name: "Phi-3 Mini"
+    provider: "Microsoft"
+    parameters: "3.8B"
+    quantization: "Q4_K_M"
+    runtime: "llama.cpp"
+    source: "huggingface"
+    hf_repo: "microsoft/Phi-3-mini-4k-instruct-gguf"
+    gcs_bucket: "gs://s3m-weight-vault/phi3/"
+    domain: "tactical"
+    context_window: 4096
+    max_tokens: 512
+
+  grok:
+    name: "Grok"
+    provider: "xAI"
+    parameters: "8B"
+    quantization: "Q4_K_M"
+    runtime: "llama.cpp"
+    source: "huggingface"
+    hf_repo: "xai-org/grok-1"
+    gcs_bucket: "gs://s3m-weight-vault/grok/"
+    domain: "reasoning"
+    context_window: 8192
+    max_tokens: 1024
+
+  mistral:
+    name: "Mistral 7B"
+    provider: "Mistral AI"
+    parameters: "7B"
+    quantization: "Q4_K_M"
+    runtime: "llama.cpp"
+    source: "huggingface"
+    hf_repo: "mistralai/Mistral-7B-Instruct-v0.3"
+    gcs_bucket: "gs://s3m-weight-vault/mistral/"
+    domain: "planning"
+    context_window: 32768
+    max_tokens: 1024
+
+  allam:
+    name: "ALLaM-7B"
+    provider: "SDAIA"
+    parameters: "7B"
+    quantization: "Q4_K_M"
+    runtime: "llama.cpp"
+    source: "huggingface"
+    hf_repo: "sdaia/allam-7b"
+    gcs_bucket: "gs://s3m-weight-vault/allam/"
+    domain: "arabic_nlp"
+    context_window: 4096
+    max_tokens: 1024
+
+weight_vault:
+  primary: "google_cloud_storage"
+  bucket: "s3m-weight-vault"
+  region: "me-central1"
+  local_mirror: "./models/"
+  sync_strategy: "pull-on-deploy"

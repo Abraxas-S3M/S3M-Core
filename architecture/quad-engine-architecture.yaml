@@ -1,0 +1,41 @@
+# S3M Quad-Engine Architecture
+# UNCLASSIFIED - FOUO
+
+system: "S3M Sovereign Military AI"
+version: "0.2.0"
+architecture: "quad-engine-orchestrated"
+
+engines:
+  - id: phi3
+    role: "Tactical Edge Inference"
+    strength: "Fastest response, smallest footprint"
+    use_case: "Field queries, sitreps, quick decisions"
+
+  - id: grok
+    role: "Complex Reasoning Engine"
+    strength: "Deep analysis, multi-step reasoning"
+    use_case: "Threat assessment, strategic analysis"
+
+  - id: mistral
+    role: "Operations Planning Engine"
+    strength: "Code generation, structured planning"
+    use_case: "Route planning, logistics, ops orders"
+
+  - id: allam
+    role: "Arabic Language Intelligence"
+    strength: "Native Arabic NLP, MENA context"
+    use_case: "Arabic SIGINT, translation, cultural intel"
+
+data_flow:
+  input: "User query or system trigger"
+  step_1: "Orchestrator classifies task domain"
+  step_2: "Routes to primary engine OR triggers consensus"
+  step_3: "Engine processes via llama.cpp locally"
+  step_4: "Response returned with metadata"
+  step_5: "Logged for audit trail"
+
+weight_management:
+  source: "Open-source model repositories"
+  vault: "Google Cloud Storage (gs://s3m-weight-vault)"
+  deploy: "Local GGUF files on Jetson hardware"
+  strategy: "Pull once, store forever, deploy anywhere"
