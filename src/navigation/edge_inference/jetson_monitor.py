@@ -47,12 +47,20 @@ class JetsonMonitor:
         self._last_update = datetime.now(timezone.utc)
 
     def _is_jetson(self) -> bool:
-        indicators = [
-            "/sys/devices/gpu.0/load",
-            "/sys/class/thermal",
-            "/etc/nv_tegra_release",
+        # Tactical edge deployments can run on generic Linux hosts during
+        # integration; require Jetson-specific fingerprints before enabling
+        # hardware mode to avoid false positives from common Linux sysfs paths.
+        if os.path.exists("/etc/nv_tegra_release"):
+            return True
+        model_paths = [
+            "/proc/device-tree/model",
+            "/sys/firmware/devicetree/base/model",
         ]
-        return any(os.path.exists(path) for path in indicators)
+        for path in model_paths:
+            text = _read_text(path)
+            if text and "jetson" in text.lower():
+                return True
+        return False
 
     def _cpu_utilization(self) -> float:
         text = _read_text("/proc/stat")
