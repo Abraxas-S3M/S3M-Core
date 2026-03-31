@@ -1,0 +1,13 @@
+.git
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+*.egg-info
+dist
+build
+node_modules
+.env
+*.log
+data/replays/*.jsonl
+data/synthetic/*.csv

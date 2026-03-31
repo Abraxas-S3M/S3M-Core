@@ -1,0 +1,23 @@
+# Field deployment profile — minimal memory, essential layers only
+# For constrained Jetson or hostile EMI environments
+system:
+  deployment_mode: "field"
+middleware:
+  auth_enabled: true
+  rate_limit_rpm: 60
+memory:
+  total_budget_gb: 32  # Conservative for field conditions
+startup:
+  order:
+    - security
+    - llm_core        # Only Phi-3 (tactical) + ALLaM (Arabic) — 2 engines
+    - threat_detection
+    - autonomy
+    - navigation
+    - dashboard
+  skip_on_memory_pressure: [simulation, apps]
+engines:
+  load_on_startup: ["phi3", "allam"]  # 2 engines only in field mode
+jetson:
+  simulated_mode: false
+  thermal_throttle_threshold_c: 75  # More aggressive throttling in field
