@@ -97,7 +97,6 @@ app.add_middleware(
 app.include_router(threat_router, tags=["Threat Detection"])
 app.include_router(sensor_router, tags=["Sensor Fusion"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
-app.include_router(security_router, tags=["Security & Compliance"])
 
 # Load security config
 security_config = {}
@@ -108,6 +107,9 @@ if os.path.exists(security_config_path):
 
 # Add security middleware (wraps ALL requests)
 app.add_middleware(SecurityMiddleware, config=security_config)
+
+# Add security routes
+app.include_router(security_router, tags=["Security & Compliance"])
 
 # ── State Management ─────────────────────────────────────────
 

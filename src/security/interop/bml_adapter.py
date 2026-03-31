@@ -182,7 +182,8 @@ class BMLAdapter:
     def _parse_coordinate(node: Optional[ET.Element]) -> Tuple[float, float, float]:
         if node is None:
             return (0.0, 0.0, 0.0)
-        c = node.find(".//Coordinate") or node
+        coord_node = node.find(".//Coordinate")
+        c = coord_node if coord_node is not None else node
         try:
             x = float((c.findtext("X") or "0").strip())
             y = float((c.findtext("Y") or "0").strip())

@@ -5,10 +5,12 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import src.security.crypto.data_encryptor as data_encryptor_module
 from src.security.crypto.data_encryptor import DataEncryptor
 
 
@@ -61,6 +63,13 @@ class TestDataEncryptor(unittest.TestCase):
         key = self.encryptor.load_key("bravo")
         self.assertIsInstance(key, bytes)
         self.assertEqual(len(key), 32)
+
+    def test_encrypt_decrypt_round_trip_without_cryptography(self):
+        payload = b"fallback mode payload"
+        with mock.patch.object(data_encryptor_module, "_HAS_CRYPTOGRAPHY", False):
+            encrypted = self.encryptor.encrypt_data(payload, key_id="default")
+            decrypted = self.encryptor.decrypt_data(encrypted, key_id="default")
+        self.assertEqual(decrypted, payload)
 
 
 if __name__ == "__main__":

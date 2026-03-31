@@ -6,7 +6,11 @@ from __future__ import annotations
 import binascii
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
+import sys
 from typing import Any, List
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.security.interop import C2SIMAdapter, DISAdapter, InteropManager
 
