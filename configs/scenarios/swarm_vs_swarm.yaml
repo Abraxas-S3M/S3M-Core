@@ -1,0 +1,34 @@
+scenario:
+  name: "Swarm vs Swarm — Contested Airspace"
+  type: "swarm_vs_swarm"
+  description: "Autonomous UAV swarm engagement in contested airspace — tests swarm coordination and tactics"
+  terrain:
+    bounds: [[0, 0, 0], [2000, 2000, 300]]
+    type: "mixed"
+    obstacles: []
+  weather:
+    visibility: 0.90
+    wind_speed: 10.0
+    wind_direction: 0
+    precipitation: "none"
+  forces:
+    - name: "Blue Swarm"
+      allegiance: "friendly"
+      units:
+        - {type: "FRIENDLY_UAV", count: 10, position: [200, 1000, 100], behavior: "swarm_engage"}
+    - name: "Red Swarm"
+      allegiance: "enemy"
+      units:
+        - {type: "ENEMY_UAV", count: 10, position: [1800, 1000, 100], behavior: "swarm_engage"}
+  objectives:
+    - description: "Achieve air superiority (>70% enemy losses)"
+      success_condition: "enemy_losses >= 7"
+      priority: 1
+    - description: "Maintain >50% friendly force"
+      success_condition: "friendly_losses <= 5"
+      priority: 2
+  rules_of_engagement: "weapons_free"
+  duration_seconds: 180
+  parameters:
+    swarm_formation: "wedge"
+    engagement_range: 100

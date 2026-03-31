@@ -11,9 +11,12 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+import os
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.api.config import api_config
@@ -91,6 +94,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(threat_router, tags=["Threat Detection"])
+app.include_router(sensor_router, tags=["Sensor Fusion"])
+app.include_router(dashboard_router, tags=["Dashboard"])
+app.include_router(simulation_router, tags=["Simulation & Wargaming"])
+
+# Keep dashboard API routes active, then mount static frontend files.
+dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
+if os.path.exists(dashboard_dir):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard")
 
 # ── State Management ─────────────────────────────────────────
 

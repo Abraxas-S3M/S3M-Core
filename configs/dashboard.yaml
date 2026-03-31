@@ -1,0 +1,40 @@
+# S3M Phase 9 — Dashboard Configuration
+# UNCLASSIFIED - FOUO
+
+dashboard:
+  title: "S3M SOVEREIGN MILITARY AI"
+  classification: "UNCLASSIFIED - FOUO"
+  default_language: "en"  # "en" or "ar"
+  theme: "tactical_dark"
+
+refresh:
+  cop_interval_seconds: 3
+  metrics_interval_seconds: 5
+  threats_interval_seconds: 2
+  autonomy_interval_seconds: 3
+  system_interval_seconds: 10
+
+alerts:
+  max_alerts: 500
+  auto_dismiss_after_seconds: 300
+  critical_sound: false  # Set true for audible alerts on command center
+
+websocket:
+  heartbeat_interval_seconds: 30
+  max_connections: 10
+
+cop:
+  default_bounds:
+    x: [0, 1000]
+    y: [0, 1000]
+    z: [0, 200]
+  grid_spacing: 100
+  show_grid: true
+  show_coordinates: true
+
+display:
+  max_threat_feed_items: 50
+  max_audit_log_items: 20
+  max_decision_feed_items: 20
+  agent_icon_size: 12
+  threat_icon_size: 10
