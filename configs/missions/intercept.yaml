@@ -1,0 +1,31 @@
+# Intercept mission behavior tree
+# Swarm intercepts incoming threat, coordinates engagement, RTB after
+mission:
+  type: intercept
+  name: "Threat Intercept"
+  description: "Coordinated swarm intercept of incoming threat with LLM tactical guidance"
+  tree:
+    type: sequence
+    children:
+      - type: condition
+        name: "sufficient_agents"
+        check: "available_agents >= 2"
+      - type: action
+        name: "llm_tactical_plan"
+        node: "llm_replan"
+      - type: selector
+        children:
+          - type: sequence
+            children:
+              - type: condition
+                name: "engagement_authorized"
+                check: "rules_of_engagement != weapons_hold"
+              - type: action
+                name: "engage_target"
+                node: "engage"
+          - type: action
+            name: "hold_and_track"
+            node: "hold"
+      - type: action
+        name: "post_engagement_rtb"
+        node: "rtb"

@@ -1,0 +1,63 @@
+# S3M Phase 10 — Security Configuration
+# UNCLASSIFIED - FOUO
+
+middleware:
+  auth_enabled: false         # Set true for deployment
+  api_key: "CHANGEME"         # Replace before deployment
+  rate_limit_enabled: true
+  rate_limit_rpm: 120         # Requests per minute per IP
+  sanitize_inputs: true
+  cors_lockdown: false        # Set true for deployment (restricts to dashboard origin)
+  audit_security_events: true
+
+classification:
+  level: "UNCLASSIFIED - FOUO"
+  banner_enabled: true
+
+encryption:
+  keys_dir: "configs/keys/"
+  default_algorithm: "aes-256"
+  encrypt_threat_logs: false   # Set true for classified deployments
+  encrypt_decision_logs: false
+  encrypt_replays: false
+
+airgap:
+  verify_on_startup: true
+  check_interval_seconds: 300
+  allowed_interfaces: ["lo", "docker0"]
+  allowed_ports: [8080]
+
+audit:
+  log_dir: "data/security_audit/"
+  max_entries_per_file: 10000
+  hash_algorithm: "sha256"
+  log_all_requests: true
+  log_responses: false        # Set true for full response logging (verbose)
+
+compliance:
+  auto_check_on_startup: false
+  report_dir: "data/security_reports/"
+
+vulnerability:
+  port_scan_range: [22, 80, 443, 3000, 3306, 5432, 5672, 6379, 8080, 8443, 9090, 27017]
+  config_scan_dirs: ["configs/"]
+  model_scan_dir: "models/"
+
+interop:
+  dis:
+    enabled: false
+    broadcast_address: "255.255.255.255"
+    port: 3000
+    exercise_id: 1
+    site_id: 1
+    app_id: 1
+    country_code: 178           # Saudi Arabia
+  c2sim:
+    enabled: false
+    server_url: null
+    namespace: "http://www.sisostds.org/schemas/C2SIM/1.1"
+    outbox_dir: "data/interop/c2sim_outbox/"
+    inbox_dir: "data/interop/c2sim_inbox/"
+  bml:
+    enabled: false
+    report_types: ["SITREP", "SPOTREP", "INTREP"]

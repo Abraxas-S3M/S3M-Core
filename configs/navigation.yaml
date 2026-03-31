@@ -1,0 +1,63 @@
+# S3M Phase 8 — Navigation & Edge Inference Configuration
+# UNCLASSIFIED - FOUO
+
+localization:
+  default_mode: "auto"  # auto, gps_fused, visual_inertial, lidar_inertial, dead_reckoning
+  pose_estimator:
+    dt: 0.05
+    source_weights:
+      gps: 1.0
+      vio: 0.8
+      lidar_odom: 0.9
+      imu: 0.3
+  gps_monitor:
+    denial_threshold_hdop: 10.0
+    min_satellites: 4
+    spoof_detection_jump_meters: 1000
+  vins:
+    topic: "/vins_estimator/odometry"
+    enabled: false
+  lidar_odom:
+    topic: "/lio_sam/mapping/odometry"
+    enabled: false
+  dead_reckoning:
+    initial_confidence: 0.5
+    confidence_decay_rate: 0.001
+
+planning:
+  default_planner: "rrt_star"
+  rrt_star:
+    max_iterations: 5000
+    step_size: 10.0
+    neighbor_radius: 30.0
+  a_star:
+    resolution: 5.0
+  potential_field:
+    attractive_gain: 1.0
+    repulsive_gain: 100.0
+    repulsive_range: 50.0
+  collision:
+    safety_margin: 5.0
+    corridor_width: 20.0
+  trajectory:
+    default_dt: 0.05
+    max_retiming_iterations: 5
+
+edge_inference:
+  output_dir: "models/optimized/"
+  default_precision: "fp16"
+  max_model_memory_mb: 8000
+  benchmark_iterations: 100
+  llm:
+    default_model_dir: "models/"
+    max_memory_mb: 8000
+    default_n_gpu_layers: -1
+    default_n_ctx: 2048
+
+jetson:
+  thermal_throttle_threshold_c: 80.0
+  memory_headroom_pct: 20
+  power_budget_watts: 60.0
+  simulated_mode: true  # Set false when running on actual Jetson hardware
+
+platforms_dir: "configs/platforms/"

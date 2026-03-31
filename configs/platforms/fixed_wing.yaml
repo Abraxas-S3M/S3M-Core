@@ -1,0 +1,14 @@
+# Fixed-wing UAV platform constraints
+# Based on medium-range tactical UAV
+platform:
+  type: "fixed_wing"
+  max_velocity: 40.0       # m/s (about 144 km/h)
+  max_acceleration: 3.0    # m/s²
+  max_jerk: 15.0           # m/s³
+  max_yaw_rate: 0.52       # rad/s (30 deg/s — banking turns)
+  min_turn_radius: 50.0    # meters (must maintain airspeed)
+  max_altitude: 3000.0     # meters AGL
+  min_altitude: 30.0       # meters AGL (stall risk below this)
+  max_climb_rate: 8.0      # m/s
+  max_descent_rate: 5.0    # m/s
+  collision_radius: 5.0    # meters (wingspan + margin)
