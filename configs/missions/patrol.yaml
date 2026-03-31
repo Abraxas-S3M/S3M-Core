@@ -1,0 +1,40 @@
+# Standard patrol mission behavior tree
+# Agent patrols waypoints, avoids threats, returns to base on low battery
+mission:
+  type: patrol
+  name: "Standard Patrol"
+  description: "Cyclic patrol route with threat avoidance and RTB on low battery"
+  tree:
+    type: selector
+    children:
+      - type: sequence
+        name: "battery_critical_rtb"
+        children:
+          - type: condition
+            name: "battery_critical"
+            check: "battery_pct < 15"
+          - type: action
+            name: "emergency_rtb"
+            node: "rtb"
+      - type: sequence
+        name: "threat_response"
+        children:
+          - type: condition
+            name: "threat_close"
+            check: "nearest_threat_distance < 30"
+          - type: selector
+            children:
+              - type: sequence
+                children:
+                  - type: condition
+                    name: "weapons_free"
+                    check: "rules_of_engagement == weapons_free"
+                  - type: action
+                    name: "engage_threat"
+                    node: "engage"
+              - type: action
+                name: "avoid_threat"
+                node: "retreat"
+      - type: action
+        name: "continue_patrol"
+        node: "patrol"

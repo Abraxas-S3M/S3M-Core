@@ -1,0 +1,34 @@
+# Reconnaissance mission behavior tree
+# Agent moves to recon area, observes, reports, LLM replans if surprised
+mission:
+  type: recon
+  name: "Area Reconnaissance"
+  description: "Move to target area, observe and report, replan via LLM if conditions change"
+  tree:
+    type: sequence
+    children:
+      - type: condition
+        name: "has_battery"
+        check: "battery_pct > 20"
+      - type: selector
+        name: "threat_or_proceed"
+        children:
+          - type: sequence
+            children:
+              - type: condition
+                name: "threat_detected"
+                check: "nearest_threat_distance < 50"
+              - type: action
+                name: "llm_assess_situation"
+                node: "llm_replan"
+          - type: sequence
+            children:
+              - type: action
+                name: "move_to_recon_area"
+                node: "patrol"
+              - type: action
+                name: "observe_area"
+                node: "recon"
+              - type: action
+                name: "return_to_base"
+                node: "rtb"
