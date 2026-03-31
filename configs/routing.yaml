@@ -1,0 +1,45 @@
+# S3M Query Routing Rules
+# Maps task domains to engine selection
+
+routing:
+  default_engine: "phi3"
+
+  domain_map:
+    tactical: "phi3"
+    reasoning: "grok"
+    planning: "mistral"
+    arabic_nlp: "allam"
+
+  consensus:
+    enabled: true
+    min_engines: 3
+    agreement_threshold: 0.7
+
+  keyword_triggers:
+    tactical:
+      - "position"
+      - "grid"
+      - "threat"
+      - "enemy"
+      - "patrol"
+      - "sector"
+      - "contact"
+      - "movement"
+      - "sitrep"
+    reasoning:
+      - "analyze"
+      - "compare"
+      - "evaluate"
+      - "assess"
+      - "explain"
+      - "implications"
+    planning:
+      - "plan"
+      - "schedule"
+      - "route"
+      - "logistics"
+      - "generate"
+      - "build"
+    arabic_nlp:
+      - "arabic"
+      - "translate"
