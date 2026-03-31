@@ -18,7 +18,10 @@ from pydantic import BaseModel, Field
 
 from src.api.config import api_config
 from src.api.simulation_routes import simulation_router
+from src.api.security_routes import security_router
 from src.api.threat_routes import threat_router, sensor_router
+from src.security.middleware import SecurityMiddleware
+import yaml, os
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -94,6 +97,17 @@ app.add_middleware(
 app.include_router(threat_router, tags=["Threat Detection"])
 app.include_router(sensor_router, tags=["Sensor Fusion"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
+app.include_router(security_router, tags=["Security & Compliance"])
+
+# Load security config
+security_config = {}
+security_config_path = "configs/security.yaml"
+if os.path.exists(security_config_path):
+    with open(security_config_path) as f:
+        security_config = yaml.safe_load(f).get("middleware", {})
+
+# Add security middleware (wraps ALL requests)
+app.add_middleware(SecurityMiddleware, config=security_config)
 
 # ── State Management ─────────────────────────────────────────
 

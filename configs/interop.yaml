@@ -1,0 +1,72 @@
+# S3M Interoperability Protocol Configuration
+# Maps S3M entity types to DIS enumerations
+# Reference: SISO-REF-010 (DIS Enumerations)
+# Country 178 = Saudi Arabia (SISO standard)
+
+dis_entity_mapping:
+  FRIENDLY_UAV:
+    kind: 1        # Platform
+    domain: 2      # Air
+    country: 178   # Saudi Arabia
+    category: 1    # Fighter/Attack
+    subcategory: 0
+  FRIENDLY_UGV:
+    kind: 1
+    domain: 1      # Land
+    country: 178
+    category: 1    # Tank
+    subcategory: 0
+  FRIENDLY_SHIP:
+    kind: 1
+    domain: 3      # Surface
+    country: 178
+    category: 1    # Carrier
+    subcategory: 0
+  ENEMY_UAV:
+    kind: 1
+    domain: 2
+    country: 0     # Other
+    category: 1
+    subcategory: 0
+  ENEMY_UGV:
+    kind: 1
+    domain: 1
+    country: 0
+    category: 1
+    subcategory: 0
+  ENEMY_SHIP:
+    kind: 1
+    domain: 3
+    country: 0
+    category: 1
+    subcategory: 0
+  ENEMY_INFANTRY:
+    kind: 3        # Lifeform
+    domain: 1      # Land
+    country: 0
+    category: 1    # Soldier
+    subcategory: 0
+  CIVILIAN:
+    kind: 3
+    domain: 1
+    country: 0
+    category: 0    # Civilian
+    subcategory: 0
+
+c2sim_task_mapping:
+  PATROL: "PATROL"
+  RECON: "RECONNAISSANCE"
+  INTERCEPT: "ATTACK"
+  ESCORT: "GUARD"
+  SEARCH_AND_RESCUE: "SEARCH_AND_RESCUE"
+  STRIKE: "ATTACK"
+  HOLD_POSITION: "DEFEND"
+  RETURN_TO_BASE: "WITHDRAW"
+
+bml_task_mapping:
+  MOVE_TO: "ADVANCE"
+  HOLD: "DEFEND"
+  ENGAGE: "ATTACK"
+  DISENGAGE: "WITHDRAW"
+  RTB: "WITHDRAW"
+  EMERGENCY_STOP: "HALT"
