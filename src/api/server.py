@@ -6,6 +6,7 @@ Designed for air-gapped deployment on NVIDIA Jetson AGX Orin 64GB.
 
 import asyncio
 import hashlib
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -14,12 +15,18 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+import yaml
 
 from src.api.config import api_config
 from src.api.apps_routes import apps_router
+from src.api.dashboard_routes import dashboard_router
 from src.api.simulation_routes import simulation_router
+from src.api.security_routes import security_router
 from src.api.threat_routes import threat_router, sensor_router
+from src.security.middleware import SecurityMiddleware
+from src.api.autonomy_routes import autonomy_router
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -84,6 +91,8 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=api_config.cors_origins,
@@ -94,8 +103,27 @@ app.add_middleware(
 
 app.include_router(threat_router, tags=["Threat Detection"])
 app.include_router(sensor_router, tags=["Sensor Fusion"])
+app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 app.include_router(apps_router, tags=["Domain Applications"])
+
+# Load security config
+security_config = {}
+security_config_path = "configs/security.yaml"
+if os.path.exists(security_config_path):
+    with open(security_config_path) as f:
+        security_config = yaml.safe_load(f).get("middleware", {})
+
+# Add security middleware (wraps ALL requests)
+app.add_middleware(SecurityMiddleware, config=security_config)
+
+# Add security routes
+app.include_router(security_router, tags=["Security & Compliance"])
+
+# Keep dashboard API routes active, then mount static frontend files.
+dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
+if os.path.exists(dashboard_dir):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard")
 
 # ── State Management ─────────────────────────────────────────
 
