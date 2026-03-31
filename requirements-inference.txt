@@ -1,0 +1,11 @@
+# S3M Phase 3 - Inference Dependencies
+# Install with: pip install -r requirements-inference.txt
+
+# Core inference runtime
+# For Jetson: build llama-cpp-python from source with CUDA
+# CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
+llama-cpp-python>=0.2.0
+
+# Already in base requirements
+pyyaml>=6.0
+pathlib2>=2.3.0
