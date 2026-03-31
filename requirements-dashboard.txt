@@ -1,0 +1,11 @@
+# S3M Phase 9 — Dashboard Dependencies
+# Install with: pip install -r requirements-dashboard.txt
+
+# WebSocket support
+websockets>=12.0
+
+# Already in base requirements
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pyyaml>=6.0

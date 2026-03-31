@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3M — Sovereign Military AI Dashboard</title>
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --panel: #111827;
+            --panel-2: #0f172a;
+            --border: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --critical: #ef4444;
+            --high: #f97316;
+            --medium: #f59e0b;
+            --low: #10b981;
+            --info-level: #3b82f6;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        }
+
+        .mono { font-family: "Courier New", monospace; }
+        .app { min-height: 100vh; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        .muted { color: var(--muted); }
+        .label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .value { font-family: "Courier New", monospace; font-size: 1rem; }
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #0f172a 0%, #0a0e17 100%);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .brand { font-weight: 700; letter-spacing: 0.08em; color: var(--accent); }
+        .clock { justify-self: center; font-family: "Courier New", monospace; }
+        .header-right { justify-self: end; display: flex; align-items: center; gap: 0.75rem; }
+        .lang-switch {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-inline-end: 0.3rem;
+        }
+        .status-dot.online { background: var(--success); }
+        .status-dot.offline { background: var(--danger); }
+        .alert-badge {
+            background: #3f1d1d;
+            border: 1px solid var(--danger);
+            color: #fecaca;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            font-family: "Courier New", monospace;
+            font-size: 0.8rem;
+        }
+
+        .alert-banner {
+            border-bottom: 1px solid var(--border);
+            background: #131d2e;
+            min-height: 2.2rem;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            padding: 0 0.75rem;
+        }
+        .ticker {
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+        }
+        .ticker-inner {
+            display: inline-block;
+            padding-inline-start: 100%;
+            animation: scroll 30s linear infinite;
+            font-family: "Courier New", monospace;
+            font-size: 0.85rem;
+        }
+        @keyframes scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+        }
+        .ticker-item {
+            margin-inline-end: 2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .tiny-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 0.6rem 1rem 0;
+            border-bottom: 1px solid var(--border);
+            background: #0e1626;
+            overflow-x: auto;
+        }
+        .tab {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            padding: 0.5rem 0.1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .tab.active {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .view-wrap {
+            padding: 1rem;
+            display: grid;
+            gap: 1rem;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem;
+        }
+        .panel-title {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.03em;
+        }
+        .grid-2 { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .grid-5 { display: grid; gap: 1rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+        .metric {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem;
+            background: var(--panel-2);
+        }
+        .metric .value { font-size: 1.25rem; font-weight: 700; }
+
+        .map-layout {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: minmax(0, 2.2fr) minmax(280px, 1fr);
+        }
+        .map-frame {
+            background: #091222;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+        svg { width: 100%; height: auto; background: #060d1b; border-radius: 6px; }
+        .agent-list { max-height: 450px; overflow: auto; }
+        .agent-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #0e1728;
+        }
+        .battery-bar {
+            width: 100%;
+            height: 8px;
+            background: #17233a;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+        .battery-fill { height: 100%; background: var(--success); }
+
+        .table-wrap { overflow: auto; max-height: 420px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: "Courier New", monospace;
+            font-size: 0.85rem;
+        }
+        th, td {
+            border-bottom: 1px solid var(--border);
+            padding: 0.45rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+        th { color: var(--muted); font-weight: 600; background: #0d1525; position: sticky; top: 0; }
+
+        .status-pill {
+            display: inline-block;
+            font-size: 0.75rem;
+            border-radius: 999px;
+            padding: 0.15rem 0.5rem;
+            border: 1px solid var(--border);
+            background: #0e1728;
+        }
+        .s-ok { color: #86efac; border-color: #166534; }
+        .s-warn { color: #fde68a; border-color: #92400e; }
+        .s-bad { color: #fca5a5; border-color: #991b1b; }
+
+        .feed-list { max-height: 420px; overflow: auto; }
+        .feed-item {
+            border: 1px solid var(--border);
+            background: #0f1a2c;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-bottom: 0.45rem;
+        }
+        .confidence {
+            margin-top: 0.3rem;
+            height: 6px;
+            border-radius: 5px;
+            background: #1b2941;
+            overflow: hidden;
+        }
+        .confidence > span { display: block; height: 100%; background: var(--info); }
+
+        .bar-chart .bar-row {
+            display: grid;
+            grid-template-columns: 130px 1fr 50px;
+            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-family: "Courier New", monospace;
+            font-size: 0.82rem;
+        }
+        .bar {
+            height: 10px;
+            border-radius: 6px;
+            background: #1e293b;
+            overflow: hidden;
+        }
+        .bar > span { display: block; height: 100%; background: var(--accent); }
+
+        .review-queue {
+            border: 1px solid #a16207;
+            box-shadow: inset 0 0 0 1px #78350f;
+        }
+        .decision-actions { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
+        .btn {
+            border: 1px solid var(--border);
+            background: #0f172a;
+            color: var(--text);
+            border-radius: 6px;
+            padding: 0.35rem 0.6rem;
+            cursor: pointer;
+            font-family: "Courier New", monospace;
+            font-size: 0.8rem;
+        }
+        .btn-approve { border-color: #065f46; color: #6ee7b7; }
+        .btn-reject { border-color: #7f1d1d; color: #fca5a5; }
+        .input, select, textarea {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            padding: 0.4rem 0.5rem;
+            font-family: "Courier New", monospace;
+        }
+        .nl-row { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; }
+        .nl-result {
+            margin-top: 0.5rem;
+            white-space: pre-wrap;
+            background: #0b1425;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            font-family: "Courier New", monospace;
+            font-size: 0.82rem;
+        }
+
+        .layer-grid {
+            display: grid;
+            gap: 0.7rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .layer-box {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            background: #0f192b;
+        }
+        .gauge {
+            width: 140px;
+            height: 70px;
+            border-top-left-radius: 140px;
+            border-top-right-radius: 140px;
+            border: 8px solid #1e293b;
+            border-bottom: none;
+            position: relative;
+            overflow: hidden;
+            margin: 0.6rem auto;
+        }
+        .gauge-fill {
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            height: 80px;
+            background: conic-gradient(from 180deg, var(--success), var(--warn), var(--danger));
+            transform-origin: bottom center;
+            width: 100%;
+            clip-path: polygon(0% 100%, 100% 100%, 100% 0%, 0% 0%);
+        }
+
+        .rtl body { direction: rtl; }
+        .rtl th, .rtl td { text-align: right; }
+        .rtl .header { grid-template-columns: 1fr auto 1fr; }
+        .rtl .header-right { justify-self: start; }
+        .rtl .brand { justify-self: end; }
+        .rtl .ticker-inner { animation-name: scroll-rtl; }
+        @keyframes scroll-rtl {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
+        }
+
+        @media (max-width: 1280px) {
+            .map-layout { grid-template-columns: 1fr; }
+            .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .layer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 900px) {
+            .header { grid-template-columns: 1fr; text-align: center; }
+            .header-right, .clock, .brand { justify-self: center; }
+            .grid-3, .grid-2, .grid-5 { grid-template-columns: 1fr; }
+            .nl-row { grid-template-columns: 1fr; }
+            .layer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const labels = {
+    en: {
+        cop: "Common Operating Picture",
+        llm: "LLM Engines",
+        threats: "Threat Intelligence",
+        autonomy: "Autonomy & Swarm",
+        system: "System Health",
+        approve: "APPROVE",
+        reject: "REJECT",
+        send: "Send Command",
+        reviewQueue: "Human Review Queue",
+        missions: "Missions",
+        decisions: "Decision Feed",
+        roster: "Agent Roster",
+        status: "Status",
+        connected: "Connected",
+        disconnected: "Disconnected",
+        all: "ALL",
+        layerHealth: "Layer Health",
+        edgeModels: "Edge Models",
+        gps: "GPS Status",
+        simulation: "Simulation",
+        apiHealth: "API Health",
+        audit: "Audit Log",
+        routing: "Domain Routing",
+        feed: "Threat Feed",
+        distribution: "Threat Distribution",
+        copStats: "COP Quick Stats",
+        filters: "Filters",
+        language: "Language",
+        commandBar: "NL Command Bar"
+    },
+    ar: {
+        cop: "الصورة التشغيلية المشتركة",
+        llm: "محركات الذكاء الاصطناعي",
+        threats: "استخبارات التهديدات",
+        autonomy: "الاستقلالية والسرب",
+        system: "صحة النظام",
+        approve: "موافقة",
+        reject: "رفض",
+        send: "إرسال أمر",
+        reviewQueue: "طابور المراجعة البشرية",
+        missions: "المهام",
+        decisions: "سجل القرارات",
+        roster: "قائمة الوكلاء",
+        status: "الحالة",
+        connected: "متصل",
+        disconnected: "غير متصل",
+        all: "الكل",
+        layerHealth: "صحة الطبقات",
+        edgeModels: "نماذج الحافة",
+        gps: "حالة GPS",
+        simulation: "المحاكاة",
+        apiHealth: "صحة API",
+        audit: "سجل التدقيق",
+        routing: "توجيه النطاق",
+        feed: "سجل التهديدات",
+        distribution: "توزيع التهديدات",
+        copStats: "إحصاءات COP",
+        filters: "المرشحات",
+        language: "اللغة",
+        commandBar: "شريط الأوامر اللغوية"
+    }
+};
+
+const state = {
+    language: "en",
+    dir: "ltr",
+    tab: "cop",
+    wsConnected: false,
+    alerts: [],
+    alertCounts: { critical: 0, high: 0, medium: 0, total: 0 },
+    cop: null,
+    llmStatus: [],
+    llmMetrics: null,
+    llmAudit: [],
+    llmRouting: {},
+    threatFeed: [],
+    threatStats: null,
+    threatHeatmap: [],
+    autonomyAgents: [],
+    autonomyMissions: [],
+    autonomyDecisions: [],
+    autonomyReview: [],
+    autonomyCommandResult: null,
+    systemHealth: null,
+    systemJetson: null,
+    systemEdgeModels: [],
+    filters: { threatLevel: "", threatCategory: "" }
+};
+
+let ws = null;
+let clockTimer = null;
+let refreshTimers = [];
+let utcClock = "";
+
+function t(key) {
+    return (labels[state.language] && labels[state.language][key]) || key;
+}
+
+function fmtTime(ts) {
+    if (!ts) return "-";
+    try {
+        const d = new Date(ts);
+        return d.toISOString().replace("T", " ").replace("Z", " UTC");
+    } catch (_e) {
+        return String(ts);
+    }
+}
+
+function levelColor(level) {
+    const lv = String(level || "").toUpperCase();
+    if (lv === "CRITICAL") return "var(--critical)";
+    if (lv === "HIGH") return "var(--high)";
+    if (lv === "MEDIUM") return "var(--medium)";
+    if (lv === "LOW") return "var(--low)";
+    return "var(--info-level)";
+}
+
+function stateColor(s) {
+    const v = String(s || "").toUpperCase();
+    if (v === "ACTIVE") return "var(--success)";
+    if (v === "IDLE") return "#6b7280";
+    if (v === "EXECUTING") return "var(--info)";
+    if (v === "LOST") return "var(--danger)";
+    if (v === "RETURNING") return "var(--warn)";
+    return "#9ca3af";
+}
+
+function statusClass(s) {
+    const v = String(s || "").toLowerCase();
+    if (["operational", "active", "loaded", "ok", "approved"].includes(v)) return "s-ok";
+    if (["degraded", "stale", "unknown", "simulated", "pending"].includes(v)) return "s-warn";
+    return "s-bad";
+}
+
+async function fetchData(endpoint) {
+    try {
+        const resp = await fetch(endpoint);
+        if (!resp.ok) return null;
+        return await resp.json();
+    } catch (e) {
+        console.error(`Fetch failed: ${endpoint}`, e);
+        return null;
+    }
+}
+
+function connectWebSocket() {
+    const proto = location.protocol === "https:" ? "wss" : "ws";
+    ws = new WebSocket(`${proto}://${location.host}/dashboard/ws`);
+    ws.onopen = () => {
+        state.wsConnected = true;
+        renderApp();
+    };
+    ws.onmessage = (event) => {
+        try {
+            const msg = JSON.parse(event.data);
+            handleWSMessage(msg.type, msg.data);
+        } catch (_e) {}
+    };
+    ws.onclose = () => {
+        state.wsConnected = false;
+        renderApp();
+        setTimeout(connectWebSocket, 3000);
+    };
+}
+
+function handleWSMessage(type, data) {
+    if (type === "alert" && data && data.alerts) state.alertCounts = data.alerts;
+    if (type === "agent_update" && data && Array.isArray(data.agents)) state.autonomyAgents = data.agents;
+    if (type === "threat_event" && data && Array.isArray(data.events)) state.threatFeed = data.events;
+    renderApp();
+}
+
+async function refreshAlerts() {
+    const [alerts, counts] = await Promise.all([
+        fetchData("/dashboard/alerts?limit=50"),
+        fetchData("/dashboard/alerts/count")
+    ]);
+    state.alerts = (alerts && alerts.alerts) || [];
+    state.alertCounts = counts || { critical: 0, high: 0, medium: 0, total: 0 };
+}
+
+async function loadCOP() {
+    const data = await fetchData("/dashboard/cop");
+    state.cop = data || { agents: [], threats: [], tracks: [], paths: [], formations: {}, bounds: {x:[0,1000],y:[0,1000],z:[0,200]} };
+}
+
+async function loadLLM() {
+    const [status, metrics, audit] = await Promise.all([
+        fetchData("/dashboard/llm/status"),
+        fetchData("/dashboard/llm/metrics"),
+        fetchData("/dashboard/llm/audit?limit=20")
+    ]);
+    state.llmStatus = (status && status.engines) || [];
+    state.llmMetrics = metrics || null;
+    state.llmAudit = (audit && audit.entries) || [];
+    const routing = await fetchData("/routing");
+    state.llmRouting = (routing && routing.domain_routing) || {};
+}
+
+async function loadThreats() {
+    const level = state.filters.threatLevel ? `&level=${encodeURIComponent(state.filters.threatLevel)}` : "";
+    const feed = await fetchData(`/dashboard/threats/feed?limit=50${level}`);
+    const stats = await fetchData("/dashboard/threats/stats");
+    const heat = await fetchData("/dashboard/threats/heatmap");
+    state.threatFeed = (feed && feed.events) || [];
+    state.threatStats = stats || null;
+    state.threatHeatmap = (heat && heat.items) || [];
+}
+
+async function loadAutonomy() {
+    const [agents, missions, decisions, review] = await Promise.all([
+        fetchData("/dashboard/autonomy/agents"),
+        fetchData("/dashboard/autonomy/missions"),
+        fetchData("/dashboard/autonomy/decisions/feed?limit=20"),
+        fetchData("/dashboard/autonomy/decisions/review")
+    ]);
+    state.autonomyAgents = (agents && agents.agents) || [];
+    state.autonomyMissions = (missions && missions.missions) || [];
+    state.autonomyDecisions = (decisions && decisions.decisions) || [];
+    state.autonomyReview = (review && review.items) || [];
+}
+
+async function loadSystem() {
+    const [health, jetson, models] = await Promise.all([
+        fetchData("/dashboard/system/health"),
+        fetchData("/dashboard/system/jetson"),
+        fetchData("/dashboard/system/edge-models")
+    ]);
+    state.systemHealth = health || null;
+    state.systemJetson = jetson || null;
+    state.systemEdgeModels = (models && models.models) || [];
+}
+
+async function loadTabData() {
+    if (state.tab === "cop") await loadCOP();
+    if (state.tab === "llm") await loadLLM();
+    if (state.tab === "threats") await loadThreats();
+    if (state.tab === "autonomy") await loadAutonomy();
+    if (state.tab === "system") await loadSystem();
+}
+
+function clearRefreshTimers() {
+    refreshTimers.forEach((id) => clearInterval(id));
+    refreshTimers = [];
+}
+
+function setupRefreshLoops() {
+    clearRefreshTimers();
+    refreshTimers.push(setInterval(async () => { await refreshAlerts(); renderApp(); }, 3000));
+    if (state.tab === "cop") refreshTimers.push(setInterval(async () => { await loadCOP(); renderApp(); }, 3000));
+    if (state.tab === "llm") refreshTimers.push(setInterval(async () => { await loadLLM(); renderApp(); }, 5000));
+    if (state.tab === "threats") refreshTimers.push(setInterval(async () => { await loadThreats(); renderApp(); }, 2000));
+    if (state.tab === "autonomy") refreshTimers.push(setInterval(async () => { await loadAutonomy(); renderApp(); }, 3000));
+    if (state.tab === "system") refreshTimers.push(setInterval(async () => { await loadSystem(); renderApp(); }, 10000));
+}
+
+function switchLanguage() {
+    state.language = state.language === "en" ? "ar" : "en";
+    state.dir = state.language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = state.language;
+    document.documentElement.dir = state.dir;
+    document.documentElement.classList.toggle("rtl", state.dir === "rtl");
+    renderApp();
+}
+
+async function dismissAlert(alertId) {
+    state.alerts = state.alerts.filter((a) => a.alert_id !== alertId);
+    renderApp();
+}
+
+async function setTab(tab) {
+    state.tab = tab;
+    await loadTabData();
+    setupRefreshLoops();
+    renderApp();
+}
+
+async function sendNLCommand() {
+    const input = document.getElementById("nlInput");
+    const langSel = document.getElementById("nlLang");
+    if (!input || !langSel) return;
+    const text = input.value.trim();
+    if (!text) return;
+    try {
+        const resp = await fetch("/dashboard/autonomy/command", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, language: langSel.value })
+        });
+        if (resp.ok) {
+            state.autonomyCommandResult = await resp.json();
+        } else {
+            state.autonomyCommandResult = { status: "error", detail: `HTTP ${resp.status}` };
+        }
+    } catch (e) {
+        state.autonomyCommandResult = { status: "error", detail: String(e) };
+    }
+    renderApp();
+}
+
+async function approveDecision(id) {
+    await fetch(`/autonomy/decisions/${encodeURIComponent(id)}/approve`, { method: "POST" });
+    await loadAutonomy();
+    renderApp();
+}
+
+async function rejectDecision(id) {
+    const reason = prompt("Enter rejection reason:");
+    if (reason === null) return;
+    await fetch(`/autonomy/decisions/${encodeURIComponent(id)}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason })
+    });
+    await loadAutonomy();
+    renderApp();
+}
+
+function renderHeader() {
+    const connText = state.wsConnected ? t("connected") : t("disconnected");
+    return `
+        <header class="header">
+            <div class="brand mono">S3M SOVEREIGN MILITARY AI</div>
+            <div class="clock mono">${utcClock}</div>
+            <div class="header-right">
+                <button class="lang-switch" onclick="switchLanguage()">EN | عربي</button>
+                <span class="mono"><span class="status-dot ${state.wsConnected ? "online" : "offline"}"></span>${connText}</span>
+                <span class="alert-badge">! ${state.alertCounts.critical + state.alertCounts.high}</span>
+            </div>
+        </header>
+    `;
+}
+
+function renderAlertBanner() {
+    const items = state.alerts.slice(0, 12);
+    const html = items.map((a) => `
+        <span class="ticker-item" onclick="dismissAlert('${a.alert_id}')">
+            <span class="tiny-dot" style="background:${levelColor(a.level)};"></span>
+            [${(a.level || "").toUpperCase()}] ${fmtTime(a.timestamp)} | ${a.source_layer}: ${a.message}
+        </span>
+    `).join("");
+    return `
+        <div class="alert-banner">
+            <div class="ticker"><div class="ticker-inner">${html || '<span class="muted">No active alerts</span>'}</div></div>
+        </div>
+    `;
+}
+
+function renderTabs() {
+    const tabs = [
+        ["cop", "COP"],
+        ["llm", "LLM"],
+        ["threats", "THREATS"],
+        ["autonomy", "AUTONOMY"],
+        ["system", "SYSTEM"]
+    ];
+    return `
+        <nav class="tabs">
+            ${tabs.map(([id, name]) => `
+                <button class="tab ${state.tab === id ? "active" : ""}" onclick="setTab('${id}')">${name}</button>
+            `).join("")}
+        </nav>
+    `;
+}
+
+function renderCOP() {
+    const cop = state.cop || { agents: [], threats: [], tracks: [], paths: [], formations: {}, bounds: {x:[0,1000],y:[0,1000],z:[0,200]} };
+    const agents = cop.agents || [];
+    const threats = cop.threats || [];
+    const tracks = cop.tracks || [];
+    const paths = cop.paths || [];
+    const gridLines = [];
+    for (let i = 0; i <= 1000; i += 100) {
+        gridLines.push(`<line x1="${i}" y1="0" x2="${i}" y2="1000" stroke="#13223f" stroke-width="1"/>`);
+        gridLines.push(`<line x1="0" y1="${i}" x2="1000" y2="${i}" stroke="#13223f" stroke-width="1"/>`);
+        gridLines.push(`<text x="${i + 2}" y="12" fill="#3b4f73" font-size="10">${i}</text>`);
+        gridLines.push(`<text x="2" y="${i + 12}" fill="#3b4f73" font-size="10">${i}</text>`);
+    }
+    const pathEls = paths.map((p) => {
+        const pts = (p.waypoints || []).map((w) => `${w.x},${w.y}`).join(" ");
+        return `<polyline points="${pts}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4"/>`;
+    }).join("");
+    const trackEls = tracks.map((tr) => `<circle cx="${(tr.position||{}).x||0}" cy="${(tr.position||{}).y||0}" r="3" fill="#9ca3af"/>`).join("");
+    const threatEls = threats.map((th) => {
+        const p = th.position || { x: 0, y: 0 };
+        const c = th.color || levelColor(th.level);
+        const d = `M ${p.x} ${p.y-8} L ${p.x+8} ${p.y} L ${p.x} ${p.y+8} L ${p.x-8} ${p.y} Z`;
+        return `<path d="${d}" fill="${c}" opacity="0.85"><title>${th.title}</title></path>`;
+    }).join("");
+    const agentEls = agents.map((ag) => {
+        const p = ag.position || { x: 0, y: 0 };
+        const role = String(ag.role||"").toUpperCase();
+        const marker = role.includes("UGV") ? "■" : "▲";
+        return `
+            <g>
+                <circle cx="${p.x}" cy="${p.y}" r="7" fill="${stateColor(ag.state)}" />
+                <text x="${p.x + 10}" y="${p.y + 4}" fill="#e2e8f0" font-size="10">${marker} ${ag.id}</text>
+            </g>
+        `;
+    }).join("");
+    return `
+        <div class="view-wrap">
+            <div class="panel">
+                <div class="panel-title">${t("cop")}</div>
+                <div class="map-layout">
+                    <div class="map-frame">
+                        <svg viewBox="0 0 1000 1000">
+                            ${gridLines.join("")}
+                            ${pathEls}
+                            ${trackEls}
+                            ${threatEls}
+                            ${agentEls}
+                        </svg>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-title">${t("roster")}</div>
+                        <div class="agent-list">
+                            ${agents.map((a) => `
+                                <div class="agent-item">
+                                    <div class="mono">${a.id} <span class="status-pill" style="color:${stateColor(a.state)}">${a.state}</span></div>
+                                    <div class="muted">${a.role} | ${a.capability}</div>
+                                    <div class="battery-bar"><div class="battery-fill" style="width:${Math.max(0, Math.min(100, a.battery || 0))}%"></div></div>
+                                </div>
+                            `).join("") || `<div class="muted">No agents</div>`}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="metric"><div class="label">${t("copStats")}</div><div class="value">${agents.length} agents</div></div>
+                <div class="metric"><div class="label">${t("copStats")}</div><div class="value">${threats.length} threats</div></div>
+                <div class="metric"><div class="label">${t("copStats")}</div><div class="value">${tracks.length} tracks</div></div>
+            </div>
+        </div>
+    `;
+}
+
+function renderLLM() {
+    const metrics = state.llmMetrics || { total_requests: 0, avg_latency_ms: 0, uptime_seconds: 0, engines_loaded: 0 };
+    const engines = state.llmStatus || [];
+    const audit = state.llmAudit || [];
+    const routeText = Object.entries(state.llmRouting || {}).map(([k,v]) => `${k} → ${v}`).join(" | ");
+    return `
+        <div class="view-wrap">
+            <div class="grid-4">
+                ${engines.map((e) => `
+                    <div class="panel">
+                        <div class="panel-title">${e.name}</div>
+                        <div class="mono">${e.provider}</div>
+                        <div class="status-pill ${statusClass(e.status)}">${e.status}</div>
+                        <div class="muted">${e.domain} | ${e.params} | ${e.quantization}</div>
+                    </div>
+                `).join("")}
+            </div>
+            <div class="grid-3">
+                <div class="metric"><div class="label">Total Requests</div><div class="value">${metrics.total_requests}</div></div>
+                <div class="metric"><div class="label">Avg Latency (ms)</div><div class="value">${metrics.avg_latency_ms}</div></div>
+                <div class="metric"><div class="label">Uptime (s)</div><div class="value">${metrics.uptime_seconds}</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("audit")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Timestamp</th><th>Action</th><th>Details</th></tr></thead>
+                            <tbody>
+                                ${audit.slice(-20).reverse().map((a) => `
+                                    <tr>
+                                        <td>${fmtTime(a.timestamp)}</td>
+                                        <td>${a.action}</td>
+                                        <td>${JSON.stringify(a.details || {})}</td>
+                                    </tr>
+                                `).join("") || '<tr><td colspan="3" class="muted">No entries</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("routing")}</div>
+                    <div class="mono">${routeText || "tactical→phi3 | intelligence→grok | logistics→mistral | arabic→allam"}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderThreats() {
+    const feed = state.threatFeed || [];
+    const stats = state.threatStats || { critical: 0, high: 0, total_events: feed.length, active_sensors: 0, by_category: {} };
+    const byCategory = stats.by_category || {};
+    const maxCat = Math.max(1, ...Object.values(byCategory));
+    const categories = ["", ...Object.keys(byCategory)];
+    const filtered = feed.filter((f) => {
+        if (state.filters.threatCategory && f.category !== state.filters.threatCategory) return false;
+        return true;
+    });
+    return `
+        <div class="view-wrap">
+            <div class="panel">
+                <div class="panel-title">${t("filters")}</div>
+                <div class="grid-3">
+                    <div>
+                        <div class="label">Level</div>
+                        <select onchange="setThreatLevel(this.value)">
+                            <option value="">${t("all")}</option>
+                            <option value="CRITICAL" ${state.filters.threatLevel==="CRITICAL"?"selected":""}>CRITICAL</option>
+                            <option value="HIGH" ${state.filters.threatLevel==="HIGH"?"selected":""}>HIGH</option>
+                            <option value="MEDIUM" ${state.filters.threatLevel==="MEDIUM"?"selected":""}>MEDIUM</option>
+                            <option value="LOW" ${state.filters.threatLevel==="LOW"?"selected":""}>LOW</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="label">Category</div>
+                        <select onchange="setThreatCategory(this.value)">
+                            ${categories.map((c) => `<option value="${c}" ${state.filters.threatCategory===c?"selected":""}>${c||t("all")}</option>`).join("")}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-4">
+                <div class="metric"><div class="label">CRITICAL</div><div class="value" style="color:var(--danger)">${stats.critical||0}</div></div>
+                <div class="metric"><div class="label">HIGH</div><div class="value" style="color:var(--high)">${stats.high||0}</div></div>
+                <div class="metric"><div class="label">TOTAL</div><div class="value">${stats.total_events||0}</div></div>
+                <div class="metric"><div class="label">ACTIVE SENSORS</div><div class="value">${stats.active_sensors||0}</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("feed")}</div>
+                    <div class="feed-list">
+                        ${filtered.map((f) => `
+                            <div class="feed-item">
+                                <div><span class="tiny-dot" style="background:${levelColor(f.level)}"></span> ${fmtTime(f.timestamp)} | <b>${f.title}</b></div>
+                                <div class="muted">${f.category} | ${f.source}</div>
+                                <div class="confidence"><span style="width:${Math.max(0, Math.min(100, (f.confidence||0)*100))}%"></span></div>
+                            </div>
+                        `).join("") || `<div class="muted">No threat events</div>`}
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("distribution")}</div>
+                    <div class="bar-chart">
+                        ${Object.entries(byCategory).map(([cat, count]) => `
+                            <div class="bar-row">
+                                <span>${cat}</span>
+                                <span class="bar"><span style="width:${(count/maxCat)*100}%; background:${cat.includes("CYBER")?'#3b82f6':'#f59e0b'}"></span></span>
+                                <span>${count}</span>
+                            </div>
+                        `).join("") || `<div class="muted">No category data</div>`}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderAutonomy() {
+    const agents = state.autonomyAgents || [];
+    const missions = state.autonomyMissions || [];
+    const decisions = state.autonomyDecisions || [];
+    const review = state.autonomyReview || [];
+    return `
+        <div class="view-wrap">
+            <div class="panel">
+                <div class="panel-title">${t("roster")}</div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>Role</th><th>State</th><th>Position</th><th>Battery</th><th>Mission</th><th>Heartbeat(s)</th></tr></thead>
+                        <tbody>
+                            ${agents.map((a) => `
+                                <tr>
+                                    <td>${a.id}</td>
+                                    <td>${a.role}</td>
+                                    <td><span style="color:${stateColor(a.state)}">${a.state}</span></td>
+                                    <td>${JSON.stringify(a.position)}</td>
+                                    <td>
+                                        <div class="battery-bar"><div class="battery-fill" style="width:${a.battery||0}%"></div></div>
+                                    </td>
+                                    <td>${a.mission_name||"-"}</td>
+                                    <td>${(a.time_since_heartbeat||0).toFixed ? a.time_since_heartbeat.toFixed(1) : a.time_since_heartbeat}</td>
+                                </tr>
+                            `).join("") || '<tr><td colspan="7" class="muted">No agents</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("missions")}</div>
+                    ${missions.map((m) => `
+                        <div class="feed-item">
+                            <div class="mono">${m.id} | ${m.type}</div>
+                            <div class="muted">${m.status} | agents: ${(m.assigned_agents||[]).join(", ")}</div>
+                            <div class="confidence"><span style="width:${m.progress_pct||0}%; background:var(--success)"></span></div>
+                        </div>
+                    `).join("") || '<div class="muted">No missions</div>'}
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("decisions")}</div>
+                    ${decisions.map((d) => `
+                        <div class="feed-item">
+                            <div>${d.type} | ${d.agent_id}</div>
+                            <div class="muted">Conf: ${d.confidence} | Risk: ${d.risk_score} | ${d.status}</div>
+                            <div class="muted">${d.reasoning_snippet || ""}</div>
+                        </div>
+                    `).join("") || '<div class="muted">No decisions</div>'}
+                </div>
+            </div>
+            <div class="panel review-queue">
+                <div class="panel-title">${t("reviewQueue")}</div>
+                ${review.map((r) => `
+                    <div class="feed-item">
+                        <div class="mono">${r.id} | ${r.type} | ${r.agent_id}</div>
+                        <div class="muted">Risk: ${r.risk_score} | ${r.context || ""}</div>
+                        <div class="muted">${(r.xai_explanation && r.xai_explanation.summary) || r.reasoning_snippet || ""}</div>
+                        <div class="decision-actions">
+                            <button class="btn btn-approve" onclick="approveDecision('${r.id}')">✓ ${t("approve")}</button>
+                            <button class="btn btn-reject" onclick="rejectDecision('${r.id}')">✗ ${t("reject")}</button>
+                        </div>
+                    </div>
+                `).join("") || '<div class="muted">No pending reviews</div>'}
+            </div>
+            <div class="panel">
+                <div class="panel-title">${t("commandBar")}</div>
+                <div class="nl-row">
+                    <input id="nlInput" class="input" placeholder="hold position / تمركز" />
+                    <select id="nlLang"><option value="en">EN</option><option value="ar">AR</option></select>
+                    <button class="btn" onclick="sendNLCommand()">${t("send")}</button>
+                </div>
+                <div class="nl-result">${state.autonomyCommandResult ? JSON.stringify(state.autonomyCommandResult, null, 2) : "No command sent yet."}</div>
+            </div>
+        </div>
+    `;
+}
+
+function renderSystem() {
+    const health = state.systemHealth || { layers: {}, api_health: { healthy: 0, unhealthy: 0 } };
+    const jet = state.systemJetson || { gpu_util_pct: 0, memory_pct: 0, temperature_c: 0, power_w: 0, cuda_version: "unknown" };
+    const layers = health.layers || {};
+    const models = state.systemEdgeModels || [];
+    const api = health.api_health || { healthy: 0, unhealthy: 0 };
+    const gps = (health && health.gps) || {};
+    const sim = (health && health.simulation) || {};
+    return `
+        <div class="view-wrap">
+            <div class="panel">
+                <div class="panel-title">${t("layerHealth")}</div>
+                <div class="layer-grid">
+                    ${Object.entries(layers).map(([name, data]) => `
+                        <div class="layer-box">
+                            <div class="mono">${name}</div>
+                            <div class="status-pill ${statusClass(data.status)}">${data.status}</div>
+                            <div class="muted">${data.detail || ""}</div>
+                        </div>
+                    `).join("") || '<div class="muted">No layer health data</div>'}
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="panel">
+                    <div class="panel-title">GPU Util</div>
+                    <div class="gauge"><div class="gauge-fill" style="transform:scaleY(${Math.max(0, Math.min(1, (jet.gpu_util_pct||0)/100))})"></div></div>
+                    <div class="mono" style="text-align:center">${jet.gpu_util_pct || 0}%</div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">Memory</div>
+                    <div class="battery-bar"><div class="battery-fill" style="width:${jet.memory_pct || 0}%; background:var(--info)"></div></div>
+                    <div class="mono">${jet.memory_pct || 0}%</div>
+                    <div class="mono">Temp: ${jet.temperature_c || 0} C</div>
+                    <div class="mono">Power: ${jet.power_w || 0} W</div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("apiHealth")}</div>
+                    <div class="mono">Healthy: ${api.healthy || 0}</div>
+                    <div class="mono">Unhealthy: ${api.unhealthy || 0}</div>
+                    <div class="mono">Total: ${(api.healthy||0)+(api.unhealthy||0)}</div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("edgeModels")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Name</th><th>Precision</th><th>Latency</th><th>Memory</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${models.map((m) => `
+                                    <tr>
+                                        <td>${m.name}</td><td>${m.precision}</td><td>${m.latency_ms}</td><td>${m.memory_mb}</td><td>${m.status}</td>
+                                    </tr>
+                                `).join("") || '<tr><td colspan="5" class="muted">No edge models</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("gps")}</div>
+                    <div class="mono">Quality: ${(state.systemJetson && state.systemJetson.gps_quality) || (state.systemHealth && state.systemHealth.navigation && state.systemHealth.navigation.gps_quality) || "unknown"}</div>
+                    <div class="mono">${t("simulation")}: running ${(sim.running_scenarios||0)}, replay ${(sim.replay_count||0)}</div>
+                    <div class="mono">CUDA: ${jet.cuda_version || "unknown"}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderView() {
+    if (state.tab === "cop") return renderCOP();
+    if (state.tab === "llm") return renderLLM();
+    if (state.tab === "threats") return renderThreats();
+    if (state.tab === "autonomy") return renderAutonomy();
+    if (state.tab === "system") return renderSystem();
+    return `<div class="view-wrap"><div class="panel">No view selected</div></div>`;
+}
+
+function renderApp() {
+    const app = document.getElementById("app");
+    if (!app) return;
+    app.className = "app";
+    app.innerHTML = `
+        ${renderHeader()}
+        ${renderAlertBanner()}
+        ${renderTabs()}
+        ${renderView()}
+    `;
+}
+
+async function setThreatLevel(v) {
+    state.filters.threatLevel = v;
+    await loadThreats();
+    renderApp();
+}
+async function setThreatCategory(v) {
+    state.filters.threatCategory = v;
+    await loadThreats();
+    renderApp();
+}
+
+async function boot() {
+    document.documentElement.classList.toggle("rtl", false);
+    clockTimer = setInterval(() => {
+        utcClock = new Date().toISOString().replace("T", " ").replace("Z", " UTC");
+        renderApp();
+    }, 1000);
+    utcClock = new Date().toISOString().replace("T", " ").replace("Z", " UTC");
+    await refreshAlerts();
+    await loadTabData();
+    setupRefreshLoops();
+    renderApp();
+    connectWebSocket();
+}
+
+window.setTab = setTab;
+window.switchLanguage = switchLanguage;
+window.dismissAlert = dismissAlert;
+window.sendNLCommand = sendNLCommand;
+window.approveDecision = approveDecision;
+window.rejectDecision = rejectDecision;
+window.setThreatLevel = setThreatLevel;
+window.setThreatCategory = setThreatCategory;
+window.addEventListener("load", boot);
+</script>
+</body>
+</html>
