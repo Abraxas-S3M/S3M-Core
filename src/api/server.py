@@ -25,6 +25,7 @@ from src.api.simulation_routes import simulation_router
 from src.api.security_routes import security_router
 from src.api.threat_routes import threat_router, sensor_router
 from src.security.middleware import SecurityMiddleware
+from src.api.autonomy_routes import autonomy_router
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -88,6 +89,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
 
 app.add_middleware(
     CORSMiddleware,
