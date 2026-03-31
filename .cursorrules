@@ -1,0 +1,10 @@
+---
+project: S3M
+rules:
+  - All code must run offline on NVIDIA Jetson AGX Orin
+  - No external API calls allowed
+  - Every module must include unit tests
+  - Use Python 3.11 unless otherwise specified
+  - All ML models must be quantized for edge deployment
+  - Security-first: validate all inputs
+  - Comments must explain military/tactical context

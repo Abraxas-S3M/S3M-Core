@@ -1,0 +1,55 @@
+---
+project: S3M - Sovereign Military AI
+version: "0.1.0"
+classification: UNCLASSIFIED - FOUO
+environment: air-gapped
+hardware_target: NVIDIA Jetson AGX Orin 64GB
+layers:
+  - name: LLM Core
+    id: layer-01
+    tools:
+      - name: Phi-3 Mini
+        role: Primary tactical LLM
+        params: 3.8B
+        quantization: GGUF Q4_K_M
+        runtime: llama.cpp
+      - name: ALLaM-7B
+        role: Arabic NLP
+        params: 7B
+        runtime: CTranslate2
+  - name: Threat Detection
+    id: layer-02
+    tools:
+      - name: Suricata
+        role: Network IDS
+      - name: Wazuh
+        role: Endpoint SIEM
+      - name: YOLOv8-nano
+        role: Object detection
+        runtime: TensorRT
+  - name: Autonomy and Swarm
+    id: layer-03
+    tools:
+      - name: Ray RLlib
+        role: Multi-agent reinforcement learning
+      - name: PX4
+        role: Drone autopilot
+  - name: Simulation
+    id: layer-04
+    tools:
+      - name: Gazebo Fortress
+        role: 3D environment sim
+      - name: Panopticon
+        role: Custom war-game engine
+  - name: Navigation
+    id: layer-05
+    tools:
+      - name: VINS-Fusion
+        role: Visual-inertial SLAM
+  - name: Dashboard
+    id: layer-06
+    tools:
+      - name: Langfuse
+        role: LLM observability
+      - name: Grafana
+        role: System metrics
