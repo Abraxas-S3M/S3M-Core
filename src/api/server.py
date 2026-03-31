@@ -20,9 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.api.config import api_config
-from src.api.dashboard_routes import dashboard_router
-from src.api.simulation_routes import simulation_router
-from src.api.threat_routes import threat_router, sensor_router
+from src.api.autonomy_routes import autonomy_router
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -86,6 +84,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
 
 app.add_middleware(
     CORSMiddleware,
