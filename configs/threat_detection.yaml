@@ -1,0 +1,48 @@
+# S3M Phase 5 — Threat Detection Configuration
+# UNCLASSIFIED - FOUO
+
+suricata:
+  eve_log_path: "/var/log/suricata/eve.json"
+  poll_interval_seconds: 1
+  enabled: true
+
+wazuh:
+  alerts_path: "/var/ossec/logs/alerts/alerts.json"
+  poll_interval_seconds: 2
+  enabled: true
+
+object_detection:
+  model_path: "models/yolov8n-military.pt"
+  confidence_threshold: 0.5
+  device: "cuda"  # or "cpu" for non-GPU
+  enabled: true
+  classes:
+    - tank
+    - aircraft
+    - soldier
+    - rifle
+    - missile
+    - warship
+    - helicopter
+    - truck
+    - jet
+
+anomaly_detection:
+  contamination: 0.1
+  n_estimators: 100
+  enabled: true
+
+threat_log:
+  max_entries: 10000
+  export_path: "data/threat_logs/"
+
+sensor_fusion:
+  association_threshold_meters: 50.0
+  max_tracks: 1000
+  track_confirm_count: 3
+  track_lost_timeout_seconds: 10
+  track_delete_timeout_seconds: 30
+  ekf:
+    dt: 0.1
+    process_noise: 1.0
+    measurement_noise: 0.5

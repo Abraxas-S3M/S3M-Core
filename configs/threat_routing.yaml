@@ -1,0 +1,17 @@
+# Maps threat categories to S3M LLM engines for assessment
+# UNCLASSIFIED - FOUO
+
+routing:
+  cyber: "grok"        # Complex reasoning for cyber threats
+  kinetic: "phi3"      # Tactical response for kinetic threats
+  electronic_warfare: "grok"  # Implications analysis
+  hybrid: "consensus"  # All 4 engines for complex hybrid threats
+  surveillance: "mistral"     # Planning engine for response planning
+  unknown: "phi3"      # Default to tactical engine
+
+prompts:
+  cyber: "Analyze this cybersecurity threat event and provide: 1) Threat severity assessment 2) Attack vector analysis 3) Recommended countermeasures 4) Impact on operations. Classification: UNCLASSIFIED."
+  kinetic: "Provide tactical assessment of this kinetic threat: 1) Threat level 2) Immediate actions required 3) Force protection measures 4) Grid reference for response. Format: SHORT, DIRECT. Classification: UNCLASSIFIED."
+  electronic_warfare: "Analyze this electronic warfare indicator: 1) Jamming/spoofing assessment 2) Affected systems 3) Mitigation options 4) Second-order effects. Classification: UNCLASSIFIED."
+  hybrid: "Multi-domain threat assessment required. Analyze: 1) Cyber implications 2) Physical implications 3) Information operations angle 4) Recommended unified response. Classification: UNCLASSIFIED."
+  surveillance: "Develop surveillance response plan: 1) Target classification 2) Tracking priority 3) Collection asset allocation 4) Reporting chain. Classification: UNCLASSIFIED."
