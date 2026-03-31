@@ -1,0 +1,14 @@
+# Quadrotor UAV platform constraints
+# Based on typical military reconnaissance UAV (e.g., DJI Matrice-class)
+platform:
+  type: "quadrotor"
+  max_velocity: 15.0       # m/s (about 54 km/h)
+  max_acceleration: 5.0    # m/s²
+  max_jerk: 20.0           # m/s³
+  max_yaw_rate: 3.14       # rad/s (180 deg/s)
+  min_turn_radius: 0.0     # meters (quadrotors can turn in place)
+  max_altitude: 500.0      # meters AGL
+  min_altitude: 5.0        # meters AGL (safety floor)
+  max_climb_rate: 5.0      # m/s
+  max_descent_rate: 3.0    # m/s
+  collision_radius: 1.5    # meters (prop-to-prop + safety margin)

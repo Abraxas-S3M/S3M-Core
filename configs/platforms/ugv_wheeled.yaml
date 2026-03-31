@@ -1,0 +1,14 @@
+# Wheeled UGV platform constraints
+# Based on typical unmanned ground vehicle
+platform:
+  type: "ground_wheeled"
+  max_velocity: 8.0        # m/s (about 29 km/h)
+  max_acceleration: 2.0    # m/s²
+  max_jerk: 10.0           # m/s³
+  max_yaw_rate: 1.57       # rad/s (90 deg/s)
+  min_turn_radius: 3.0     # meters (Ackermann steering)
+  max_altitude: 0.0        # ground vehicle
+  min_altitude: 0.0
+  max_climb_rate: 0.0
+  max_descent_rate: 0.0
+  collision_radius: 2.0    # meters
