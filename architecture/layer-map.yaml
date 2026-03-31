@@ -1,0 +1,16 @@
+---
+system: S3M
+design_principle: air-gapped sovereign deployment
+data_flow:
+  - from: Sensors
+    to: layer-02 Threat Detection
+  - from: layer-02
+    to: layer-01 LLM Core
+  - from: layer-01
+    to: layer-03 Autonomy
+  - from: layer-03
+    to: layer-04 Simulation
+  - from: layer-05 Navigation
+    to: layer-03 Autonomy
+  - from: layer-06 Dashboard
+    to: all layers (read-only)
