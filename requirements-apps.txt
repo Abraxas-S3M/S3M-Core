@@ -1,0 +1,12 @@
+# S3M Phase 11 — Domain Applications Dependencies
+# Install with: pip install -r requirements-apps.txt
+
+# Autopilot bridge (optional — simulated mode available)
+# pymavlink>=2.4.0
+# mavsdk>=1.4.0
+
+# Already in previous requirements
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0

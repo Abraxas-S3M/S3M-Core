@@ -1,0 +1,47 @@
+# S3M Phase 11 — Domain Applications Configuration
+# UNCLASSIFIED - FOUO
+
+battle_planning:
+  default_opfor_strategy: "adaptive"
+  default_coa_count: 3
+  simulation_max_ticks: 3000
+  simulation_tick_dt: 0.1
+  opord_language: "en"  # "en" or "ar"
+
+logistics:
+  threat_avoidance_radius:
+    critical: 100  # meters
+    high: 75
+    medium: 50
+  convoy_platform: "ground_wheeled"
+  restock_check_interval_hours: 24
+
+threat_hunting:
+  correlation_time_window_seconds: 300
+  correlation_distance_threshold: 500
+  auto_escalate: true
+  osint_data_dir: "data/osint/"
+
+geopolitical:
+  risk_decay_per_hour: 1.0
+  high_risk_threshold: 70
+  forecast_horizons: [30, 60, 90]
+  default_regions:
+    - "Arabian Peninsula"
+    - "Persian Gulf"
+    - "Red Sea"
+    - "Horn of Africa"
+    - "Levant"
+    - "North Africa"
+
+drone_ops:
+  default_platform: "quadrotor"
+  autopilot_backend: "auto"
+  mavlink_connection: "udp:127.0.0.1:14540"
+  atr_replan_confidence_threshold: 0.7
+  atr_replan_threat_level: "HIGH"
+
+data_management:
+  registry_path: "configs/datasets/registry.yaml"
+  benchmarks_dir: "data/benchmarks/"
+  max_benchmark_samples: 1000
