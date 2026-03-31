@@ -6,6 +6,7 @@ Designed for air-gapped deployment on NVIDIA Jetson AGX Orin 64GB.
 
 import asyncio
 import hashlib
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -14,14 +15,16 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+import yaml
 
 from src.api.config import api_config
+from src.api.dashboard_routes import dashboard_router
 from src.api.simulation_routes import simulation_router
 from src.api.security_routes import security_router
 from src.api.threat_routes import threat_router, sensor_router
 from src.security.middleware import SecurityMiddleware
-import yaml, os
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -96,6 +99,7 @@ app.add_middleware(
 
 app.include_router(threat_router, tags=["Threat Detection"])
 app.include_router(sensor_router, tags=["Sensor Fusion"])
+app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 
 # Load security config
@@ -110,6 +114,11 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 
 # Add security routes
 app.include_router(security_router, tags=["Security & Compliance"])
+
+# Keep dashboard API routes active, then mount static frontend files.
+dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
+if os.path.exists(dashboard_dir):
+    app.mount("/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard")
 
 # ── State Management ─────────────────────────────────────────
 
