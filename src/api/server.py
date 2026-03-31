@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from src.api.config import api_config
+from src.api.threat_routes import threat_router, sensor_router
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -88,6 +89,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(threat_router, tags=["Threat Detection"])
+app.include_router(sensor_router, tags=["Sensor Fusion"])
 
 # ── State Management ─────────────────────────────────────────
 

@@ -1,0 +1,17 @@
+# S3M Phase 5 — Threat Detection & Sensor Fusion Dependencies
+# Install with: pip install -r requirements-threat.txt
+
+# Object Detection (YOLOv8)
+# For Jetson: build from source with CUDA support
+ultralytics>=8.0.0
+
+# Anomaly Detection
+scikit-learn>=1.3.0
+
+# Numerical computing (EKF/sensor fusion)
+numpy>=1.24.0
+
+# Already in base requirements
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
