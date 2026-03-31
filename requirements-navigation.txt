@@ -1,0 +1,20 @@
+# S3M Phase 8 — Navigation & Edge AI Dependencies
+# Install with: pip install -r requirements-navigation.txt
+
+# Localization adapters (optional — dead reckoning fallback available)
+# rclpy (install via ROS2 Humble system packages, not pip)
+
+# Path planning (optional — built-in RRT*/A* available)
+# ompl (build from source for Python bindings)
+# acados (build from source: https://docs.acados.org/installation/)
+
+# Edge inference (optional — PyTorch or stub fallback)
+# tensorrt (NVIDIA TensorRT — install via JetPack SDK)
+# onnxruntime-gpu>=1.16.0
+# torch>=2.1.0 (for model conversion; already in base requirements if Phase 1 installed)
+
+# Required
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
