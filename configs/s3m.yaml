@@ -1,0 +1,58 @@
+# ═══════════════════════════════════════════════════════════
+# S3M MASTER CONFIGURATION
+# Sovereign Saudi Strategic Model
+# UNCLASSIFIED - FOUO
+# ═══════════════════════════════════════════════════════════
+
+system:
+  name: "S3M — Sovereign Military AI"
+  version: "1.0.0"
+  classification: "UNCLASSIFIED - FOUO"
+  hardware_target: "NVIDIA Jetson AGX Orin 64GB"
+  deployment_mode: "development"  # development | production | field
+
+memory:
+  total_budget_gb: 48
+  headroom_gb: 16
+  auto_evict: true
+  eviction_priority:
+    # Lower number = higher priority (kept longer)
+    llm_engine: 1
+    threat_detection: 2
+    autonomy: 3
+    navigation: 4
+    dashboard: 5
+    simulation: 6
+    domain_apps: 7
+
+startup:
+  order:
+    - security
+    - llm_core
+    - threat_detection
+    - sensor_fusion
+    - autonomy
+    - navigation
+    - simulation
+    - dashboard
+    - apps
+  skip_on_memory_pressure: [simulation, apps]
+  timeout_per_layer_seconds: 30
+
+api:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 1
+  docs_enabled: true
+
+logging:
+  level: "INFO"
+  file: "data/s3m.log"
+  max_size_mb: 100
+  backup_count: 5
+
+# Phase-specific configs are loaded from their own files:
+# configs/engines.yaml, configs/routing.yaml, configs/threat_detection.yaml,
+# configs/autonomy.yaml, configs/simulation.yaml, configs/navigation.yaml,
+# configs/dashboard.yaml, configs/security.yaml, configs/interop.yaml,
+# configs/apps.yaml, configs/datasets/registry.yaml

@@ -6,6 +6,7 @@ Designed for air-gapped deployment on NVIDIA Jetson AGX Orin 64GB.
 
 import asyncio
 import hashlib
+import logging
 import time
 import uuid
 from datetime import datetime, timezone
@@ -19,6 +20,8 @@ from pydantic import BaseModel, Field
 from src.api.config import api_config
 from src.api.simulation_routes import simulation_router
 from src.api.threat_routes import threat_router, sensor_router
+
+LOGGER = logging.getLogger(__name__)
 
 # ── Pydantic Models ──────────────────────────────────────────
 
@@ -434,3 +437,28 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error", "error": str(exc)}
     )
+
+
+@app.on_event("startup")
+async def optimization_startup_hook():
+    """Run Phase 12 startup sequencing and memory checks at API boot."""
+    try:
+        from src.optimization import MemoryBudgetManager, StartupSequencer
+
+        manager = MemoryBudgetManager(total_budget_gb=48.0)
+        sequencer = StartupSequencer(memory_manager=manager)
+        startup = sequencer.run()
+        report = manager.get_usage()
+        state.log_audit(
+            "optimization_startup",
+            {
+                "layers_loaded": startup.get("layers_loaded", 0),
+                "layers_skipped": startup.get("layers_skipped", 0),
+                "layers_unavailable": startup.get("layers_unavailable", 0),
+                "memory_used_mb": report.get("used_mb", 0.0),
+                "memory_budget_mb": report.get("total_budget_mb", 0.0),
+            },
+        )
+    except Exception as exc:
+        LOGGER.warning("Optimization startup hook failed: %s", exc)
+        state.log_audit("optimization_startup_error", {"error": str(exc)})

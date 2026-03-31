@@ -1,0 +1,21 @@
+# S3M Development Container — includes test tools and linters
+FROM python:3.11-slim AS dev
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/s3m
+
+COPY requirements-all.txt .
+RUN pip install --no-cache-dir -r requirements-all.txt
+RUN pip install --no-cache-dir pytest pytest-cov black flake8 mypy
+
+COPY . .
+
+RUN mkdir -p data/threat_logs data/security_audit data/replays data/synthetic \
+    data/manifests data/benchmarks data/osint data/decision_logs data/interop \
+    data/security_reports models/policies models/optimized configs/keys
+
+ENV PYTHONPATH=/opt/s3m
+CMD ["pytest", "tests/", "-v", "--tb=short"]

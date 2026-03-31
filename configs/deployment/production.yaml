@@ -1,0 +1,17 @@
+# Production profile — security hardened, full stack
+system:
+  deployment_mode: "production"
+middleware:
+  auth_enabled: true
+  api_key: "REPLACE_WITH_SECURE_KEY"
+  rate_limit_rpm: 120
+  cors_lockdown: true
+  sanitize_inputs: true
+encryption:
+  encrypt_threat_logs: true
+  encrypt_decision_logs: true
+airgap:
+  verify_on_startup: true
+  check_interval_seconds: 60
+jetson:
+  simulated_mode: false

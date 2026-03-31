@@ -1,0 +1,39 @@
+# S3M Docker Compose — Single-service Jetson deployment
+# Usage: docker-compose up -d
+# Air-gapped: network_mode: "none" ensures no external access
+
+version: "3.8"
+
+services:
+  s3m:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: s3m-sovereign
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONPATH=/opt/s3m
+    ports:
+      - "8080:8080"
+    volumes:
+      - s3m-data:/opt/s3m/data
+      - s3m-models:/opt/s3m/models
+      - s3m-configs:/opt/s3m/configs
+    network_mode: "none"  # AIR-GAPPED: no external network access
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 56G  # Leave 8GB for system
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  s3m-data:
+  s3m-models:
+  s3m-configs:

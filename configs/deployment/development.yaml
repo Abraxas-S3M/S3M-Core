@@ -1,0 +1,13 @@
+# Development profile — all features enabled, security relaxed
+system:
+  deployment_mode: "development"
+middleware:
+  auth_enabled: false
+  rate_limit_rpm: 600
+  cors_lockdown: false
+jetson:
+  simulated_mode: true
+memory:
+  total_budget_gb: 48
+startup:
+  skip_on_memory_pressure: []
