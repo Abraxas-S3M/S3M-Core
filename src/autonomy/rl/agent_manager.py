@@ -62,7 +62,6 @@ class _BuiltinPolicy:
         heading = float(observation.get("agent_heading", [0.0])[0]) % 360.0
         speed = float(observation.get("agent_speed", [0.0])[0])
         threat_positions = observation.get("threat_positions", [])
-        threat_levels = observation.get("threat_levels", [])
         roe = observation.get("rules_of_engagement", "weapons_hold")
 
         nearest_idx = None
