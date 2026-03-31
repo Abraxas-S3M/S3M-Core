@@ -1,0 +1,35 @@
+scenario:
+  name: "Air Defense — Sector Shield"
+  type: "air_defense"
+  description: "Defend a critical installation against incoming enemy drone swarm using interceptor swarm"
+  terrain:
+    bounds: [[0, 0, 0], [3000, 3000, 500]]
+    type: "open_desert"
+    obstacles:
+      - {position: [1500, 1500, 0], radius: 200, type: "installation"}
+  weather:
+    visibility: 0.70
+    wind_speed: 20.0
+    wind_direction: 180
+    precipitation: "light_dust"
+  forces:
+    - name: "Blue Force — Shield Flight"
+      allegiance: "friendly"
+      units:
+        - {type: "FRIENDLY_UAV", count: 8, position: [1500, 1300, 100], behavior: "defend"}
+    - name: "Red Force — Swarm Attack"
+      allegiance: "enemy"
+      units:
+        - {type: "ENEMY_UAV", count: 16, position: [3000, 1500, 150], behavior: "swarm_attack"}
+  objectives:
+    - description: "Protect installation from enemy UAVs"
+      success_condition: "installation_intact"
+      priority: 1
+    - description: "Neutralize at least 75% of incoming swarm"
+      success_condition: "enemy_losses >= 12"
+      priority: 2
+  rules_of_engagement: "weapons_free"
+  duration_seconds: 300
+  parameters:
+    defense_radius: 500
+    installation_health: 100

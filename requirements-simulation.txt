@@ -1,0 +1,21 @@
+# S3M Phase 7 — Simulation & Wargaming Dependencies
+# Install with: pip install -r requirements-simulation.txt
+
+# Synthetic data (optional — numpy fallback available)
+# sdv>=1.10.0
+# ctgan>=0.9.0
+
+# Flight dynamics (optional — adapter returns unavailable if not installed)
+# jsbsim>=1.1.0
+
+# AirSim client (optional)
+# airsim>=1.8.0
+
+# ROS2 (optional — install via ROS2 Humble packages, not pip)
+# rclpy (system package)
+
+# Required
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
