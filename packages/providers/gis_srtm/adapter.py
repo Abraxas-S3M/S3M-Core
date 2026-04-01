@@ -117,6 +117,45 @@ class SRTMAdapter(ProviderAdapter):
             })
         return samples
 
+    @staticmethod
+    def _resample_profile_records(profile: list[dict[str, Any]], num_samples: int) -> list[dict[str, float]]:
+        if not profile:
+            return []
+        if num_samples <= 1:
+            first = profile[0]
+            return [
+                {
+                    "lat": float(first["lat"]),
+                    "lon": float(first["lon"]),
+                    "elevation_m": float(first["elevation_m"]),
+                    "distance_from_start_m": float(first.get("distance_from_start_m", 0.0)),
+                }
+            ]
+
+        distances = [float(p.get("distance_from_start_m", idx)) for idx, p in enumerate(profile)]
+        total = distances[-1] if distances[-1] > 0 else float(len(profile) - 1)
+        out: list[dict[str, float]] = []
+
+        for i in range(num_samples):
+            target = total * i / (num_samples - 1)
+            idx = 0
+            while idx + 1 < len(distances) and distances[idx + 1] < target:
+                idx += 1
+            d0 = distances[idx]
+            d1 = distances[min(idx + 1, len(distances) - 1)]
+            frac = 0.0 if d1 == d0 else (target - d0) / (d1 - d0)
+            p0 = profile[idx]
+            p1 = profile[min(idx + 1, len(profile) - 1)]
+            out.append(
+                {
+                    "lat": float(p0["lat"]) + (float(p1["lat"]) - float(p0["lat"])) * frac,
+                    "lon": float(p0["lon"]) + (float(p1["lon"]) - float(p0["lon"])) * frac,
+                    "elevation_m": float(p0["elevation_m"]) + (float(p1["elevation_m"]) - float(p0["elevation_m"])) * frac,
+                    "distance_from_start_m": target,
+                }
+            )
+        return out
+
     def get_elevation_profile(self, points: list[tuple[float, float]], num_samples: int = 100) -> list[dict[str, Any]]:
         if len(points) >= 2:
             start, end = points[0], points[-1]
@@ -124,8 +163,8 @@ class SRTMAdapter(ProviderAdapter):
                 fixture = self._read_json(self.fixture_dir / "elevation_profile_riyadh_jeddah.json")
                 profile = fixture.get("profile", [])
                 if num_samples and len(profile) != num_samples:
-                    sampled_points = [(p["lat"], p["lon"]) for p in profile]
-                    return self._resample_route(sampled_points, num_samples)
+                    # Tactical context: preserve known escarpment elevations while resampling route density.
+                    return self._resample_profile_records(profile, num_samples)
                 return profile
         return self._resample_route(points, num_samples)
 
@@ -160,7 +199,12 @@ class SRTMAdapter(ProviderAdapter):
         dzdx = ((z3 + 2 * z6 + z9) - (z1 + 2 * z4 + z7)) / (8 * self.config.resolution_m)
         dzdy = ((z7 + 2 * z8 + z9) - (z1 + 2 * z2 + z3)) / (8 * self.config.resolution_m)
 
-        slope = math.degrees(math.atan(math.sqrt(dzdx * dzdx + dzdy * dzdy)))
+        horn_slope = math.degrees(math.atan(math.sqrt(dzdx * dzdx + dzdy * dzdy)))
+        # Tactical context: convoy mobility risk uses conservative micro-relief, not only Horn average gradient.
+        neighborhood = [z1, z2, z3, z4, z6, z7, z8, z9]
+        relief = max(neighborhood) - min(neighborhood)
+        relief_slope = math.degrees(math.atan(relief / max(self.config.resolution_m / 4.0, 1.0)))
+        slope = max(horn_slope, relief_slope)
         aspect = math.degrees(math.atan2(dzdy, -dzdx))
         if aspect < 0:
             aspect += 360.0
