@@ -14,6 +14,19 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .model_optimizer import (
+    AllocationPlan,
+    HARDWARE_PROFILES,
+    HardwareProfile,
+    LoadCategory,
+    MemoryBudget,
+    ModelOptimizer,
+    ModelProfile,
+    PreloadPlan,
+    RUNTIME_PROFILES,
+    RuntimeProfile,
+    estimate_inference_time,
+)
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -25,6 +38,9 @@ __all__ = [
     "Orchestrator", "QueryRequest", "EngineResponse", "ConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "ModelOptimizer", "ModelProfile", "AllocationPlan", "PreloadPlan",
+    "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
+    "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",

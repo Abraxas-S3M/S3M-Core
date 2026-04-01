@@ -17,6 +17,7 @@ import uuid
 from typing import Dict, List, Optional, Protocol
 
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
+from .model_optimizer import ModelOptimizer
 
 
 LOGGER = logging.getLogger(__name__)
@@ -272,8 +273,14 @@ class AdvancedOrchestrator:
         UrgencyLevel.LOW: frozenset({"low priority", "whenever", "later", "defer"}),
     }
 
-    def __init__(self, registry: Optional[EngineRegistry] = None, history_limit: int = 250):
+    def __init__(
+        self,
+        registry: Optional[EngineRegistry] = None,
+        optimizer: Optional[ModelOptimizer] = None,
+        history_limit: int = 250,
+    ):
         self.registry = registry or EngineRegistry()
+        self.optimizer = optimizer or ModelOptimizer(self.registry)
         self.metrics = OrchestratorMetrics()
         self.history_limit = max(10, history_limit)
         self.routing_history: List[Dict[str, object]] = []
@@ -663,6 +670,15 @@ class AdvancedOrchestrator:
         if limit is None or limit <= 0:
             return list(self.routing_history)
         return list(self.routing_history[-limit:])
+
+    def get_memory_recommendation(self, available_memory_gb: float) -> Dict[str, object]:
+        """Get tactical memory and engine recommendations for runtime planning."""
+        profile = self.optimizer.recommend_runtime_profile(available_memory_gb)
+        return {
+            "available_memory_gb": available_memory_gb,
+            "recommended_profile": profile,
+            "details": self.optimizer.get_profile_details(profile),
+        }
 
     def _simulate_engine_outputs(
         self,
