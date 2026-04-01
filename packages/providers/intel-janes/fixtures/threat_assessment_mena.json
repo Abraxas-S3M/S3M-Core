@@ -1,0 +1,9 @@
+{
+  "id": "JANES-THREAT-MENA-202406",
+  "assessment": "Elevated regional risk due to maritime drone and missile activity.",
+  "region": "middle-east",
+  "country": "SA",
+  "actors": ["Regional militia networks", "State-aligned proxy groups"],
+  "source_count": 6,
+  "sentiment_score": -0.55
+}

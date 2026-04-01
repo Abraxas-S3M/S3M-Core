@@ -1,0 +1,8 @@
+{
+  "id": "JANES-COUNTRY-SA",
+  "country_code": "SA",
+  "country": "Saudi Arabia",
+  "branches": ["Royal Saudi Land Forces", "Royal Saudi Air Force", "Royal Saudi Naval Forces", "Royal Saudi Air Defense"],
+  "personnel_strength": 257000,
+  "major_equipment": ["F-15SA", "Typhoon", "M1A2", "Patriot", "THAAD"]
+}

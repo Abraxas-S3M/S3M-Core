@@ -1,0 +1,10 @@
+{
+  "id": "RF-DOM-001",
+  "entity_type": "domain",
+  "value": "example.org",
+  "risk_score": 12,
+  "sightings": 2,
+  "risk_rules": ["Low-risk historical mention"],
+  "threat_lists": [],
+  "mitre_techniques": []
+}
