@@ -1,0 +1,48 @@
+# S3M Phase 18 — Training & Simulation Advanced Configuration
+# UNCLASSIFIED - FOUO
+
+wargaming:
+  default_adversary_difficulty: "competent"
+  default_turn_limit: 30
+  default_turn_duration_seconds: 60
+  llm_adversary_engine: "reasoning"  # Grok for adversary decisions
+  llm_aar_engine: "planning"  # Mistral for AAR generation
+  max_concurrent_sessions: 10
+  engagement_model:
+    terrain_modifiers:
+      desert: {attack: 1.0, defend: 0.8}
+      urban: {attack: 0.7, defend: 1.3}
+      forest: {attack: 0.8, defend: 1.1}
+      mountain: {attack: 0.6, defend: 1.4}
+      open: {attack: 1.1, defend: 0.7}
+    fortification_bonus: 1.5
+    ambush_multiplier: 2.0
+    randomness_factor: 0.2
+
+exercises:
+  default_templates: ["tabletop", "command_post", "cyber", "combined"]
+  evaluation:
+    objectives_weight: 0.40
+    wargame_weight: 0.30
+    timeliness_weight: 0.15
+    decision_quality_weight: 0.15
+  grading:
+    A_plus: 95
+    A: 85
+    B_plus: 75
+    B: 65
+    C: 55
+
+training:
+  max_officers: 10000
+  standard_courses: true
+  auto_assign_overdue_check_hours: 24
+
+scenarios:
+  templates_dir: "configs/training/scenario_templates/"
+  default_terrain: "desert"
+  default_duration_seconds: 600
+
+visualization:
+  max_replay_turns: 500
+  frame_format: "json"

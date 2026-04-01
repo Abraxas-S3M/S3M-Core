@@ -30,6 +30,7 @@ from src.api.autonomy_routes import autonomy_router
 from src.api.dashboard_routes import dashboard_router
 from src.api.navigation_routes import navigation_router
 from src.api.simulation_routes import simulation_router
+from src.api.training_sim_routes import training_sim_router
 from src.api.threat_routes import threat_router, sensor_router
 
 LOGGER = logging.getLogger(__name__)
@@ -113,6 +114,7 @@ app.include_router(navigation_router, tags=["Navigation & Edge AI"])
 app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 app.include_router(apps_router, tags=["Domain Applications"])
+app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 
 # Load security config
 security_config = {}
