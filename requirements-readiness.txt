@@ -1,0 +1,9 @@
+# S3M Phase 20 — Personnel & Readiness Dependencies
+# THE FINAL REQUIREMENTS FILE
+# All features use existing S3M infrastructure
+
+# Required (already in base requirements)
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
+numpy>=1.24.0

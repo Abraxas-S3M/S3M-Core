@@ -1,0 +1,65 @@
+# S3M Phase 20 — Personnel & Readiness Configuration
+# UNCLASSIFIED - FOUO
+# THE FINAL LAYER CONFIGURATION
+
+personnel:
+  max_personnel: 100000
+  encrypt_contact_info: true
+  audit_all_changes: true
+
+certifications:
+  default_validity_days: 365
+  expiry_warning_days: 30
+  auto_sync_from_training: true
+  standard_types:
+    - {type: "S3M_WARGAMING_L1", name_en: "Wargaming Operator Level 1", name_ar: "مشغل ألعاب حربية مستوى 1", validity_days: 365}
+    - {type: "S3M_CYBER_DEFENDER", name_en: "Cyber Defense Analyst", name_ar: "محلل الدفاع السيبراني", validity_days: 365}
+    - {type: "S3M_MARITIME_WATCH", name_en: "Maritime Watch Officer", name_ar: "ضابط المراقبة البحرية", validity_days: 365}
+    - {type: "S3M_AUTONOMY_CMD", name_en: "Autonomous Systems Commander", name_ar: "قائد الأنظمة المستقلة", validity_days: 365}
+    - {type: "S3M_COALITION_COORD", name_en: "Coalition Coordinator", name_ar: "منسق التحالف", validity_days: 365}
+    - {type: "UAV_OPERATOR", name_en: "UAV Operator", name_ar: "مشغل طائرات بدون طيار", validity_days: 180}
+    - {type: "NBC_QUALIFIED", name_en: "NBC Defense Qualified", name_ar: "مؤهل دفاع كيميائي", validity_days: 365}
+    - {type: "COMBAT_MEDIC", name_en: "Combat Medical Technician", name_ar: "فني طبي قتالي", validity_days: 365}
+    - {type: "JUMPMASTER", name_en: "Military Parachutist", name_ar: "مظلي عسكري", validity_days: 365}
+    - {type: "SIGNALS_OPERATOR", name_en: "Military Signals Operator", name_ar: "مشغل إشارات عسكرية", validity_days: 365}
+
+manning:
+  auto_fill_on_register: false
+  critical_vacancy_ranks: ["CAPTAIN", "MAJOR", "LIEUTENANT_COLONEL", "FIRST_SERGEANT", "SERGEANT_MAJOR"]
+
+eligibility:
+  mandatory_rules:
+    - {name: "active_duty", check: "status == ACTIVE_DUTY", weight: 1.0}
+    - {name: "medical_fit", check: "medical == FIT_FOR_DUTY", weight: 1.0}
+    - {name: "clearance_valid", check: "clearance >= CONFIDENTIAL", weight: 0.8}
+  optional_rules:
+    - {name: "time_since_deployment", check: "days_since_last_deployment > 180", weight: 0.6}
+    - {name: "training_current", check: "no_expired_certifications", weight: 0.7}
+    - {name: "time_in_grade", check: "time_in_grade_months > 6", weight: 0.3}
+
+readiness:
+  weights:
+    personnel: 0.40
+    training: 0.30
+    equipment: 0.30
+  levels:
+    green: 80
+    amber: 60
+    red: 40
+  llm_domain: "planning"  # Mistral for reports
+
+coalition:
+  gcc_partners:
+    - {code: 178, name: "Saudi Arabia"}
+    - {code: 223, name: "United Arab Emirates"}
+    - {code: 117, name: "Kuwait"}
+    - {code: 16, name: "Bahrain"}
+    - {code: 164, name: "Qatar"}
+    - {code: 154, name: "Oman"}
+
+hr_adapter:
+  backend: "standalone"
+  erpnext_url: "http://localhost:8000"
+  odoo_url: "http://localhost:8069"
+  orangehrm_url: "http://localhost:80"
+  api_key: "CHANGEME"

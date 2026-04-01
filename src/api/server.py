@@ -31,6 +31,7 @@ from src.api.maintenance_routes import maintenance_router
 from src.api.navigation_routes import navigation_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
+from src.api.readiness_routes import readiness_router
 from src.api.simulation_routes import simulation_router
 from src.api.threat_routes import threat_router, sensor_router
 from src.api.training_sim_routes import training_sim_router
@@ -138,6 +139,7 @@ app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
+app.include_router(readiness_router, tags=["Personnel & Readiness"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
