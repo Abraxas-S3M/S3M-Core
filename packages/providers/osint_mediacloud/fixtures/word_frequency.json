@@ -1,0 +1,24 @@
+{
+  "word_counts": [
+    {"term": "saudi", "count": 132},
+    {"term": "defense", "count": 118},
+    {"term": "gulf", "count": 101},
+    {"term": "security", "count": 96},
+    {"term": "iran", "count": 83},
+    {"term": "hormuz", "count": 77},
+    {"term": "yemen", "count": 72},
+    {"term": "drone", "count": 68},
+    {"term": "military", "count": 64},
+    {"term": "shipping", "count": 61},
+    {"term": "red", "count": 57},
+    {"term": "sea", "count": 56},
+    {"term": "gcc", "count": 49},
+    {"term": "maritime", "count": 42},
+    {"term": "oil", "count": 39},
+    {"term": "aramco", "count": 36},
+    {"term": "strike", "count": 34},
+    {"term": "uav", "count": 31},
+    {"term": "coast", "count": 29},
+    {"term": "crisis", "count": 27}
+  ]
+}

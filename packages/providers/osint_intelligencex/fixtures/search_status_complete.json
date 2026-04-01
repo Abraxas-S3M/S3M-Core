@@ -1,0 +1,16 @@
+{
+  "id": "fixture-search-aramco",
+  "status": 2,
+  "records": [
+    {"systemid": "sys-001", "bucket": "pastes", "name": "aramco vpn credentials dump", "date": "2026-03-20T08:22:00Z", "storageid": "stor-001", "size": 820000, "media": 1, "type": "text", "added": "2026-03-20T08:30:00Z"},
+    {"systemid": "sys-002", "bucket": "pastes", "name": "saudi gov proxy config", "date": "2026-03-18T11:02:00Z", "storageid": "stor-002", "size": 210000, "media": 1, "type": "text", "added": "2026-03-18T11:10:00Z"},
+    {"systemid": "sys-003", "bucket": "darknet", "name": "listing: access to aramco vpn", "date": "2026-03-21T02:10:00Z", "storageid": "stor-003", "size": 4500000, "media": 2, "type": "html", "added": "2026-03-21T02:12:00Z"},
+    {"systemid": "sys-004", "bucket": "whois", "name": "aramco.com historical whois 2018", "date": "2018-05-01T00:00:00Z", "storageid": "stor-004", "size": 12000, "media": 3, "type": "json", "added": "2026-03-01T00:00:00Z"},
+    {"systemid": "sys-005", "bucket": "whois", "name": "aramco.com ns change", "date": "2025-12-05T00:00:00Z", "storageid": "stor-005", "size": 15000, "media": 3, "type": "json", "added": "2026-03-01T00:00:00Z"},
+    {"systemid": "sys-006", "bucket": "whois", "name": "aramco.com registrar history", "date": "2024-10-11T00:00:00Z", "storageid": "stor-006", "size": 13000, "media": 3, "type": "json", "added": "2026-03-01T00:00:00Z"},
+    {"systemid": "sys-007", "bucket": "news", "name": "energy cybersecurity outlook", "date": "2026-03-15T09:00:00Z", "storageid": "stor-007", "size": 18000, "media": 5, "type": "html", "added": "2026-03-15T09:02:00Z"},
+    {"systemid": "sys-008", "bucket": "news", "name": "red sea digital threat update", "date": "2026-03-16T09:00:00Z", "storageid": "stor-008", "size": 22000, "media": 5, "type": "html", "added": "2026-03-16T09:03:00Z"},
+    {"systemid": "sys-009", "bucket": "web", "name": "public mirror aramco docs", "date": "2026-03-10T05:00:00Z", "storageid": "stor-009", "size": 98000, "media": 0, "type": "html", "added": "2026-03-10T05:04:00Z"},
+    {"systemid": "sys-010", "bucket": "web", "name": "forum reference to aramco endpoint", "date": "2026-03-11T06:00:00Z", "storageid": "stor-010", "size": 76000, "media": 0, "type": "html", "added": "2026-03-11T06:02:00Z"}
+  ]
+}

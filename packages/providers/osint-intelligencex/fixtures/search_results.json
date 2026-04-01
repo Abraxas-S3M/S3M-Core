@@ -1,0 +1,116 @@
+{
+  "term": "aramco.com",
+  "status": 2,
+  "records": [
+    {
+      "systemid": "ix-001",
+      "bucket": "pastes",
+      "name": "aramco vpn config leak",
+      "date": "2026-03-25T07:10:00Z",
+      "storageid": "st-001",
+      "size": 524288,
+      "media": 1,
+      "type": 0,
+      "added": "2026-03-25T07:11:00Z"
+    },
+    {
+      "systemid": "ix-002",
+      "bucket": "pastes",
+      "name": "credential dump for aramco mail",
+      "date": "2026-03-22T12:40:00Z",
+      "storageid": "st-002",
+      "size": 786432,
+      "media": 1,
+      "type": 0,
+      "added": "2026-03-22T12:41:00Z"
+    },
+    {
+      "systemid": "ix-003",
+      "bucket": "darknet",
+      "name": "market listing mentioning aramco systems",
+      "date": "2026-03-20T03:30:00Z",
+      "storageid": "st-003",
+      "size": 15728640,
+      "media": 2,
+      "type": 0,
+      "added": "2026-03-20T03:31:00Z"
+    },
+    {
+      "systemid": "ix-004",
+      "bucket": "whois",
+      "name": "historic whois aramco.com",
+      "date": "2026-02-11T00:00:00Z",
+      "storageid": "st-004",
+      "size": 12288,
+      "media": 3,
+      "type": 0,
+      "added": "2026-02-11T00:01:00Z"
+    },
+    {
+      "systemid": "ix-005",
+      "bucket": "whois",
+      "name": "name server change archive",
+      "date": "2026-01-19T00:00:00Z",
+      "storageid": "st-005",
+      "size": 12288,
+      "media": 3,
+      "type": 0,
+      "added": "2026-01-19T00:01:00Z"
+    },
+    {
+      "systemid": "ix-006",
+      "bucket": "whois",
+      "name": "registrant update history",
+      "date": "2025-12-02T00:00:00Z",
+      "storageid": "st-006",
+      "size": 14336,
+      "media": 3,
+      "type": 0,
+      "added": "2025-12-02T00:01:00Z"
+    },
+    {
+      "systemid": "ix-007",
+      "bucket": "news",
+      "name": "energy cyber defense report",
+      "date": "2026-03-24T09:00:00Z",
+      "storageid": "st-007",
+      "size": 65536,
+      "media": 5,
+      "type": 0,
+      "added": "2026-03-24T09:01:00Z"
+    },
+    {
+      "systemid": "ix-008",
+      "bucket": "news",
+      "name": "regional security brief",
+      "date": "2026-03-18T13:00:00Z",
+      "storageid": "st-008",
+      "size": 53248,
+      "media": 5,
+      "type": 0,
+      "added": "2026-03-18T13:01:00Z"
+    },
+    {
+      "systemid": "ix-009",
+      "bucket": "web",
+      "name": "public mirror of configuration docs",
+      "date": "2026-03-17T10:20:00Z",
+      "storageid": "st-009",
+      "size": 163840,
+      "media": 0,
+      "type": 0,
+      "added": "2026-03-17T10:21:00Z"
+    },
+    {
+      "systemid": "ix-010",
+      "bucket": "web",
+      "name": "reference page with subdomain index",
+      "date": "2026-03-16T08:00:00Z",
+      "storageid": "st-010",
+      "size": 245760,
+      "media": 0,
+      "type": 0,
+      "added": "2026-03-16T08:01:00Z"
+    }
+  ]
+}
