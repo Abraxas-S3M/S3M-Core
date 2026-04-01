@@ -1,0 +1,10 @@
+{
+  "order_id": "PLANET-ORDER-20240615-001",
+  "status": "success",
+  "item_type": "PSScene",
+  "product_bundle": "analytic_udm2",
+  "delivery": {
+    "state": "running",
+    "archive_url": "s3://fixtures/planet/order_20240615.zip"
+  }
+}

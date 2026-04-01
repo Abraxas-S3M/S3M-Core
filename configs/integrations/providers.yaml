@@ -63,3 +63,31 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 3
+  geoint-maxar:
+    enabled: false  # requires defense contract
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-planet:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-capella:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  geoint-iceye:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  intel-janes:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  cyber-recordedfuture:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  osint-dataminr:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60

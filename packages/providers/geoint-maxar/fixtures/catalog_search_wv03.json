@@ -1,0 +1,65 @@
+{
+  "images": [
+    {
+      "id": "maxar-wv03-20240610-001",
+      "collection": "wv03",
+      "satellite": "WorldView-3",
+      "resolution_m": 0.31,
+      "cloud_cover": 4.7,
+      "acquisition_time": "2024-06-10T08:14:22Z",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[49.741, 26.121], [49.894, 26.121], [49.894, 26.242], [49.741, 26.242], [49.741, 26.121]]]
+      }
+    },
+    {
+      "id": "maxar-wv03-20240611-002",
+      "collection": "wv03",
+      "satellite": "WorldView-3",
+      "resolution_m": 0.31,
+      "cloud_cover": 11.2,
+      "acquisition_time": "2024-06-11T09:02:11Z",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[50.012, 26.004], [50.184, 26.004], [50.184, 26.146], [50.012, 26.146], [50.012, 26.004]]]
+      }
+    },
+    {
+      "id": "maxar-wv03-20240612-003",
+      "collection": "wv03",
+      "satellite": "WorldView-3",
+      "resolution_m": 0.31,
+      "cloud_cover": 18.9,
+      "acquisition_time": "2024-06-12T07:31:05Z",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[48.833, 25.922], [49.021, 25.922], [49.021, 26.073], [48.833, 26.073], [48.833, 25.922]]]
+      }
+    },
+    {
+      "id": "maxar-wv03-20240613-004",
+      "collection": "wv03",
+      "satellite": "WorldView-3",
+      "resolution_m": 0.31,
+      "cloud_cover": 2.1,
+      "acquisition_time": "2024-06-13T08:56:47Z",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[56.101, 26.419], [56.298, 26.419], [56.298, 26.566], [56.101, 26.566], [56.101, 26.419]]]
+      }
+    },
+    {
+      "id": "maxar-wv03-20240614-005",
+      "collection": "wv03",
+      "satellite": "WorldView-3",
+      "resolution_m": 0.31,
+      "cloud_cover": 9.5,
+      "acquisition_time": "2024-06-14T09:10:13Z",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[56.221, 26.123], [56.401, 26.123], [56.401, 26.281], [56.221, 26.281], [56.221, 26.123]]]
+      }
+    }
+  ],
+  "count": 5
+}

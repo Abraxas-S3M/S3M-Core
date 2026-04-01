@@ -1,0 +1,8 @@
+{
+  "order_id": "MAXAR-TASK-STRAIT-20240615-001",
+  "estimated_collection_date": "2024-06-17T06:30:00Z",
+  "sensor": "WV03",
+  "status": "scheduled",
+  "priority": "standard",
+  "aoi_name": "Strait of Hormuz"
+}
