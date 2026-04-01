@@ -63,6 +63,26 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 3
+  ml-huggingface:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-labelstudio:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-wandb:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  ml-clearml:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-langfuse:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
   gis-mapbox:
     enabled: true
     mode: "online"
