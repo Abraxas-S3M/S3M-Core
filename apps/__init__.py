@@ -1,2 +1,1 @@
-"""Top-level apps package for non-API layer modules."""
-
+"""Top-level applications package for advanced S3M modules."""

@@ -25,6 +25,7 @@ from src.api.apps_routes import apps_router
 from src.api.comms_routes import comms_router
 from src.api.dashboard_routes import dashboard_router
 from src.api.simulation_routes import simulation_router
+from src.api.training_sim_routes import training_sim_router
 from src.api.threat_routes import threat_router, sensor_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
@@ -116,6 +117,7 @@ app.include_router(navigation_router, tags=["Navigation & Edge AI"])
 app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 app.include_router(apps_router, tags=["Domain Applications"])
+app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
 app.include_router(comms_router, tags=["Secure Communications"])
 
