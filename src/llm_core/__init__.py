@@ -19,6 +19,7 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
 from .model_optimizer import (
     AllocationPlan,
     HARDWARE_PROFILES,
@@ -68,6 +69,7 @@ __all__ = [
     "OrchestratorEngineResponse", "OrchestratorConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "ModelRegistry", "ModelArtifact", "RegistryStatus",
     "ModelOptimizer", "ModelProfile", "AllocationPlan", "PreloadPlan",
     "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
     "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
