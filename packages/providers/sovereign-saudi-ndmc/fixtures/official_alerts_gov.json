@@ -1,0 +1,31 @@
+{
+  "alerts": [
+    {
+      "alert_id": "NCM-2026-001",
+      "alert_type": "dust_storm_national",
+      "alert_ar": "تحذير وطني: عاصفة غبار كثيفة على معظم مناطق المملكة خلال 12 ساعة القادمة.",
+      "alert_en": "National warning: severe dust storm across most regions in the next 12 hours.",
+      "severity": "high",
+      "authority": "NCM",
+      "classification": "SAUDI_GOVERNMENT_OFFICIAL"
+    },
+    {
+      "alert_id": "NCM-2026-002",
+      "alert_type": "extreme_heat_national",
+      "alert_ar": "تنبيه حرارة شديدة: تجاوز درجات الحرارة 50 مئوية في المنطقة الشرقية.",
+      "alert_en": "Extreme heat advisory: temperatures exceeding 50C in Eastern Province.",
+      "severity": "medium",
+      "authority": "NCM",
+      "classification": "SAUDI_GOVERNMENT_OFFICIAL"
+    },
+    {
+      "alert_id": "NCM-2026-003",
+      "alert_type": "maritime_storm_warning",
+      "alert_ar": "تحذير بحري: اضطراب شديد في الخليج العربي وارتفاع الموج لأكثر من 3 أمتار.",
+      "alert_en": "Maritime warning: rough Gulf waters with waves above 3 meters.",
+      "severity": "high",
+      "authority": "NCM",
+      "classification": "SAUDI_GOVERNMENT_OFFICIAL"
+    }
+  ]
+}

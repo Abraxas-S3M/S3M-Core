@@ -1,0 +1,17 @@
+{
+  "advisory": {
+    "region": "Eastern Province",
+    "classification": "SAUDI_GOVERNMENT_OFFICIAL",
+    "conditions_ar": "رؤية منخفضة بسبب الغبار الكثيف ورياح شمالية شرقية قوية.",
+    "conditions_en": "Reduced visibility from dense dust with strong northeasterly winds.",
+    "operational_impact": {
+      "flight": "NO-GO",
+      "ground": "CAUTION",
+      "uav": "NO-GO",
+      "maritime": "CAUTION"
+    },
+    "valid_from": "2026-04-01T06:00:00Z",
+    "valid_until": "2026-04-01T20:00:00Z",
+    "authority": "NCM/MOD"
+  }
+}

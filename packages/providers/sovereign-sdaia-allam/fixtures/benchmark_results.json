@@ -1,0 +1,10 @@
+{
+  "benchmarks": {
+    "summarization": {"score": 0.72, "metric": "ROUGE-L"},
+    "entity_extraction": {"score": 0.68, "metric": "F1"},
+    "translation": {"score": 0.65, "metric": "BLEU"},
+    "command_classification": {"score": 0.82, "metric": "accuracy"}
+  },
+  "overall_arabic_score": 0.718,
+  "latency_avg_ms": 420.0
+}

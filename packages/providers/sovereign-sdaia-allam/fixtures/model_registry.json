@@ -1,0 +1,22 @@
+{
+  "models": [
+    {
+      "model_id": "sdaia/allam-7b",
+      "version": "2024.06.01",
+      "parameters": "7B",
+      "languages": ["ar", "en"],
+      "release_date": "2024-06-01",
+      "size_gb": 14.0,
+      "quantization_available": ["fp16", "int8", "int4"]
+    },
+    {
+      "model_id": "sdaia/allam-7b-chat",
+      "version": "2024.06.01",
+      "parameters": "7B",
+      "languages": ["ar", "en"],
+      "release_date": "2024-06-01",
+      "size_gb": 14.0,
+      "quantization_available": ["fp16", "int8", "int4"]
+    }
+  ]
+}

@@ -13,6 +13,8 @@ from typing import Any
 
 class ProviderCategory(str, Enum):
     CYBER_THREAT_INTEL = "CYBER_THREAT_INTEL"
+    GEOINT = "GEOINT"
+    SOVEREIGN_REGIONAL = "SOVEREIGN_REGIONAL"
     AI_ML_SERVICES = "AI_ML_SERVICES"
 
 
@@ -20,6 +22,7 @@ class ProviderTier(str, Enum):
     FREE = "FREE"
     FREEMIUM = "FREEMIUM"
     PAID = "PAID"
+    GOVERNMENT = "GOVERNMENT"
 
 
 @dataclass
@@ -29,9 +32,16 @@ class ProviderManifest:
     tier: ProviderTier
     auth_type: str
     rate_limit_rpm: int
+    name: str = ""
+    base_url: str = ""
     required_env_vars: list[str] = field(default_factory=list)
     optional_env_vars: list[str] = field(default_factory=list)
     supported_schemas: list[str] = field(default_factory=lambda: ["NormalizedThreatIndicator"])
+    description: str = ""
+    docs_url: str = ""
+    airgap_capable: bool = True
+    enabled: bool = True
+    tags: list[str] = field(default_factory=list)
 
 
 class ProviderAdapter:
