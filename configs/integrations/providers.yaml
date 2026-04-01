@@ -27,6 +27,22 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 20
+  osint-gdelt:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  osint-acled:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  osint-mediacloud:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 40
+  osint-intelligencex:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 3
   maritime-marinetraffic:
     enabled: true
     mode: "online"

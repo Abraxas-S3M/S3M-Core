@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "geo-1",
+      "geometry": {"type": "Point", "coordinates": [44.191, 15.369]},
+      "properties": {
+        "name": "Yemen conflict near Taiz",
+        "seendate": "2026-03-29T08:00:00Z",
+        "country": "YE",
+        "language": "en",
+        "tone": -62.0,
+        "eventcode": "194",
+        "nummentions": 27,
+        "url": "https://example.news/yemen-taiz"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "geo-2",
+      "geometry": {"type": "Point", "coordinates": [46.6753, 24.7136]},
+      "properties": {
+        "name": "Riyadh defense briefing",
+        "seendate": "2026-03-29T09:15:00Z",
+        "country": "SA",
+        "language": "en",
+        "tone": -8.0,
+        "eventcode": "171",
+        "nummentions": 8,
+        "url": "https://example.news/riyadh-briefing"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "geo-3",
+      "geometry": {"type": "Point", "coordinates": [50.8753, 34.6401]},
+      "properties": {
+        "name": "Iran naval drill",
+        "seendate": "2026-03-29T10:00:00Z",
+        "country": "IR",
+        "language": "fa",
+        "tone": -28.0,
+        "eventcode": "173",
+        "nummentions": 11,
+        "url": "https://example.news/iran-naval-drill"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "geo-4",
+      "geometry": {"type": "Point", "coordinates": [42.547, 16.908]},
+      "properties": {
+        "name": "Red Sea shipping threat",
+        "seendate": "2026-03-29T11:05:00Z",
+        "country": "YE",
+        "language": "ar",
+        "tone": -55.0,
+        "eventcode": "190",
+        "nummentions": 19,
+        "url": "https://example.news/red-sea-threat"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "geo-5",
+      "geometry": {"type": "Point", "coordinates": [43.9589, 26.2285]},
+      "properties": {
+        "name": "Red Sea route advisory",
+        "seendate": "2026-03-29T12:20:00Z",
+        "country": "SA",
+        "language": "en",
+        "tone": -14.0,
+        "eventcode": "045",
+        "nummentions": 6,
+        "url": "https://example.news/red-sea-advisory"
+      }
+    }
+  ]
+}
