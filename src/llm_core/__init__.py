@@ -14,6 +14,7 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -25,6 +26,7 @@ __all__ = [
     "Orchestrator", "QueryRequest", "EngineResponse", "ConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "ModelRegistry", "ModelArtifact", "RegistryStatus",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",

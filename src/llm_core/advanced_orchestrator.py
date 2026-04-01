@@ -17,6 +17,7 @@ import uuid
 from typing import Dict, List, Optional, Protocol
 
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
+from .model_registry import ModelRegistry
 
 
 LOGGER = logging.getLogger(__name__)
@@ -272,11 +273,40 @@ class AdvancedOrchestrator:
         UrgencyLevel.LOW: frozenset({"low priority", "whenever", "later", "defer"}),
     }
 
-    def __init__(self, registry: Optional[EngineRegistry] = None, history_limit: int = 250):
+    def __init__(
+        self,
+        registry: Optional[EngineRegistry] = None,
+        model_registry: Optional[ModelRegistry] = None,
+        history_limit: int = 250,
+    ):
         self.registry = registry or EngineRegistry()
+        self.model_registry = model_registry or ModelRegistry(registry=self.registry)
         self.metrics = OrchestratorMetrics()
         self.history_limit = max(10, history_limit)
         self.routing_history: List[Dict[str, object]] = []
+
+    def check_model_integrity(self) -> Dict[str, object]:
+        """
+        Return integrity snapshot for all registered model artifacts.
+
+        Tactical context:
+            Gives mission controllers a lightweight pre-dispatch gate showing
+            whether model assets require human review before use.
+        """
+        status = self.model_registry.list_registry_status(recompute=False)
+        return {
+            "review_required": status.review_required,
+            "status": status.summary(),
+            "artifacts": {
+                engine_id: {
+                    "status": artifact.status,
+                    "reason": artifact.drift_reason,
+                    "version": artifact.version_tag,
+                    "last_verified": artifact.last_verified_at,
+                }
+                for engine_id, artifact in status.artifacts.items()
+            },
+        }
 
     def route_and_decide(self, request: RoutingRequest) -> UnifiedResponse:
         """
