@@ -27,3 +27,19 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 20
+  weather-openmeteo:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  weather-owm:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  weather-cams:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 20
+  weather-saudi-ndmc:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10

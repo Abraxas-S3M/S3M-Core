@@ -1,0 +1,22 @@
+{
+  "dt": 1775001600,
+  "main": {
+    "temp": 44.0,
+    "humidity": 12,
+    "pressure": 1008
+  },
+  "wind": {
+    "speed": 4.5,
+    "deg": 180
+  },
+  "visibility": 10000,
+  "clouds": {
+    "all": 5
+  },
+  "weather": [
+    {
+      "main": "Clear",
+      "description": "clear sky"
+    }
+  ]
+}

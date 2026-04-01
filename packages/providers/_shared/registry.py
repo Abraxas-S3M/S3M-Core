@@ -1,4 +1,4 @@
-"""Provider registry for GEOINT adapters."""
+"""Provider registry for S3M provider adapters."""
 
 from __future__ import annotations
 
@@ -25,5 +25,24 @@ class ProviderRegistry:
         from packages.providers.geoint_nasa_earthdata.adapter import NASAEarthdataAdapter
         from packages.providers.geoint_sentinelhub.adapter import SentinelHubAdapter
 
-        for cls in [CopernicusAdapter, SentinelHubAdapter, NASAEarthdataAdapter, GEEAdapter]:
+        for cls in [
+            CopernicusAdapter,
+            SentinelHubAdapter,
+            NASAEarthdataAdapter,
+            GEEAdapter,
+        ]:
+            self.register(cls)
+
+    def register_weather_defaults(self) -> None:
+        from packages.providers.weather_cams.adapter import CAMSAdapter
+        from packages.providers.weather_openmeteo.adapter import OpenMeteoAdapter
+        from packages.providers.weather_owm.adapter import OpenWeatherMapAdapter
+        from packages.providers.weather_saudi_ndmc.adapter import SaudiNDMCAdapter
+
+        for cls in [
+            OpenMeteoAdapter,
+            OpenWeatherMapAdapter,
+            CAMSAdapter,
+            SaudiNDMCAdapter,
+        ]:
             self.register(cls)

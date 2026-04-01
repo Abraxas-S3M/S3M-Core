@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-04-01T20:00",
+  "cells": [
+    {
+      "region": "tabuk",
+      "dust_aod": 1.6
+    },
+    {
+      "region": "riyadh",
+      "dust_aod": 1.2
+    },
+    {
+      "region": "jubail",
+      "dust_aod": 0.8
+    },
+    {
+      "region": "najran",
+      "dust_aod": 0.4
+    }
+  ],
+  "movement": "northwest_to_southeast"
+}

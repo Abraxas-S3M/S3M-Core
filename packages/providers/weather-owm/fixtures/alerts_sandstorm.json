@@ -1,0 +1,11 @@
+{
+  "alerts": [
+    {
+      "sender_name": "Saudi NCM",
+      "event": "Dust Storm Warning",
+      "start": 1775037600,
+      "end": 1775073600,
+      "description": "Strong dust front reducing visibility below safe limits."
+    }
+  ]
+}

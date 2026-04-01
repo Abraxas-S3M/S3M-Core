@@ -1,0 +1,51 @@
+{
+  "alerts": [
+    {
+      "alert_type": "dust_storm",
+      "severity": "red",
+      "regions_affected": [
+        "Eastern Province"
+      ],
+      "valid_from": "2026-04-01T08:00:00+00:00",
+      "valid_until": "2026-04-01T18:00:00+00:00",
+      "description_en": "Dust storm warning with significant visibility degradation.",
+      "description_ar": "\u062a\u062d\u0630\u064a\u0631 \u0639\u0627\u0635\u0641\u0629 \u063a\u0628\u0627\u0631\u064a\u0629 \u0645\u0639 \u062a\u062f\u0646\u064d \u0643\u0628\u064a\u0631 \u0641\u064a \u0645\u062f\u0649 \u0627\u0644\u0631\u0624\u064a\u0629."
+    },
+    {
+      "alert_type": "extreme_heat",
+      "severity": "orange",
+      "regions_affected": [
+        "Riyadh"
+      ],
+      "valid_from": "2026-04-01T10:00:00+00:00",
+      "valid_until": "2026-04-01T16:00:00+00:00",
+      "description_en": "Extreme heat advisory; limit direct sun exposure for field crews.",
+      "description_ar": "\u062a\u0646\u0628\u064a\u0647 \u062d\u0631\u0627\u0631\u0629 \u0634\u062f\u064a\u062f\u0629\u061b \u064a\u062d\u062f \u0645\u0646 \u0627\u0644\u062a\u0639\u0631\u0636 \u0627\u0644\u0645\u0628\u0627\u0634\u0631 \u0644\u0644\u0634\u0645\u0633 \u0644\u0644\u0641\u0631\u0642 \u0627\u0644\u0645\u064a\u062f\u0627\u0646\u064a\u0629."
+    },
+    {
+      "alert_type": "thunderstorm",
+      "severity": "yellow",
+      "regions_affected": [
+        "Asir"
+      ],
+      "valid_from": "2026-04-01T12:00:00+00:00",
+      "valid_until": "2026-04-01T20:00:00+00:00",
+      "description_en": "Localized thunderstorm risk with possible flash runoff in wadis.",
+      "description_ar": "\u0627\u062d\u062a\u0645\u0627\u0644 \u0639\u0648\u0627\u0635\u0641 \u0631\u0639\u062f\u064a\u0629 \u0645\u062d\u0644\u064a\u0629 \u0645\u0639 \u062c\u0631\u064a\u0627\u0646 \u0633\u064a\u0648\u0644 \u0641\u064a \u0627\u0644\u0623\u0648\u062f\u064a\u0629."
+    }
+  ],
+  "metar": {
+    "OERK": "OERK 151430Z 32012KT 9999 FEW040 SCT200 46/08 Q1006",
+    "OEJN": "OEJN 151430Z 28010KT 9999 FEW035 39/20 Q1008",
+    "OEDF": "OEDF 151430Z 30014KT 9999 SCT030 42/19 Q1007",
+    "OETB": "OETB 151430Z 29011KT 9999 FEW040 37/10 Q1009",
+    "OEAB": "OEAB 151430Z VRB03KT 9999 SCT045 31/12 Q1012",
+    "OEMA": "OEMA 151430Z 31009KT 9999 FEW050 40/16 Q1008",
+    "OEGN": "OEGN 151430Z 26008KT 8000 HZ SCT030 36/24 Q1009",
+    "OEGS": "OEGS 151430Z 34015KT 9999 FEW030 43/06 Q1005",
+    "OEJB": "OEJB 151430Z 31018KT 3000 DU SCT020 41/17 Q1007",
+    "OENR": "OENR 151430Z 32012KT 7000 HZ FEW030 38/09 Q1008",
+    "OEKK": "OEKK 151430Z 32015G25KT 9999 FEW040 45/07 Q1006",
+    "OEYN": "OEYN 151430Z 30022KT 0500 SS BKN015 35/18 Q1004"
+  }
+}

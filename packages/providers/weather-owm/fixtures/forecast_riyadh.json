@@ -1,0 +1,804 @@
+{
+  "list": [
+    {
+      "dt": 1775001600,
+      "dt_txt": "2026-04-01 00:00:00",
+      "main": {
+        "temp": 32,
+        "humidity": 14,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 150
+      },
+      "visibility": 10000,
+      "clouds": {
+        "all": 0
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775012400,
+      "dt_txt": "2026-04-01 03:00:00",
+      "main": {
+        "temp": 34,
+        "humidity": 15,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 157
+      },
+      "visibility": 9600,
+      "clouds": {
+        "all": 7
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775023200,
+      "dt_txt": "2026-04-01 06:00:00",
+      "main": {
+        "temp": 36,
+        "humidity": 16,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 164
+      },
+      "visibility": 9200,
+      "clouds": {
+        "all": 14
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775034000,
+      "dt_txt": "2026-04-01 09:00:00",
+      "main": {
+        "temp": 38,
+        "humidity": 17,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 171
+      },
+      "visibility": 8800,
+      "clouds": {
+        "all": 21
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775044800,
+      "dt_txt": "2026-04-01 12:00:00",
+      "main": {
+        "temp": 40,
+        "humidity": 18,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 178
+      },
+      "visibility": 8400,
+      "clouds": {
+        "all": 28
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775055600,
+      "dt_txt": "2026-04-01 15:00:00",
+      "main": {
+        "temp": 42,
+        "humidity": 19,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 185
+      },
+      "visibility": 8000,
+      "clouds": {
+        "all": 35
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775066400,
+      "dt_txt": "2026-04-01 18:00:00",
+      "main": {
+        "temp": 44,
+        "humidity": 20,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 192
+      },
+      "visibility": 7600,
+      "clouds": {
+        "all": 42
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775077200,
+      "dt_txt": "2026-04-01 21:00:00",
+      "main": {
+        "temp": 46,
+        "humidity": 21,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 199
+      },
+      "visibility": 7200,
+      "clouds": {
+        "all": 49
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775088000,
+      "dt_txt": "2026-04-02 00:00:00",
+      "main": {
+        "temp": 32,
+        "humidity": 22,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 206
+      },
+      "visibility": 10000,
+      "clouds": {
+        "all": 56
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775098800,
+      "dt_txt": "2026-04-02 03:00:00",
+      "main": {
+        "temp": 34,
+        "humidity": 23,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 213
+      },
+      "visibility": 9600,
+      "clouds": {
+        "all": 63
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775109600,
+      "dt_txt": "2026-04-02 06:00:00",
+      "main": {
+        "temp": 36,
+        "humidity": 14,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 220
+      },
+      "visibility": 9200,
+      "clouds": {
+        "all": 70
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775120400,
+      "dt_txt": "2026-04-02 09:00:00",
+      "main": {
+        "temp": 38,
+        "humidity": 15,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 227
+      },
+      "visibility": 8800,
+      "clouds": {
+        "all": 77
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775131200,
+      "dt_txt": "2026-04-02 12:00:00",
+      "main": {
+        "temp": 40,
+        "humidity": 16,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 234
+      },
+      "visibility": 8400,
+      "clouds": {
+        "all": 4
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775142000,
+      "dt_txt": "2026-04-02 15:00:00",
+      "main": {
+        "temp": 42,
+        "humidity": 17,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 241
+      },
+      "visibility": 8000,
+      "clouds": {
+        "all": 11
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775152800,
+      "dt_txt": "2026-04-02 18:00:00",
+      "main": {
+        "temp": 44,
+        "humidity": 18,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 248
+      },
+      "visibility": 7600,
+      "clouds": {
+        "all": 18
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775163600,
+      "dt_txt": "2026-04-02 21:00:00",
+      "main": {
+        "temp": 46,
+        "humidity": 19,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 255
+      },
+      "visibility": 7200,
+      "clouds": {
+        "all": 25
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775174400,
+      "dt_txt": "2026-04-03 00:00:00",
+      "main": {
+        "temp": 32,
+        "humidity": 20,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 262
+      },
+      "visibility": 10000,
+      "clouds": {
+        "all": 32
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775185200,
+      "dt_txt": "2026-04-03 03:00:00",
+      "main": {
+        "temp": 34,
+        "humidity": 21,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 269
+      },
+      "visibility": 9600,
+      "clouds": {
+        "all": 39
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775196000,
+      "dt_txt": "2026-04-03 06:00:00",
+      "main": {
+        "temp": 36,
+        "humidity": 22,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 276
+      },
+      "visibility": 9200,
+      "clouds": {
+        "all": 46
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775206800,
+      "dt_txt": "2026-04-03 09:00:00",
+      "main": {
+        "temp": 38,
+        "humidity": 23,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 283
+      },
+      "visibility": 8800,
+      "clouds": {
+        "all": 53
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775217600,
+      "dt_txt": "2026-04-03 12:00:00",
+      "main": {
+        "temp": 40,
+        "humidity": 14,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 290
+      },
+      "visibility": 8400,
+      "clouds": {
+        "all": 60
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775228400,
+      "dt_txt": "2026-04-03 15:00:00",
+      "main": {
+        "temp": 42,
+        "humidity": 15,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 297
+      },
+      "visibility": 8000,
+      "clouds": {
+        "all": 67
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775239200,
+      "dt_txt": "2026-04-03 18:00:00",
+      "main": {
+        "temp": 44,
+        "humidity": 16,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 304
+      },
+      "visibility": 7600,
+      "clouds": {
+        "all": 74
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775250000,
+      "dt_txt": "2026-04-03 21:00:00",
+      "main": {
+        "temp": 46,
+        "humidity": 17,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 311
+      },
+      "visibility": 7200,
+      "clouds": {
+        "all": 1
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775260800,
+      "dt_txt": "2026-04-04 00:00:00",
+      "main": {
+        "temp": 32,
+        "humidity": 18,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 318
+      },
+      "visibility": 10000,
+      "clouds": {
+        "all": 8
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775271600,
+      "dt_txt": "2026-04-04 03:00:00",
+      "main": {
+        "temp": 34,
+        "humidity": 19,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 325
+      },
+      "visibility": 9600,
+      "clouds": {
+        "all": 15
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775282400,
+      "dt_txt": "2026-04-04 06:00:00",
+      "main": {
+        "temp": 36,
+        "humidity": 20,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 332
+      },
+      "visibility": 9200,
+      "clouds": {
+        "all": 22
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775293200,
+      "dt_txt": "2026-04-04 09:00:00",
+      "main": {
+        "temp": 38,
+        "humidity": 21,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 339
+      },
+      "visibility": 8800,
+      "clouds": {
+        "all": 29
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775304000,
+      "dt_txt": "2026-04-04 12:00:00",
+      "main": {
+        "temp": 40,
+        "humidity": 22,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 346
+      },
+      "visibility": 8400,
+      "clouds": {
+        "all": 36
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775314800,
+      "dt_txt": "2026-04-04 15:00:00",
+      "main": {
+        "temp": 42,
+        "humidity": 23,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 353
+      },
+      "visibility": 8000,
+      "clouds": {
+        "all": 43
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775325600,
+      "dt_txt": "2026-04-04 18:00:00",
+      "main": {
+        "temp": 44,
+        "humidity": 14,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 0
+      },
+      "visibility": 7600,
+      "clouds": {
+        "all": 50
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775336400,
+      "dt_txt": "2026-04-04 21:00:00",
+      "main": {
+        "temp": 46,
+        "humidity": 15,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 7
+      },
+      "visibility": 7200,
+      "clouds": {
+        "all": 57
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775347200,
+      "dt_txt": "2026-04-05 00:00:00",
+      "main": {
+        "temp": 32,
+        "humidity": 16,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 14
+      },
+      "visibility": 10000,
+      "clouds": {
+        "all": 64
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775358000,
+      "dt_txt": "2026-04-05 03:00:00",
+      "main": {
+        "temp": 34,
+        "humidity": 17,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 21
+      },
+      "visibility": 9600,
+      "clouds": {
+        "all": 71
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775368800,
+      "dt_txt": "2026-04-05 06:00:00",
+      "main": {
+        "temp": 36,
+        "humidity": 18,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 6.3,
+        "deg": 28
+      },
+      "visibility": 9200,
+      "clouds": {
+        "all": 78
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775379600,
+      "dt_txt": "2026-04-05 09:00:00",
+      "main": {
+        "temp": 38,
+        "humidity": 19,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 7.0,
+        "deg": 35
+      },
+      "visibility": 8800,
+      "clouds": {
+        "all": 5
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775390400,
+      "dt_txt": "2026-04-05 12:00:00",
+      "main": {
+        "temp": 40,
+        "humidity": 20,
+        "pressure": 1005
+      },
+      "wind": {
+        "speed": 3.5,
+        "deg": 42
+      },
+      "visibility": 8400,
+      "clouds": {
+        "all": 12
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775401200,
+      "dt_txt": "2026-04-05 15:00:00",
+      "main": {
+        "temp": 42,
+        "humidity": 21,
+        "pressure": 1006
+      },
+      "wind": {
+        "speed": 4.2,
+        "deg": 49
+      },
+      "visibility": 8000,
+      "clouds": {
+        "all": 19
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775412000,
+      "dt_txt": "2026-04-05 18:00:00",
+      "main": {
+        "temp": 44,
+        "humidity": 22,
+        "pressure": 1007
+      },
+      "wind": {
+        "speed": 4.9,
+        "deg": 56
+      },
+      "visibility": 7600,
+      "clouds": {
+        "all": 26
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    },
+    {
+      "dt": 1775422800,
+      "dt_txt": "2026-04-05 21:00:00",
+      "main": {
+        "temp": 46,
+        "humidity": 23,
+        "pressure": 1008
+      },
+      "wind": {
+        "speed": 5.6,
+        "deg": 63
+      },
+      "visibility": 7200,
+      "clouds": {
+        "all": 33
+      },
+      "rain": {
+        "3h": 0.0
+      }
+    }
+  ]
+}

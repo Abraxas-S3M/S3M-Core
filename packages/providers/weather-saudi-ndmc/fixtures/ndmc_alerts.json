@@ -1,0 +1,37 @@
+{
+  "alerts": [
+    {
+      "alert_type": "dust_storm",
+      "severity": "red",
+      "regions_affected": [
+        "Eastern Province"
+      ],
+      "valid_from": "2026-04-01T08:00:00+00:00",
+      "valid_until": "2026-04-01T18:00:00+00:00",
+      "description_en": "Dust storm warning with significant visibility degradation.",
+      "description_ar": "\u062a\u062d\u0630\u064a\u0631 \u0639\u0627\u0635\u0641\u0629 \u063a\u0628\u0627\u0631\u064a\u0629 \u0645\u0639 \u062a\u062f\u0646\u064d \u0643\u0628\u064a\u0631 \u0641\u064a \u0645\u062f\u0649 \u0627\u0644\u0631\u0624\u064a\u0629."
+    },
+    {
+      "alert_type": "extreme_heat",
+      "severity": "orange",
+      "regions_affected": [
+        "Riyadh"
+      ],
+      "valid_from": "2026-04-01T10:00:00+00:00",
+      "valid_until": "2026-04-01T16:00:00+00:00",
+      "description_en": "Extreme heat advisory; limit direct sun exposure for field crews.",
+      "description_ar": "\u062a\u0646\u0628\u064a\u0647 \u062d\u0631\u0627\u0631\u0629 \u0634\u062f\u064a\u062f\u0629\u061b \u064a\u062d\u062f \u0645\u0646 \u0627\u0644\u062a\u0639\u0631\u0636 \u0627\u0644\u0645\u0628\u0627\u0634\u0631 \u0644\u0644\u0634\u0645\u0633 \u0644\u0644\u0641\u0631\u0642 \u0627\u0644\u0645\u064a\u062f\u0627\u0646\u064a\u0629."
+    },
+    {
+      "alert_type": "thunderstorm",
+      "severity": "yellow",
+      "regions_affected": [
+        "Asir"
+      ],
+      "valid_from": "2026-04-01T12:00:00+00:00",
+      "valid_until": "2026-04-01T20:00:00+00:00",
+      "description_en": "Localized thunderstorm risk with possible flash runoff in wadis.",
+      "description_ar": "\u0627\u062d\u062a\u0645\u0627\u0644 \u0639\u0648\u0627\u0635\u0641 \u0631\u0639\u062f\u064a\u0629 \u0645\u062d\u0644\u064a\u0629 \u0645\u0639 \u062c\u0631\u064a\u0627\u0646 \u0633\u064a\u0648\u0644 \u0641\u064a \u0627\u0644\u0623\u0648\u062f\u064a\u0629."
+    }
+  ]
+}
