@@ -1,0 +1,59 @@
+# S3M Phase 13 — Cyber Defense Operations Configuration
+# UNCLASSIFIED - FOUO
+
+soc:
+  auto_case_threshold: "MEDIUM"  # Auto-create cases at this severity+
+  max_cases: 10000
+  triage_batch_size: 100
+
+ir_platforms:
+  thehive:
+    enabled: false
+    url: "http://localhost:9000"
+    api_key: "CHANGEME"
+  cortex:
+    enabled: false
+    url: "http://localhost:9001"
+    api_key: "CHANGEME"
+    default_analyzers:
+      ip: ["AbuseIPDB", "Shodan"]
+      hash: ["VirusTotal"]
+      domain: ["DomainTools"]
+  misp:
+    enabled: false
+    url: "http://localhost:8080"
+    api_key: "CHANGEME"
+    default_tlp: "AMBER"
+  dfir_iris:
+    enabled: false
+    url: "http://localhost:8000"
+    api_key: "CHANGEME"
+
+soar:
+  shuffle:
+    enabled: false
+    url: "http://localhost:3001"
+    api_key: "CHANGEME"
+  playbooks_dir: "configs/cyber/playbooks/"
+  auto_execute: true
+  llm_analysis_domain: "reasoning"  # Grok for analysis
+  llm_report_domain: "planning"     # Mistral for reports
+
+log_aggregation:
+  graylog:
+    enabled: false
+    url: "http://localhost:9000/api"
+    username: "admin"
+    password: "CHANGEME"
+  opensearch:
+    enabled: false
+    url: "http://localhost:9200"
+    index_prefix: "s3m"
+
+training:
+  exercise_types: ["brute_force", "malware", "data_exfil", "ransomware"]
+  events_per_exercise: 50
+
+mitre:
+  enabled: true
+  auto_map: true
