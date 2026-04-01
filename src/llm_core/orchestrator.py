@@ -101,7 +101,11 @@ class Orchestrator:
         self.failover = getattr(self.advanced_orch, "failover", FailoverSystem())
         self.optimizer = getattr(self.advanced_orch, "optimizer", ModelOptimizer(self.registry))
         self.preloader = getattr(self.advanced_orch, "preloader", PredictivePreloader(self.registry))
-        self.model_registry = getattr(self.advanced_orch, "model_registry", ModelRegistry(self.registry))
+        self.model_registry = getattr(
+            self.advanced_orch,
+            "model_registry",
+            ModelRegistry(registry=self.registry),
+        )
         self.confidence = getattr(self.advanced_orch, "confidence", ConfidenceFramework())
 
         # Ensure advanced orchestrator exposes integrated systems for callers
@@ -305,8 +309,14 @@ class Orchestrator:
 
         drift_detected = False
         for engine_id in selected_engines:
-            artifact = self.model_registry.verify_artifact(engine_id)
-            if artifact.status not in {"CLEAN", "UNKNOWN"}:
+            verification = self.model_registry.verify_artifact(engine_id)
+            if isinstance(verification, tuple):
+                is_clean = bool(verification[0])
+                status = str(verification[1]) if len(verification) > 1 else "UNKNOWN"
+            else:
+                is_clean = str(getattr(verification, "status", "UNKNOWN")).upper() == "CLEAN"
+                status = str(getattr(verification, "status", "UNKNOWN"))
+            if (not is_clean) and status.upper() != "UNKNOWN":
                 drift_detected = True
                 break
 

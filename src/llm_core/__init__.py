@@ -19,6 +19,14 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .confidence_framework import (
+    ConfidenceFramework,
+    ConfidenceScore,
+    ConfidenceFactors,
+    ConfidenceInput,
+    ReviewStatus,
+)
+from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
 from .model_optimizer import (
     AllocationPlan,
     HARDWARE_PROFILES,
@@ -55,8 +63,6 @@ from .predictive_preload import (
     PreloadPrediction,
     PreloadPlan,
 )
-from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
-from .confidence_framework import ConfidenceFramework, ConfidenceFactors, ConfidenceScore
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
@@ -70,6 +76,7 @@ __all__ = [
     "OrchestratorEngineResponse", "OrchestratorConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "ModelRegistry", "ModelArtifact", "RegistryStatus",
     "ModelOptimizer", "ModelProfile", "AllocationPlan", "PreloadPlan",
     "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
     "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
@@ -78,10 +85,10 @@ __all__ = [
     "InferenceEngine", "InferenceResult",
     "EnginePool",
     "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
-    "ModelRegistry", "ModelArtifact", "RegistryStatus",
-    "ConfidenceFramework", "ConfidenceFactors", "ConfidenceScore",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
+    "ConfidenceFramework", "ConfidenceScore", "ConfidenceFactors", "ConfidenceInput",
+    "ReviewStatus",
     "ConsensusEngine",
     "ConsensusMode",
     "ConsensusEngineResult",
