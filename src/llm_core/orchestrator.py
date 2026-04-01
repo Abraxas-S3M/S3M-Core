@@ -3,8 +3,9 @@ S3M Quad-Engine Orchestrator
 Routes queries to the correct engine or runs consensus across all four.
 """
 
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from .engine_registry import EngineRegistry, EngineID, TaskDomain, EngineConfig
+from .consensus_engine import ConsensusEngine, EngineResponse as ConsensusEngineResponse
 
 
 class QueryRequest:
@@ -33,6 +34,7 @@ class Orchestrator:
     def __init__(self):
         self.registry = EngineRegistry()
         self.inference_engines: Dict[EngineID, object] = {}
+        self.consensus_engine = ConsensusEngine()
 
     def classify_domain(self, prompt: str) -> TaskDomain:
         prompt_lower = prompt.lower()
@@ -88,3 +90,34 @@ class Orchestrator:
         if request.require_consensus:
             return self.execute_consensus(request)
         return self.execute_single(request)
+
+    def synthesize_consensus(self, engine_responses: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Synthesize consensus from multiple engine responses.
+
+        Args:
+            engine_responses: List of response dictionaries.
+
+        Returns:
+            Dictionary representation of ConsensusResult.
+        """
+        consensus_inputs: List[ConsensusEngineResponse] = []
+        for response in engine_responses:
+            raw_engine_id = response["engine_id"]
+            engine_id = raw_engine_id.value if hasattr(raw_engine_id, "value") else str(raw_engine_id)
+            raw_confidence = response.get("confidence_score", 0.75)
+            confidence_score = None if raw_confidence is None else float(raw_confidence)
+            consensus_inputs.append(
+                ConsensusEngineResponse(
+                    engine_id=engine_id,
+                    text=str(response["text"]),
+                    latency_ms=float(response.get("latency_ms", 0.0)),
+                    tokens_generated=int(response.get("tokens", response.get("tokens_generated", 0))),
+                    confidence_score=confidence_score,
+                    failed=bool(response.get("failed", False)),
+                    error_message=response.get("error_message"),
+                )
+            )
+
+        result = self.consensus_engine.synthesize(consensus_inputs)
+        return result.to_dict()
