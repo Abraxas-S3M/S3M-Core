@@ -11,10 +11,18 @@ from .orchestrator import (
     EngineResponse as OrchestratorEngineResponse,
     ConsensusResult as OrchestratorConsensusResult,
 )
+from .advanced_orchestrator import (
+    AdvancedOrchestrator,
+    RoutingStrategy,
+    RoutingDecision,
+    UnifiedResponse,
+    OrchestratorMetrics,
+    UrgencyLevel,
+)
 from .consensus_engine import (
     ConsensusEngine,
     ConsensusMode,
-    ConsensusResult,
+    ConsensusResult as ConsensusEngineResult,
     EngineResponse as ConsensusEngineResponse,
     AgreementLevel,
 )
@@ -24,9 +32,16 @@ from .engine_pool import EnginePool
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
+# Backward-compatible aliases from legacy orchestrator API surface.
+EngineResponse = OrchestratorEngineResponse
+ConsensusResult = OrchestratorConsensusResult
+
 __all__ = [
     "EngineRegistry", "EngineID", "TaskDomain", "EngineConfig",
-    "Orchestrator", "QueryRequest", "OrchestratorEngineResponse", "OrchestratorConsensusResult",
+    "Orchestrator", "QueryRequest", "EngineResponse", "ConsensusResult",
+    "OrchestratorEngineResponse", "OrchestratorConsensusResult",
+    "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
+    "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
@@ -34,7 +49,7 @@ __all__ = [
     "S3MSession",
     "ConsensusEngine",
     "ConsensusMode",
-    "ConsensusResult",
+    "ConsensusEngineResult",
     "ConsensusEngineResponse",
     "AgreementLevel",
 ]

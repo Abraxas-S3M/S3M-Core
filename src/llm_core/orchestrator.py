@@ -4,15 +4,23 @@ Routes queries to the correct engine or runs consensus across all four.
 """
 
 from typing import Optional, Dict, List, Any
+from .advanced_orchestrator import AdvancedOrchestrator, UnifiedResponse
 from .engine_registry import EngineRegistry, EngineID, TaskDomain, EngineConfig
 from .consensus_engine import ConsensusEngine, EngineResponse as ConsensusEngineResponse
 
 
 class QueryRequest:
-    def __init__(self, prompt: str, domain: Optional[TaskDomain] = None, require_consensus: bool = False):
+    def __init__(
+        self,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+        require_consensus: bool = False,
+        max_latency_ms: Optional[float] = None,
+    ):
         self.prompt = prompt
         self.domain = domain
         self.require_consensus = require_consensus
+        self.max_latency_ms = max_latency_ms
 
 
 class EngineResponse:
@@ -35,6 +43,7 @@ class Orchestrator:
         self.registry = EngineRegistry()
         self.inference_engines: Dict[EngineID, object] = {}
         self.consensus_engine = ConsensusEngine()
+        self._advanced_orchestrator = AdvancedOrchestrator(registry=self.registry)
 
     def classify_domain(self, prompt: str) -> TaskDomain:
         prompt_lower = prompt.lower()
@@ -121,3 +130,20 @@ class Orchestrator:
 
         result = self.consensus_engine.synthesize(consensus_inputs)
         return result.to_dict()
+
+    def route_advanced(self, request: QueryRequest) -> UnifiedResponse:
+        """
+        Advanced mission-aware routing path with confidence and audit trace.
+
+        This does not change the legacy process() behavior so existing modules
+        can continue using the original routing interface without regressions.
+        """
+        return self._advanced_orchestrator.route_and_decide(request)
+
+    def get_advanced_metrics(self):
+        """Expose adaptive routing telemetry for operational dashboards."""
+        return self._advanced_orchestrator.get_metrics()
+
+    def get_routing_history(self, limit: Optional[int] = None):
+        """Expose recent advanced routing decisions for audit review."""
+        return self._advanced_orchestrator.get_routing_history(limit=limit)
