@@ -1,0 +1,54 @@
+playbook:
+  id: "PB-003"
+  name: "Data Exfiltration Response"
+  description: "Response to suspected data exfiltration (MITRE T1041, T1048)"
+  version: "1.0"
+  author: "S3M SOC"
+  trigger_conditions:
+    - "mitre_technique in [T1041, T1048]"
+    - "severity >= HIGH"
+  mitre_techniques: ["T1041", "T1048"]
+  tags: ["exfiltration", "data_loss", "critical"]
+  steps:
+    - step_id: 1
+      name: "Block destination IP"
+      action: "BLOCK_IP"
+      parameters: {direction: "outbound", duration_hours: 168}
+      timeout_seconds: 10
+      on_failure: "continue"
+    - step_id: 2
+      name: "Isolate source host"
+      action: "ISOLATE_HOST"
+      parameters: {method: "full_isolation"}
+      timeout_seconds: 15
+      on_failure: "abort"
+    - step_id: 3
+      name: "Disable associated accounts"
+      action: "DISABLE_ACCOUNT"
+      parameters: {scope: "source_host_users"}
+      timeout_seconds: 10
+      on_failure: "continue"
+    - step_id: 4
+      name: "LLM exfil analysis"
+      action: "QUERY_LLM"
+      parameters: {domain: "reasoning", prompt_template: "CRITICAL: Potential data exfiltration detected. Source: {source_host}, Destination: {dest_ip}, Volume: {bytes_transferred}. Analyze: 1) Exfiltration method 2) Data classification risk 3) Scope of compromise 4) Recovery priorities."}
+      timeout_seconds: 60
+      on_failure: "continue"
+    - step_id: 5
+      name: "Notify commander immediately"
+      action: "NOTIFY_COMMANDER"
+      parameters: {priority: "critical", classification: "UNCLASSIFIED - FOUO", include_llm_analysis: true}
+      timeout_seconds: 5
+      on_failure: "continue"
+    - step_id: 6
+      name: "Full forensic collection"
+      action: "COLLECT_FORENSICS"
+      parameters: {artifacts: ["full_disk_image", "memory_dump", "network_pcap", "dns_logs"]}
+      timeout_seconds: 600
+      on_failure: "continue"
+    - step_id: 7
+      name: "Generate executive IR report"
+      action: "GENERATE_REPORT"
+      parameters: {report_type: "executive_incident_report", classification: "UNCLASSIFIED - FOUO"}
+      timeout_seconds: 180
+      on_failure: "continue"
