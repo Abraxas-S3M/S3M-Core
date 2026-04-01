@@ -1,0 +1,33 @@
+{
+  "feed": {
+    "entry": [
+      {
+        "id": "G1234567890-POCLOUD",
+        "title": "VIIRS Granule 1",
+        "time_start": "2026-03-29T01:00:00Z",
+        "time_end": "2026-03-29T01:06:00Z",
+        "boxes": [
+          "24.0 46.0 30.0 56.0"
+        ]
+      },
+      {
+        "id": "G1234567891-POCLOUD",
+        "title": "VIIRS Granule 2",
+        "time_start": "2026-03-30T01:00:00Z",
+        "time_end": "2026-03-30T01:06:00Z",
+        "boxes": [
+          "24.0 46.0 30.0 56.0"
+        ]
+      },
+      {
+        "id": "G1234567892-POCLOUD",
+        "title": "VIIRS Granule 3",
+        "time_start": "2026-03-31T01:00:00Z",
+        "time_end": "2026-03-31T01:06:00Z",
+        "boxes": [
+          "24.0 46.0 30.0 56.0"
+        ]
+      }
+    ]
+  }
+}

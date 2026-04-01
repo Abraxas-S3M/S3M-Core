@@ -1,0 +1,7 @@
+{
+  "request_id": "s3m-sh-process-001",
+  "collection": "sentinel-1-grd",
+  "format": "image/png",
+  "generated_at": "2026-03-31T10:00:00Z",
+  "note": "Fixture metadata only; imagery bytes are synthetic for air-gapped tests"
+}

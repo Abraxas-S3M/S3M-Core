@@ -1,0 +1,17 @@
+providers:
+  geoint-copernicus:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  geoint-sentinelhub:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 120
+  geoint-nasa-earthdata:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  geoint-gee:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 20
