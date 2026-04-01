@@ -1,0 +1,43 @@
+playbook:
+  id: "PB-001"
+  name: "Brute Force Response"
+  description: "Automated response to SSH/RDP brute force attacks (MITRE T1110)"
+  version: "1.0"
+  author: "S3M SOC"
+  trigger_conditions:
+    - "mitre_technique == T1110"
+    - "severity >= MEDIUM"
+  mitre_techniques: ["T1110"]
+  tags: ["brute_force", "credential_access", "automated"]
+  steps:
+    - step_id: 1
+      name: "Enrich source IP"
+      action: "ENRICH_OBSERVABLE"
+      parameters: {observable_type: "IP_ADDRESS"}
+      timeout_seconds: 30
+      on_failure: "continue"
+    - step_id: 2
+      name: "Block attacker IP"
+      action: "BLOCK_IP"
+      parameters: {duration_hours: 24, firewall: "suricata"}
+      condition: "enrichment_verdict != benign"
+      timeout_seconds: 10
+      on_failure: "continue"
+    - step_id: 3
+      name: "LLM threat analysis"
+      action: "QUERY_LLM"
+      parameters: {domain: "reasoning", prompt_template: "Analyze brute force attack from {source_ip}: {attack_details}. Assess sophistication, likely origin, and recommended countermeasures."}
+      timeout_seconds: 60
+      on_failure: "continue"
+    - step_id: 4
+      name: "Notify SOC analyst"
+      action: "NOTIFY_ANALYST"
+      parameters: {channel: "soc_critical", include_enrichment: true}
+      timeout_seconds: 5
+      on_failure: "continue"
+    - step_id: 5
+      name: "Generate incident report"
+      action: "GENERATE_REPORT"
+      parameters: {report_type: "incident_summary", include_mitre: true}
+      timeout_seconds: 120
+      on_failure: "continue"

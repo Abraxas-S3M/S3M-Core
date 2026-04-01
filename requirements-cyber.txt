@@ -1,0 +1,11 @@
+# S3M Phase 13 — Cyber Defense Operations Dependencies
+# Install with: pip install -r requirements-cyber.txt
+
+# All external SOC platforms are optional — adapters fall back gracefully
+# TheHive, Cortex, MISP, Shuffle, Graylog, OpenSearch are deployed separately
+
+# Required (already in base requirements)
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
+numpy>=1.24.0
