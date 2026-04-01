@@ -1,0 +1,64 @@
+# S3M Phase 17 — Procurement & Maintenance Configuration
+# UNCLASSIFIED - FOUO
+
+predictive:
+  model_backend: "auto"
+  model_paths:
+    lstm: "models/maintenance/rul_lstm.pt"
+    gbm: "models/maintenance/rul_gbm.pkl"
+  rul_thresholds:
+    aircraft:
+      critical_hours: 50
+      high_hours: 200
+      medium_hours: 500
+    vehicle:
+      critical_hours: 100
+      high_hours: 500
+      medium_hours: 1000
+    naval:
+      critical_hours: 100
+      high_hours: 300
+      medium_hours: 800
+  condition_thresholds:
+    temperature_c: {warning: 450, critical: 520}
+    vibration_g: {warning: 3.5, critical: 5.0}
+    pressure_psi: {warning_low: 25, critical_low: 20}
+    oil_temp_c: {warning: 110, critical: 130}
+    rpm_deviation_pct: {warning: 5, critical: 10}
+  llm_domain: "planning"  # Mistral for maintenance reports
+
+assets:
+  max_assets: 50000
+  default_maintenance_interval_days:
+    aircraft: 90
+    vehicle: 180
+    naval: 120
+    radar: 365
+    comm: 180
+
+fleet:
+  readiness_target_pct: 85
+  health_check_interval_hours: 1
+
+procurement:
+  auto_generate: true
+  default_lead_time_days: 30
+  emergency_lead_time_days: 7
+
+spare_parts:
+  auto_reorder: true
+  safety_stock_multiplier: 1.5
+
+erp:
+  backend: "standalone"  # standalone | erpnext | snipeit | glpi | dolibarr
+  erpnext_url: "http://localhost:8000"
+  snipeit_url: "http://localhost:80"
+  glpi_url: "http://localhost:80"
+  dolibarr_url: "http://localhost:80"
+  api_key: "CHANGEME"
+  sync_interval_minutes: 60
+
+scheduler:
+  auto_schedule: true
+  schedule_horizon_days: 30
+  work_order_auto_approve: false

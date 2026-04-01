@@ -1,2 +1,2 @@
-"""Service-layer packages for S3M mission subsystems."""
+"""S3M service packages for mission subsystems."""
 

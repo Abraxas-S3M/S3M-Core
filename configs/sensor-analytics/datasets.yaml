@@ -1,0 +1,18 @@
+# S3M Layer 09 datasets registry
+# UNCLASSIFIED - FOUO
+
+datasets:
+  - id: "SENTINEL1_RS_ARCHIVE"
+    name: "Sentinel-1 Red Sea Archive"
+    modality: "sar"
+    region: "Red Sea"
+    path: "data/sensor-analytics/sentinel1/red_sea/"
+    format: "geotiff"
+    tags: ["ship-detection", "maritime", "saudi"]
+  - id: "SENTINEL1_PG_ARCHIVE"
+    name: "Sentinel-1 Persian Gulf Archive"
+    modality: "sar"
+    region: "Persian Gulf"
+    path: "data/sensor-analytics/sentinel1/persian_gulf/"
+    format: "geotiff"
+    tags: ["ship-detection", "maritime", "saudi"]

@@ -1,0 +1,16 @@
+# S3M Phase 15 — Sensor & Remote Sensing Analytics Dependencies
+# Install with: pip install -r requirements-sensor-analytics.txt
+
+# SAR detection models (optional — stub detector available)
+# ultralytics>=8.0.0  # For YOLOv8 SAR model
+# onnxruntime-gpu>=1.16.0
+
+# Image processing (optional — basic numpy ops as fallback)
+# Pillow>=10.0.0
+# tifffile>=2023.7.0  # For GeoTIFF SAR data
+
+# Already in base requirements
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0

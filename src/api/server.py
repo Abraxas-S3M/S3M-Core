@@ -22,16 +22,18 @@ import yaml
 
 from src.api.config import api_config
 from src.api.apps_routes import apps_router
+from src.api.comms_routes import comms_router
 from src.api.dashboard_routes import dashboard_router
-from src.api.security_routes import security_router
-from src.api.cyber_routes import cyber_router
-from src.security.middleware import SecurityMiddleware
-from src.api.autonomy_routes import autonomy_router
-from src.api.dashboard_routes import dashboard_router
-from src.api.navigation_routes import navigation_router
 from src.api.simulation_routes import simulation_router
 from src.api.training_sim_routes import training_sim_router
 from src.api.threat_routes import threat_router, sensor_router
+from src.api.security_routes import security_router
+from src.api.sensor_analytics_routes import sensor_analytics_router
+from src.api.cyber_routes import cyber_router
+from src.api.maintenance_routes import maintenance_router
+from src.security.middleware import SecurityMiddleware
+from src.api.autonomy_routes import autonomy_router
+from src.api.navigation_routes import navigation_router
 
 LOGGER = logging.getLogger(__name__)
 
@@ -115,6 +117,8 @@ app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 app.include_router(apps_router, tags=["Domain Applications"])
 app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
+app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
+app.include_router(comms_router, tags=["Secure Communications"])
 
 # Load security config
 security_config = {}
@@ -129,6 +133,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 # Add security routes
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
+app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
