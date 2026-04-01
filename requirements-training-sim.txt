@@ -1,0 +1,8 @@
+# S3M Phase 18 — Training & Simulation Advanced Dependencies
+# All features use existing S3M infrastructure — no new external deps
+
+# Required (already in base requirements)
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
