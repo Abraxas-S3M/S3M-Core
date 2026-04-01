@@ -14,6 +14,12 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .failover_system import (
+    FailoverSystem,
+    HealthState,
+    FailoverMode,
+    DeterministicResponse,
+)
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -25,6 +31,7 @@ __all__ = [
     "Orchestrator", "QueryRequest", "EngineResponse", "ConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "FailoverSystem", "HealthState", "FailoverMode", "DeterministicResponse",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
