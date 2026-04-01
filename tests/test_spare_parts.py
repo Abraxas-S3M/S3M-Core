@@ -37,4 +37,3 @@ def test_create_standard_inventory_creates_20_parts():
     mgr = SparePartsManager()
     rows = mgr.create_standard_inventory()
     assert len(rows) == 20
-*** End Patch
