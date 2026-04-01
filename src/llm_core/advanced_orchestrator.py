@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Protocol
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
 from .model_optimizer import ModelOptimizer
 from .failover_system import FailoverSystem
+from .confidence_framework import ConfidenceFramework
 
 
 LOGGER = logging.getLogger(__name__)
@@ -286,9 +287,68 @@ class AdvancedOrchestrator:
         self.registry = registry or EngineRegistry()
         self.optimizer = optimizer or ModelOptimizer(self.registry)
         self.failover = failover or FailoverSystem()
+        self.confidence = ConfidenceFramework()
         self.metrics = OrchestratorMetrics()
         self.history_limit = max(10, history_limit)
         self.routing_history: List[Dict[str, object]] = []
+
+    def execute_with_confidence(
+        self,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+    ) -> Dict[str, object]:
+        """
+        Execute request and attach transparent confidence breakdown.
+
+        Tactical context:
+        - Confidence gating provides explicit ACCEPT/REVIEW/REJECT posture so
+          degraded routing paths cannot silently bypass human oversight.
+        """
+        result = self.execute_with_failover(prompt=prompt, domain=domain)
+        health_snapshot = self.failover.get_health_snapshot()
+
+        selected_engines = [engine.value for engine in result.engine_trace]
+        if not selected_engines:
+            # Deterministic fallback has no live engine trace but still requires scoring.
+            selected_engines = ["deterministic-fallback"]
+
+        engine_health: Dict[str, str] = {}
+        for engine_name in selected_engines:
+            state = health_snapshot.get(engine_name, {}).get("state", "unknown")
+            engine_health[engine_name] = str(state).upper()
+
+        if not result.raw_outputs:
+            engine_responses = {selected_engines[0]: result.recommendation_text}
+        else:
+            engine_responses = {
+                engine_id.value: text for engine_id, text in result.raw_outputs.items()
+            }
+
+        confidence = self.confidence.score_decision(
+            response_text=result.recommendation_text,
+            routing_certainty=max(0.0, min(1.0, result.confidence_score)),
+            engine_health=engine_health,
+            engine_responses=engine_responses,
+            selected_engines=selected_engines,
+            failover_used=result.failover_used,
+            model_drift_detected=False,
+            audit_id=result.audit_id,
+        )
+
+        return {
+            "response": result.recommendation_text,
+            "confidence_score": confidence.confidence_score,
+            "review_status": confidence.review_status,
+            "confidence_factors": confidence.factors.to_dict(),
+            "confidence_summary": confidence.summary(),
+            "confidence_reasoning": confidence.reasoning,
+            "confidence_penalties": confidence.penalties_applied,
+            "audit_id": confidence.audit_id,
+            "normalized_strategy": result.normalized_strategy.value,
+            "engine_trace": selected_engines,
+            "latency_ms": result.latency_ms,
+            "failover_used": result.failover_used,
+        }
 
     def execute_with_failover(
         self,
