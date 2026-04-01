@@ -1,0 +1,82 @@
+# S3M Phase 14 — Secure Communications Configuration
+# UNCLASSIFIED - FOUO
+
+relay:
+  priority_order: ["matrix", "xmpp", "rocket_chat", "meshtastic", "p2p", "simulated"]
+  fallback_to_simulated: true
+  message_retention_hours: 720  # 30 days
+  max_message_size_bytes: 65536
+
+backends:
+  matrix:
+    enabled: false
+    homeserver_url: "http://localhost:8008"
+    access_token: "CHANGEME"
+  meshtastic:
+    enabled: false
+    serial_port: "/dev/ttyUSB0"
+    tcp_host: null
+    max_message_bytes: 228
+    default_hop_limit: 3
+  xmpp:
+    enabled: false
+    server: "localhost"
+    port: 5222
+    jid: "s3m@localhost"
+    password: "CHANGEME"
+  rocket_chat:
+    enabled: false
+    url: "http://localhost:3000"
+    username: "s3m"
+    password: "CHANGEME"
+  p2p:
+    enabled: false
+    listen_port: 9999
+
+c2_routing:
+  flash_broadcast_all_backends: true
+  auto_escalate_urgency_threshold: 0.8
+  order_channel_type: "COMMAND_NET"
+  intel_channel_type: "INTEL_NET"
+  alert_channel_type: "ALERT_NET"
+
+nlp:
+  model_backend: "auto"
+  arabert_model_path: "models/arabic/arabert/"
+  mt5_model_path: "models/arabic/mt5/"
+  allam_fallback: true
+  summarize_all_messages: true
+  max_summary_length: 100
+  entity_extraction: true
+  intent_classification: true
+  urgency_scoring: true
+
+nodes:
+  heartbeat_timeout_seconds: 300
+  max_nodes: 500
+
+security:
+  encrypt_by_default: true
+  default_protocol: "aes256"
+  enforce_classification: true
+  log_plaintext: false  # NEVER set true in production
+  key_rotation_hours: 24
+
+channels:
+  default_channels:
+    - name: "COMMAND-NET-PRIMARY"
+      type: "COMMAND_NET"
+      encryption: true
+      priority: "PRIORITY"
+    - name: "INTEL-NET-PRIMARY"
+      type: "INTEL_NET"
+      encryption: true
+      priority: "ROUTINE"
+    - name: "ALERT-NET-BROADCAST"
+      type: "ALERT_NET"
+      encryption: true
+      priority: "FLASH"
+    - name: "LOGISTICS-NET"
+      type: "LOGISTICS_NET"
+      encryption: true
+      priority: "ROUTINE"

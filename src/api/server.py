@@ -22,15 +22,15 @@ import yaml
 
 from src.api.config import api_config
 from src.api.apps_routes import apps_router
+from src.api.comms_routes import comms_router
 from src.api.dashboard_routes import dashboard_router
+from src.api.simulation_routes import simulation_router
+from src.api.threat_routes import threat_router, sensor_router
 from src.api.security_routes import security_router
 from src.api.cyber_routes import cyber_router
 from src.security.middleware import SecurityMiddleware
 from src.api.autonomy_routes import autonomy_router
-from src.api.dashboard_routes import dashboard_router
 from src.api.navigation_routes import navigation_router
-from src.api.simulation_routes import simulation_router
-from src.api.threat_routes import threat_router, sensor_router
 
 LOGGER = logging.getLogger(__name__)
 
@@ -113,6 +113,7 @@ app.include_router(navigation_router, tags=["Navigation & Edge AI"])
 app.include_router(dashboard_router, tags=["Dashboard"])
 app.include_router(simulation_router, tags=["Simulation & Wargaming"])
 app.include_router(apps_router, tags=["Domain Applications"])
+app.include_router(comms_router, tags=["Secure Communications"])
 
 # Load security config
 security_config = {}

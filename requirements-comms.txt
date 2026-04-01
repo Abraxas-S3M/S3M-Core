@@ -1,0 +1,18 @@
+# S3M Phase 14 — Secure Communications Dependencies
+# Install with: pip install -r requirements-comms.txt
+
+# Meshtastic (optional — adapter offline if not installed)
+# meshtastic>=2.3.0
+
+# XMPP (optional — adapter offline if not installed)
+# slixmpp>=1.8.0
+
+# Arabic NLP models (optional — ALLaM/keyword fallback available)
+# transformers>=4.36.0
+# sentencepiece>=0.1.99
+# protobuf>=4.25.0
+
+# Required (already in base requirements)
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
