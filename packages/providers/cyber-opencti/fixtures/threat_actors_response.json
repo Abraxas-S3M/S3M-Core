@@ -1,0 +1,68 @@
+{
+  "data": {
+    "threatActors": {
+      "edges": [
+        {
+          "node": {
+            "id": "ta-1",
+            "name": "Desert Jackal",
+            "description": "Regional APT",
+            "aliases": [
+              "DJ-APT"
+            ],
+            "first_seen": "2024-01-01",
+            "last_seen": "2026-03-01",
+            "sophistication": "advanced",
+            "resource_level": "organization",
+            "primary_motivation": "espionage",
+            "objectLabel": [
+              {
+                "value": "apt"
+              }
+            ]
+          }
+        },
+        {
+          "node": {
+            "id": "ta-2",
+            "name": "Sand Falcon",
+            "description": "Phishing cluster",
+            "aliases": [
+              "SF"
+            ],
+            "first_seen": "2025-01-01",
+            "last_seen": "2026-03-10",
+            "sophistication": "intermediate",
+            "resource_level": "team",
+            "primary_motivation": "credential-access",
+            "objectLabel": [
+              {
+                "value": "phishing"
+              }
+            ]
+          }
+        },
+        {
+          "node": {
+            "id": "ta-3",
+            "name": "Mirage Spider",
+            "description": "Malware operator",
+            "aliases": [
+              "MSP"
+            ],
+            "first_seen": "2023-06-01",
+            "last_seen": "2026-03-20",
+            "sophistication": "expert",
+            "resource_level": "organization",
+            "primary_motivation": "disruption",
+            "objectLabel": [
+              {
+                "value": "malware"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

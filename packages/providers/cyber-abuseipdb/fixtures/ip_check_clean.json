@@ -1,0 +1,15 @@
+{
+  "data": {
+    "ipAddress": "8.8.8.8",
+    "isPublic": true,
+    "abuseConfidenceScore": 0,
+    "countryCode": "US",
+    "usageType": "Content Delivery",
+    "isp": "Google LLC",
+    "domain": "google-public-dns-a.google.com",
+    "totalReports": 0,
+    "numDistinctUsers": 0,
+    "lastReportedAt": null,
+    "reports": []
+  }
+}

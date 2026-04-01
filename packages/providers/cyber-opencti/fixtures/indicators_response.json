@@ -1,0 +1,443 @@
+{
+  "data": {
+    "indicators": {
+      "edges": [
+        {
+          "node": {
+            "id": "indicator--001",
+            "name": "IOC-1",
+            "pattern": "[ipv4-addr:value = '203.0.113.10']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 70,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--002",
+            "name": "IOC-2",
+            "pattern": "[ipv4-addr:value = '198.51.100.21']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 50,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--003",
+            "name": "IOC-3",
+            "pattern": "[ipv4-addr:value = '45.33.1.50']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 20,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--004",
+            "name": "IOC-4",
+            "pattern": "[domain-name:value = 'evil-gcc-update.com']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 85,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--005",
+            "name": "IOC-5",
+            "pattern": "[domain-name:value = 'credential-reset-security.net']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 90,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--006",
+            "name": "IOC-6",
+            "pattern": "[domain-name:value = 'dropper-cdn.ru']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 70,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--007",
+            "name": "IOC-7",
+            "pattern": "[file:hashes.'SHA-256' = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 50,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--008",
+            "name": "IOC-8",
+            "pattern": "[file:hashes.'SHA-256' = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 20,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--009",
+            "name": "IOC-9",
+            "pattern": "[file:hashes.'SHA-256' = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 85,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--010",
+            "name": "IOC-10",
+            "pattern": "[url:value = 'http://evil-gcc-update.com/login']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 90,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--011",
+            "name": "IOC-11",
+            "pattern": "[url:value = 'https://dropper-cdn.ru/payload.bin']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 70,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--012",
+            "name": "IOC-12",
+            "pattern": "[email-addr:value = 'operator@fake-gcc-support.com']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 50,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--013",
+            "name": "IOC-13",
+            "pattern": "[email-addr:value = 'notify@secure-reset-help.net']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 20,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--014",
+            "name": "IOC-14",
+            "pattern": "[ipv6-addr:value = '2001:db8::1']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 85,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1059"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        },
+        {
+          "node": {
+            "id": "indicator--015",
+            "name": "IOC-15",
+            "pattern": "[file:hashes.'MD5' = 'd41d8cd98f00b204e9800998ecf8427e']",
+            "pattern_type": "stix",
+            "valid_from": "2026-03-01T00:00:00Z",
+            "valid_until": "2026-12-31T23:59:59Z",
+            "x_opencti_score": 90,
+            "created_at": "2026-03-30T10:00:00Z",
+            "objectLabel": [
+              {
+                "value": "gcc"
+              },
+              {
+                "value": "cti"
+              }
+            ],
+            "killChainPhases": [
+              {
+                "kill_chain_name": "mitre-attack",
+                "phase_name": "T1566"
+              }
+            ],
+            "createdBy": {
+              "name": "OpenCTI"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
