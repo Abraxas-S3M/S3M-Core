@@ -1,0 +1,154 @@
+{
+  "stories": [
+    {
+      "stories_id": 11001,
+      "title": "Red Sea convoy drills intensify near Bab el Mandeb",
+      "url": "https://regionalwire.example/red-sea-drills",
+      "publish_date": "2026-03-18T10:00:00Z",
+      "language": "en",
+      "media_id": 501,
+      "media_name": "Regional Wire",
+      "word_count": 780
+    },
+    {
+      "stories_id": 11002,
+      "title": "Saudi navy boosts maritime patrol in the Red Sea",
+      "url": "https://gulfnews.example/navy-patrol",
+      "publish_date": "2026-03-18T12:00:00Z",
+      "language": "en",
+      "media_id": 502,
+      "media_name": "Gulf News Desk",
+      "word_count": 640
+    },
+    {
+      "stories_id": 11003,
+      "title": "Yemen port disruptions raise regional insurance costs",
+      "url": "https://shippingwatch.example/yemen-insurance",
+      "publish_date": "2026-03-19T08:30:00Z",
+      "language": "en",
+      "media_id": 503,
+      "media_name": "Shipping Watch",
+      "word_count": 920
+    },
+    {
+      "stories_id": 11004,
+      "title": "Saudi air defense exercise highlights drone interception",
+      "url": "https://defensenet.example/drone-interception",
+      "publish_date": "2026-03-19T09:20:00Z",
+      "language": "en",
+      "media_id": 504,
+      "media_name": "Defense Net",
+      "word_count": 1020
+    },
+    {
+      "stories_id": 11005,
+      "title": "Iranian naval statement increases Hormuz alertness",
+      "url": "https://globalbulletin.example/hormuz-alert",
+      "publish_date": "2026-03-19T14:10:00Z",
+      "language": "en",
+      "media_id": 505,
+      "media_name": "Global Bulletin",
+      "word_count": 560
+    },
+    {
+      "stories_id": 11006,
+      "title": "مخاوف الملاحة تتصاعد في البحر الأحمر",
+      "url": "https://arabicvoice.example/red-sea-fears",
+      "publish_date": "2026-03-20T07:00:00Z",
+      "language": "ar",
+      "media_id": 34412282,
+      "media_name": "Arabic Voice",
+      "word_count": 430
+    },
+    {
+      "stories_id": 11007,
+      "title": "Energy terminals harden perimeter controls in Eastern Province",
+      "url": "https://energypost.example/perimeter-controls",
+      "publish_date": "2026-03-20T11:45:00Z",
+      "language": "en",
+      "media_id": 506,
+      "media_name": "Energy Post",
+      "word_count": 870
+    },
+    {
+      "stories_id": 11008,
+      "title": "OPEC security consultations emphasize shipping lane resilience",
+      "url": "https://policyline.example/opec-security",
+      "publish_date": "2026-03-20T13:00:00Z",
+      "language": "en",
+      "media_id": 507,
+      "media_name": "Policy Line",
+      "word_count": 760
+    },
+    {
+      "stories_id": 11009,
+      "title": "GCC ministers discuss coordinated missile defense tracking",
+      "url": "https://gccmonitor.example/missile-tracking",
+      "publish_date": "2026-03-21T09:40:00Z",
+      "language": "en",
+      "media_id": 508,
+      "media_name": "GCC Monitor",
+      "word_count": 910
+    },
+    {
+      "stories_id": 11010,
+      "title": "Cyber teams in Gulf states test critical infrastructure response",
+      "url": "https://cyberdaily.example/gulf-response",
+      "publish_date": "2026-03-21T15:05:00Z",
+      "language": "en",
+      "media_id": 509,
+      "media_name": "Cyber Daily",
+      "word_count": 690
+    },
+    {
+      "stories_id": 11011,
+      "title": "Yemen frontlines shift near Marib as clashes continue",
+      "url": "https://warwatch.example/marib-clashes",
+      "publish_date": "2026-03-22T06:30:00Z",
+      "language": "en",
+      "media_id": 510,
+      "media_name": "War Watch",
+      "word_count": 980
+    },
+    {
+      "stories_id": 11012,
+      "title": "Regional insurers reassess Red Sea transit premiums",
+      "url": "https://financepulse.example/transit-premiums",
+      "publish_date": "2026-03-22T12:20:00Z",
+      "language": "en",
+      "media_id": 511,
+      "media_name": "Finance Pulse",
+      "word_count": 730
+    },
+    {
+      "stories_id": 11013,
+      "title": "Saudi diplomacy seeks de-escalation around Gulf chokepoints",
+      "url": "https://diplotrack.example/de-escalation",
+      "publish_date": "2026-03-23T08:15:00Z",
+      "language": "en",
+      "media_id": 512,
+      "media_name": "Diplo Track",
+      "word_count": 800
+    },
+    {
+      "stories_id": 11014,
+      "title": "Naval analysts warn of UAV saturation tactics at sea",
+      "url": "https://analysislab.example/uav-saturation",
+      "publish_date": "2026-03-23T14:30:00Z",
+      "language": "en",
+      "media_id": 513,
+      "media_name": "Analysis Lab",
+      "word_count": 1050
+    },
+    {
+      "stories_id": 11015,
+      "title": "Arabic outlet tracks humanitarian corridors in Yemen",
+      "url": "https://arabicfocus.example/yemen-corridors",
+      "publish_date": "2026-03-24T09:50:00Z",
+      "language": "ar",
+      "media_id": 34412282,
+      "media_name": "Arabic Focus",
+      "word_count": 520
+    }
+  ]
+}

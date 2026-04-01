@@ -1,0 +1,13 @@
+{
+  "scenario": "square_patrol",
+  "completed": true,
+  "duration_s": 24.5,
+  "events": [
+    {"event": "takeoff"},
+    {"event": "waypoint", "index": 1},
+    {"event": "waypoint", "index": 2},
+    {"event": "waypoint", "index": 3},
+    {"event": "waypoint", "index": 4},
+    {"event": "rtl"}
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "JANES-EQP-F15SA",
+  "name": "F-15SA",
+  "type": "fighter_aircraft",
+  "manufacturer": "Boeing",
+  "country_of_origin": "United States",
+  "operators": ["Saudi Arabia"],
+  "specifications": {
+    "crew": 2,
+    "length_m": 19.43,
+    "wingspan_m": 13.05,
+    "max_takeoff_weight_kg": 36740
+  },
+  "performance": {
+    "max_speed_mach": 2.5,
+    "combat_radius_km": 1270,
+    "service_ceiling_m": 18288,
+    "avionics": ["AESA radar", "digital EW suite"],
+    "weapons": ["AIM-120", "AIM-9X", "JDAM", "Harpoon"]
+  }
+}

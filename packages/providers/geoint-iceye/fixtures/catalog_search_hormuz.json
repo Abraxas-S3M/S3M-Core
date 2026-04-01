@@ -1,0 +1,10 @@
+{
+  "scenes": [
+    {"id": "ICEYE-GEO-20240601-001", "product_type": "spotlight", "satellite": "ICEYE-X7", "polarization": "VV", "acquisition_time": "2024-06-01T03:14:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.05, 26.10], [56.20, 26.10], [56.20, 26.22], [56.05, 26.22], [56.05, 26.10]]] }},
+    {"id": "ICEYE-GEO-20240603-002", "product_type": "spotlight", "satellite": "ICEYE-X9", "polarization": "VH", "acquisition_time": "2024-06-03T04:52:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.10, 26.16], [56.24, 26.16], [56.24, 26.28], [56.10, 26.28], [56.10, 26.16]]] }},
+    {"id": "ICEYE-GEO-20240606-003", "product_type": "stripmap", "satellite": "ICEYE-X11", "polarization": "VV", "acquisition_time": "2024-06-06T06:21:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.14, 26.05], [56.36, 26.05], [56.36, 26.20], [56.14, 26.20], [56.14, 26.05]]] }},
+    {"id": "ICEYE-GEO-20240608-004", "product_type": "spotlight", "satellite": "ICEYE-X6", "polarization": "VV", "acquisition_time": "2024-06-08T01:34:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.22, 26.12], [56.36, 26.12], [56.36, 26.24], [56.22, 26.24], [56.22, 26.12]]] }},
+    {"id": "ICEYE-GEO-20240610-005", "product_type": "spotlight", "satellite": "ICEYE-X8", "polarization": "VV", "acquisition_time": "2024-06-10T02:11:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.28, 26.08], [56.42, 26.08], [56.42, 26.20], [56.28, 26.20], [56.28, 26.08]]] }}
+  ],
+  "count": 5
+}

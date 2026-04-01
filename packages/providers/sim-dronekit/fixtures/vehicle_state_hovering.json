@@ -1,0 +1,13 @@
+{
+  "position": {"lat": 24.71, "lon": 46.68, "alt": 622.0},
+  "attitude": {"roll": 0.01, "pitch": -0.02, "yaw": 1.57},
+  "velocity": {"vx": 0.0, "vy": 0.0, "vz": 0.0},
+  "battery": {"voltage": 15.8, "current": 2.9, "remaining_pct": 88.0},
+  "gps": {"fix_type": 3, "satellites": 12},
+  "mode": "GUIDED",
+  "armed": true,
+  "airspeed": 0.0,
+  "groundspeed": 0.5,
+  "heading": 90.0,
+  "last_heartbeat": "2026-04-01T10:00:00Z"
+}

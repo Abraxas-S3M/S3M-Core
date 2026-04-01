@@ -1,0 +1,12 @@
+{
+  "pipeline_id": "pipe-sar-001",
+  "name": "sar_retrain",
+  "status": "completed",
+  "started_at": "2026-03-30T09:00:00Z",
+  "finished_at": "2026-03-30T10:15:00Z",
+  "metrics": {
+    "mAP": 0.85,
+    "precision": 0.88,
+    "recall": 0.82
+  }
+}

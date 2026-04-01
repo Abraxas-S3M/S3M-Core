@@ -27,6 +27,38 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 20
+  osint-gdelt:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  osint-acled:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  osint-mediacloud:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 40
+  osint-intelligencex:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 3
+  maritime-marinetraffic:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  maritime-vesselfinder:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  maritime-spire:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  maritime-windward:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 15
   cyber-misp:
     enabled: true
     mode: "online"
@@ -63,3 +95,83 @@ providers:
     enabled: false
     mode: "online"
     rate_limit_rpm: 10
+  ml-huggingface:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-labelstudio:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-wandb:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  ml-clearml:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  ml-langfuse:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  gis-mapbox:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  gis-osm:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  gis-srtm:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  gis-cesium:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  geoint-maxar:
+    enabled: false  # requires defense contract
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-planet:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-capella:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  geoint-iceye:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  intel-janes:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  cyber-recordedfuture:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  osint-dataminr:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  sim-hla:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 120
+  sim-sensorthings:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  sim-ardupilot-sitl:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 600
+  sim-dronekit:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 120

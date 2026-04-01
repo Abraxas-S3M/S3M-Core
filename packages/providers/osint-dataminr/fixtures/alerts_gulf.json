@@ -1,0 +1,100 @@
+{
+  "alerts": [
+    {
+      "alertId": "DM-ALERT-001",
+      "caption": "Flash: Houthi drone launch detected near Bab al-Mandab",
+      "headerTerms": ["Houthi", "drone", "Red Sea"],
+      "watchlistName": "red_sea_incidents",
+      "alertType": "flash",
+      "eventTime": "2024-06-15T10:02:00Z",
+      "eventLocation": {"latitude": 12.66, "longitude": 43.33, "name": "Bab al-Mandab"},
+      "metadata": {"entityName": "Houthi forces", "topics": ["military", "maritime"]},
+      "categories": [{"name": "military", "topicType": "conflict"}],
+      "sectors": [{"name": "Maritime"}]
+    },
+    {
+      "alertId": "DM-ALERT-002",
+      "caption": "Urgent: commercial vessel reports attack in southern Red Sea",
+      "headerTerms": ["commercial vessel", "attack"],
+      "watchlistName": "gulf_maritime",
+      "alertType": "urgentAlert",
+      "eventTime": "2024-06-15T09:10:00Z",
+      "eventLocation": {"latitude": 13.02, "longitude": 42.87, "name": "Southern Red Sea"},
+      "metadata": {"entityName": "MV Example", "topics": ["maritime"]},
+      "categories": [{"name": "maritime", "topicType": "incident"}],
+      "sectors": [{"name": "Shipping"}]
+    },
+    {
+      "alertId": "DM-ALERT-003",
+      "caption": "Urgent: Saudi military exercise announced in eastern theater",
+      "headerTerms": ["Saudi", "military exercise"],
+      "watchlistName": "mena_military",
+      "alertType": "urgentAlert",
+      "eventTime": "2024-06-15T08:35:00Z",
+      "eventLocation": {"latitude": 26.32, "longitude": 50.12, "name": "Eastern Province"},
+      "metadata": {"entityName": "Saudi MOD", "topics": ["military"]},
+      "categories": [{"name": "military", "topicType": "exercise"}],
+      "sectors": [{"name": "Defense"}]
+    },
+    {
+      "alertId": "DM-ALERT-004",
+      "caption": "Alert: Diplomatic meeting held in Riyadh",
+      "headerTerms": ["diplomatic", "meeting"],
+      "watchlistName": "saudi_security",
+      "alertType": "alert",
+      "eventTime": "2024-06-14T14:00:00Z",
+      "eventLocation": {"latitude": 24.71, "longitude": 46.67, "name": "Riyadh"},
+      "metadata": {"entityName": "Foreign Ministry", "topics": ["diplomacy"]},
+      "categories": [{"name": "political", "topicType": "meeting"}],
+      "sectors": [{"name": "Government"}]
+    },
+    {
+      "alertId": "DM-ALERT-005",
+      "caption": "Alert: Protest activity reported near regional capital",
+      "headerTerms": ["protest", "crowd"],
+      "watchlistName": "saudi_security",
+      "alertType": "alert",
+      "eventTime": "2024-06-14T10:20:00Z",
+      "eventLocation": {"latitude": 24.45, "longitude": 54.38, "name": "Abu Dhabi"},
+      "metadata": {"entityName": "Civil demonstrators", "topics": ["protest"]},
+      "categories": [{"name": "protest", "topicType": "civil"}],
+      "sectors": [{"name": "Public Safety"}]
+    },
+    {
+      "alertId": "DM-ALERT-006",
+      "caption": "Alert: Infrastructure maintenance update at key refinery",
+      "headerTerms": ["refinery", "maintenance"],
+      "watchlistName": "saudi_security",
+      "alertType": "alert",
+      "eventTime": "2024-06-13T19:05:00Z",
+      "eventLocation": {"latitude": 26.57, "longitude": 50.04, "name": "Ras Tanura"},
+      "metadata": {"entityName": "Saudi Aramco", "topics": ["infrastructure"]},
+      "categories": [{"name": "infrastructure", "topicType": "operations"}],
+      "sectors": [{"name": "Energy"}]
+    },
+    {
+      "alertId": "DM-ALERT-007",
+      "caption": "Alert: Cyber advisories issued for GCC finance sector",
+      "headerTerms": ["cyber", "advisory"],
+      "watchlistName": "cyber_gcc",
+      "alertType": "alert",
+      "eventTime": "2024-06-13T15:44:00Z",
+      "eventLocation": {"latitude": 25.20, "longitude": 55.27, "name": "Dubai"},
+      "metadata": {"entityName": "GCC CERT", "topics": ["cyber"]},
+      "categories": [{"name": "cyber", "topicType": "threat"}],
+      "sectors": [{"name": "Finance"}]
+    },
+    {
+      "alertId": "DM-ALERT-008",
+      "caption": "Alert: Port congestion rising in Gulf shipping lanes",
+      "headerTerms": ["port", "congestion"],
+      "watchlistName": "gulf_maritime",
+      "alertType": "alert",
+      "eventTime": "2024-06-13T12:16:00Z",
+      "eventLocation": {"latitude": 25.26, "longitude": 55.30, "name": "Jebel Ali"},
+      "metadata": {"entityName": "Port Authority", "topics": ["maritime"]},
+      "categories": [{"name": "maritime", "topicType": "logistics"}],
+      "sectors": [{"name": "Shipping"}]
+    }
+  ]
+}

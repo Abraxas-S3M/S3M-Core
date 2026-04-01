@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "query": ["riyadh"],
+  "features": [
+    {
+      "id": "place.1",
+      "type": "Feature",
+      "place_type": ["place"],
+      "relevance": 1.0,
+      "text": "Riyadh",
+      "text_en": "Riyadh",
+      "text_ar": "الرياض",
+      "place_name": "Riyadh, Saudi Arabia",
+      "center": [46.6753, 24.7136],
+      "properties": {
+        "name_en": "Riyadh",
+        "name_ar": "الرياض"
+      },
+      "context": [
+        {"id": "country.sa", "short_code": "SA", "text": "Saudi Arabia"}
+      ]
+    }
+  ]
+}

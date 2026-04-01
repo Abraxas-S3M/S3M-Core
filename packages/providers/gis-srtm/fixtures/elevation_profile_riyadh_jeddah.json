@@ -1,0 +1,18 @@
+{
+  "profile": [
+    {"lat": 24.7136, "lon": 46.6753, "elevation_m": 612, "distance_from_start_m": 0},
+    {"lat": 24.6000, "lon": 46.1000, "elevation_m": 680, "distance_from_start_m": 90000},
+    {"lat": 24.4000, "lon": 45.4000, "elevation_m": 820, "distance_from_start_m": 180000},
+    {"lat": 24.1000, "lon": 44.7000, "elevation_m": 980, "distance_from_start_m": 260000},
+    {"lat": 23.8000, "lon": 43.9000, "elevation_m": 1240, "distance_from_start_m": 350000},
+    {"lat": 23.5000, "lon": 43.0000, "elevation_m": 1460, "distance_from_start_m": 440000},
+    {"lat": 23.2000, "lon": 42.1000, "elevation_m": 1700, "distance_from_start_m": 530000},
+    {"lat": 22.9500, "lon": 40.9000, "elevation_m": 2020, "distance_from_start_m": 620000},
+    {"lat": 22.8000, "lon": 40.3500, "elevation_m": 2200, "distance_from_start_m": 700000},
+    {"lat": 22.6000, "lon": 39.9000, "elevation_m": 1880, "distance_from_start_m": 780000},
+    {"lat": 22.3000, "lon": 39.5600, "elevation_m": 1280, "distance_from_start_m": 860000},
+    {"lat": 22.0000, "lon": 39.3300, "elevation_m": 600, "distance_from_start_m": 940000},
+    {"lat": 21.7000, "lon": 39.2000, "elevation_m": 120, "distance_from_start_m": 1010000},
+    {"lat": 21.4858, "lon": 39.1925, "elevation_m": 12, "distance_from_start_m": 1045000}
+  ]
+}

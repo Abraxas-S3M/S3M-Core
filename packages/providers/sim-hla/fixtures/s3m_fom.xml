@@ -1,0 +1,27 @@
+<fom name="S3M_Federation" rprVersion="2.0">
+  <objects>
+    <objectClass name="Aircraft" sharing="PublishSubscribe">
+      <attribute name="Position" dataType="HLAunicodeString" />
+      <attribute name="Orientation" dataType="HLAunicodeString" />
+      <attribute name="Velocity" dataType="HLAunicodeString" />
+    </objectClass>
+    <objectClass name="GroundVehicle" sharing="PublishSubscribe">
+      <attribute name="Position" dataType="HLAunicodeString" />
+      <attribute name="Orientation" dataType="HLAunicodeString" />
+      <attribute name="Velocity" dataType="HLAunicodeString" />
+    </objectClass>
+    <objectClass name="SurfaceVessel" sharing="PublishSubscribe">
+      <attribute name="Position" dataType="HLAunicodeString" />
+      <attribute name="Orientation" dataType="HLAunicodeString" />
+      <attribute name="Velocity" dataType="HLAunicodeString" />
+    </objectClass>
+  </objects>
+  <interactions>
+    <interactionClass name="WeaponFire" sharing="PublishSubscribe">
+      <parameter name="FiringObjectIdentifier" dataType="HLAunicodeString" />
+      <parameter name="TargetObjectIdentifier" dataType="HLAunicodeString" />
+      <parameter name="MunitionType" dataType="HLAunicodeString" />
+      <parameter name="FiringLocation" dataType="HLAunicodeString" />
+    </interactionClass>
+  </interactions>
+</fom>

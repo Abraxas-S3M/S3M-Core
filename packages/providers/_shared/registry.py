@@ -24,6 +24,19 @@ class ProviderRegistry:
         from packages.providers.geoint_gee.adapter import GEEAdapter
         from packages.providers.geoint_nasa_earthdata.adapter import NASAEarthdataAdapter
         from packages.providers.geoint_sentinelhub.adapter import SentinelHubAdapter
+        from packages.providers.osint_acled.adapter import ACLEDAdapter
+        from packages.providers.osint_gdelt.adapter import GDELTAdapter
+        from packages.providers.osint_intelligencex.adapter import IntelligenceXAdapter
+        from packages.providers.osint_mediacloud.adapter import MediaCloudAdapter
 
-        for cls in [CopernicusAdapter, SentinelHubAdapter, NASAEarthdataAdapter, GEEAdapter]:
+        for cls in [
+            CopernicusAdapter,
+            SentinelHubAdapter,
+            NASAEarthdataAdapter,
+            GEEAdapter,
+            GDELTAdapter,
+            ACLEDAdapter,
+            MediaCloudAdapter,
+            IntelligenceXAdapter,
+        ]:
             self.register(cls)

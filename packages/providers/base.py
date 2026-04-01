@@ -15,6 +15,7 @@ class ProviderCategory(str, Enum):
     CYBER_THREAT_INTEL = "CYBER_THREAT_INTEL"
     GEOINT = "GEOINT"
     SOVEREIGN_REGIONAL = "SOVEREIGN_REGIONAL"
+    AI_ML_SERVICES = "AI_ML_SERVICES"
 
 
 class ProviderTier(str, Enum):

@@ -1,0 +1,17 @@
+{
+  "selectors": [
+    {"selectorvalue": "admin@aramco.com", "sources": 6, "target": 1},
+    {"selectorvalue": "security@aramco.com", "sources": 4, "target": 1},
+    {"selectorvalue": "soc@aramco.com", "sources": 3, "target": 1},
+    {"selectorvalue": "noc@aramco.com", "sources": 2, "target": 1},
+    {"selectorvalue": "it.ops@aramco.com", "sources": 2, "target": 1},
+    {"selectorvalue": "vpn-admin@aramco.com", "sources": 2, "target": 1},
+    {"selectorvalue": "incident.response@aramco.com", "sources": 1, "target": 1},
+    {"selectorvalue": "grc@aramco.com", "sources": 1, "target": 1},
+    {"selectorvalue": "mail.aramco.com", "sources": 5, "target": 2},
+    {"selectorvalue": "vpn.aramco.com", "sources": 4, "target": 2},
+    {"selectorvalue": "api.aramco.com", "sources": 3, "target": 2},
+    {"selectorvalue": "portal.aramco.com", "sources": 2, "target": 2},
+    {"selectorvalue": "sso.aramco.com", "sources": 2, "target": 2}
+  ]
+}

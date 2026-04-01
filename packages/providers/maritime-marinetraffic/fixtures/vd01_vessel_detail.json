@@ -1,0 +1,20 @@
+{
+  "MMSI": "636092400",
+  "IMO": "9344745",
+  "SHIPNAME": "PACIFIC GLORY",
+  "VESSEL_CLASS": "VLCC",
+  "BUILD_YEAR": 2012,
+  "DWT": 298450,
+  "GRT": 160230,
+  "FLAG": "LR",
+  "OWNERSHIP_CHAIN": {
+    "beneficial_owner": "Blue Meridian Holdings Ltd",
+    "registered_owner": "Pacific Glory Shipping SA",
+    "operator": "Gulf Energy Carriers Pte"
+  },
+  "FLAG_HISTORY": [
+    "PA",
+    "MH",
+    "LR"
+  ]
+}

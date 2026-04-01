@@ -1,0 +1,12 @@
+{
+  "mmsi": "636092400",
+  "beneficial_owner": "Blue Meridian Holdings Ltd (Cayman)",
+  "registered_owner": "Pacific Glory Shipping SA (Panama)",
+  "operator": "Gulf Energy Carriers Pte (Singapore)",
+  "management_company": "Red Sea Technical Management LLC (UAE)",
+  "flag_history": [
+    "PA",
+    "MH",
+    "LR"
+  ]
+}

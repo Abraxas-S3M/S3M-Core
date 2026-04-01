@@ -1,0 +1,68 @@
+{
+  "value": [
+    {
+      "@iot.id": "weather-obs-001",
+      "phenomenonTime": "2026-03-31T00:00:00Z",
+      "result": 28.2,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "weather-temperature",
+        "name": "temperature_c",
+        "unitOfMeasurement": {"symbol": "C"},
+        "Thing": {
+          "@iot.id": "thing-weather-1",
+          "sensor_type": "weather_station",
+          "Location": {"coordinates": [46.68, 24.71, 612.0]}
+        }
+      }
+    },
+    {
+      "@iot.id": "weather-obs-002",
+      "phenomenonTime": "2026-03-31T01:00:00Z",
+      "result": 27.9,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "weather-temperature",
+        "name": "temperature_c",
+        "unitOfMeasurement": {"symbol": "C"},
+        "Thing": {
+          "@iot.id": "thing-weather-1",
+          "sensor_type": "weather_station",
+          "Location": {"coordinates": [46.68, 24.71, 612.0]}
+        }
+      }
+    },
+    {
+      "@iot.id": "weather-obs-003",
+      "phenomenonTime": "2026-03-31T02:00:00Z",
+      "result": 27.4,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "weather-temperature",
+        "name": "temperature_c",
+        "unitOfMeasurement": {"symbol": "C"},
+        "Thing": {
+          "@iot.id": "thing-weather-1",
+          "sensor_type": "weather_station",
+          "Location": {"coordinates": [46.68, 24.71, 612.0]}
+        }
+      }
+    },
+    {
+      "@iot.id": "weather-obs-004",
+      "phenomenonTime": "2026-03-31T03:00:00Z",
+      "result": 26.8,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "weather-temperature",
+        "name": "temperature_c",
+        "unitOfMeasurement": {"symbol": "C"},
+        "Thing": {
+          "@iot.id": "thing-weather-1",
+          "sensor_type": "weather_station",
+          "Location": {"coordinates": [46.68, 24.71, 612.0]}
+        }
+      }
+    }
+  ]
+}

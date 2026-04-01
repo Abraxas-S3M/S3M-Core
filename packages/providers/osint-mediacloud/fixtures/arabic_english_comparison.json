@@ -1,0 +1,19 @@
+{
+  "arabic": {
+    "count": 180,
+    "top_words": [
+      {"term": "اليمن", "count": 120},
+      {"term": "الحوثي", "count": 95},
+      {"term": "البحر", "count": 88}
+    ]
+  },
+  "english": {
+    "count": 90,
+    "top_words": [
+      {"term": "yemen", "count": 65},
+      {"term": "houthi", "count": 54},
+      {"term": "red", "count": 44}
+    ]
+  },
+  "coverage_ratio": 2.0
+}

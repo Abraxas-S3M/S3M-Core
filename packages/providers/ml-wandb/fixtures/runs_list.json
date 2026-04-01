@@ -1,0 +1,84 @@
+{
+  "runs": [
+    {
+      "run_id": "sar-run-001",
+      "project": "s3m-sar-detection",
+      "state": "finished",
+      "created_at": "2026-03-20T10:00:00Z",
+      "metrics": {"mAP": 0.72, "loss": 0.61},
+      "config": {"lr": 0.001, "batch_size": 16, "epochs": 25}
+    },
+    {
+      "run_id": "sar-run-002",
+      "project": "s3m-sar-detection",
+      "state": "finished",
+      "created_at": "2026-03-21T11:30:00Z",
+      "metrics": {"mAP": 0.78, "loss": 0.49},
+      "config": {"lr": 0.0008, "batch_size": 16, "epochs": 30}
+    },
+    {
+      "run_id": "sar-run-003",
+      "project": "s3m-sar-detection",
+      "state": "finished",
+      "created_at": "2026-03-22T13:10:00Z",
+      "metrics": {"mAP": 0.81, "loss": 0.42},
+      "config": {"lr": 0.0006, "batch_size": 32, "epochs": 35}
+    },
+    {
+      "run_id": "sar-run-004",
+      "project": "s3m-sar-detection",
+      "state": "finished",
+      "created_at": "2026-03-23T14:50:00Z",
+      "metrics": {"mAP": 0.85, "loss": 0.36},
+      "config": {"lr": 0.0005, "batch_size": 32, "epochs": 40}
+    },
+    {
+      "run_id": "sar-run-005",
+      "project": "s3m-sar-detection",
+      "state": "finished",
+      "created_at": "2026-03-24T15:30:00Z",
+      "metrics": {"mAP": 0.83, "loss": 0.38},
+      "config": {"lr": 0.00045, "batch_size": 32, "epochs": 40}
+    },
+    {
+      "run_id": "threat-run-001",
+      "project": "s3m-threat-detection",
+      "state": "running",
+      "created_at": "2026-03-30T09:00:00Z",
+      "metrics": {"mAP": 0.69},
+      "config": {"lr": 0.0012, "batch_size": 16, "epochs": 20}
+    },
+    {
+      "run_id": "rul-run-001",
+      "project": "s3m-rul-prediction",
+      "state": "finished",
+      "created_at": "2026-03-28T18:00:00Z",
+      "metrics": {"rmse": 4.6},
+      "config": {"window": 48, "hidden": 64}
+    },
+    {
+      "run_id": "rl-run-001",
+      "project": "s3m-rl-autonomy",
+      "state": "finished",
+      "created_at": "2026-03-27T20:00:00Z",
+      "metrics": {"reward": 412.4},
+      "config": {"gamma": 0.99, "steps": 500000}
+    },
+    {
+      "run_id": "arabic-run-001",
+      "project": "s3m-arabic-nlp",
+      "state": "finished",
+      "created_at": "2026-03-26T08:00:00Z",
+      "metrics": {"f1": 0.87},
+      "config": {"lr": 2e-05, "epochs": 5}
+    },
+    {
+      "run_id": "war-run-001",
+      "project": "s3m-wargaming-adversary",
+      "state": "finished",
+      "created_at": "2026-03-25T12:00:00Z",
+      "metrics": {"eval_score": 0.74},
+      "config": {"temperature": 0.7}
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scenes": [
+    {"id": "PSScene-20240608-001", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.08, "acquired": "2024-06-08T06:10:00Z", "geometry": {"type": "Polygon", "coordinates": [[[49.8, 26.0], [50.1, 26.0], [50.1, 26.3], [49.8, 26.3], [49.8, 26.0]]] }},
+    {"id": "PSScene-20240609-002", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.12, "acquired": "2024-06-09T06:12:00Z", "geometry": {"type": "Polygon", "coordinates": [[[49.9, 26.1], [50.2, 26.1], [50.2, 26.4], [49.9, 26.4], [49.9, 26.1]]] }},
+    {"id": "PSScene-20240610-003", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.05, "acquired": "2024-06-10T06:11:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.0, 26.2], [50.3, 26.2], [50.3, 26.5], [50.0, 26.5], [50.0, 26.2]]] }},
+    {"id": "PSScene-20240611-004", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.14, "acquired": "2024-06-11T06:09:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.1, 26.0], [50.4, 26.0], [50.4, 26.2], [50.1, 26.2], [50.1, 26.0]]] }},
+    {"id": "PSScene-20240612-005", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.06, "acquired": "2024-06-12T06:08:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.2, 26.1], [50.5, 26.1], [50.5, 26.3], [50.2, 26.3], [50.2, 26.1]]] }},
+    {"id": "PSScene-20240613-006", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.09, "acquired": "2024-06-13T06:07:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.3, 26.2], [50.6, 26.2], [50.6, 26.4], [50.3, 26.4], [50.3, 26.2]]] }},
+    {"id": "PSScene-20240614-007", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.15, "acquired": "2024-06-14T06:06:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.4, 26.0], [50.7, 26.0], [50.7, 26.2], [50.4, 26.2], [50.4, 26.0]]] }},
+    {"id": "PSScene-20240615-008", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.18, "acquired": "2024-06-15T06:05:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.5, 26.1], [50.8, 26.1], [50.8, 26.3], [50.5, 26.3], [50.5, 26.1]]] }},
+    {"id": "PSScene-20240616-009", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.11, "acquired": "2024-06-16T06:04:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.6, 26.2], [50.9, 26.2], [50.9, 26.4], [50.6, 26.4], [50.6, 26.2]]] }},
+    {"id": "PSScene-20240617-010", "item_type": "PSScene", "satellite": "Dove-C", "cloud_cover": 0.07, "acquired": "2024-06-17T06:03:00Z", "geometry": {"type": "Polygon", "coordinates": [[[50.7, 26.0], [51.0, 26.0], [51.0, 26.2], [50.7, 26.2], [50.7, 26.0]]] }}
+  ],
+  "count": 10
+}
