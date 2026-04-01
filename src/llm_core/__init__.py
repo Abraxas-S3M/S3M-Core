@@ -15,9 +15,35 @@ from .advanced_orchestrator import (
     UrgencyLevel,
 )
 from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
+from .model_optimizer import (
+    AllocationPlan,
+    HARDWARE_PROFILES,
+    HardwareProfile,
+    LoadCategory,
+    MemoryBudget,
+    ModelOptimizer,
+    ModelProfile,
+    PreloadPlan,
+    RUNTIME_PROFILES,
+    RuntimeProfile,
+    estimate_inference_time,
+)
+from .failover_system import (
+    FailoverSystem,
+    HealthState,
+    FailoverMode,
+    DeterministicResponse,
+)
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
+from .predictive_preload import (
+    PredictivePreloader,
+    RequestRecord,
+    EngineScore,
+    PreloadPrediction,
+    PreloadPlan,
+)
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
@@ -27,9 +53,14 @@ __all__ = [
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
     "ModelRegistry", "ModelArtifact", "RegistryStatus",
+    "ModelOptimizer", "ModelProfile", "AllocationPlan", "PreloadPlan",
+    "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
+    "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
+    "FailoverSystem", "HealthState", "FailoverMode", "DeterministicResponse",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
+    "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
 ]

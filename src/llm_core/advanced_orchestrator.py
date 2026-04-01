@@ -14,10 +14,13 @@ from enum import Enum
 import logging
 import time
 import uuid
+from types import SimpleNamespace
 from typing import Dict, List, Optional, Protocol
 
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
 from .model_registry import ModelRegistry
+from .model_optimizer import ModelOptimizer
+from .failover_system import FailoverSystem
 
 
 LOGGER = logging.getLogger(__name__)
@@ -32,6 +35,7 @@ class RoutingStrategy(Enum):
     COMPETITIVE = "competitive"
     FALLBACK_CASCADE = "fallback_cascade"
     HYBRID_ADAPTIVE = "hybrid_adaptive"
+    DETERMINISTIC_FALLBACK = "deterministic_fallback"
 
 
 class UrgencyLevel(Enum):
@@ -277,10 +281,14 @@ class AdvancedOrchestrator:
         self,
         registry: Optional[EngineRegistry] = None,
         model_registry: Optional[ModelRegistry] = None,
+        optimizer: Optional[ModelOptimizer] = None,
         history_limit: int = 250,
+        failover: Optional[FailoverSystem] = None,
     ):
         self.registry = registry or EngineRegistry()
         self.model_registry = model_registry or ModelRegistry(registry=self.registry)
+        self.optimizer = optimizer or ModelOptimizer(self.registry)
+        self.failover = failover or FailoverSystem()
         self.metrics = OrchestratorMetrics()
         self.history_limit = max(10, history_limit)
         self.routing_history: List[Dict[str, object]] = []
@@ -307,6 +315,81 @@ class AdvancedOrchestrator:
                 for engine_id, artifact in status.artifacts.items()
             },
         }
+
+    def execute_with_failover(
+        self,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+        require_consensus: bool = False,
+        metadata: Optional[Dict[str, object]] = None,
+    ) -> UnifiedResponse:
+        """
+        Execute one query with health-aware routing and deterministic fallback.
+
+        Tactical context:
+        - When engines degrade, response posture shifts to REVIEW and deterministic
+          safeguards are enforced before any autonomous recommendation is accepted.
+        """
+        metadata = metadata or {}
+        request = SimpleNamespace(
+            prompt=prompt,
+            domain=domain,
+            require_consensus=require_consensus,
+            max_latency_ms=metadata.get("max_latency_ms"),
+        )
+
+        routed = self.route_and_decide(request)
+        healthy_engines = self.failover.get_healthy_engines()
+
+        if not healthy_engines:
+            LOGGER.error("All engines unavailable; deterministic fallback activated")
+            det = self.failover.get_deterministic_response(
+                domain or self._classify_domain(prompt),
+                prompt,
+            )
+            return UnifiedResponse(
+                recommendation_text=det.recommendation_text,
+                normalized_strategy=RoutingStrategy.DETERMINISTIC_FALLBACK,
+                confidence_score=det.confidence_score,
+                review_status=self._review_status_from_text(det.review_status),
+                engine_trace=[],
+                latency_ms=0.0,
+                failover_used=True,
+                audit_id=det.audit_id,
+                raw_outputs={},
+            )
+
+        selected = [engine for engine in routed.engine_trace if engine in healthy_engines]
+        if selected:
+            return routed
+
+        primary = routed.engine_trace[0] if routed.engine_trace else healthy_engines[0]
+        fallback = self.failover.choose_fallback(primary, healthy_engines)
+        selected = [fallback or healthy_engines[0]]
+
+        audit_id = self.failover.record_failover(
+            primary=primary,
+            fallbacks_tried=selected,
+            succeeded=selected[0],
+            reason="Primary route unavailable; fallback selected",
+            latency_ms=0.0,
+        )
+        raw_outputs = self._simulate_engine_outputs(
+            selected,
+            prompt,
+            domain or self._classify_domain(prompt),
+        )
+        return UnifiedResponse(
+            recommendation_text=self._build_recommendation(raw_outputs, selected),
+            normalized_strategy=RoutingStrategy.FALLBACK_CASCADE,
+            confidence_score=max(0.0, min(1.0, routed.confidence_score * 0.9)),
+            review_status=ReviewStatus.REVIEW,
+            engine_trace=selected,
+            latency_ms=routed.latency_ms,
+            failover_used=True,
+            audit_id=audit_id,
+            raw_outputs=raw_outputs,
+        )
 
     def route_and_decide(self, request: RoutingRequest) -> UnifiedResponse:
         """
@@ -694,6 +777,15 @@ class AdvancedOrchestrator:
             return list(self.routing_history)
         return list(self.routing_history[-limit:])
 
+    def get_memory_recommendation(self, available_memory_gb: float) -> Dict[str, object]:
+        """Get tactical memory and engine recommendations for runtime planning."""
+        profile = self.optimizer.recommend_runtime_profile(available_memory_gb)
+        return {
+            "available_memory_gb": available_memory_gb,
+            "recommended_profile": profile,
+            "details": self.optimizer.get_profile_details(profile),
+        }
+
     def _simulate_engine_outputs(
         self,
         selected_engines: List[EngineID],
@@ -785,6 +877,16 @@ class AdvancedOrchestrator:
         if urgency == UrgencyLevel.CRITICAL and confidence_score < 0.80:
             return ReviewStatus.REVIEW
         if confidence_score < 0.70:
+            return ReviewStatus.REVIEW
+        return ReviewStatus.ACCEPT
+
+    @staticmethod
+    def _review_status_from_text(status: str) -> ReviewStatus:
+        """Convert external review string into orchestrator enum."""
+        normalized = (status or "").upper()
+        if normalized == ReviewStatus.REJECT.value:
+            return ReviewStatus.REJECT
+        if normalized == ReviewStatus.REVIEW.value:
             return ReviewStatus.REVIEW
         return ReviewStatus.ACCEPT
 
