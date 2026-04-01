@@ -66,9 +66,11 @@ class MaxarNormalizer:
         return obs
 
     def normalize_tasking_order(self, order: dict[str, Any]) -> dict[str, Any]:
+        estimated = str(order.get("estimated_collection_date", order.get("estimated_date", "")))
         return {
             "order_id": str(order.get("order_id", "")),
-            "estimated_collection_date": str(order.get("estimated_collection_date", "")),
+            "estimated_collection_date": estimated,
+            "estimated_date": estimated,
             "sensor": str(order.get("sensor", "WV03")),
             "status": str(order.get("status", "submitted")),
             "priority": str(order.get("priority", "standard")),

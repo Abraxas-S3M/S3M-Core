@@ -54,6 +54,7 @@ def test_tasking_order_structure() -> None:
     order = Adapter(mode="airgapped").submit_tasking("POLYGON((56.0 26.0,56.4 26.0,56.4 26.3,56.0 26.3,56.0 26.0))")
     normalized = Adapter(mode="airgapped").normalizer.normalize_tasking_order(order)
     assert {"order_id", "estimated_collection_date", "sensor", "status"}.issubset(normalized.keys())
+    assert "estimated_date" in normalized
 
 
 def test_catalog_search_fixture() -> None:
