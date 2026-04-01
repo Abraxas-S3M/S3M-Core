@@ -1,0 +1,184 @@
+{
+  "value": [
+    {
+      "Id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "Name": "S1A_IW_GRDH_1SDV_20240615T024530_20240615T024555_054321_069ABC_1234.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-15T02:45:30.000Z",
+        "End": "2024-06-15T02:45:55.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((49.5 25.0, 51.0 25.0, 51.0 27.0, 49.5 27.0, 49.5 25.0))'",
+      "ContentLength": 1650000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-1"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "GRD"
+        },
+        {
+          "Name": "operationalMode",
+          "Value": "IW"
+        },
+        {
+          "Name": "polarisation",
+          "Value": "VV&VH"
+        },
+        {
+          "Name": "orbitDirection",
+          "Value": "ASCENDING"
+        },
+        {
+          "Name": "relativeOrbitNumber",
+          "Value": 79
+        }
+      ]
+    },
+    {
+      "Id": "b2c3d4e5-f6a7-8901-bcde-f234567890a1",
+      "Name": "S1B_IW_GRDH_1SDV_20240613T143210_20240613T143235_034567_042DEF_5678.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-13T14:32:10.000Z",
+        "End": "2024-06-13T14:32:35.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((50.8 24.8, 52.2 24.8, 52.2 26.7, 50.8 26.7, 50.8 24.8))'",
+      "ContentLength": 1625000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-1"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "GRD"
+        },
+        {
+          "Name": "operationalMode",
+          "Value": "IW"
+        },
+        {
+          "Name": "polarisation",
+          "Value": "VV&VH"
+        },
+        {
+          "Name": "orbitDirection",
+          "Value": "DESCENDING"
+        },
+        {
+          "Name": "relativeOrbitNumber",
+          "Value": 131
+        }
+      ]
+    },
+    {
+      "Id": "c3d4e5f6-a7b8-9012-cdef-34567890a1b2",
+      "Name": "S1A_IW_GRDH_1SDV_20240611T025102_20240611T025127_054263_0698AA_9ABC.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-11T02:51:02.000Z",
+        "End": "2024-06-11T02:51:27.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((48.7 25.2, 50.1 25.2, 50.1 27.4, 48.7 27.4, 48.7 25.2))'",
+      "ContentLength": 1682000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-1"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "GRD"
+        },
+        {
+          "Name": "operationalMode",
+          "Value": "IW"
+        },
+        {
+          "Name": "polarisation",
+          "Value": "VV&VH"
+        },
+        {
+          "Name": "orbitDirection",
+          "Value": "ASCENDING"
+        },
+        {
+          "Name": "relativeOrbitNumber",
+          "Value": 77
+        }
+      ]
+    },
+    {
+      "Id": "d4e5f6a7-b8c9-0123-def4-4567890a1b2c",
+      "Name": "S1B_IW_GRDH_1SDV_20240609T145012_20240609T145037_034509_0411BB_CDEF.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-09T14:50:12.000Z",
+        "End": "2024-06-09T14:50:37.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((52.0 25.5, 53.6 25.5, 53.6 27.8, 52.0 27.8, 52.0 25.5))'",
+      "ContentLength": 1599000000,
+      "Online": false,
+      "Collection": {
+        "Name": "SENTINEL-1"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "GRD"
+        },
+        {
+          "Name": "operationalMode",
+          "Value": "IW"
+        },
+        {
+          "Name": "polarisation",
+          "Value": "VV&VH"
+        },
+        {
+          "Name": "orbitDirection",
+          "Value": "DESCENDING"
+        },
+        {
+          "Name": "relativeOrbitNumber",
+          "Value": 129
+        }
+      ]
+    },
+    {
+      "Id": "e5f6a7b8-c9d0-1234-ef45-567890a1b2c3",
+      "Name": "S1A_IW_GRDH_1SDV_20240607T030215_20240607T030240_054205_068FCC_0FED.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-07T03:02:15.000Z",
+        "End": "2024-06-07T03:02:40.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((54.0 24.7, 55.8 24.7, 55.8 26.9, 54.0 26.9, 54.0 24.7))'",
+      "ContentLength": 1703000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-1"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "GRD"
+        },
+        {
+          "Name": "operationalMode",
+          "Value": "IW"
+        },
+        {
+          "Name": "polarisation",
+          "Value": "VV&VH"
+        },
+        {
+          "Name": "orbitDirection",
+          "Value": "ASCENDING"
+        },
+        {
+          "Name": "relativeOrbitNumber",
+          "Value": 75
+        }
+      ]
+    }
+  ]
+}

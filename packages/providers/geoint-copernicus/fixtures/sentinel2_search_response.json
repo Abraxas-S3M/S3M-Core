@@ -1,0 +1,88 @@
+{
+  "value": [
+    {
+      "Id": "b11a23f0-6f68-4d16-9e53-2da67049f2d1",
+      "Name": "S2A_MSIL2A_20240614T073621_N0510_R092_T38RQT_20240614T103314.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-14T07:36:21.000Z",
+        "End": "2024-06-14T07:36:21.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((39.2 24.5, 40.1 24.5, 40.1 25.3, 39.2 25.3, 39.2 24.5))'",
+      "ContentLength": 810000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-2"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "S2MSI2A"
+        },
+        {
+          "Name": "cloudCover",
+          "Value": 5.0
+        },
+        {
+          "Name": "platform",
+          "Value": "Sentinel-2A"
+        }
+      ]
+    },
+    {
+      "Id": "2f8dc8fd-78c6-4f30-9ef6-c5fe6e14f7fb",
+      "Name": "S2B_MSIL2A_20240611T073619_N0510_R092_T39RVP_20240611T103211.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-11T07:36:19.000Z",
+        "End": "2024-06-11T07:36:19.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((44.1 23.7, 45.0 23.7, 45.0 24.5, 44.1 24.5, 44.1 23.7))'",
+      "ContentLength": 825000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-2"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "S2MSI2A"
+        },
+        {
+          "Name": "cloudCover",
+          "Value": 15.0
+        },
+        {
+          "Name": "platform",
+          "Value": "Sentinel-2B"
+        }
+      ]
+    },
+    {
+      "Id": "9186a2f2-6cb8-4207-a4ec-d7fd4ca1128e",
+      "Name": "S2A_MSIL2A_20240608T074621_N0510_R092_T38RPU_20240608T103023.SAFE",
+      "ContentDate": {
+        "Start": "2024-06-08T07:46:21.000Z",
+        "End": "2024-06-08T07:46:21.000Z"
+      },
+      "Footprint": "geography'SRID=4326;POLYGON((36.6 20.2, 37.5 20.2, 37.5 21.0, 36.6 21.0, 36.6 20.2))'",
+      "ContentLength": 799000000,
+      "Online": true,
+      "Collection": {
+        "Name": "SENTINEL-2"
+      },
+      "Attributes": [
+        {
+          "Name": "productType",
+          "Value": "S2MSI2A"
+        },
+        {
+          "Name": "cloudCover",
+          "Value": 45.0
+        },
+        {
+          "Name": "platform",
+          "Value": "Sentinel-2A"
+        }
+      ]
+    }
+  ]
+}
