@@ -6,6 +6,14 @@ Engines: Phi-3 (Microsoft), Grok (xAI), Mistral (Mistral AI), ALLaM (SDAIA)
 
 from .engine_registry import EngineRegistry, EngineID, TaskDomain, EngineConfig
 from .orchestrator import Orchestrator, QueryRequest, EngineResponse, ConsensusResult
+from .advanced_orchestrator import (
+    AdvancedOrchestrator,
+    RoutingStrategy,
+    RoutingDecision,
+    UnifiedResponse,
+    OrchestratorMetrics,
+    UrgencyLevel,
+)
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -15,6 +23,8 @@ from .session import S3MSession
 __all__ = [
     "EngineRegistry", "EngineID", "TaskDomain", "EngineConfig",
     "Orchestrator", "QueryRequest", "EngineResponse", "ConsensusResult",
+    "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
+    "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
