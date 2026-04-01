@@ -30,6 +30,7 @@ from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
 from src.api.cyber_routes import cyber_router
 from src.api.maintenance_routes import maintenance_router
+from src.api.readiness_routes import readiness_router
 from src.security.middleware import SecurityMiddleware
 from src.api.autonomy_routes import autonomy_router
 from src.api.navigation_routes import navigation_router
@@ -132,6 +133,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
+app.include_router(readiness_router, tags=["Personnel & Readiness"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
