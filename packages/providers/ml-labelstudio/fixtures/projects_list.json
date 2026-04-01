@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "id": 101,
+      "title": "SAR Ship Detection Training Data",
+      "description": "Bounding box annotation for ships in Sentinel-1 SAR imagery",
+      "total_tasks": 50,
+      "num_tasks_with_annotations": 30,
+      "annotators": [1, 2],
+      "s3m_layer": "sensor_analytics"
+    },
+    {
+      "id": 102,
+      "title": "Arabic Military NER",
+      "description": "Named entity recognition for Arabic military text",
+      "total_tasks": 40,
+      "num_tasks_with_annotations": 12,
+      "annotators": [3],
+      "s3m_layer": "comms_nlp"
+    }
+  ],
+  "count": 2
+}

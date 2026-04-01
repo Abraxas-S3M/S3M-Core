@@ -1,0 +1,25 @@
+{
+  "models": [
+    {
+      "id": "mdl-sar-v1",
+      "project": "s3m-sar-detection",
+      "name": "yolov8_sar_ship",
+      "version": "v1",
+      "created_at": "2026-03-18T12:00:00Z"
+    },
+    {
+      "id": "mdl-sar-v2",
+      "project": "s3m-sar-detection",
+      "name": "yolov8_sar_ship",
+      "version": "v2",
+      "created_at": "2026-03-22T12:00:00Z"
+    },
+    {
+      "id": "mdl-sar-v3",
+      "project": "s3m-sar-detection",
+      "name": "yolov8_sar_ship",
+      "version": "v3",
+      "created_at": "2026-03-29T12:00:00Z"
+    }
+  ]
+}

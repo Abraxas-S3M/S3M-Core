@@ -13,6 +13,7 @@ from typing import Any
 
 class ProviderCategory(str, Enum):
     CYBER_THREAT_INTEL = "CYBER_THREAT_INTEL"
+    AI_ML_SERVICES = "AI_ML_SERVICES"
 
 
 class ProviderTier(str, Enum):
@@ -29,6 +30,7 @@ class ProviderManifest:
     auth_type: str
     rate_limit_rpm: int
     required_env_vars: list[str] = field(default_factory=list)
+    optional_env_vars: list[str] = field(default_factory=list)
     supported_schemas: list[str] = field(default_factory=lambda: ["NormalizedThreatIndicator"])
 
 

@@ -1,0 +1,54 @@
+{
+  "project_id": 101,
+  "project_name": "SAR Ship Detection Training Data",
+  "annotations": [
+    {
+      "task_id": 1,
+      "image": "sar_001.png",
+      "width": 1024,
+      "height": 1024,
+      "objects": [
+        {"label": "ship", "x": 220, "y": 390, "w": 160, "h": 90},
+        {"label": "oil_platform", "x": 710, "y": 210, "w": 120, "h": 140}
+      ]
+    },
+    {
+      "task_id": 2,
+      "image": "sar_002.png",
+      "width": 1024,
+      "height": 1024,
+      "objects": [
+        {"label": "ship", "x": 470, "y": 520, "w": 135, "h": 78}
+      ]
+    },
+    {
+      "task_id": 3,
+      "image": "sar_003.png",
+      "width": 1024,
+      "height": 1024,
+      "objects": [
+        {"label": "buoy", "x": 190, "y": 640, "w": 42, "h": 42},
+        {"label": "ship", "x": 612, "y": 488, "w": 155, "h": 92}
+      ]
+    },
+    {
+      "task_id": 4,
+      "image": "sar_004.png",
+      "width": 1024,
+      "height": 1024,
+      "objects": [
+        {"label": "debris", "x": 840, "y": 760, "w": 90, "h": 50}
+      ]
+    },
+    {
+      "task_id": 5,
+      "image": "sar_005.png",
+      "width": 1024,
+      "height": 1024,
+      "objects": [
+        {"label": "ship", "x": 340, "y": 430, "w": 176, "h": 97},
+        {"label": "ship", "x": 560, "y": 450, "w": 164, "h": 90}
+      ]
+    }
+  ]
+}
