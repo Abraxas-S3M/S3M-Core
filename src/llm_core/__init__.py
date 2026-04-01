@@ -55,6 +55,8 @@ from .predictive_preload import (
     PreloadPrediction,
     PreloadPlan,
 )
+from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
+from .confidence_framework import ConfidenceFramework, ConfidenceFactors, ConfidenceScore
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
@@ -76,6 +78,8 @@ __all__ = [
     "InferenceEngine", "InferenceResult",
     "EnginePool",
     "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
+    "ModelRegistry", "ModelArtifact", "RegistryStatus",
+    "ConfidenceFramework", "ConfidenceFactors", "ConfidenceScore",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
     "ConsensusEngine",
