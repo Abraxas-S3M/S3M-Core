@@ -1,0 +1,19 @@
+{
+  "data": {
+    "type": "domain",
+    "id": "phish-login-security.net",
+    "attributes": {
+      "last_analysis_stats": {
+        "malicious": 8,
+        "suspicious": 1,
+        "harmless": 44,
+        "undetected": 2
+      },
+      "reputation": -20,
+      "registrar": "Unknown Registrar",
+      "categories": {
+        "VendorA": "phishing"
+      }
+    }
+  }
+}

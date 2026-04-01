@@ -1,0 +1,19 @@
+{
+  "Galaxy": [
+    {
+      "name": "Threat Actor",
+      "description": "APT-SIM-01 actor profile",
+      "type": "threat-actor"
+    },
+    {
+      "name": "Malware Family",
+      "description": "DesertLoader malware family",
+      "type": "malware"
+    },
+    {
+      "name": "Tool",
+      "description": "C2 beacon framework",
+      "type": "tool"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "data": {
+    "ipAddress": "45.155.205.233",
+    "isPublic": true,
+    "abuseConfidenceScore": 92,
+    "countryCode": "RU",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "Bad Transit LLC",
+    "domain": "malicious.example",
+    "totalReports": 47,
+    "numDistinctUsers": 19,
+    "lastReportedAt": "2026-03-30T12:10:00+00:00",
+    "reports": [
+      {
+        "reportedAt": "2026-03-02T00:10:00+00:00",
+        "categories": [
+          14,
+          18
+        ],
+        "comment": "Port scan + SSH brute force"
+      },
+      {
+        "reportedAt": "2026-03-10T02:00:00+00:00",
+        "categories": [
+          22
+        ],
+        "comment": "Repeated SSH attempts"
+      }
+    ]
+  }
+}

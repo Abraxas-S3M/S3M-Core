@@ -1,0 +1,361 @@
+{
+  "Event": [
+    {
+      "id": "101",
+      "info": "APT campaign targeting GCC infrastructure",
+      "date": "2026-03-25",
+      "threat_level_id": 1,
+      "analysis": 2,
+      "Attribute": [
+        {
+          "id": "1",
+          "event_id": "101",
+          "category": "Network activity",
+          "type": "ip-src",
+          "value": "203.0.113.10",
+          "to_ids": true,
+          "timestamp": "1719879000",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "misp-galaxy:mitre-attack-pattern=\"Spearphishing - T1566\""
+            }
+          ]
+        },
+        {
+          "id": "6",
+          "event_id": "101",
+          "category": "Network activity",
+          "type": "domain",
+          "value": "evil-gcc-update.com",
+          "to_ids": true,
+          "timestamp": "1719882000",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:red"
+            },
+            {
+              "name": "apt:campaign"
+            }
+          ]
+        },
+        {
+          "id": "10",
+          "event_id": "101",
+          "category": "Artifacts dropped",
+          "type": "sha256",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "to_ids": true,
+          "timestamp": "1719884400",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:red"
+            },
+            {
+              "name": "malware"
+            }
+          ]
+        },
+        {
+          "id": "16",
+          "event_id": "101",
+          "category": "Artifacts dropped",
+          "type": "email-src",
+          "value": "operator@fake-gcc-support.com",
+          "to_ids": true,
+          "timestamp": "1719888000",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:red"
+            },
+            {
+              "name": "phishing"
+            }
+          ]
+        },
+        {
+          "id": "18",
+          "event_id": "101",
+          "category": "Artifacts dropped",
+          "type": "vulnerability",
+          "value": "CVE-2024-12345",
+          "to_ids": true,
+          "timestamp": "1719889200",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:red"
+            },
+            {
+              "name": "exploit"
+            }
+          ]
+        }
+      ],
+      "Tag": [
+        {
+          "name": "tlp:red"
+        },
+        {
+          "name": "apt:gcc-targeting"
+        },
+        {
+          "name": "misp-galaxy:mitre-attack-pattern=\"Spearphishing - T1566\""
+        }
+      ],
+      "Galaxy": [
+        {
+          "name": "Threat Actor",
+          "value": "APT-SIM-01"
+        }
+      ],
+      "Org": {
+        "name": "GCC-CERT"
+      }
+    },
+    {
+      "id": "102",
+      "info": "Phishing campaign against logistics command",
+      "date": "2026-03-27",
+      "threat_level_id": 2,
+      "analysis": 1,
+      "Attribute": [
+        {
+          "id": "3",
+          "event_id": "102",
+          "category": "Network activity",
+          "type": "ip-src",
+          "value": "45.33.1.50",
+          "to_ids": true,
+          "timestamp": "1719880200",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:red"
+            },
+            {
+              "name": "malware:loader"
+            }
+          ]
+        },
+        {
+          "id": "7",
+          "event_id": "101",
+          "category": "Network activity",
+          "type": "domain",
+          "value": "credential-reset-security.net",
+          "to_ids": true,
+          "timestamp": "1719882600",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "misp-galaxy:mitre-attack-pattern=\"Credential Phishing - T1566.002\""
+            }
+          ]
+        },
+        {
+          "id": "14",
+          "event_id": "102",
+          "category": "Network activity",
+          "type": "url",
+          "value": "https://dropper-cdn.ru/payload.bin",
+          "to_ids": true,
+          "timestamp": "1719886800",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "malware"
+            }
+          ]
+        },
+        {
+          "id": "17",
+          "event_id": "102",
+          "category": "Artifacts dropped",
+          "type": "email-src",
+          "value": "notify@secure-reset-help.net",
+          "to_ids": true,
+          "timestamp": "1719888600",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "social-engineering"
+            }
+          ]
+        },
+        {
+          "id": "19",
+          "event_id": "102",
+          "category": "Artifacts dropped",
+          "type": "vulnerability",
+          "value": "CVE-2023-98765",
+          "to_ids": true,
+          "timestamp": "1719889800",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "rce"
+            }
+          ]
+        }
+      ],
+      "Tag": [
+        {
+          "name": "tlp:amber"
+        },
+        {
+          "name": "phishing"
+        },
+        {
+          "name": "misp-galaxy:mitre-attack-pattern=\"Credential Phishing - T1566.002\""
+        }
+      ],
+      "Galaxy": [
+        {
+          "name": "Campaign",
+          "value": "Operation Desert Hook"
+        }
+      ],
+      "Org": {
+        "name": "National-CSIRT"
+      }
+    },
+    {
+      "id": "103",
+      "info": "Malware distribution via compromised sites",
+      "date": "2026-03-29",
+      "threat_level_id": 3,
+      "analysis": 0,
+      "Attribute": [
+        {
+          "id": "5",
+          "event_id": "103",
+          "category": "Network activity",
+          "type": "ip-dst",
+          "value": "185.199.110.1",
+          "to_ids": true,
+          "timestamp": "1719881400",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:white"
+            },
+            {
+              "name": "scanner"
+            }
+          ]
+        },
+        {
+          "id": "9",
+          "event_id": "103",
+          "category": "Network activity",
+          "type": "hostname",
+          "value": "c2-node.internal.bad",
+          "to_ids": true,
+          "timestamp": "1719883800",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:amber"
+            },
+            {
+              "name": "botnet"
+            }
+          ]
+        },
+        {
+          "id": "12",
+          "event_id": "103",
+          "category": "Artifacts dropped",
+          "type": "sha256",
+          "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "to_ids": true,
+          "timestamp": "1719885600",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:green"
+            },
+            {
+              "name": "suspicious"
+            }
+          ]
+        },
+        {
+          "id": "15",
+          "event_id": "103",
+          "category": "Network activity",
+          "type": "url",
+          "value": "http://paste.example/bad-script",
+          "to_ids": true,
+          "timestamp": "1719887400",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:green"
+            },
+            {
+              "name": "script"
+            }
+          ]
+        },
+        {
+          "id": "20",
+          "event_id": "103",
+          "category": "Artifacts dropped",
+          "type": "md5",
+          "value": "d41d8cd98f00b204e9800998ecf8427e",
+          "to_ids": true,
+          "timestamp": "1719890400",
+          "comment": "Synthetic CTI fixture for tactical SOC validation",
+          "Tag": [
+            {
+              "name": "tlp:green"
+            },
+            {
+              "name": "legacy-malware"
+            }
+          ]
+        }
+      ],
+      "Tag": [
+        {
+          "name": "tlp:green"
+        },
+        {
+          "name": "malware"
+        },
+        {
+          "name": "misp-galaxy:mitre-attack-pattern=\"Command and Scripting Interpreter - T1059\""
+        }
+      ],
+      "Galaxy": [
+        {
+          "name": "Malware",
+          "value": "DesertLoader"
+        }
+      ],
+      "Org": {
+        "name": "Regional-ISAC"
+      }
+    }
+  ]
+}
