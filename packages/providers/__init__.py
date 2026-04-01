@@ -1,2 +1,1 @@
-"""Provider packages for S3M integrations."""
-
+"""Provider implementations namespace for S3M integrations."""

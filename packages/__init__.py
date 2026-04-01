@@ -1,1 +1,1 @@
-"""S3M package namespace for integration modules."""
+"""Shared package namespace for S3M integration framework modules."""
