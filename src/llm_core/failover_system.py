@@ -55,6 +55,7 @@ WARMING_REQUEST_TIMEOUT = 5_000  # ms timeout budget during half-open probe
 # Rolling request window for success-rate calculation.
 SUCCESS_RATE_MAX_REQUESTS = 100
 SUCCESS_RATE_WINDOW_SECONDS = 300
+SUCCESS_RATE_MIN_SAMPLES = 5
 
 # Deterministic responses by query type.
 DETERMINISTIC_RESPONSES: Dict[str, Dict[str, str]] = {
@@ -235,9 +236,13 @@ class FailoverSystem:
         if snapshot.state == HealthState.WARMING:
             snapshot.warming_test_passed = True
             snapshot.state = HealthState.HEALTHY
+            snapshot.success_count = 1
             snapshot.failure_count = 0
             snapshot.failure_reason = None
             snapshot.circuit_open_time = None
+            # Tactical doctrine: successful half-open probe restores a clean slate.
+            self.failure_history[engine_id] = []
+            self.request_history[engine_id] = [(now, True)]
             logger.info("Engine %s recovered from circuit trip", engine_id.value)
         elif snapshot.state == HealthState.UNAVAILABLE and snapshot.circuit_open_time:
             if self._cooldown_elapsed(snapshot):
@@ -528,6 +533,12 @@ class FailoverSystem:
         snapshot.success_rate = successes / len(events)
 
         if snapshot.state in {HealthState.UNAVAILABLE, HealthState.WARMING}:
+            return
+
+        # Avoid over-escalation on tiny sample sizes (e.g., first failure).
+        if len(events) < SUCCESS_RATE_MIN_SAMPLES:
+            if snapshot.failure_count > 0 and snapshot.state == HealthState.HEALTHY:
+                snapshot.state = HealthState.DEGRADED
             return
 
         if snapshot.success_rate >= 0.95:
