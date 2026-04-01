@@ -1,0 +1,9 @@
+{
+  "watchlists": [
+    {"id": "wl-001", "name": "saudi_security"},
+    {"id": "wl-002", "name": "gulf_maritime"},
+    {"id": "wl-003", "name": "mena_military"},
+    {"id": "wl-004", "name": "cyber_gcc"},
+    {"id": "wl-005", "name": "red_sea_incidents"}
+  ]
+}

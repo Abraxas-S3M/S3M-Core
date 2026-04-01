@@ -27,6 +27,22 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 20
+  maritime-marinetraffic:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  maritime-vesselfinder:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  maritime-spire:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  maritime-windward:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 15
   cyber-misp:
     enabled: true
     mode: "online"
@@ -63,3 +79,31 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 30
+  geoint-maxar:
+    enabled: false  # requires defense contract
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-planet:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  geoint-capella:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  geoint-iceye:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  intel-janes:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 30
+  cyber-recordedfuture:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60
+  osint-dataminr:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 60

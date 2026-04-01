@@ -1,0 +1,50 @@
+[
+  {
+    "MMSI": "636092400",
+    "NAME": "PACIFIC GLORY",
+    "PORT": "JUBAIL",
+    "ETA": "0615 1800"
+  },
+  {
+    "MMSI": "563001200",
+    "NAME": "DESERT STAR",
+    "PORT": "JUBAIL",
+    "ETA": "0615 1930"
+  },
+  {
+    "MMSI": "477000100",
+    "NAME": "ARABIAN LINK",
+    "PORT": "JUBAIL",
+    "ETA": "0615 2100"
+  },
+  {
+    "MMSI": "311000987",
+    "NAME": "EASTERN BREEZE",
+    "PORT": "JUBAIL",
+    "ETA": "0616 0100"
+  },
+  {
+    "MMSI": "352003300",
+    "NAME": "SEA FALCON",
+    "PORT": "JUBAIL",
+    "ETA": "0616 0400"
+  },
+  {
+    "MMSI": "538008761",
+    "NAME": "JUBAIL RUNNER",
+    "PORT": "JUBAIL",
+    "ETA": "0616 0630"
+  },
+  {
+    "MMSI": "236111222",
+    "NAME": "GULF ORION",
+    "PORT": "JUBAIL",
+    "ETA": "0616 0800"
+  },
+  {
+    "MMSI": "416900001",
+    "NAME": "NORTH CHANNEL",
+    "PORT": "JUBAIL",
+    "ETA": "0616 0930"
+  }
+]

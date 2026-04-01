@@ -1,0 +1,245 @@
+{
+  "results": [
+    {
+      "mmsi": "311000900",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 8,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "636092401",
+      "vessel_name": "PACIFIC GLORY",
+      "risk_score": 72,
+      "risk_level": "high",
+      "risk_indicators": [
+        {
+          "type": "sanctions_proximity",
+          "score": 20,
+          "detail": "Visited sanctioned-adjacent port"
+        },
+        {
+          "type": "dark_activity",
+          "score": 65,
+          "detail": "AIS disabled for 18 hours in high-risk lane"
+        },
+        {
+          "type": "sts_transfer",
+          "score": 60,
+          "detail": "Suspected ship-to-ship transfer pattern"
+        }
+      ],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": true,
+        "details": "proximate to listed vessel"
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 3,
+        "zone_violations": 1,
+        "route_deviation_score": 15
+      },
+      "position": {
+        "lat": 12.8,
+        "lon": 43.2
+      },
+      "zone_id": "bab_el_mandeb"
+    },
+    {
+      "mmsi": "311000902",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 10,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000903",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 8,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000904",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 9,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000905",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 10,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000906",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 8,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "477000100",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 48,
+      "risk_level": "medium",
+      "risk_indicators": [
+        {
+          "type": "sanctions_proximity",
+          "score": 48,
+          "detail": "close contact"
+        }
+      ],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": true
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000908",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 10,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    },
+    {
+      "mmsi": "311000909",
+      "vessel_name": "EASTERN BREEZE",
+      "risk_score": 8,
+      "risk_level": "low",
+      "risk_indicators": [],
+      "sanctions_screening": {
+        "listed": false,
+        "proximity_to_listed": false,
+        "details": ""
+      },
+      "behavioral_analytics": {
+        "ais_gap_count_90d": 0,
+        "zone_violations": 0,
+        "route_deviation_score": 2
+      },
+      "position": {
+        "lat": 26.1,
+        "lon": 49.9
+      },
+      "zone_id": "persian_gulf"
+    }
+  ]
+}

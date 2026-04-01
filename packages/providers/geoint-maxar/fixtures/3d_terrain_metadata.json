@@ -1,0 +1,15 @@
+{
+  "tile_id": "maxar3d-11-1234-987",
+  "layer_type": "terrain",
+  "format": "terrain",
+  "resolution_m": 0.5,
+  "vertical_accuracy_m": 0.5,
+  "bounds": {
+    "west": 49.5,
+    "south": 26.0,
+    "east": 49.75,
+    "north": 26.25
+  },
+  "tile_url_template": "https://api.maxar.com/3d/v1/tiles/{z}/{x}/{y}.terrain",
+  "offline_path": "data/integrations/geoint-maxar/terrain_11_1234_987.terrain"
+}
