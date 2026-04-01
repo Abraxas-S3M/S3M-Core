@@ -1,0 +1,13 @@
+{
+  "position": {"lat": 24.712, "lon": 46.682, "alt": 632.0},
+  "attitude": {"roll": 0.02, "pitch": -0.03, "yaw": 1.60},
+  "velocity": {"vx": 5.2, "vy": 0.8, "vz": 0.0},
+  "battery": {"voltage": 15.2, "current": 6.1, "remaining_pct": 74.0},
+  "gps": {"fix_type": 3, "satellites": 11},
+  "mode": "AUTO",
+  "armed": true,
+  "airspeed": 5.0,
+  "groundspeed": 5.4,
+  "heading": 95.0,
+  "last_heartbeat": "2026-04-01T10:00:05Z"
+}

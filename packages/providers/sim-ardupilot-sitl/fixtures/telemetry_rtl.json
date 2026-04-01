@@ -1,0 +1,19 @@
+{
+  "lat": 24.7108,
+  "lon": 46.6808,
+  "alt": 620.0,
+  "heading": 260.0,
+  "groundspeed": 4.5,
+  "airspeed": 4.2,
+  "roll": 0.03,
+  "pitch": -0.05,
+  "yaw": 4.53,
+  "battery_pct": 65.0,
+  "battery_voltage": 15.2,
+  "battery_current": 3.4,
+  "gps_fix": 3,
+  "satellites": 11,
+  "mode": "RTL",
+  "armed": true,
+  "timestamp": "2026-04-01T18:00:00Z"
+}

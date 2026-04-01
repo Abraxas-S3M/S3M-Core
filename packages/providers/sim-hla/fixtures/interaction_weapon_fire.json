@@ -1,0 +1,14 @@
+{
+  "interaction_type": "WeaponFire",
+  "parameters": {
+    "FiringObjectIdentifier": "SA_F15_01",
+    "TargetObjectIdentifier": "OPFOR_MIG29_03",
+    "MunitionType": "AIM-120",
+    "FiringLocation": {
+      "x": 3981042.33,
+      "y": 3210445.91,
+      "z": 3667821.45
+    }
+  },
+  "timestamp": "2026-04-01T10:15:00Z"
+}

@@ -127,3 +127,19 @@ providers:
     enabled: false
     mode: "online"
     rate_limit_rpm: 60
+  sim-hla:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 120
+  sim-sensorthings:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  sim-ardupilot-sitl:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 600
+  sim-dronekit:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 120
