@@ -19,6 +19,12 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .failover_system import (
+    FailoverSystem,
+    HealthState,
+    FailoverMode,
+    DeterministicResponse,
+)
 from .consensus_engine import (
     ConsensusEngine,
     ConsensusMode,
@@ -29,6 +35,13 @@ from .consensus_engine import (
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
+from .predictive_preload import (
+    PredictivePreloader,
+    RequestRecord,
+    EngineScore,
+    PreloadPrediction,
+    PreloadPlan,
+)
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
@@ -42,9 +55,11 @@ __all__ = [
     "OrchestratorEngineResponse", "OrchestratorConsensusResult",
     "AdvancedOrchestrator", "RoutingStrategy", "RoutingDecision",
     "UnifiedResponse", "OrchestratorMetrics", "UrgencyLevel",
+    "FailoverSystem", "HealthState", "FailoverMode", "DeterministicResponse",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
+    "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
     "ConsensusEngine",

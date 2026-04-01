@@ -10,7 +10,9 @@ from typing import Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .engine_registry import EngineID, TaskDomain, DOMAIN_ROUTING
+from .failover_system import FailoverSystem
 from .inference_engine import InferenceEngine, InferenceResult
+from .predictive_preload import PredictivePreloader
 
 logger = logging.getLogger("s3m.pool")
 
@@ -21,9 +23,16 @@ class EnginePool:
     Supports single-engine queries and multi-engine consensus.
     """
 
-    def __init__(self, n_gpu_layers: int = -1):
+    def __init__(
+        self,
+        n_gpu_layers: int = -1,
+        failover: Optional[FailoverSystem] = None,
+        preloader: Optional[PredictivePreloader] = None,
+    ):
         self.n_gpu_layers = n_gpu_layers
         self.engines: Dict[EngineID, InferenceEngine] = {}
+        self.failover = failover or FailoverSystem()
+        self.preloader = preloader or PredictivePreloader()
         self._initialize_engines()
 
     def _initialize_engines(self):
@@ -68,6 +77,41 @@ class EnginePool:
         max_tokens: Optional[int] = None,
         temperature: float = 0.7,
     ) -> InferenceResult:
+        """Query one engine while recording failover health telemetry."""
+        try:
+            result = self._do_query(
+                engine_id=engine_id,
+                prompt=prompt,
+                system_prompt=system_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            if result.response.startswith("[ERROR]"):
+                self.failover.mark_failure(
+                    engine_id,
+                    reason=result.response,
+                    context={"prompt_length": len(prompt)},
+                )
+            else:
+                self.failover.mark_success(engine_id)
+            return result
+        except Exception as exc:
+            self.failover.mark_failure(
+                engine_id,
+                reason=str(exc),
+                context={"prompt_length": len(prompt)},
+            )
+            raise
+
+    def _do_query(
+        self,
+        engine_id: EngineID,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        temperature: float = 0.7,
+    ) -> InferenceResult:
+        """Execute engine query without failover side-effects."""
         engine = self.engines.get(engine_id)
         if engine is None or not engine.loaded:
             return InferenceResult(
@@ -97,6 +141,52 @@ class EnginePool:
             domain = self._classify(prompt)
         engine_id = DOMAIN_ROUTING[domain]
         return self.query_engine(engine_id, prompt, system_prompt)
+
+    def query_engine_with_preload_tracking(
+        self,
+        engine_id: EngineID,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+        **kwargs,
+    ) -> InferenceResult:
+        """Query engine and record usage for deterministic preload forecasting."""
+        inferred_domain = domain or TaskDomain.TACTICAL
+        try:
+            result = self.query_engine(engine_id=engine_id, prompt=prompt, **kwargs)
+            succeeded = not result.response.startswith("[ERROR]")
+            self.preloader.record_request(
+                domain=inferred_domain,
+                engine_id=engine_id,
+                success=succeeded,
+                latency_ms=result.latency_ms,
+            )
+            return result
+        except Exception:
+            self.preloader.record_request(
+                domain=inferred_domain,
+                engine_id=engine_id,
+                success=False,
+                latency_ms=0.0,
+            )
+            raise
+
+    def preload_predicted_engines(
+        self,
+        domain_hint: Optional[TaskDomain] = None,
+    ) -> Dict:
+        """
+        Build explicit preload plan from deterministic prediction.
+
+        This method only returns planning artifacts and does not auto-load models.
+        """
+        prediction = self.preloader.predict_next_engines(domain_hint=domain_hint)
+        plan = self.preloader.build_preload_plan(prediction=prediction)
+        logger.info("Preload plan ready:\n%s", plan.summary())
+        return {
+            "prediction": prediction,
+            "plan": plan,
+            "status": "ready_for_loading",
+        }
 
     def consensus_query(
         self,
