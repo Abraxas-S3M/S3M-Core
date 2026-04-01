@@ -17,6 +17,13 @@ from .advanced_orchestrator import (
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
+from .predictive_preload import (
+    PredictivePreloader,
+    RequestRecord,
+    EngineScore,
+    PreloadPrediction,
+    PreloadPlan,
+)
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
 
@@ -28,6 +35,7 @@ __all__ = [
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
+    "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
 ]

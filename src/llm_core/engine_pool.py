@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .engine_registry import EngineID, TaskDomain, DOMAIN_ROUTING
 from .inference_engine import InferenceEngine, InferenceResult
+from .predictive_preload import PredictivePreloader
 
 logger = logging.getLogger("s3m.pool")
 
@@ -21,9 +22,10 @@ class EnginePool:
     Supports single-engine queries and multi-engine consensus.
     """
 
-    def __init__(self, n_gpu_layers: int = -1):
+    def __init__(self, n_gpu_layers: int = -1, preloader: Optional[PredictivePreloader] = None):
         self.n_gpu_layers = n_gpu_layers
         self.engines: Dict[EngineID, InferenceEngine] = {}
+        self.preloader = preloader or PredictivePreloader()
         self._initialize_engines()
 
     def _initialize_engines(self):
@@ -97,6 +99,51 @@ class EnginePool:
             domain = self._classify(prompt)
         engine_id = DOMAIN_ROUTING[domain]
         return self.query_engine(engine_id, prompt, system_prompt)
+
+    def query_engine_with_preload_tracking(
+        self,
+        engine_id: EngineID,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+        **kwargs,
+    ) -> InferenceResult:
+        """Query engine and record usage for deterministic preload forecasting."""
+        inferred_domain = domain or TaskDomain.TACTICAL
+        try:
+            result = self.query_engine(engine_id=engine_id, prompt=prompt, **kwargs)
+            self.preloader.record_request(
+                domain=inferred_domain,
+                engine_id=engine_id,
+                success=True,
+                latency_ms=result.latency_ms,
+            )
+            return result
+        except Exception:
+            self.preloader.record_request(
+                domain=inferred_domain,
+                engine_id=engine_id,
+                success=False,
+                latency_ms=0.0,
+            )
+            raise
+
+    def preload_predicted_engines(
+        self,
+        domain_hint: Optional[TaskDomain] = None,
+    ) -> Dict:
+        """
+        Build explicit preload plan from deterministic prediction.
+
+        This method only returns planning artifacts and does not auto-load models.
+        """
+        prediction = self.preloader.predict_next_engines(domain_hint=domain_hint)
+        plan = self.preloader.build_preload_plan(prediction=prediction)
+        logger.info("Preload plan ready:\n%s", plan.summary())
+        return {
+            "prediction": prediction,
+            "plan": plan,
+            "status": "ready_for_loading",
+        }
 
     def consensus_query(
         self,
