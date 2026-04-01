@@ -1,0 +1,22 @@
+{
+  "provider": "mock-satellite",
+  "observations": [
+    {
+      "id": "obs-001",
+      "timestamp": "2026-03-30T10:15:00+00:00",
+      "acquisition_time": "2026-03-30T10:14:30+00:00",
+      "observation_type": "optical",
+      "satellite": "mock-sat-1",
+      "resolution_m": 0.7,
+      "cloud_cover_pct": 8.5,
+      "center": {"lat": 24.7136, "lon": 46.6753},
+      "footprint": [[24.712, 46.674], [24.714, 46.674], [24.714, 46.676], [24.712, 46.676]],
+      "bands": ["RGB", "NIR"],
+      "imagery_url": null,
+      "classification": "UNCLASSIFIED",
+      "confidence": 0.93,
+      "raw_data_ref": "data/integrations/mock-satellite/2026-03-30/obs-001.json",
+      "tags": ["training", "mock", "city"]
+    }
+  ]
+}

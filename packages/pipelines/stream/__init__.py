@@ -1,0 +1,1 @@
+"""Streaming integration base package."""

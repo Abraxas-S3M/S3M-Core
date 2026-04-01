@@ -1,0 +1,8 @@
+{
+  "radiance_mean": 18.7,
+  "radiance_max": 42.1,
+  "lit_area_km2": 128.4,
+  "dark_area_km2": 54.7,
+  "change_from_baseline_pct": 12.5,
+  "region": "jubail_dhahran"
+}

@@ -1,7 +1,10 @@
-"""Threat-intel schema exports."""
+"""Threat intelligence normalized schemas."""
 
-from packages.schemas.threat_intel.models import (
+from .models import (
+    Campaign,
+    IOC,
     NormalizedThreatIndicator,
+    ThreatActor,
     merge_indicators,
     severity_max,
     severity_min,
@@ -10,6 +13,9 @@ from packages.schemas.threat_intel.models import (
 
 __all__ = [
     "NormalizedThreatIndicator",
+    "IOC",
+    "ThreatActor",
+    "Campaign",
     "merge_indicators",
     "severity_max",
     "severity_min",

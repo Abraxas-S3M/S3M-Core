@@ -1,1 +1,1 @@
-"""Normalized schema models for integration pipelines."""
+"""Normalized schema package for provider integration outputs."""

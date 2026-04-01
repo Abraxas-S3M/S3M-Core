@@ -1,4 +1,4 @@
-"""Provider package namespace for S3M CTI ingestion adapters."""
+"""Provider implementations namespace for S3M integrations."""
 
 from packages.providers.registry import ProviderRegistry
 

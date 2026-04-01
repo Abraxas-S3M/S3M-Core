@@ -1,1 +1,1 @@
-"""Pipeline package namespace for S3M intelligence workflows."""
+"""Integration pipelines for ingestion, enrichment, and correlation."""
