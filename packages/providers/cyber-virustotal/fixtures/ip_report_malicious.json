@@ -1,0 +1,21 @@
+{
+  "data": {
+    "type": "ip_address",
+    "id": "203.0.113.77",
+    "attributes": {
+      "last_analysis_stats": {
+        "malicious": 12,
+        "suspicious": 2,
+        "harmless": 60,
+        "undetected": 3
+      },
+      "as_owner": "Malicious Hosting LLC",
+      "country": "RU",
+      "reputation": -56,
+      "categories": {
+        "VendorA": "malware",
+        "VendorB": "botnet"
+      }
+    }
+  }
+}

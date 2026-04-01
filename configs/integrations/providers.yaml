@@ -1,0 +1,21 @@
+providers:
+  cyber-misp:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  cyber-opencti:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
+  cyber-virustotal:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 4
+  cyber-abuseipdb:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 20
+  cyber-greynoise:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 3
