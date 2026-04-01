@@ -1,2 +1,1 @@
-"""Provider package namespace for S3M GEOINT integrations."""
-
+"""Provider implementations namespace for S3M integrations."""

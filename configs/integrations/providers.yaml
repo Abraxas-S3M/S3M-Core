@@ -1,3 +1,15 @@
+# S3M API Integration — Provider Configuration
+# UNCLASSIFIED - FOUO
+
+global:
+  default_mode: "online"  # "online" or "airgapped"
+  default_timeout_seconds: 30
+  default_max_retries: 3
+  cache_ttl_seconds: 3600
+  data_dir: "data/integrations/"
+
+# Providers are registered here. Each gets enabled/disabled independently.
+# Credentials come from environment variables — NEVER from this file.
 providers:
   geoint-copernicus:
     enabled: true
