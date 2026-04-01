@@ -1,0 +1,8 @@
+# S3M Phase 16 — Interoperability Dependencies (Extended)
+# All protocol implementations use Python stdlib — no heavy external deps
+
+# Required (already in base requirements)
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
+numpy>=1.24.0

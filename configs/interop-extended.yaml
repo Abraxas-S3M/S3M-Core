@@ -1,0 +1,54 @@
+# S3M Phase 16 — Interoperability & Simulation Standards (Extended)
+# UNCLASSIFIED - FOUO
+
+dis:
+  broadcast_address: "255.255.255.255"
+  port: 3000
+  default_exercise_id: 1
+  site_id: 1
+  application_id: 1
+  country_code: 178  # Saudi Arabia
+  protocol_version: 7
+  heartbeat_interval_seconds: 5
+  dead_reckoning_algorithm: 2  # FPW
+  position_threshold_meters: 1.0
+  orientation_threshold_radians: 0.05
+  max_entities: 5000
+  pdu_types_enabled: [1, 2, 3, 13, 14, 22, 26]
+
+c2sim:
+  server_url: null  # Set when C2SIM server is deployed
+  namespace: "http://www.sisostds.org/schemas/C2SIM/1.1"
+  outbox_dir: "data/interop/c2sim_outbox/"
+  inbox_dir: "data/interop/c2sim_inbox/"
+  auto_send: true
+
+msdl:
+  scenarios_dir: "configs/interop/scenarios/"
+  default_environment:
+    terrain: "desert"
+    weather: "clear"
+    time_of_day: "0600"
+
+orbat:
+  default_country_code: 178
+  default_affiliation: "friendly"
+  templates_dir: "configs/interop/orbat_templates/"
+
+exercises:
+  max_concurrent: 3
+  auto_record: true
+  report_generation_llm_domain: "planning"  # Mistral
+
+coalition:
+  gcc_partners:
+    - {code: 178, name: "Saudi Arabia", callsign: "FALCON"}
+    - {code: 223, name: "United Arab Emirates", callsign: "HAWK"}
+    - {code: 117, name: "Kuwait", callsign: "DESERT"}
+    - {code: 16, name: "Bahrain", callsign: "PEARL"}
+    - {code: 164, name: "Qatar", callsign: "ORYX"}
+    - {code: 154, name: "Oman", callsign: "SHIELD"}
+
+verification:
+  auto_run_on_startup: false
+  coordinate_accuracy_threshold_meters: 1.0

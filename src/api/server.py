@@ -31,6 +31,7 @@ from src.api.dashboard_routes import dashboard_router
 from src.api.navigation_routes import navigation_router
 from src.api.simulation_routes import simulation_router
 from src.api.threat_routes import threat_router, sensor_router
+from src.api.interop_ext_routes import interop_ext_router
 
 LOGGER = logging.getLogger(__name__)
 
@@ -127,6 +128,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 # Add security routes
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
+app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
