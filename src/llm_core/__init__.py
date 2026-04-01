@@ -27,6 +27,12 @@ from .model_optimizer import (
     RuntimeProfile,
     estimate_inference_time,
 )
+from .failover_system import (
+    FailoverSystem,
+    HealthState,
+    FailoverMode,
+    DeterministicResponse,
+)
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -41,6 +47,7 @@ __all__ = [
     "ModelOptimizer", "ModelProfile", "AllocationPlan", "PreloadPlan",
     "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
     "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
+    "FailoverSystem", "HealthState", "FailoverMode", "DeterministicResponse",
     "WeightManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
