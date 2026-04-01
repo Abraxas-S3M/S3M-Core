@@ -1,0 +1,8 @@
+{
+  "z": 12,
+  "x": 2460,
+  "y": 1600,
+  "asset_id": 1,
+  "bounds": {"north": 24.80, "south": 24.70, "east": 46.75, "west": 46.60},
+  "offline_path": "data/integrations/gis-cesium/terrain/12_2460_1600.terrain"
+}

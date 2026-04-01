@@ -1,0 +1,16 @@
+{
+  "changes": [
+    {
+      "id": "chg-001",
+      "type": "vehicle_movement",
+      "description": "New vehicle staging area detected near shoreline logistics node",
+      "polygon": {
+        "type": "Polygon",
+        "coordinates": [[[56.26, 26.17], [56.29, 26.17], [56.29, 26.19], [56.26, 26.19], [56.26, 26.17]]]
+      }
+    }
+  ],
+  "change_area_km2": 0.42,
+  "change_type": "vehicle_movement",
+  "confidence": 0.96
+}

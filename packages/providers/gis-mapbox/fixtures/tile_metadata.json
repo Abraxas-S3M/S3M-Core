@@ -1,0 +1,9 @@
+{
+  "z": 14,
+  "x": 9650,
+  "y": 6474,
+  "style": "satellite",
+  "format": "jpg",
+  "offline_path": "data/integrations/gis-mapbox/tiles/satellite/14/9650/6474.jpg",
+  "tile_url_template": "https://api.mapbox.com/v4/mapbox.satellite-v9/{z}/{x}/{y}@2x.jpg?access_token={token}"
+}

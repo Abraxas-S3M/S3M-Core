@@ -1,0 +1,38 @@
+[
+  {
+    "MMSI": "636092400",
+    "EVENT_TYPE": 19,
+    "TIMESTAMP": "2026-03-22T00:00:00Z",
+    "LAT": "25.90",
+    "LON": "49.67",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap start"
+  },
+  {
+    "MMSI": "636092400",
+    "EVENT_TYPE": 20,
+    "TIMESTAMP": "2026-03-22T03:00:00Z",
+    "LAT": "25.92",
+    "LON": "49.70",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap end"
+  },
+  {
+    "MMSI": "563001201",
+    "EVENT_TYPE": 19,
+    "TIMESTAMP": "2026-03-23T00:00:00Z",
+    "LAT": "12.80",
+    "LON": "43.20",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap start"
+  },
+  {
+    "MMSI": "563001201",
+    "EVENT_TYPE": 20,
+    "TIMESTAMP": "2026-03-23T18:00:00Z",
+    "LAT": "13.10",
+    "LON": "43.50",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap end"
+  }
+]

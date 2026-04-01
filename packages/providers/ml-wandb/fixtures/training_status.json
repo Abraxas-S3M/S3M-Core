@@ -1,0 +1,41 @@
+{
+  "projects": {
+    "s3m-sar-detection": {
+      "latest_run": "2026-03-30T11:00:00Z",
+      "best_metric": "mAP",
+      "best_value": 0.85,
+      "active_runs": 1
+    },
+    "s3m-threat-detection": {
+      "latest_run": "2026-03-29T09:40:00Z",
+      "best_metric": "mAP",
+      "best_value": 0.82,
+      "active_runs": 0
+    },
+    "s3m-rul-prediction": {
+      "latest_run": "2026-03-28T14:10:00Z",
+      "best_metric": "rmse",
+      "best_value": 0.11,
+      "active_runs": 0
+    },
+    "s3m-rl-autonomy": {
+      "latest_run": "2026-03-31T20:30:00Z",
+      "best_metric": "reward",
+      "best_value": 246.7,
+      "active_runs": 2
+    },
+    "s3m-arabic-nlp": {
+      "latest_run": "2026-03-30T07:10:00Z",
+      "best_metric": "f1",
+      "best_value": 0.91,
+      "active_runs": 0
+    },
+    "s3m-wargaming-adversary": {
+      "latest_run": "2026-03-27T16:00:00Z",
+      "best_metric": "win_rate",
+      "best_value": 0.64,
+      "active_runs": 0
+    }
+  },
+  "total_runs": 28
+}

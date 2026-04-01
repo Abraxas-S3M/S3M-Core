@@ -1,0 +1,16 @@
+{
+  "models": {
+    "phi-3-mini-4k": {"repo": "microsoft/Phi-3-mini-4k-instruct", "cached": true, "cache_path": "models/microsoft--Phi-3-mini-4k-instruct", "size_mb": 2430.0, "quantized": true, "layer": "llm_core"},
+    "phi-3-medium": {"repo": "microsoft/Phi-3-medium-4k-instruct", "cached": true, "cache_path": "models/microsoft--Phi-3-medium-4k-instruct", "size_mb": 3820.0, "quantized": true, "layer": "llm_core"},
+    "mistral-7b": {"repo": "mistralai/Mistral-7B-Instruct-v0.2", "cached": true, "cache_path": "models/mistralai--Mistral-7B-Instruct-v0.2", "size_mb": 4100.0, "quantized": true, "layer": "llm_core"},
+    "arabert": {"repo": "aubmindlab/bert-base-arabertv2", "cached": true, "cache_path": "models/aubmindlab--bert-base-arabertv2", "size_mb": 542.0, "quantized": false, "layer": "comms_nlp"},
+    "mt5-arabic": {"repo": "csebuetnlp/mT5_multilingual_XLSum", "cached": true, "cache_path": "models/csebuetnlp--mT5_multilingual_XLSum", "size_mb": 1160.0, "quantized": false, "layer": "comms_nlp"},
+    "camelbert": {"repo": "CAMeL-Lab/bert-base-arabic-camelbert-mix", "cached": true, "cache_path": "models/CAMeL-Lab--bert-base-arabic-camelbert-mix", "size_mb": 520.0, "quantized": false, "layer": "comms_nlp"},
+    "yolov8n": {"repo": "ultralytics/yolov8n", "cached": true, "cache_path": "models/ultralytics--yolov8n", "size_mb": 25.0, "quantized": true, "layer": "threat_detection"},
+    "whisper-base": {"repo": "openai/whisper-base", "cached": false, "cache_path": null, "size_mb": 0.0, "quantized": false, "layer": "command_agent"},
+    "sar-ship-detect": {"repo": "custom/sar-ship-yolov8", "cached": false, "cache_path": null, "size_mb": 0.0, "quantized": false, "layer": "sensor_analytics"}
+  },
+  "total_cached": 7,
+  "total_required": 9,
+  "cache_complete": false
+}

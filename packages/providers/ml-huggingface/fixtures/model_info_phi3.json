@@ -1,0 +1,19 @@
+{
+  "id": "microsoft/Phi-3-mini-4k-instruct",
+  "pipeline_tag": "text-generation",
+  "tags": ["text-generation", "transformers", "en", "ar", "license:mit"],
+  "downloads": 52341,
+  "lastModified": "2026-03-01T08:40:00Z",
+  "cardData": {
+    "language": ["en", "ar"],
+    "library_name": "transformers",
+    "license": "mit"
+  },
+  "siblings": [
+    {"rfilename": "config.json", "size": 2482},
+    {"rfilename": "tokenizer.json", "size": 1842340},
+    {"rfilename": "model.safetensors", "size": 2800000000}
+  ],
+  "sha": "8b0b7fe2c0f91ac5e497f1adbc7d19a9d0b4ccf4",
+  "description": "Instruction-tuned Phi-3 mini model suitable for tactical decision support."
+}

@@ -1,0 +1,12 @@
+{
+  "elements": [
+    {"type": "node", "id": 3001, "tags": {"aeroway": "aerodrome", "name": "RUH"}, "geometry": [{"lat": 24.9576, "lon": 46.6988}]},
+    {"type": "node", "id": 3002, "tags": {"aeroway": "aerodrome", "name": "JED"}, "geometry": [{"lat": 21.6702, "lon": 39.1525}]},
+    {"type": "node", "id": 3003, "tags": {"aeroway": "aerodrome", "name": "DMM"}, "geometry": [{"lat": 26.4712, "lon": 49.7979}]},
+    {"type": "node", "id": 3004, "tags": {"aeroway": "aerodrome", "name": "MED"}, "geometry": [{"lat": 24.5534, "lon": 39.7051}]},
+    {"type": "node", "id": 3005, "tags": {"aeroway": "aerodrome", "name": "AHB"}, "geometry": [{"lat": 18.2404, "lon": 42.6566}]},
+    {"type": "way", "id": 3006, "tags": {"aeroway": "runway", "name": "Runway A"}, "geometry": [{"lat": 24.95, "lon": 46.68}, {"lat": 24.96, "lon": 46.71}]},
+    {"type": "way", "id": 3007, "tags": {"aeroway": "runway", "name": "Runway B"}, "geometry": [{"lat": 21.66, "lon": 39.14}, {"lat": 21.68, "lon": 39.16}]},
+    {"type": "node", "id": 3008, "tags": {"aeroway": "aerodrome", "name": "TUU"}, "geometry": [{"lat": 28.3654, "lon": 36.6189}]}
+  ]
+}

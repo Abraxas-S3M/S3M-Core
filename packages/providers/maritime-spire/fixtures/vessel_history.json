@@ -1,0 +1,148 @@
+{
+  "data": [
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 25.8,
+        "longitude": 49.4,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T01:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 25.85,
+        "longitude": 49.46,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T02:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 25.900000000000002,
+        "longitude": 49.519999999999996,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T03:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 25.95,
+        "longitude": 49.58,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T04:00:00Z",
+        "collection_type": "satellite"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.0,
+        "longitude": 49.64,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T05:00:00Z",
+        "collection_type": "satellite"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.05,
+        "longitude": 49.699999999999996,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T06:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.1,
+        "longitude": 49.76,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T07:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.150000000000002,
+        "longitude": 49.82,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T08:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.2,
+        "longitude": 49.879999999999995,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T09:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.25,
+        "longitude": 49.94,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T10:00:00Z",
+        "collection_type": "satellite"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.3,
+        "longitude": 50.0,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T11:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    },
+    {
+      "mmsi": "636180000",
+      "position": {
+        "latitude": 26.35,
+        "longitude": 50.059999999999995,
+        "speed": 10.0,
+        "course": 220.0,
+        "heading": 221,
+        "timestamp": "2026-03-31T12:00:00Z",
+        "collection_type": "terrestrial"
+      }
+    }
+  ]
+}

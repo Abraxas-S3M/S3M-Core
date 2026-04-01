@@ -1,0 +1,11 @@
+{
+  "daily": [
+    {"date": "2026-03-26", "calls": 492, "tokens": 235000, "avg_latency_ms": 648, "errors": 6},
+    {"date": "2026-03-27", "calls": 505, "tokens": 242500, "avg_latency_ms": 655, "errors": 7},
+    {"date": "2026-03-28", "calls": 498, "tokens": 238000, "avg_latency_ms": 642, "errors": 5},
+    {"date": "2026-03-29", "calls": 512, "tokens": 248000, "avg_latency_ms": 661, "errors": 8},
+    {"date": "2026-03-30", "calls": 521, "tokens": 251000, "avg_latency_ms": 667, "errors": 9},
+    {"date": "2026-03-31", "calls": 507, "tokens": 246000, "avg_latency_ms": 652, "errors": 6},
+    {"date": "2026-04-01", "calls": 499, "tokens": 239000, "avg_latency_ms": 649, "errors": 5}
+  ]
+}

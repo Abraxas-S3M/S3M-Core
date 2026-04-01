@@ -1,0 +1,40 @@
+{
+  "models": [
+    {
+      "model_id": "aubmindlab/bert-base-arabertv2",
+      "pipeline_tag": "fill-mask",
+      "downloads": 1250000,
+      "tags": ["arabic", "bert", "pytorch"],
+      "last_modified": "2025-10-12T08:00:00Z"
+    },
+    {
+      "model_id": "csebuetnlp/mT5_multilingual_XLSum",
+      "pipeline_tag": "summarization",
+      "downloads": 842000,
+      "tags": ["arabic", "t5", "summarization"],
+      "last_modified": "2025-09-01T10:00:00Z"
+    },
+    {
+      "model_id": "CAMeL-Lab/bert-base-arabic-camelbert-mix",
+      "pipeline_tag": "fill-mask",
+      "downloads": 670000,
+      "tags": ["arabic", "bert", "nlp"],
+      "last_modified": "2025-08-20T11:30:00Z"
+    },
+    {
+      "model_id": "asafaya/bert-base-arabic",
+      "pipeline_tag": "fill-mask",
+      "downloads": 530000,
+      "tags": ["arabic", "bert"],
+      "last_modified": "2025-07-10T09:45:00Z"
+    },
+    {
+      "model_id": "akhooli/bert-base-arabic-camelbert-msa",
+      "pipeline_tag": "text-classification",
+      "downloads": 120000,
+      "tags": ["arabic", "classification"],
+      "last_modified": "2025-06-03T15:20:00Z"
+    }
+  ],
+  "count": 5
+}

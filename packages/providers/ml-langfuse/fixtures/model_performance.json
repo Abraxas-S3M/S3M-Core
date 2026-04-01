@@ -1,0 +1,36 @@
+{
+  "models": {
+    "Phi-3": {
+      "calls": 420,
+      "avg_latency_ms": 540.3,
+      "avg_tokens": 320,
+      "error_rate_pct": 1.2,
+      "p50_latency": 510.0,
+      "p95_latency": 890.0
+    },
+    "Grok": {
+      "calls": 375,
+      "avg_latency_ms": 780.2,
+      "avg_tokens": 650,
+      "error_rate_pct": 2.1,
+      "p50_latency": 740.0,
+      "p95_latency": 1250.0
+    },
+    "Mistral": {
+      "calls": 395,
+      "avg_latency_ms": 620.5,
+      "avg_tokens": 470,
+      "error_rate_pct": 1.8,
+      "p50_latency": 590.0,
+      "p95_latency": 980.0
+    },
+    "ALLaM": {
+      "calls": 290,
+      "avg_latency_ms": 710.1,
+      "avg_tokens": 430,
+      "error_rate_pct": 1.5,
+      "p50_latency": 680.0,
+      "p95_latency": 1040.0
+    }
+  }
+}

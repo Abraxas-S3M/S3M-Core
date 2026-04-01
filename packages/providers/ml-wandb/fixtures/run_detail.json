@@ -1,0 +1,55 @@
+{
+  "project": "s3m-sar-detection",
+  "run_id": "run_004",
+  "config": {
+    "lr": 0.001,
+    "batch_size": 16,
+    "epochs": 50
+  },
+  "metrics_history": [
+    {
+      "epoch": 1,
+      "loss": 1.12,
+      "mAP": 0.52
+    },
+    {
+      "epoch": 10,
+      "loss": 0.64,
+      "mAP": 0.72
+    },
+    {
+      "epoch": 20,
+      "loss": 0.42,
+      "mAP": 0.78
+    },
+    {
+      "epoch": 30,
+      "loss": 0.31,
+      "mAP": 0.81
+    },
+    {
+      "epoch": 40,
+      "loss": 0.24,
+      "mAP": 0.84
+    },
+    {
+      "epoch": 50,
+      "loss": 0.21,
+      "mAP": 0.85
+    }
+  ],
+  "artifacts": [
+    {
+      "project": "s3m-sar-detection",
+      "name": "sar-yolov8-model",
+      "version": "v3",
+      "local_path": "models/sar/yolov8_sar_ship_v3.pt"
+    },
+    {
+      "project": "s3m-threat-detection",
+      "name": "vehicle-yolov8-model",
+      "version": "v5",
+      "local_path": "models/threat/yolov8_vehicle_v5.pt"
+    }
+  ]
+}

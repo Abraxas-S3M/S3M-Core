@@ -1,0 +1,64 @@
+{
+  "experiments": [
+    {
+      "id": "clr-001",
+      "project": "s3m-sar-detection",
+      "name": "sar_retrain_2026_03_20",
+      "status": "completed",
+      "updated_at": "2026-03-20T11:00:00Z",
+      "metrics": {"mAP": 0.84}
+    },
+    {
+      "id": "clr-002",
+      "project": "s3m-rul-prediction",
+      "name": "rul_lstm_v4",
+      "status": "running",
+      "updated_at": "2026-03-29T15:20:00Z",
+      "metrics": {"rmse": 0.18}
+    },
+    {
+      "id": "clr-003",
+      "project": "s3m-arabic-nlp",
+      "name": "arabic_finetune_mt5",
+      "status": "completed",
+      "updated_at": "2026-03-15T08:30:00Z",
+      "metrics": {"rougeL": 0.72}
+    },
+    {
+      "id": "clr-004",
+      "project": "s3m-threat-detection",
+      "name": "yolo_finetune_phase5",
+      "status": "completed",
+      "updated_at": "2026-03-22T09:00:00Z",
+      "metrics": {"mAP": 0.82}
+    },
+    {
+      "id": "clr-005",
+      "project": "s3m-rl-autonomy",
+      "name": "rl_autonomy_policy_v2",
+      "status": "queued",
+      "updated_at": "2026-03-31T12:05:00Z",
+      "metrics": {"reward": 151.0}
+    }
+  ],
+  "datasets": [
+    {
+      "id": "ds-sar-v1",
+      "project": "s3m-sar-detection",
+      "name": "sar_ship_labels_v1",
+      "version": "1.0.0"
+    },
+    {
+      "id": "ds-rul-v4",
+      "project": "s3m-rul-prediction",
+      "name": "telemetry_rul_windowed_v4",
+      "version": "4.0.0"
+    },
+    {
+      "id": "ds-ar-v2",
+      "project": "s3m-arabic-nlp",
+      "name": "arabic_military_ner_v2",
+      "version": "2.1.0"
+    }
+  ]
+}
