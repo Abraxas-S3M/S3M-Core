@@ -18,6 +18,7 @@ from types import SimpleNamespace
 from typing import Dict, List, Optional, Protocol
 
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
+from .model_registry import ModelRegistry
 from .model_optimizer import ModelOptimizer
 from .failover_system import FailoverSystem
 from .confidence_framework import ConfidenceFramework
@@ -280,11 +281,13 @@ class AdvancedOrchestrator:
     def __init__(
         self,
         registry: Optional[EngineRegistry] = None,
+        model_registry: Optional[ModelRegistry] = None,
         optimizer: Optional[ModelOptimizer] = None,
         history_limit: int = 250,
         failover: Optional[FailoverSystem] = None,
     ):
         self.registry = registry or EngineRegistry()
+        self.model_registry = model_registry or ModelRegistry(registry=self.registry)
         self.optimizer = optimizer or ModelOptimizer(self.registry)
         self.failover = failover or FailoverSystem()
         self.confidence = ConfidenceFramework()
@@ -348,6 +351,29 @@ class AdvancedOrchestrator:
             "engine_trace": selected_engines,
             "latency_ms": result.latency_ms,
             "failover_used": result.failover_used,
+        }
+
+    def check_model_integrity(self) -> Dict[str, object]:
+        """
+        Return integrity snapshot for all registered model artifacts.
+
+        Tactical context:
+            Gives mission controllers a lightweight pre-dispatch gate showing
+            whether model assets require human review before use.
+        """
+        status = self.model_registry.list_registry_status(recompute=False)
+        return {
+            "review_required": status.review_required,
+            "status": status.summary(),
+            "artifacts": {
+                engine_id: {
+                    "status": artifact.status,
+                    "reason": artifact.drift_reason,
+                    "version": artifact.version_tag,
+                    "last_verified": artifact.last_verified_at,
+                }
+                for engine_id, artifact in status.artifacts.items()
+            },
         }
 
     def execute_with_failover(
