@@ -1,0 +1,16 @@
+{
+  "total_calls": 12500,
+  "by_context": {
+    "comms_summarization": 8125,
+    "intel_briefing_ar": 2500,
+    "entity_extraction_ar": 1250,
+    "command_parsing_ar": 625,
+    "translation_ar_en": 0,
+    "threat_classification_ar": 0
+  },
+  "avg_tokens_per_call": 312.4,
+  "total_tokens": 3905000,
+  "period_days": 30,
+  "period": "30d",
+  "avg_latency_ms": 420.0
+}

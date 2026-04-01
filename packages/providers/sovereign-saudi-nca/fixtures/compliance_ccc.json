@@ -1,0 +1,81 @@
+{
+  "framework": "CCC",
+  "version": "2.0",
+  "controls": [
+    {
+      "control_id": "CCC-01",
+      "title_ar": "إدارة الهوية",
+      "title_en": "Identity Management",
+      "requirement": "Strong IAM",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-02",
+      "title_ar": "تجزئة الشبكة",
+      "title_en": "Network Segmentation",
+      "requirement": "Critical segmentation",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-03",
+      "title_ar": "التسجيل والمراقبة",
+      "title_en": "Logging and Monitoring",
+      "requirement": "Centralized logs",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-04",
+      "title_ar": "إدارة الثغرات",
+      "title_en": "Vulnerability Management",
+      "requirement": "Routine patching",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-05",
+      "title_ar": "إدارة الحوادث",
+      "title_en": "Incident Response",
+      "requirement": "IR procedures",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-06",
+      "title_ar": "حماية الطرفيات",
+      "title_en": "Endpoint Protection",
+      "requirement": "Endpoint hardening",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-07",
+      "title_ar": "حماية البيانات",
+      "title_en": "Data Protection",
+      "requirement": "Encryption at rest",
+      "s3m_implementation": "implemented"
+    },
+    {
+      "control_id": "CCC-08",
+      "title_ar": "اختبار الاختراق",
+      "title_en": "Penetration Testing",
+      "requirement": "Regular tests",
+      "s3m_implementation": "partial"
+    },
+    {
+      "control_id": "CCC-09",
+      "title_ar": "التعافي",
+      "title_en": "Disaster Recovery",
+      "requirement": "Tested DR plans",
+      "s3m_implementation": "partial"
+    },
+    {
+      "control_id": "CCC-10",
+      "title_ar": "تأمين OT",
+      "title_en": "OT Security",
+      "requirement": "OT segmentation",
+      "s3m_implementation": "partial"
+    }
+  ],
+  "s3m_compliance_mapping": {
+    "implemented": 7,
+    "partial": 3,
+    "missing": 0
+  }
+}

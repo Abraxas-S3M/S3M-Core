@@ -47,3 +47,19 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 3
+  sovereign-sdaia-allam:
+    enabled: true
+    mode: "airgapped"
+    rate_limit_rpm: 30
+  sovereign-saudi-ndmc:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  sovereign-saudi-nca:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  sovereign-elm:
+    enabled: false
+    mode: "online"
+    rate_limit_rpm: 10

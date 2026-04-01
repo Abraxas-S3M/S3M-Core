@@ -1,0 +1,135 @@
+{
+  "advisories": [
+    {
+      "advisory_id": "NCA-2026-CRIT-001",
+      "title_ar": "هجوم فدية يستهدف شبكات حكومية سعودية",
+      "title_en": "Ransomware campaign targeting Saudi government networks",
+      "severity": "critical",
+      "description_ar": "رصد نشاط فدية متقدم يستهدف بوابات البريد الحكومية.",
+      "description_en": "Advanced ransomware activity targeting government mail gateways.",
+      "affected_sectors": [
+        "government",
+        "defense",
+        "telecommunications"
+      ],
+      "recommended_actions_ar": "عزل الأنظمة المتأثرة فوراً وتفعيل خطة الاستجابة.",
+      "recommended_actions_en": "Immediately isolate affected systems and activate IR playbook.",
+      "published_date": "2026-03-28T08:00:00Z",
+      "cves": [
+        "CVE-2026-10001"
+      ],
+      "iocs": [
+        {
+          "type": "ip",
+          "value": "203.0.113.10",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-25T00:00:00Z",
+          "last_seen": "2026-03-28T00:00:00Z",
+          "related_advisory_id": "NCA-2026-CRIT-001"
+        },
+        {
+          "type": "ip",
+          "value": "203.0.113.11",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-25T00:00:00Z",
+          "last_seen": "2026-03-28T00:00:00Z",
+          "related_advisory_id": "NCA-2026-CRIT-001"
+        },
+        {
+          "type": "domain",
+          "value": "gov-secure-update.sa",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-25T00:00:00Z",
+          "last_seen": "2026-03-28T00:00:00Z",
+          "related_advisory_id": "NCA-2026-CRIT-001"
+        },
+        {
+          "type": "hash",
+          "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-25T00:00:00Z",
+          "last_seen": "2026-03-28T00:00:00Z",
+          "related_advisory_id": "NCA-2026-CRIT-001"
+        },
+        {
+          "type": "url",
+          "value": "https://evil.example.sa/dropper",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-25T00:00:00Z",
+          "last_seen": "2026-03-28T00:00:00Z",
+          "related_advisory_id": "NCA-2026-CRIT-001"
+        }
+      ]
+    },
+    {
+      "advisory_id": "NCA-2026-HIGH-002",
+      "title_ar": "حملة تصيد تستهدف قطاع الطاقة السعودي",
+      "title_en": "Phishing campaign targeting Saudi energy sector",
+      "severity": "high",
+      "description_ar": "رسائل تصيد تنتحل موردين صناعيين.",
+      "description_en": "Phishing emails impersonating industrial suppliers.",
+      "affected_sectors": [
+        "energy",
+        "finance"
+      ],
+      "recommended_actions_ar": "تفعيل فلاتر البريد وحظر النطاقات المرفقة.",
+      "recommended_actions_en": "Enable strict mail filtering and block listed domains.",
+      "published_date": "2026-03-24T09:00:00Z",
+      "cves": [],
+      "iocs": [
+        {
+          "type": "domain",
+          "value": "energy-billing-alert.sa",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-20T00:00:00Z",
+          "last_seen": "2026-03-24T00:00:00Z",
+          "related_advisory_id": "NCA-2026-HIGH-002"
+        },
+        {
+          "type": "url",
+          "value": "http://energy-billing-alert.sa/login",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-20T00:00:00Z",
+          "last_seen": "2026-03-24T00:00:00Z",
+          "related_advisory_id": "NCA-2026-HIGH-002"
+        },
+        {
+          "type": "ip",
+          "value": "198.51.100.80",
+          "confidence": "high",
+          "source": "NCA",
+          "first_seen": "2026-03-20T00:00:00Z",
+          "last_seen": "2026-03-24T00:00:00Z",
+          "related_advisory_id": "NCA-2026-HIGH-002"
+        }
+      ]
+    },
+    {
+      "advisory_id": "NCA-2026-MED-003",
+      "title_ar": "ثغرة في برنامج واسع الانتشار داخل السعودية",
+      "title_en": "Vulnerability in commonly deployed software in Saudi environments",
+      "severity": "medium",
+      "description_ar": "ثغرة تنفيذ أوامر عن بعد تحتاج تحديثاً فورياً.",
+      "description_en": "Remote code execution vulnerability requiring immediate patching.",
+      "affected_sectors": [
+        "government",
+        "healthcare"
+      ],
+      "recommended_actions_ar": "تطبيق التحديث الأمني خلال 72 ساعة.",
+      "recommended_actions_en": "Apply security patch within 72 hours.",
+      "published_date": "2026-03-22T12:00:00Z",
+      "cves": [
+        "CVE-2026-20001",
+        "CVE-2026-20002"
+      ],
+      "iocs": []
+    }
+  ]
+}

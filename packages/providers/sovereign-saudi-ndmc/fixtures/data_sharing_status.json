@@ -1,0 +1,25 @@
+{
+  "agreement": {
+    "authority": "Saudi National Center of Meteorology (NCM)",
+    "ministry": "Ministry of Environment, Water and Agriculture",
+    "data_types": [
+      "weather_observations",
+      "forecasts",
+      "severe_alerts",
+      "aviation_metar",
+      "dust_warnings"
+    ],
+    "classification": "Official Use",
+    "retention_days": 365,
+    "redistribution": "GCC partners only with approval"
+  },
+  "last_data_received": "2026-04-01T04:00:00Z",
+  "data_freshness_hours": 2.0,
+  "sla_status": "compliant",
+  "data_types_active": [
+    "weather_observations",
+    "forecasts",
+    "severe_alerts",
+    "aviation_metar"
+  ]
+}

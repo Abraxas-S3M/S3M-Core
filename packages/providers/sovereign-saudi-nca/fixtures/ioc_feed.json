@@ -1,0 +1,139 @@
+{
+  "iocs": [
+    {
+      "type": "ip",
+      "value": "203.0.113.10",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "ip",
+      "value": "203.0.113.11",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "ip",
+      "value": "198.51.100.80",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "ip",
+      "value": "198.51.100.81",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "ip",
+      "value": "198.51.100.82",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "domain",
+      "value": "gov-secure-update.sa",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "domain",
+      "value": "energy-billing-alert.sa",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "domain",
+      "value": "secure-ksa-login.sa",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "domain",
+      "value": "critical-patch-now.sa",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "hash",
+      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "hash",
+      "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "hash",
+      "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "url",
+      "value": "https://evil.example.sa/dropper",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    },
+    {
+      "type": "url",
+      "value": "http://energy-billing-alert.sa/login",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-21T00:00:00Z",
+      "last_seen": "2026-03-24T00:00:00Z",
+      "related_advisory_id": "NCA-2026-HIGH-002"
+    },
+    {
+      "type": "cve",
+      "value": "CVE-2026-10001",
+      "confidence": "high",
+      "source": "NCA",
+      "first_seen": "2026-03-20T00:00:00Z",
+      "last_seen": "2026-03-28T00:00:00Z",
+      "related_advisory_id": "NCA-2026-CRIT-001"
+    }
+  ]
+}

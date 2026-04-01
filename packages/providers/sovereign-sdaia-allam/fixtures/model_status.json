@@ -1,0 +1,22 @@
+{
+  "models": {
+    "allam-7b": {
+      "cached": true,
+      "path": "models/arabic/allam/allam-7b",
+      "size_gb": 7.0,
+      "quantization": "int8",
+      "vram_gb": 7.0,
+      "last_updated": "2024-06-01"
+    },
+    "allam-7b-chat": {
+      "cached": true,
+      "path": "models/arabic/allam/allam-7b-chat",
+      "size_gb": 7.1,
+      "quantization": "int8",
+      "vram_gb": 7.0,
+      "last_updated": "2024-06-01"
+    }
+  },
+  "total_cached": 2,
+  "recommended_for_jetson": "allam-7b@int8"
+}
