@@ -1,0 +1,19 @@
+{
+  "lat": 24.7142,
+  "lon": 46.6843,
+  "alt": 632.0,
+  "heading": 140.0,
+  "groundspeed": 7.4,
+  "airspeed": 7.1,
+  "roll": 0.03,
+  "pitch": 0.01,
+  "yaw": 2.0,
+  "battery_pct": 72.0,
+  "battery_voltage": 15.2,
+  "battery_current": 4.1,
+  "gps_fix": 3,
+  "satellites": 11,
+  "mode": "AUTO",
+  "armed": true,
+  "mission": {"current_waypoint": 3, "total_waypoints": 5}
+}

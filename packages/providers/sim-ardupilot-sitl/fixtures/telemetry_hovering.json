@@ -1,0 +1,18 @@
+{
+  "lat": 24.71,
+  "lon": 46.68,
+  "alt": 622.0,
+  "heading": 90.0,
+  "groundspeed": 0.2,
+  "airspeed": 0.1,
+  "roll": 0.01,
+  "pitch": -0.01,
+  "yaw": 1.57,
+  "battery_pct": 85.0,
+  "battery_voltage": 15.5,
+  "battery_current": 3.1,
+  "gps_fix": 3,
+  "satellites": 12,
+  "mode": "GUIDED",
+  "armed": true
+}

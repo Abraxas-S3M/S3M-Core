@@ -1,0 +1,10 @@
+{
+  "federation_name": "S3M_Federation",
+  "joined": true,
+  "mode": "stub",
+  "published_objects": 15,
+  "received_objects": 8,
+  "interactions_sent": 3,
+  "interactions_received": 3,
+  "time_step": 0.1
+}

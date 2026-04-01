@@ -1,0 +1,17 @@
+{
+  "object_id": "coa-f16-uae-01",
+  "entity_type": "Aircraft",
+  "name": "UAE_F16_01",
+  "world_location": {
+    "x": 3969235.188901,
+    "y": 4020366.117128,
+    "z": 2570725.917446
+  },
+  "velocity": {
+    "x": 122.4,
+    "y": -5.2,
+    "z": 1.1
+  },
+  "force_id": 1,
+  "damage_state": 0
+}

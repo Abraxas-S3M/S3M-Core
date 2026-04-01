@@ -1,0 +1,44 @@
+{
+  "value": [
+    {
+      "@iot.id": "thing-radar-1",
+      "name": "North Sector Ground Radar",
+      "sensor_type": "ground_radar",
+      "Locations": [{"location": {"coordinates": [46.6801, 24.7102, 620.0]}}],
+      "Datastreams": [
+        {"@iot.id": "ds-radar-range", "name": "target_range_km"},
+        {"@iot.id": "ds-radar-bearing", "name": "target_bearing_deg"},
+        {"@iot.id": "ds-radar-rcs", "name": "rcs_dbsm"},
+        {"@iot.id": "ds-radar-vel", "name": "target_velocity_mps"}
+      ]
+    },
+    {
+      "@iot.id": "thing-weather-1",
+      "name": "Forward Weather Station",
+      "sensor_type": "weather_station",
+      "Locations": [{"location": {"coordinates": [46.7000, 24.7500, 610.0]}}],
+      "Datastreams": [{"@iot.id": "ds-weather-temp", "name": "temperature_c"}]
+    },
+    {
+      "@iot.id": "thing-seismic-1",
+      "name": "Seismic Node East",
+      "sensor_type": "seismic_sensor",
+      "Locations": [{"location": {"coordinates": [46.7200, 24.7400, 612.0]}}],
+      "Datastreams": [{"@iot.id": "ds-seismic-mag", "name": "magnitude"}]
+    },
+    {
+      "@iot.id": "thing-chemical-1",
+      "name": "Chemical Detector Bravo",
+      "sensor_type": "chemical_detector",
+      "Locations": [{"location": {"coordinates": [46.7050, 24.7300, 615.0]}}],
+      "Datastreams": [{"@iot.id": "ds-chem-ppm", "name": "concentration_ppm"}]
+    },
+    {
+      "@iot.id": "thing-ais-1",
+      "name": "AIS Receiver Coastal",
+      "sensor_type": "ais_receiver",
+      "Locations": [{"location": {"coordinates": [49.9000, 26.1000, 5.0]}}],
+      "Datastreams": [{"@iot.id": "ds-ais-mmsi", "name": "mmsi"}]
+    }
+  ]
+}

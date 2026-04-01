@@ -1,0 +1,124 @@
+{
+  "value": [
+    {
+      "@iot.id": "obs-radar-001",
+      "phenomenonTime": "2026-04-01T18:00:00Z",
+      "result": 12.5,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-range",
+        "name": "target_range_km",
+        "unitOfMeasurement": {"symbol": "km"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-002",
+      "phenomenonTime": "2026-04-01T18:00:05Z",
+      "result": 34.2,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-bearing",
+        "name": "target_bearing_deg",
+        "unitOfMeasurement": {"symbol": "deg"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-003",
+      "phenomenonTime": "2026-04-01T18:00:10Z",
+      "result": 9.4,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-rcs",
+        "name": "rcs_dbsm",
+        "unitOfMeasurement": {"symbol": "dBsm"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-004",
+      "phenomenonTime": "2026-04-01T18:00:15Z",
+      "result": 71.0,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-vel",
+        "name": "target_velocity_mps",
+        "unitOfMeasurement": {"symbol": "m/s"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-005",
+      "phenomenonTime": "2026-04-01T18:00:20Z",
+      "result": 11.8,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-range",
+        "name": "target_range_km",
+        "unitOfMeasurement": {"symbol": "km"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-006",
+      "phenomenonTime": "2026-04-01T18:00:25Z",
+      "result": 40.0,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-bearing",
+        "name": "target_bearing_deg",
+        "unitOfMeasurement": {"symbol": "deg"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-007",
+      "phenomenonTime": "2026-04-01T18:00:30Z",
+      "result": 8.1,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-rcs",
+        "name": "rcs_dbsm",
+        "unitOfMeasurement": {"symbol": "dBsm"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-008",
+      "phenomenonTime": "2026-04-01T18:00:35Z",
+      "result": 64.3,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-vel",
+        "name": "target_velocity_mps",
+        "unitOfMeasurement": {"symbol": "m/s"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-009",
+      "phenomenonTime": "2026-04-01T18:00:40Z",
+      "result": 10.2,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-range",
+        "name": "target_range_km",
+        "unitOfMeasurement": {"symbol": "km"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    },
+    {
+      "@iot.id": "obs-radar-010",
+      "phenomenonTime": "2026-04-01T18:00:45Z",
+      "result": 52.0,
+      "resultQuality": "nominal",
+      "Datastream": {
+        "@iot.id": "radar-bearing",
+        "name": "target_bearing_deg",
+        "unitOfMeasurement": {"symbol": "deg"},
+        "Thing": {"@iot.id": "thing-radar-01", "sensor_type": "ground_radar", "Location": {"coordinates": [46.68, 24.71, 612.0]}}
+      }
+    }
+  ]
+}
