@@ -1,0 +1,25 @@
+{
+  "routes": [
+    {
+      "distance": 950200.0,
+      "duration": 32850.0,
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [46.6753, 24.7136],
+          [42.0, 23.0],
+          [40.0, 21.5],
+          [39.1925, 21.4858]
+        ]
+      },
+      "legs": [
+        {
+          "steps": [
+            {"maneuver": {"instruction": "Head west"}},
+            {"maneuver": {"instruction": "Continue to Jeddah"}}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "point_a": [24.60, 46.50],
+  "point_b": [24.62, 46.70],
+  "visible": false,
+  "max_obstruction_m": 55.0,
+  "obstructions": [
+    {
+      "lat": 24.61,
+      "lon": 46.60,
+      "terrain_elevation_m": 820.0,
+      "line_of_sight_elevation_m": 765.0,
+      "clearance_m": -55.0
+    }
+  ]
+}
