@@ -1,0 +1,7 @@
+{
+  "items": [
+    {"id": 1, "name": "Cesium World Terrain", "type": "TERRAIN", "bytes": 0, "status": "COMPLETE"},
+    {"id": 24, "name": "Custom Saudi Imagery", "type": "IMAGERY", "bytes": 2147483648, "status": "COMPLETE"},
+    {"id": 3, "name": "Cesium OSM Buildings", "type": "3DTILES", "bytes": 536870912, "status": "COMPLETE"}
+  ]
+}

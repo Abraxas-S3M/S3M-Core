@@ -63,6 +63,22 @@ providers:
     enabled: true
     mode: "online"
     rate_limit_rpm: 3
+  gis-mapbox:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 60
+  gis-osm:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 10
+  gis-srtm:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 5
+  gis-cesium:
+    enabled: true
+    mode: "online"
+    rate_limit_rpm: 30
   geoint-maxar:
     enabled: false  # requires defense contract
     mode: "online"
