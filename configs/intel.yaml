@@ -1,0 +1,74 @@
+# S3M Phase 19 — Intelligence & OSINT Briefings Configuration
+# UNCLASSIFIED - FOUO
+
+osint:
+  watch_dir: "data/intel/incoming/"
+  processed_dir: "data/intel/processed/"
+  max_items: 100000
+  relevance_threshold: 0.3
+  high_priority_threshold: 0.7
+  auto_collect_interval_minutes: 60
+
+sources:
+  config_path: "configs/intel/sources.yaml"
+  create_defaults_on_startup: true
+  reliability_weights:
+    A_RELIABLE: 1.0
+    B_USUALLY_RELIABLE: 0.8
+    C_FAIRLY_RELIABLE: 0.6
+    D_NOT_USUALLY_RELIABLE: 0.4
+    E_UNRELIABLE: 0.2
+    F_UNKNOWN: 0.3
+
+analysis:
+  entity_extraction: true
+  sentiment_analysis: true
+  cross_referencing: true
+  llm_relevance_scoring: true
+  nlp_engine: "auto"  # Uses Phase 14 Arabic NLP when available
+
+briefings:
+  daily_auto_generate: false
+  weekly_auto_generate: false
+  llm_report_domain: "planning"  # Mistral for structured reports
+  llm_analysis_domain: "reasoning"  # Grok for deep analysis
+  llm_arabic_domain: "arabic"  # ALLaM for Arabic content
+  classification_default: "FOUO"
+  originator: "S3M INTEL CENTER"
+
+monitoring:
+  crisis_auto_detect: true
+  crisis_cluster_threshold: 3  # min items to trigger crisis detection
+  crisis_cluster_window_hours: 24
+  warning_decay_per_day: 2.0
+  risk_escalation_per_alarming_item: 15
+  risk_escalation_per_negative_item: 8
+  risk_de_escalation_per_positive_item: 5
+
+regions:
+  monitored:
+    - "Arabian Peninsula"
+    - "Persian Gulf"
+    - "Red Sea"
+    - "Bab el-Mandeb"
+    - "Strait of Hormuz"
+    - "Gulf of Aden"
+    - "Yemen"
+    - "Horn of Africa"
+    - "Levant"
+    - "Iraq"
+    - "Iran"
+    - "North Africa"
+
+topics:
+  tracked:
+    - "maritime_security"
+    - "drone_threats"
+    - "cyber_operations"
+    - "terrorism"
+    - "diplomacy"
+    - "energy_security"
+    - "border_security"
+    - "proxy_warfare"
+    - "weapons_proliferation"
+    - "regional_stability"
