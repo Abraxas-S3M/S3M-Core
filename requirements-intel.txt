@@ -1,0 +1,9 @@
+# S3M Phase 19 — Intelligence & OSINT Dependencies
+# OSINT tools are NOT bundled — data ingested from files in air-gapped mode
+# Arabic NLP uses Phase 14 engine
+
+# Required (already in base requirements)
+numpy>=1.24.0
+pyyaml>=6.0
+pydantic>=2.5.0
+fastapi>=0.104.0
