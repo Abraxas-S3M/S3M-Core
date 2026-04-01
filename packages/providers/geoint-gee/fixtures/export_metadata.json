@@ -1,0 +1,64 @@
+{
+  "exports": [
+    {
+      "filename": "saudi_s2_median_2026q1.tif",
+      "collection": "COPERNICUS/S2_SR_HARMONIZED",
+      "aoi": "full_saudi",
+      "date_range": {
+        "from": "2026-01-01",
+        "to": "2026-03-31"
+      },
+      "file_size_mb": 142.7,
+      "format": "GeoTIFF",
+      "generated_at": "2026-03-30T12:00:00Z",
+      "center": {
+        "lat": 23.5,
+        "lon": 45.0
+      },
+      "bands": [
+        "B02",
+        "B03",
+        "B04",
+        "B08"
+      ]
+    },
+    {
+      "filename": "eastern_viirs_lights_202603.csv",
+      "collection": "NASA/VIIRS/002/VNP46A2",
+      "aoi": "eastern_province",
+      "date_range": {
+        "from": "2026-03-01",
+        "to": "2026-03-31"
+      },
+      "file_size_mb": 12.4,
+      "format": "CSV",
+      "generated_at": "2026-03-31T02:10:00Z",
+      "center": {
+        "lat": 26.0,
+        "lon": 49.8
+      },
+      "bands": [
+        "DNB_BRDF_Corrected_NTL"
+      ]
+    },
+    {
+      "filename": "srtm_terrain_profile_saudi.json",
+      "collection": "USGS/SRTMGL1_003",
+      "aoi": "riyadh_corridor",
+      "date_range": {
+        "from": "2024-01-01",
+        "to": "2024-12-31"
+      },
+      "file_size_mb": 3.8,
+      "format": "JSON",
+      "generated_at": "2026-03-20T09:30:00Z",
+      "center": {
+        "lat": 24.7,
+        "lon": 46.7
+      },
+      "bands": [
+        "elevation"
+      ]
+    }
+  ]
+}

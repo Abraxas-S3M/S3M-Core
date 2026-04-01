@@ -1,0 +1,143 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "S1A_DUPLICATE_PASS_001",
+      "collection": "sentinel-1-grd",
+      "bbox": [
+        48.95,
+        26.85,
+        49.25,
+        27.05
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              48.95,
+              26.85
+            ],
+            [
+              49.25,
+              26.85
+            ],
+            [
+              49.25,
+              27.05
+            ],
+            [
+              48.95,
+              27.05
+            ],
+            [
+              48.95,
+              26.85
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-03-25T09:20:00Z",
+        "platform": "Sentinel-1A",
+        "instruments": [
+          "sar"
+        ],
+        "eo:cloud_cover": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1A_PGULF_002",
+      "collection": "sentinel-1-grd",
+      "bbox": [
+        49.3,
+        26.9,
+        49.6,
+        27.2
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              49.3,
+              26.9
+            ],
+            [
+              49.6,
+              26.9
+            ],
+            [
+              49.6,
+              27.2
+            ],
+            [
+              49.3,
+              27.2
+            ],
+            [
+              49.3,
+              26.9
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-03-24T04:10:00Z",
+        "platform": "Sentinel-1B",
+        "instruments": [
+          "sar"
+        ],
+        "eo:cloud_cover": 0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "S1A_PGULF_003",
+      "collection": "sentinel-1-grd",
+      "bbox": [
+        49.65,
+        27.05,
+        49.95,
+        27.35
+      ],
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              49.65,
+              27.05
+            ],
+            [
+              49.95,
+              27.05
+            ],
+            [
+              49.95,
+              27.35
+            ],
+            [
+              49.65,
+              27.35
+            ],
+            [
+              49.65,
+              27.05
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "datetime": "2026-03-23T01:45:00Z",
+        "platform": "Sentinel-1A",
+        "instruments": [
+          "sar"
+        ],
+        "eo:cloud_cover": 0
+      }
+    }
+  ]
+}
