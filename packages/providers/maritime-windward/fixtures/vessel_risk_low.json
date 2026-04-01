@@ -1,0 +1,22 @@
+{
+  "mmsi": "311000987",
+  "vessel_name": "EASTERN BREEZE",
+  "risk_score": 12,
+  "risk_level": "low",
+  "risk_indicators": [],
+  "sanctions_screening": {
+    "listed": false,
+    "proximity_to_listed": false,
+    "details": ""
+  },
+  "behavioral_analytics": {
+    "ais_gap_count_90d": 0,
+    "zone_violations": 0,
+    "route_deviation_score": 2
+  },
+  "position": {
+    "lat": 26.1,
+    "lon": 49.9
+  },
+  "zone_id": "persian_gulf"
+}

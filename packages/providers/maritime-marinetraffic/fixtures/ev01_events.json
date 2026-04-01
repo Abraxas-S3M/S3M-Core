@@ -1,0 +1,92 @@
+[
+  {
+    "MMSI": "636092400",
+    "EVENT_TYPE": 1,
+    "TIMESTAMP": "2026-03-20T08:00:00Z",
+    "LAT": "27.02",
+    "LON": "49.61",
+    "PORT_NAME": "JUBAIL",
+    "DETAIL": "arrived"
+  },
+  {
+    "MMSI": "636092401",
+    "EVENT_TYPE": 1,
+    "TIMESTAMP": "2026-03-20T09:00:00Z",
+    "LAT": "21.50",
+    "LON": "39.10",
+    "PORT_NAME": "JEDDAH",
+    "DETAIL": "arrived"
+  },
+  {
+    "MMSI": "563001200",
+    "EVENT_TYPE": 1,
+    "TIMESTAMP": "2026-03-20T10:00:00Z",
+    "LAT": "26.43",
+    "LON": "50.11",
+    "PORT_NAME": "DAMMAM",
+    "DETAIL": "arrived"
+  },
+  {
+    "MMSI": "538008761",
+    "EVENT_TYPE": 2,
+    "TIMESTAMP": "2026-03-21T05:00:00Z",
+    "LAT": "27.02",
+    "LON": "49.61",
+    "PORT_NAME": "JUBAIL",
+    "DETAIL": "departed"
+  },
+  {
+    "MMSI": "477000100",
+    "EVENT_TYPE": 2,
+    "TIMESTAMP": "2026-03-21T06:00:00Z",
+    "LAT": "26.43",
+    "LON": "50.11",
+    "PORT_NAME": "DAMMAM",
+    "DETAIL": "departed"
+  },
+  {
+    "MMSI": "636092400",
+    "EVENT_TYPE": 19,
+    "TIMESTAMP": "2026-03-22T00:00:00Z",
+    "LAT": "25.90",
+    "LON": "49.67",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap start"
+  },
+  {
+    "MMSI": "636092400",
+    "EVENT_TYPE": 20,
+    "TIMESTAMP": "2026-03-22T03:00:00Z",
+    "LAT": "25.92",
+    "LON": "49.70",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap end"
+  },
+  {
+    "MMSI": "563001201",
+    "EVENT_TYPE": 19,
+    "TIMESTAMP": "2026-03-23T00:00:00Z",
+    "LAT": "12.80",
+    "LON": "43.20",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap start"
+  },
+  {
+    "MMSI": "563001201",
+    "EVENT_TYPE": 20,
+    "TIMESTAMP": "2026-03-23T18:00:00Z",
+    "LAT": "13.10",
+    "LON": "43.50",
+    "PORT_NAME": null,
+    "DETAIL": "ais gap end"
+  },
+  {
+    "MMSI": "311000987",
+    "EVENT_TYPE": 11,
+    "TIMESTAMP": "2026-03-24T07:30:00Z",
+    "LAT": "26.00",
+    "LON": "56.40",
+    "PORT_NAME": null,
+    "DETAIL": "entered strait"
+  }
+]

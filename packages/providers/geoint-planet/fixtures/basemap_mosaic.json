@@ -1,0 +1,14 @@
+{
+  "id": "planet-global-monthly-2024-06",
+  "name": "global_monthly_2024_06",
+  "format": "tms",
+  "resolution_m": 3.0,
+  "bounds": {
+    "west": -180,
+    "south": -85,
+    "east": 180,
+    "north": 85
+  },
+  "tile_url_template": "https://tiles.planet.com/basemaps/v1/planet-tiles/global_monthly/{z}/{x}/{y}.png",
+  "offline_path": "data/integrations/geoint-planet/global_monthly_2024_06.mbtiles"
+}

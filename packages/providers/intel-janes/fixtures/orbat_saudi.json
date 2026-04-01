@@ -1,0 +1,12 @@
+{
+  "id": "JANES-ORBAT-SA-202406",
+  "country_code": "SA",
+  "branches": [
+    {"name": "Royal Saudi Land Forces", "headquarters": "Riyadh"},
+    {"name": "Royal Saudi Air Force", "headquarters": "Riyadh"}
+  ],
+  "units": [
+    {"unit_id": "RSAF-1", "name": "11th Fighter Squadron", "branch": "Royal Saudi Air Force", "equipment": ["F-15SA", "Typhoon"]},
+    {"unit_id": "RSLF-2", "name": "4th Armored Brigade", "branch": "Royal Saudi Land Forces", "equipment": ["M1A2", "M2 Bradley"]}
+  ]
+}

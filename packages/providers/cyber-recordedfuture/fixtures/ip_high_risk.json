@@ -1,0 +1,14 @@
+{
+  "id": "RF-IP-001",
+  "entity_type": "ip",
+  "value": "185.220.101.14",
+  "risk_score": 87,
+  "sightings": 19,
+  "risk_rules": [
+    "Linked to malware C2 infrastructure",
+    "Reported on dark web forum",
+    "Associated with APT infrastructure"
+  ],
+  "threat_lists": ["C2-Hosts", "APT-Infra"],
+  "mitre_techniques": ["T1071", "T1105"]
+}

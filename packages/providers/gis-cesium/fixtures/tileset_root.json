@@ -1,0 +1,12 @@
+{
+  "asset": {"id": 3, "version": "1.0"},
+  "geometricError": 240,
+  "root": {
+    "boundingVolume": {
+      "box": [4400000, 4400000, 2500000, 1000, 0, 0, 0, 1000, 0, 0, 0, 300]
+    },
+    "geometricError": 70,
+    "refine": "ADD",
+    "content": {"uri": "osm_buildings.b3dm"}
+  }
+}
