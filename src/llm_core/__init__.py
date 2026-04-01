@@ -19,6 +19,13 @@ from .advanced_orchestrator import (
     OrchestratorMetrics,
     UrgencyLevel,
 )
+from .confidence_framework import (
+    ConfidenceFramework,
+    ConfidenceScore,
+    ConfidenceFactors,
+    ConfidenceInput,
+    ReviewStatus,
+)
 from .model_registry import ModelRegistry, ModelArtifact, RegistryStatus
 from .model_optimizer import (
     AllocationPlan,
@@ -80,6 +87,8 @@ __all__ = [
     "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
     "get_system_prompt", "DOMAIN_PROMPTS",
     "S3MSession",
+    "ConfidenceFramework", "ConfidenceScore", "ConfidenceFactors", "ConfidenceInput",
+    "ReviewStatus",
     "ConsensusEngine",
     "ConsensusMode",
     "ConsensusEngineResult",
