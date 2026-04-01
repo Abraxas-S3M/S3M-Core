@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "contour.1",
+      "type": "Feature",
+      "properties": {"class": "contour", "elevation_m": 1120},
+      "geometry": {"type": "LineString", "coordinates": [[36.5, 28.3], [36.6, 28.35]]}
+    },
+    {
+      "id": "landcover.1",
+      "type": "Feature",
+      "properties": {"class": "scrub", "hillshade": "moderate"},
+      "geometry": {"type": "Point", "coordinates": [36.55, 28.32]}
+    }
+  ]
+}

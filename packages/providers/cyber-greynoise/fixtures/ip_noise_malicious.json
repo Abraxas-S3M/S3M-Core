@@ -1,0 +1,10 @@
+{
+  "ip": "198.51.100.1",
+  "noise": true,
+  "riot": false,
+  "classification": "malicious",
+  "name": "Mirai botnet scanner",
+  "link": "https://viz.greynoise.io/ip/198.51.100.1",
+  "last_seen": "2026-03-30",
+  "message": "Observed scanning"
+}

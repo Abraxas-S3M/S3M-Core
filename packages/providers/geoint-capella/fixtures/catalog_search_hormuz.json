@@ -1,0 +1,10 @@
+{
+  "scenes": [
+    {"id": "CAPELLA-GEO-20240611-001", "product_type": "GEO", "collection_type": "spotlight", "satellite": "Capella-10", "polarization": ["VV", "VH"], "acquisition_time": "2024-06-11T02:15:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.10, 26.18], [56.24, 26.18], [56.24, 26.30], [56.10, 26.30], [56.10, 26.18]]] }},
+    {"id": "CAPELLA-GEO-20240611-002", "product_type": "GEO", "collection_type": "sliding_spotlight", "satellite": "Capella-11", "polarization": ["HH"], "acquisition_time": "2024-06-11T05:44:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.16, 26.12], [56.32, 26.12], [56.32, 26.24], [56.16, 26.24], [56.16, 26.12]]] }},
+    {"id": "CAPELLA-GEO-20240612-003", "product_type": "GEO", "collection_type": "spotlight", "satellite": "Capella-13", "polarization": ["VV"], "acquisition_time": "2024-06-12T01:22:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.20, 26.19], [56.36, 26.19], [56.36, 26.33], [56.20, 26.33], [56.20, 26.19]]] }},
+    {"id": "CAPELLA-GEO-20240612-004", "product_type": "GEO", "collection_type": "stripmap", "satellite": "Capella-9", "polarization": ["VH"], "acquisition_time": "2024-06-12T09:35:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.02, 26.05], [56.30, 26.05], [56.30, 26.22], [56.02, 26.22], [56.02, 26.05]]] }},
+    {"id": "CAPELLA-GEO-20240613-005", "product_type": "GEO", "collection_type": "spotlight", "satellite": "Capella-8", "polarization": ["VV", "HH"], "acquisition_time": "2024-06-13T03:11:00Z", "geometry": {"type": "Polygon", "coordinates": [[[56.24, 26.09], [56.41, 26.09], [56.41, 26.26], [56.24, 26.26], [56.24, 26.09]]] }}
+  ],
+  "count": 5
+}

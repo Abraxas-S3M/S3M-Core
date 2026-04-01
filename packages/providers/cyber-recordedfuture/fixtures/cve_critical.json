@@ -1,0 +1,13 @@
+{
+  "id": "RF-CVE-001",
+  "entity_type": "vulnerability",
+  "value": "CVE-2024-3400",
+  "risk_score": 92,
+  "sightings": 47,
+  "risk_rules": [
+    "Active exploitation observed",
+    "Exploit kit references on criminal forum"
+  ],
+  "threat_lists": ["Actively Exploited CVEs"],
+  "mitre_techniques": ["T1190"]
+}

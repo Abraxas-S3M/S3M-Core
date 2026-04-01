@@ -1,0 +1,8 @@
+{
+  "id": "RF-ACTOR-001",
+  "name": "APT-Example",
+  "aliases": ["Example Panda", "Silent Typhoon"],
+  "targets": ["Government", "Energy", "Telecom"],
+  "ttps": ["T1566", "T1071", "T1195"],
+  "risk_score": 84
+}

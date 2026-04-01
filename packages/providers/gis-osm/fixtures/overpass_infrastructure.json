@@ -1,0 +1,22 @@
+{
+  "elements": [
+    {"type": "way", "id": 4001, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.71, "lon": 46.62}, {"lat": 24.72, "lon": 46.63}]},
+    {"type": "way", "id": 4002, "tags": {"bridge": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.75, "lon": 46.66}, {"lat": 24.76, "lon": 46.67}]},
+    {"type": "way", "id": 4003, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.78, "lon": 46.70}, {"lat": 24.79, "lon": 46.71}]},
+    {"type": "way", "id": 4004, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.69, "lon": 46.75}, {"lat": 24.70, "lon": 46.76}]},
+    {"type": "way", "id": 4005, "tags": {"bridge": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.66, "lon": 46.73}, {"lat": 24.67, "lon": 46.74}]},
+    {"type": "way", "id": 4006, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.63, "lon": 46.68}, {"lat": 24.64, "lon": 46.69}]},
+    {"type": "way", "id": 4007, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.82, "lon": 46.68}, {"lat": 24.83, "lon": 46.69}]},
+    {"type": "way", "id": 4008, "tags": {"bridge": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.84, "lon": 46.70}, {"lat": 24.85, "lon": 46.71}]},
+    {"type": "way", "id": 4009, "tags": {"bridge": "yes", "highway": "primary"}, "geometry": [{"lat": 24.86, "lon": 46.72}, {"lat": 24.87, "lon": 46.73}]},
+    {"type": "way", "id": 4010, "tags": {"bridge": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.88, "lon": 46.74}, {"lat": 24.89, "lon": 46.75}]},
+    {"type": "way", "id": 4101, "tags": {"tunnel": "yes", "highway": "primary"}, "geometry": [{"lat": 24.70, "lon": 46.70}, {"lat": 24.71, "lon": 46.71}]},
+    {"type": "way", "id": 4102, "tags": {"tunnel": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.73, "lon": 46.69}, {"lat": 24.74, "lon": 46.70}]},
+    {"type": "way", "id": 4103, "tags": {"tunnel": "yes", "highway": "secondary"}, "geometry": [{"lat": 24.76, "lon": 46.68}, {"lat": 24.77, "lon": 46.69}]},
+    {"type": "node", "id": 4201, "tags": {"amenity": "fuel", "name": "Fuel 1"}, "geometry": [{"lat": 24.72, "lon": 46.67}]},
+    {"type": "node", "id": 4202, "tags": {"amenity": "fuel", "name": "Fuel 2"}, "geometry": [{"lat": 24.74, "lon": 46.68}]},
+    {"type": "node", "id": 4203, "tags": {"amenity": "fuel", "name": "Fuel 3"}, "geometry": [{"lat": 24.76, "lon": 46.69}]},
+    {"type": "node", "id": 4204, "tags": {"amenity": "fuel", "name": "Fuel 4"}, "geometry": [{"lat": 24.78, "lon": 46.70}]},
+    {"type": "node", "id": 4205, "tags": {"amenity": "fuel", "name": "Fuel 5"}, "geometry": [{"lat": 24.80, "lon": 46.71}]}
+  ]
+}

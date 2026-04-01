@@ -1,0 +1,24 @@
+{
+  "elements": [
+    {"type": "way", "id": 101, "tags": {"highway": "motorway", "name": "King Fahd Road", "name:ar": "طريق الملك فهد", "lanes": "4"}, "geometry": [{"lat": 24.70, "lon": 46.66}, {"lat": 24.75, "lon": 46.67}]},
+    {"type": "way", "id": 102, "tags": {"highway": "primary", "name": "Makkah Road", "name:ar": "طريق مكة", "lanes": "3"}, "geometry": [{"lat": 24.68, "lon": 46.72}, {"lat": 24.73, "lon": 46.75}]},
+    {"type": "way", "id": 103, "tags": {"highway": "secondary", "name": "Airport Road", "name:ar": "طريق المطار"}, "geometry": [{"lat": 24.80, "lon": 46.68}, {"lat": 24.84, "lon": 46.72}]},
+    {"type": "way", "id": 104, "tags": {"highway": "primary", "name": "Ring Road"}, "geometry": [{"lat": 24.63, "lon": 46.62}, {"lat": 24.67, "lon": 46.69}]},
+    {"type": "way", "id": 105, "tags": {"highway": "secondary", "name": "Prince Turki"}, "geometry": [{"lat": 24.72, "lon": 46.60}, {"lat": 24.76, "lon": 46.63}]},
+    {"type": "way", "id": 106, "tags": {"highway": "motorway", "name": "Dammam Expressway"}, "geometry": [{"lat": 24.62, "lon": 46.84}, {"lat": 24.58, "lon": 46.92}]},
+    {"type": "way", "id": 107, "tags": {"highway": "primary", "name": "Northern Ring"}, "geometry": [{"lat": 24.80, "lon": 46.63}, {"lat": 24.83, "lon": 46.75}]},
+    {"type": "way", "id": 108, "tags": {"highway": "primary", "name": "Eastern Ring"}, "geometry": [{"lat": 24.72, "lon": 46.77}, {"lat": 24.66, "lon": 46.80}]},
+    {"type": "way", "id": 109, "tags": {"highway": "secondary", "name": "Olaya Street", "name:ar": "شارع العليا"}, "geometry": [{"lat": 24.70, "lon": 46.67}, {"lat": 24.72, "lon": 46.68}]},
+    {"type": "way", "id": 110, "tags": {"highway": "secondary", "name": "Takhassusi"}, "geometry": [{"lat": 24.69, "lon": 46.64}, {"lat": 24.73, "lon": 46.65}]},
+    {"type": "way", "id": 111, "tags": {"highway": "primary", "name": "Imam Saud"}, "geometry": [{"lat": 24.77, "lon": 46.65}, {"lat": 24.78, "lon": 46.76}]},
+    {"type": "way", "id": 112, "tags": {"highway": "secondary", "name": "Khurais Road"}, "geometry": [{"lat": 24.72, "lon": 46.76}, {"lat": 24.71, "lon": 46.84}]},
+    {"type": "way", "id": 113, "tags": {"highway": "secondary", "name": "Abi Bakr"}, "geometry": [{"lat": 24.77, "lon": 46.70}, {"lat": 24.83, "lon": 46.70}]},
+    {"type": "way", "id": 114, "tags": {"highway": "primary", "name": "King Salman"}, "geometry": [{"lat": 24.80, "lon": 46.73}, {"lat": 24.85, "lon": 46.73}]},
+    {"type": "way", "id": 115, "tags": {"highway": "secondary", "name": "Othman Bin Affan"}, "geometry": [{"lat": 24.78, "lon": 46.72}, {"lat": 24.83, "lon": 46.72}]},
+    {"type": "way", "id": 116, "tags": {"highway": "primary", "name": "Madinah Road"}, "geometry": [{"lat": 24.69, "lon": 46.61}, {"lat": 24.75, "lon": 46.61}]},
+    {"type": "way", "id": 117, "tags": {"highway": "secondary", "name": "Al Urubah"}, "geometry": [{"lat": 24.72, "lon": 46.66}, {"lat": 24.72, "lon": 46.73}]},
+    {"type": "way", "id": 118, "tags": {"highway": "primary", "name": "King Abdullah Road"}, "geometry": [{"lat": 24.73, "lon": 46.62}, {"lat": 24.73, "lon": 46.79}]},
+    {"type": "way", "id": 119, "tags": {"highway": "secondary", "name": "Thumamah Road"}, "geometry": [{"lat": 24.83, "lon": 46.64}, {"lat": 24.83, "lon": 46.80}]},
+    {"type": "way", "id": 120, "tags": {"highway": "motorway", "name": "Exit 8 Spine"}, "geometry": [{"lat": 24.71, "lon": 46.78}, {"lat": 24.74, "lon": 46.83}]}
+  ]
+}
