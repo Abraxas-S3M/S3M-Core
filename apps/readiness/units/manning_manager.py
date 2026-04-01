@@ -121,6 +121,10 @@ class UnitManningManager:
         if self.personnel_registry is None:
             return {"filled": 0, "still_vacant": unit.vacant_count(), "no_match": []}
         pool = list(self.personnel_registry.get_members(unit_id=unit_id))
+        if not pool:
+            # Tactical fallback: pull from broader personnel pool when unit IDs differ
+            # between command roster data and newly created manning tables.
+            pool = list(self.personnel_registry.get_members())
         assigned = {slot.filled_by for slot in unit.slots if slot.filled_by}
         available = [m for m in pool if m.member_id not in assigned]
         vacancies = [slot for slot in unit.slots if slot.is_vacant()]

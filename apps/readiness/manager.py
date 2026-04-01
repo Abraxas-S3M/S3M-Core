@@ -162,8 +162,8 @@ class ReadinessManager:
     def calculate_readiness(self, unit_id: str) -> ReadinessScore:
         return self.readiness_calculator.calculate_unit_readiness(unit_id)
 
-    def calculate_force_readiness(self) -> dict:
-        return self.readiness_calculator.calculate_force_readiness()
+    def calculate_force_readiness(self, unit_ids: Optional[List[str]] = None) -> dict:
+        return self.readiness_calculator.calculate_force_readiness(unit_ids=unit_ids)
 
     def get_readiness_overview(self) -> dict:
         return self.dashboard_provider.get_readiness_overview()

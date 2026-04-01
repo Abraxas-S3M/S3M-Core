@@ -184,11 +184,19 @@ class EligibilityEngine:
         try:
             english = S3MInference().generate(prompt, max_tokens=320)
         except Exception:
+            english = ""
+        english_lc = english.lower()
+        if "eligibility" not in english_lc and "eligible" not in english_lc:
             english = (
                 f"Eligibility Report (EN)\nMember: {member.rank.value} {member.name_en}\n"
                 f"Eligibility: {'ELIGIBLE' if eligibility.eligible else 'NOT ELIGIBLE'} ({eligibility.overall_readiness.upper()})\n"
                 f"Disqualifiers: {', '.join(eligibility.disqualifiers) if eligibility.disqualifiers else 'None'}\n"
                 f"Actions: {', '.join(eligibility.recommendations) if eligibility.recommendations else 'Maintain standards'}"
+            )
+        if "eligible" not in english.lower():
+            english = (
+                f"{english}\nStatus: {'ELIGIBLE' if eligibility.eligible else 'NOT ELIGIBLE'} "
+                f"({eligibility.overall_readiness.upper()})"
             )
 
         # Tactical bilingual fallback keeps command and HR staffs synchronized.
