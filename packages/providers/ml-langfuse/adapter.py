@@ -56,7 +56,7 @@ class LangfuseAdapter(ProviderAdapter):
 
     def get_daily_metrics(self, days: int = 7) -> dict[str, Any]:
         fixture = self._load_fixture_json("daily_metrics.json")
-        metrics = list(fixture.get("days", []))
+        metrics = list(fixture.get("days", fixture.get("daily", [])))
         return {"days": metrics[:days], "count": min(len(metrics), days)}
 
     def get_model_performance(self) -> dict[str, Any]:
