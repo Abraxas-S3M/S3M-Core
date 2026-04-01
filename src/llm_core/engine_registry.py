@@ -3,8 +3,8 @@ S3M Quad-Engine Registry
 Four sovereign LLM engines running as one unified system.
 """
 
-from dataclasses import dataclass
-from typing import Optional, Dict, List
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 from enum import Enum
 
 
@@ -39,6 +39,29 @@ class EngineConfig:
     context_window: int
     primary_domain: TaskDomain
     loaded: bool = False
+    latency_tier: str = "medium"
+    inference_latency_ms: float = 0.0
+    throughput_tok_s: float = 0.0
+    memory_footprint_gb: float = 0.0
+    warm_state: bool = False
+    confidence_prior: float = 0.75
+    capabilities: Optional[Dict[TaskDomain, float]] = field(default=None)
+
+    def __post_init__(self):
+        """Initialize mission-routing capability priors for tactical orchestration."""
+        if self.capabilities is None:
+            self.capabilities = self._default_capabilities()
+
+    def _default_capabilities(self) -> Dict[TaskDomain, float]:
+        """Provide baseline confidence by domain for field routing decisions."""
+        base = {
+            TaskDomain.TACTICAL: 0.5,
+            TaskDomain.REASONING: 0.5,
+            TaskDomain.PLANNING: 0.5,
+            TaskDomain.ARABIC_NLP: 0.5,
+        }
+        base[self.primary_domain] = 0.9
+        return base
 
 
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
@@ -56,6 +79,18 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         max_tokens=512,
         context_window=4096,
         primary_domain=TaskDomain.TACTICAL,
+        latency_tier="fast",
+        inference_latency_ms=28.0,
+        throughput_tok_s=36.0,
+        memory_footprint_gb=2.5,
+        warm_state=False,
+        confidence_prior=0.85,
+        capabilities={
+            TaskDomain.TACTICAL: 0.95,
+            TaskDomain.REASONING: 0.60,
+            TaskDomain.PLANNING: 0.65,
+            TaskDomain.ARABIC_NLP: 0.40,
+        },
     ),
     EngineID.GROK: EngineConfig(
         engine_id=EngineID.GROK,
@@ -71,6 +106,18 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         max_tokens=1024,
         context_window=8192,
         primary_domain=TaskDomain.REASONING,
+        latency_tier="medium",
+        inference_latency_ms=40.0,
+        throughput_tok_s=25.0,
+        memory_footprint_gb=5.5,
+        warm_state=False,
+        confidence_prior=0.82,
+        capabilities={
+            TaskDomain.TACTICAL: 0.60,
+            TaskDomain.REASONING: 0.95,
+            TaskDomain.PLANNING: 0.70,
+            TaskDomain.ARABIC_NLP: 0.45,
+        },
     ),
     EngineID.MISTRAL: EngineConfig(
         engine_id=EngineID.MISTRAL,
@@ -86,6 +133,18 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         max_tokens=1024,
         context_window=32768,
         primary_domain=TaskDomain.PLANNING,
+        latency_tier="medium",
+        inference_latency_ms=35.0,
+        throughput_tok_s=29.0,
+        memory_footprint_gb=5.2,
+        warm_state=False,
+        confidence_prior=0.84,
+        capabilities={
+            TaskDomain.TACTICAL: 0.72,
+            TaskDomain.REASONING: 0.78,
+            TaskDomain.PLANNING: 0.95,
+            TaskDomain.ARABIC_NLP: 0.48,
+        },
     ),
     EngineID.ALLAM: EngineConfig(
         engine_id=EngineID.ALLAM,
@@ -101,6 +160,18 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         max_tokens=1024,
         context_window=4096,
         primary_domain=TaskDomain.ARABIC_NLP,
+        latency_tier="medium",
+        inference_latency_ms=38.0,
+        throughput_tok_s=28.0,
+        memory_footprint_gb=5.0,
+        warm_state=False,
+        confidence_prior=0.83,
+        capabilities={
+            TaskDomain.TACTICAL: 0.58,
+            TaskDomain.REASONING: 0.62,
+            TaskDomain.PLANNING: 0.60,
+            TaskDomain.ARABIC_NLP: 0.95,
+        },
     ),
 }
 
@@ -133,3 +204,16 @@ class EngineRegistry:
 
     def get_status(self) -> Dict[str, bool]:
         return {e.value: self.active_engines[e] for e in EngineID}
+
+    def get_engines_by_tier(self, tier: str) -> List[EngineConfig]:
+        """Return engines matching a latency tier for mission-time constraints."""
+        return [cfg for cfg in self.configs.values() if cfg.latency_tier == tier]
+
+    def get_capability_score(self, engine_id: EngineID, domain: TaskDomain) -> float:
+        """Return domain confidence to support tactical engine arbitration."""
+        config = self.get_config(engine_id)
+        return config.capabilities.get(domain, 0.5)
+
+    def get_total_memory_required(self, engine_ids: List[EngineID]) -> float:
+        """Sum VRAM needed to co-load selected engines on edge hardware."""
+        return sum(self.get_config(engine_id).memory_footprint_gb for engine_id in engine_ids)
