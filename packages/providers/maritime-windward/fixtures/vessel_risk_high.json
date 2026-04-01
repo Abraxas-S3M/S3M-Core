@@ -1,0 +1,38 @@
+{
+  "mmsi": "636092400",
+  "vessel_name": "PACIFIC GLORY",
+  "risk_score": 72,
+  "risk_level": "high",
+  "risk_indicators": [
+    {
+      "type": "sanctions_proximity",
+      "score": 20,
+      "detail": "Visited sanctioned-adjacent port"
+    },
+    {
+      "type": "dark_activity",
+      "score": 65,
+      "detail": "AIS disabled for 18 hours in high-risk lane"
+    },
+    {
+      "type": "sts_transfer",
+      "score": 60,
+      "detail": "Suspected ship-to-ship transfer pattern"
+    }
+  ],
+  "sanctions_screening": {
+    "listed": false,
+    "proximity_to_listed": true,
+    "details": "proximate to listed vessel"
+  },
+  "behavioral_analytics": {
+    "ais_gap_count_90d": 3,
+    "zone_violations": 1,
+    "route_deviation_score": 15
+  },
+  "position": {
+    "lat": 12.8,
+    "lon": 43.2
+  },
+  "zone_id": "bab_el_mandeb"
+}
