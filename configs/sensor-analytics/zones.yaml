@@ -1,0 +1,69 @@
+# S3M Border Surveillance Zones — Saudi Arabia Maritime Focus
+# UNCLASSIFIED - FOUO
+
+zones:
+  - id: "ZONE-RS-NORTH"
+    name: "Red Sea Northern Sector"
+    zone_type: "maritime_eez"
+    threat_level: "medium"
+    polygon:
+      - [28.0, 34.5]
+      - [28.0, 36.5]
+      - [25.0, 36.5]
+      - [25.0, 34.5]
+    active_sensors: ["sentinel-1", "ais"]
+
+  - id: "ZONE-RS-SOUTH"
+    name: "Red Sea Southern Sector (Bab el-Mandeb)"
+    zone_type: "maritime_eez"
+    threat_level: "high"
+    polygon:
+      - [15.0, 42.0]
+      - [15.0, 44.0]
+      - [12.5, 44.0]
+      - [12.5, 42.0]
+    active_sensors: ["sentinel-1", "ais", "coastal_radar"]
+
+  - id: "ZONE-PG-EAST"
+    name: "Persian Gulf Eastern Sector"
+    zone_type: "maritime_eez"
+    threat_level: "high"
+    polygon:
+      - [27.5, 49.0]
+      - [27.5, 51.0]
+      - [25.5, 51.0]
+      - [25.5, 49.0]
+    active_sensors: ["sentinel-1", "ais"]
+
+  - id: "ZONE-PG-HORMUZ"
+    name: "Strait of Hormuz Approach"
+    zone_type: "port_approach"
+    threat_level: "critical"
+    polygon:
+      - [26.5, 56.0]
+      - [26.5, 57.0]
+      - [25.5, 57.0]
+      - [25.5, 56.0]
+    active_sensors: ["sentinel-1", "ais", "coastal_radar"]
+
+  - id: "ZONE-COAST-JUBAIL"
+    name: "Jubail Industrial Coast"
+    zone_type: "coastal"
+    threat_level: "medium"
+    polygon:
+      - [27.2, 49.5]
+      - [27.2, 49.8]
+      - [26.8, 49.8]
+      - [26.8, 49.5]
+    active_sensors: ["ais", "coastal_camera"]
+
+  - id: "ZONE-ADEN"
+    name: "Gulf of Aden Approach"
+    zone_type: "maritime_eez"
+    threat_level: "high"
+    polygon:
+      - [14.0, 44.0]
+      - [14.0, 48.0]
+      - [11.5, 48.0]
+      - [11.5, 44.0]
+    active_sensors: ["sentinel-1", "ais"]
