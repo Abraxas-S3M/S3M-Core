@@ -116,8 +116,8 @@ class Orchestrator:
     # ========== Backward-compatible v1 methods ==========
     def classify_domain(self, prompt: str) -> TaskDomain:
         prompt_lower = (prompt or "").lower()
-        arabic_keywords = ["ما", "كيف", "أين", "متى", "لماذا", "عربي", "arabic"]
-        tactical_keywords = [
+        arabic_keywords = {"ما", "كيف", "أين", "متى", "لماذا", "عربي", "arabic"}
+        tactical_keywords = {
             "position",
             "grid",
             "threat",
@@ -126,18 +126,27 @@ class Orchestrator:
             "sector",
             "contact",
             "movement",
-        ]
-        planning_keywords = ["plan", "schedule", "route", "logistics", "code", "generate", "build", "create"]
-        reasoning_keywords = ["analyze", "compare", "evaluate", "assess", "why", "explain", "implications"]
+        }
+        planning_keywords = {"plan", "schedule", "route", "logistics", "code", "generate", "build", "create"}
+        reasoning_keywords = {"analyze", "compare", "evaluate", "assess", "why", "explain", "implications"}
         if any(keyword in prompt_lower for keyword in arabic_keywords):
             return TaskDomain.ARABIC_NLP
-        if any(keyword in prompt_lower for keyword in tactical_keywords):
+
+        # Tactical context: mixed prompts should prefer the strongest semantic
+        # signal rather than first-match ordering to avoid misrouting analysis tasks.
+        scores = {
+            TaskDomain.TACTICAL: sum(1 for keyword in tactical_keywords if keyword in prompt_lower),
+            TaskDomain.REASONING: sum(1 for keyword in reasoning_keywords if keyword in prompt_lower),
+            TaskDomain.PLANNING: sum(1 for keyword in planning_keywords if keyword in prompt_lower),
+        }
+        if max(scores.values()) <= 0:
             return TaskDomain.TACTICAL
-        if any(keyword in prompt_lower for keyword in planning_keywords):
-            return TaskDomain.PLANNING
-        if any(keyword in prompt_lower for keyword in reasoning_keywords):
-            return TaskDomain.REASONING
-        return TaskDomain.TACTICAL
+        priority = {
+            TaskDomain.REASONING: 3,
+            TaskDomain.PLANNING: 2,
+            TaskDomain.TACTICAL: 1,
+        }
+        return max(scores, key=lambda domain: (scores[domain], priority[domain]))
 
     def route_query(self, request: QueryRequest) -> EngineConfig:
         domain = request.domain or self.classify_domain(request.prompt)
