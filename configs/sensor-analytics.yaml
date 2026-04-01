@@ -1,0 +1,54 @@
+# S3M Phase 15 — Sensor & Remote Sensing Analytics Configuration
+# UNCLASSIFIED - FOUO
+
+sar:
+  model_backend: "auto"
+  model_paths:
+    yolov8: "models/sar/yolov8_sar_ship.pt"
+    onnx: "models/sar/sar_ship.onnx"
+  confidence_threshold: 0.3
+  tile_size: 640
+  tile_overlap: 64
+  despeckle_method: "lee"
+  nms_iou_threshold: 0.5
+
+ais:
+  max_vessels: 10000
+  track_history_length: 100
+  dark_vessel_timeout_hours: 1
+  data_watch_dir: "data/ais/"
+  risk_scoring:
+    dark_weight: 0.4
+    speed_anomaly_weight: 0.2
+    zone_intrusion_weight: 0.2
+    unknown_flag_weight: 0.1
+    erratic_course_weight: 0.1
+
+anomaly:
+  ais_gap_threshold_hours: 1.0
+  speed_change_threshold_pct: 50
+  course_deviation_threshold_deg: 90
+  position_jump_threshold_km: 100
+  loitering_speed_threshold_knots: 1.0
+  loitering_duration_threshold_hours: 2.0
+
+border:
+  zones_config: "configs/sensor-analytics/zones.yaml"
+  scan_interval_seconds: 300
+  alert_retention_hours: 168
+
+geospatial:
+  default_origin:
+    lat: 24.7136
+    lon: 46.6753  # Riyadh as default origin
+
+maritime_fusion:
+  sar_ais_match_radius_km: 5.0
+  feed_to_threat_detection: true
+  feed_to_sensor_manager: true
+  dark_vessel_threat_level: "HIGH"
+  zone_intrusion_threat_level: "MEDIUM"
+
+datasets:
+  registry_path: "configs/sensor-analytics/datasets.yaml"
+  data_dir: "data/sensor-analytics/"
