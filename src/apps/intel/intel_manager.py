@@ -42,8 +42,12 @@ class IntelManager:
         )
 
     def generate_intsum(self, period="24h") -> IntelReport:
+        items = self.collector.get_items(limit=10000)
+        if not items:
+            self.collect_and_analyze()
+            items = self.collector.get_items(limit=10000)
         return self.briefing.product_factory.generate_intsum(
-            items=self.collector.get_items(limit=10000),
+            items=items,
             period=period,
         )
 

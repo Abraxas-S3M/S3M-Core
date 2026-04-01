@@ -70,7 +70,11 @@ class OSINTIngester:
         """
         path = Path(filepath)
         if not path.is_absolute():
-            path = Path(self.watch_dir) / path
+            # Allow caller-provided relative paths that already point to a real file.
+            if path.exists():
+                path = path.resolve()
+            else:
+                path = (Path(self.watch_dir) / path).resolve()
         records: list[dict] = []
 
         if path.suffix.lower() == ".json":
