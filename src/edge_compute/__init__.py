@@ -16,6 +16,13 @@ Integrates with:
   - Layer 06 (Dashboard) for monitoring
 """
 
+from src.edge_compute.data_generation import (
+    ActiveLearner,
+    ContrastiveAugmentor,
+    DataGenerationEngine,
+    GenerativeReplay,
+    KnowledgeGraphBuilder,
+)
 from src.edge_compute.federated_engine import (
     FederatedEngine,
     RDPAccountant,
@@ -30,6 +37,12 @@ from src.edge_compute.governed_replication import (
     GovernedReplicationEngine,
     ReplicationPolicy,
     ReplicationToken,
+)
+from src.edge_compute.hetero_compute import (
+    AdaptiveScheduler,
+    DeviceCapabilities,
+    HeterogeneousComputeEngine,
+    MemoryManager,
 )
 from src.edge_compute.models import (
     AggregationStrategy,
@@ -100,4 +113,15 @@ __all__ = [
     "ReplicationToken",
     "ReplicationPolicy",
     "GovernedReplicationEngine",
+    # Data Generation
+    "ContrastiveAugmentor",
+    "GenerativeReplay",
+    "KnowledgeGraphBuilder",
+    "ActiveLearner",
+    "DataGenerationEngine",
+    # Heterogeneous Compute Engine
+    "DeviceCapabilities",
+    "MemoryManager",
+    "AdaptiveScheduler",
+    "HeterogeneousComputeEngine",
 ]
