@@ -386,6 +386,7 @@ class TestInferenceMonitorAbnormalOutputs:
         assert monitor.alert_log(10)[-1].alert_id == alert.alert_id
 
     def test_no_alert_below_threshold(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monitor, model_id = _warmed_monitor(n=20, config=MonitorConfig(alert_threshold=0.99))
         called = {"confidence": 0}
         original = im.detect_confidence_anomaly
 
@@ -394,7 +395,6 @@ class TestInferenceMonitorAbnormalOutputs:
             return original(*args, **kwargs)
 
         monkeypatch.setattr(im, "detect_confidence_anomaly", wrapped)
-        monitor, model_id = _warmed_monitor(n=20, config=MonitorConfig(alert_threshold=0.99))
         alert = monitor.observe(_obs(model_id=model_id, confidence=0.0, token_dist={"tok_z": 1.0}))
         assert alert is None
         assert called["confidence"] == 1
@@ -450,7 +450,7 @@ class TestInferenceMonitorScoreAndRationale:
         assert three_triggers.anomaly_score.composite > one_trigger.anomaly_score.composite
 
     def test_reasoning_inconsistency_increases_score(self) -> None:
-        monitor, model_id = _warmed_monitor(n=20, config=MonitorConfig.sensitive())
+        monitor, model_id = _warmed_monitor(n=20, config=MonitorConfig.sensitive().model_copy(update={"alert_threshold": 0.0}))
         consistent = monitor.observe(
             _obs(
                 model_id=model_id,
