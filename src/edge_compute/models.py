@@ -113,23 +113,45 @@ class ComputeTask:
         }
 
 
-class AggregationStrategy(str, Enum):
-    """Federated aggregation strategy used for tactical training rounds."""
+class DataGenStrategy(str, Enum):
+    """Strategy identifier for autonomous data generation outputs."""
 
-    FEDAVG = "fedavg"
-    FEDPROX = "fedprox"
-    SCAFFOLD = "scaffold"
-    HIERARCHICAL = "hierarchical"
+    CONTRASTIVE = "contrastive"
+    GENERATIVE_REPLAY = "generative_replay"
+    ACTIVE_LEARNING = "active_learning"
+    AUTO_ENTITY_LINKING = "auto_entity_linking"
 
 
-class NodeStatus(str, Enum):
-    """Operational state of an edge node in the federated mesh."""
+@dataclass
+class GeneratedDataset:
+    """Metadata for a generated dataset artifact written to local disk."""
 
-    ONLINE = "online"
-    TRAINING = "training"
-    OFFLINE = "offline"
-    DEGRADED = "degraded"
-    LOST = "lost"
+    strategy: DataGenStrategy
+    record_count: int
+    file_path: str
+    file_size_bytes: int
+    schema: Dict[str, Any]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.strategy, DataGenStrategy):
+            self.strategy = DataGenStrategy(str(self.strategy))
+        if not isinstance(self.record_count, int) or self.record_count < 0:
+            raise ValueError("record_count must be a non-negative integer")
+        if not isinstance(self.file_path, str) or not self.file_path.strip():
+            raise ValueError("file_path must be a non-empty string")
+        if not isinstance(self.file_size_bytes, int) or self.file_size_bytes < 0:
+            raise ValueError("file_size_bytes must be a non-negative integer")
+        if not isinstance(self.schema, dict):
+            raise ValueError("schema must be a dictionary")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "strategy": self.strategy.value,
+            "record_count": self.record_count,
+            "file_path": self.file_path,
+            "file_size_bytes": self.file_size_bytes,
+            "schema": dict(self.schema),
+        }
 
 
 @dataclass
@@ -138,7 +160,7 @@ class EdgeNodeInfo:
 
     hostname: str
     node_id: str = field(default_factory=lambda: str(uuid4()))
-    status: NodeStatus = NodeStatus.ONLINE
+    status: "NodeStatus" = field(default="online")
     cpu_cores: int = 1
     memory_mb: int = 512
     last_heartbeat: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
@@ -168,88 +190,23 @@ class EdgeNodeInfo:
         }
 
 
-@dataclass
-class DeviceStats:
-    """Runtime device telemetry used for tactical scheduler decisions."""
+class NodeStatus(str, Enum):
+    """Operational state of an edge node in the federated mesh."""
 
-    device: DeviceType
-    utilization_pct: float = 0.0
-    avg_latency_ms: float = 0.0
-    tasks_completed: int = 0
-    failed_tasks: int = 0
-    memory_used_mb: float = 0.0
-    power_watts: float = 0.0
-
-    def __post_init__(self) -> None:
-        self.device = DeviceType.from_value(self.device)
-        if not isinstance(self.utilization_pct, (int, float)):
-            raise ValueError("utilization_pct must be numeric")
-        self.utilization_pct = float(min(max(self.utilization_pct, 0.0), 100.0))
-        if not isinstance(self.avg_latency_ms, (int, float)) or self.avg_latency_ms < 0:
-            raise ValueError("avg_latency_ms must be non-negative")
-        self.avg_latency_ms = float(self.avg_latency_ms)
-        if not isinstance(self.tasks_completed, int) or self.tasks_completed < 0:
-            raise ValueError("tasks_completed must be a non-negative integer")
-        if not isinstance(self.failed_tasks, int) or self.failed_tasks < 0:
-            raise ValueError("failed_tasks must be a non-negative integer")
-        if not isinstance(self.memory_used_mb, (int, float)) or self.memory_used_mb < 0:
-            raise ValueError("memory_used_mb must be non-negative")
-        self.memory_used_mb = float(self.memory_used_mb)
-        if not isinstance(self.power_watts, (int, float)) or self.power_watts < 0:
-            raise ValueError("power_watts must be non-negative")
-        self.power_watts = float(self.power_watts)
-
-    def model_dump(self) -> Dict[str, Any]:
-        return {
-            "device": self.device.value,
-            "utilization_pct": self.utilization_pct,
-            "avg_latency_ms": self.avg_latency_ms,
-            "tasks_completed": self.tasks_completed,
-            "failed_tasks": self.failed_tasks,
-            "memory_used_mb": self.memory_used_mb,
-            "power_watts": self.power_watts,
-        }
+    ONLINE = "online"
+    TRAINING = "training"
+    OFFLINE = "offline"
+    DEGRADED = "degraded"
+    LOST = "lost"
 
 
-@dataclass
-class SchedulerDecision:
-    """Audit record for each routing decision in operational execution."""
+class AggregationStrategy(str, Enum):
+    """Federated aggregation strategy used for tactical training rounds."""
 
-    task_id: str
-    operation: OperationType
-    chosen_device: DeviceType
-    actual_latency_ms: float
-    reward: float
-    timestamp_s: float = field(default_factory=time)
-    notes: Optional[str] = None
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.task_id, str):
-            raise ValueError("task_id must be a string")
-        self.operation = OperationType.from_value(self.operation)
-        self.chosen_device = DeviceType.from_value(self.chosen_device)
-        if not isinstance(self.actual_latency_ms, (int, float)) or self.actual_latency_ms < 0:
-            raise ValueError("actual_latency_ms must be non-negative")
-        self.actual_latency_ms = float(self.actual_latency_ms)
-        if not isinstance(self.reward, (int, float)) or not (0.0 <= float(self.reward) <= 1.0):
-            raise ValueError("reward must be in [0, 1]")
-        self.reward = float(self.reward)
-        if not isinstance(self.timestamp_s, (int, float)) or self.timestamp_s <= 0:
-            raise ValueError("timestamp_s must be positive")
-        self.timestamp_s = float(self.timestamp_s)
-        if self.notes is not None and not isinstance(self.notes, str):
-            raise ValueError("notes must be a string or None")
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "task_id": self.task_id,
-            "operation": self.operation.value,
-            "chosen_device": self.chosen_device.value,
-            "actual_latency_ms": self.actual_latency_ms,
-            "reward": self.reward,
-            "timestamp_s": self.timestamp_s,
-            "notes": self.notes,
-        }
+    FEDAVG = "fedavg"
+    FEDPROX = "fedprox"
+    SCAFFOLD = "scaffold"
+    HIERARCHICAL = "hierarchical"
 
 
 @dataclass
@@ -334,4 +291,88 @@ class PseudoLabelBatch:
             "sample_count": self.sample_count,
             "avg_confidence": self.avg_confidence,
             "noise_applied": self.noise_applied,
+        }
+
+
+@dataclass
+class DeviceStats:
+    """Runtime device telemetry used for tactical scheduler decisions."""
+
+    device: DeviceType
+    utilization_pct: float = 0.0
+    avg_latency_ms: float = 0.0
+    tasks_completed: int = 0
+    failed_tasks: int = 0
+    memory_used_mb: float = 0.0
+    power_watts: float = 0.0
+
+    def __post_init__(self) -> None:
+        self.device = DeviceType.from_value(self.device)
+        if not isinstance(self.utilization_pct, (int, float)):
+            raise ValueError("utilization_pct must be numeric")
+        self.utilization_pct = float(min(max(self.utilization_pct, 0.0), 100.0))
+        if not isinstance(self.avg_latency_ms, (int, float)) or self.avg_latency_ms < 0:
+            raise ValueError("avg_latency_ms must be non-negative")
+        self.avg_latency_ms = float(self.avg_latency_ms)
+        if not isinstance(self.tasks_completed, int) or self.tasks_completed < 0:
+            raise ValueError("tasks_completed must be a non-negative integer")
+        if not isinstance(self.failed_tasks, int) or self.failed_tasks < 0:
+            raise ValueError("failed_tasks must be a non-negative integer")
+        if not isinstance(self.memory_used_mb, (int, float)) or self.memory_used_mb < 0:
+            raise ValueError("memory_used_mb must be non-negative")
+        self.memory_used_mb = float(self.memory_used_mb)
+        if not isinstance(self.power_watts, (int, float)) or self.power_watts < 0:
+            raise ValueError("power_watts must be non-negative")
+        self.power_watts = float(self.power_watts)
+
+    def model_dump(self) -> Dict[str, Any]:
+        return {
+            "device": self.device.value,
+            "utilization_pct": self.utilization_pct,
+            "avg_latency_ms": self.avg_latency_ms,
+            "tasks_completed": self.tasks_completed,
+            "failed_tasks": self.failed_tasks,
+            "memory_used_mb": self.memory_used_mb,
+            "power_watts": self.power_watts,
+        }
+
+
+@dataclass
+class SchedulerDecision:
+    """Audit record for each routing decision in operational execution."""
+
+    task_id: str
+    operation: OperationType
+    chosen_device: DeviceType
+    actual_latency_ms: float
+    reward: float
+    timestamp_s: float = field(default_factory=time)
+    notes: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.task_id, str):
+            raise ValueError("task_id must be a string")
+        self.operation = OperationType.from_value(self.operation)
+        self.chosen_device = DeviceType.from_value(self.chosen_device)
+        if not isinstance(self.actual_latency_ms, (int, float)) or self.actual_latency_ms < 0:
+            raise ValueError("actual_latency_ms must be non-negative")
+        self.actual_latency_ms = float(self.actual_latency_ms)
+        if not isinstance(self.reward, (int, float)) or not (0.0 <= float(self.reward) <= 1.0):
+            raise ValueError("reward must be in [0, 1]")
+        self.reward = float(self.reward)
+        if not isinstance(self.timestamp_s, (int, float)) or self.timestamp_s <= 0:
+            raise ValueError("timestamp_s must be positive")
+        self.timestamp_s = float(self.timestamp_s)
+        if self.notes is not None and not isinstance(self.notes, str):
+            raise ValueError("notes must be a string or None")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "task_id": self.task_id,
+            "operation": self.operation.value,
+            "chosen_device": self.chosen_device.value,
+            "actual_latency_ms": self.actual_latency_ms,
+            "reward": self.reward,
+            "timestamp_s": self.timestamp_s,
+            "notes": self.notes,
         }

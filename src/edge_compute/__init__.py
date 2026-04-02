@@ -1,5 +1,12 @@
 """Unified edge compute package for tactical offline operations."""
 
+from src.edge_compute.data_generation import (
+    ActiveLearner,
+    ContrastiveAugmentor,
+    DataGenerationEngine,
+    GenerativeReplay,
+    KnowledgeGraphBuilder,
+)
 from src.edge_compute.federated_engine import (
     FederatedEngine,
     RDPAccountant,
@@ -24,10 +31,12 @@ from src.edge_compute.hetero_compute import (
 from src.edge_compute.models import (
     AggregationStrategy,
     ComputeTask,
+    DataGenStrategy,
     DeviceStats,
     DeviceType,
     EdgeNodeInfo,
     FederatedRound,
+    GeneratedDataset,
     NodeStatus,
     OperationType,
     PseudoLabelBatch,
@@ -47,16 +56,23 @@ from src.edge_compute.self_training import (
 __all__ = [
     "AggregationStrategy",
     "AdaptiveScheduler",
+    "ActiveLearner",
     "CLASSIFICATION_LEVELS",
+    "ContrastiveAugmentor",
     "ComputeTask",
+    "DataGenStrategy",
+    "DataGenerationEngine",
     "DeviceCapabilities",
     "DeviceStats",
     "DeviceType",
     "EdgeNodeInfo",
     "FederatedEngine",
     "FederatedRound",
+    "GeneratedDataset",
+    "GenerativeReplay",
     "GovernedReplicationEngine",
     "HeterogeneousComputeEngine",
+    "KnowledgeGraphBuilder",
     "MemoryManager",
     "NodeStatus",
     "NumpyLinearModel",
