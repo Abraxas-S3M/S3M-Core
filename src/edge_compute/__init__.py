@@ -16,6 +16,15 @@ Integrates with:
   - Layer 06 (Dashboard) for monitoring
 """
 
+from src.edge_compute.federated_engine import (
+    FederatedEngine,
+    RDPAccountant,
+    decompress_gradient,
+    fedavg_aggregate,
+    fedprox_local_objective,
+    scaffold_correction,
+    topk_compress,
+)
 from src.edge_compute.models import (
     AggregationStrategy,
     ComputeTask,
@@ -57,4 +66,12 @@ __all__ = [
     "DeviceStats",
     "SchedulerDecision",
     "OffloadRequest",
+    # Federated Engine
+    "FederatedEngine",
+    "RDPAccountant",
+    "topk_compress",
+    "decompress_gradient",
+    "fedavg_aggregate",
+    "fedprox_local_objective",
+    "scaffold_correction",
 ]
