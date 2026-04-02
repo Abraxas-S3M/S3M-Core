@@ -1,7 +1,8 @@
-"""Data contracts for tactical federated learning on edge CPU nodes.
+"""Data models for tactical edge learning on CPU nodes.
 
-These models define validated metadata exchanged between edge nodes and the
-federated coordinator in disconnected or contested military environments.
+Combines contracts for:
+  - Federated training coordination across disconnected edge nodes.
+  - Local self-training loops (Noisy Student, Pseudo-Label, Co-Training).
 """
 
 from __future__ import annotations
@@ -113,3 +114,21 @@ class FederatedRound:
             "duration_seconds": self.duration_seconds,
             "created_at": self.created_at.isoformat(),
         }
+
+
+class SelfTrainingStrategy(str, Enum):
+    """Supported self-training strategies for edge adaptation."""
+
+    NOISY_STUDENT = "noisy_student"
+    PSEUDO_LABEL = "pseudo_label"
+    CO_TRAINING = "co_training"
+
+
+@dataclass
+class PseudoLabelBatch:
+    """Summary of pseudo-label output for one self-training cycle."""
+
+    strategy: SelfTrainingStrategy
+    sample_count: int
+    avg_confidence: float
+    noise_applied: bool = False
