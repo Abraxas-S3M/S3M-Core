@@ -1,6 +1,13 @@
-"""Federated and self-training edge compute components for tactical offline training."""
+"""Federated, self-training, replication, and data-generation edge components."""
 
-from src.edge_compute.federated_engine import (
+from .data_generation import (
+    ActiveLearner,
+    ContrastiveAugmentor,
+    DataGenerationEngine,
+    GenerativeReplay,
+    KnowledgeGraphBuilder,
+)
+from .federated_engine import (
     FederatedEngine,
     RDPAccountant,
     decompress_gradient,
@@ -19,10 +26,14 @@ from src.edge_compute.governed_replication import (
 from src.edge_compute.manager import EdgeComputeManager
 from src.edge_compute.models import (
     AggregationStrategy,
+    DataGenStrategy,
     EdgeNodeInfo,
     FederatedRound,
+    GeneratedDataset,
     NodeStatus,
     PseudoLabelBatch,
+    ReplicaSpec,
+    SandboxState,
     SelfTrainingStrategy,
 )
 from src.edge_compute.self_growth import GrowableModel, PlateauDetector, SelfGrowthEngine
@@ -37,21 +48,37 @@ from src.edge_compute.self_training import (
 
 __all__ = [
     "AggregationStrategy",
+    "AdaptiveScheduler",
+    "ActiveLearner",
+    "AggregationStrategy",
+    "CLASSIFICATION_LEVELS",
+    "ContrastiveAugmentor",
+    "DataGenStrategy",
+    "DataGenerationEngine",
     "EdgeNodeInfo",
-    "FederatedRound",
-    "NodeStatus",
     "FederatedEngine",
+    "FederatedRound",
+    "GeneratedDataset",
+    "GenerativeReplay",
+    "GovernedReplicationEngine",
+    "KnowledgeGraphBuilder",
+    "NodeStatus",
+    "NumpyLinearModel",
+    "PseudoLabelBatch",
     "RDPAccountant",
-    "topk_compress",
+    "ReplicaSpec",
+    "ReplicationEngine",
+    "ReplicationPolicy",
+    "ReplicationToken",
+    "SandboxController",
+    "SandboxState",
+    "SelfTrainingEngine",
+    "SelfTrainingStrategy",
+    "apply_noise_chain",
     "decompress_gradient",
+    "dropout_noise",
     "fedavg_aggregate",
     "fedprox_local_objective",
-    "scaffold_correction",
-    "PseudoLabelBatch",
-    "SelfTrainingStrategy",
-    "NumpyLinearModel",
-    "SelfTrainingEngine",
-    "dropout_noise",
     "gaussian_noise",
     "mixup",
     "apply_noise_chain",
