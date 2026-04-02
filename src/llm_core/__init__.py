@@ -53,6 +53,11 @@ from .consensus_engine import (
     EngineResponse as ConsensusEngineResponse,
     AgreementLevel,
 )
+from .engine_output import StructuredEngineOutput, ThreatEntity, ActionCandidate
+from .shared_state import MissionState, MissionContext, DecisionRecord
+from .engine_runtime import EngineRuntimeAdapter
+from .reconciliation_engine import ReconciliationEngine
+from .unified_runtime import UnifiedRuntime, MissionRequest, MissionResult
 from .weight_manager import WeightManager
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
@@ -94,4 +99,15 @@ __all__ = [
     "ConsensusEngineResult",
     "ConsensusEngineResponse",
     "AgreementLevel",
+    "StructuredEngineOutput",
+    "ThreatEntity",
+    "ActionCandidate",
+    "MissionState",
+    "MissionContext",
+    "DecisionRecord",
+    "EngineRuntimeAdapter",
+    "ReconciliationEngine",
+    "UnifiedRuntime",
+    "MissionRequest",
+    "MissionResult",
 ]

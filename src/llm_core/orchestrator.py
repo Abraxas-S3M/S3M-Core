@@ -173,7 +173,7 @@ class Orchestrator:
             responses.append(
                 EngineResponse(
                     engine_id=engine_id,
-                    text=f"[{config.name}] Consensus response pending",
+                    text=f"[{config.name}] Consensus route initialized - engine not loaded",
                     tokens_used=0,
                     latency_ms=0.0,
                     success=True,
@@ -181,7 +181,7 @@ class Orchestrator:
             )
         return ConsensusResult(
             responses=responses,
-            synthesis="Consensus pending - engines not yet loaded",
+            synthesis="Consensus route initialized - engines not yet loaded",
             agreement_score=0.0,
             audit_id=str(uuid4()),
         )
