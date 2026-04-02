@@ -1,13 +1,13 @@
-"""Unified edge compute package for tactical offline operations."""
+"""Federated, self-training, replication, and data-generation edge components."""
 
-from src.edge_compute.data_generation import (
+from .data_generation import (
     ActiveLearner,
     ContrastiveAugmentor,
     DataGenerationEngine,
     GenerativeReplay,
     KnowledgeGraphBuilder,
 )
-from src.edge_compute.federated_engine import (
+from .federated_engine import (
     FederatedEngine,
     RDPAccountant,
     decompress_gradient,
@@ -16,35 +16,27 @@ from src.edge_compute.federated_engine import (
     scaffold_correction,
     topk_compress,
 )
-from src.edge_compute.governed_replication import (
+from .governed_replication import (
     CLASSIFICATION_LEVELS,
     GovernedReplicationEngine,
     ReplicationPolicy,
     ReplicationToken,
 )
-from src.edge_compute.hetero_compute import (
-    AdaptiveScheduler,
-    DeviceCapabilities,
-    HeterogeneousComputeEngine,
-    MemoryManager,
-)
-from src.edge_compute.models import (
+from .models import (
     AggregationStrategy,
-    ComputeTask,
     DataGenStrategy,
-    DeviceStats,
-    DeviceType,
     EdgeNodeInfo,
     FederatedRound,
     GeneratedDataset,
     NodeStatus,
-    OperationType,
     PseudoLabelBatch,
-    SchedulerDecision,
-    SchedulingPolicy,
+    ReplicaSpec,
+    SandboxState,
     SelfTrainingStrategy,
 )
-from src.edge_compute.self_training import (
+from .sandbox_controller import SandboxController
+from .self_replication import ReplicationEngine
+from .self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
     apply_noise_chain,
@@ -57,32 +49,28 @@ __all__ = [
     "AggregationStrategy",
     "AdaptiveScheduler",
     "ActiveLearner",
+    "AggregationStrategy",
     "CLASSIFICATION_LEVELS",
     "ContrastiveAugmentor",
-    "ComputeTask",
     "DataGenStrategy",
     "DataGenerationEngine",
-    "DeviceCapabilities",
-    "DeviceStats",
-    "DeviceType",
     "EdgeNodeInfo",
     "FederatedEngine",
     "FederatedRound",
     "GeneratedDataset",
     "GenerativeReplay",
     "GovernedReplicationEngine",
-    "HeterogeneousComputeEngine",
     "KnowledgeGraphBuilder",
-    "MemoryManager",
     "NodeStatus",
     "NumpyLinearModel",
-    "OperationType",
     "PseudoLabelBatch",
     "RDPAccountant",
+    "ReplicaSpec",
+    "ReplicationEngine",
     "ReplicationPolicy",
     "ReplicationToken",
-    "SchedulerDecision",
-    "SchedulingPolicy",
+    "SandboxController",
+    "SandboxState",
     "SelfTrainingEngine",
     "SelfTrainingStrategy",
     "apply_noise_chain",
