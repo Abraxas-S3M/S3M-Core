@@ -1,0 +1,42 @@
+# S3M Quantum Security Shell (QSS) Configuration
+# UNCLASSIFIED - FOUO
+
+quantum_crypto:
+  kem_algorithm: "Kyber768"          # ML-KEM (NIST FIPS 203)
+  sig_algorithm: "Dilithium3"        # ML-DSA (NIST FIPS 204)
+  symmetric_algorithm: "AES-256-GCM"
+  hybrid_mode: true                  # Classical + PQ combined
+  keys_dir: "configs/keys/quantum"
+
+key_lifecycle:
+  rotation_hours: 24
+  max_messages_per_session: 10000
+  session_ttl_seconds: 3600
+  bootstrap_on_startup: true
+
+zero_knowledge_networking:
+  sealed_tunnel:
+    enabled: true
+    triple_encryption: true
+    outbound_only: true
+    anti_replay: true
+  xotc_auth:
+    enabled: true
+    code_ttl_seconds: 30
+    max_issued_codes: 1000
+  micro_segmentation:
+    enabled: true
+    default_verdict: "DENY"
+    audit_denied: true
+
+perimeter_shield:
+  invisibility_enforcement: true
+  outbound_only_firewall: true
+  dns_invisibility: true
+  public_ip_check: true
+  scan_interval_seconds: 300
+
+coalition_interop:
+  sealed_tunnel_for_dis: true
+  sealed_tunnel_for_c2sim: true
+  post_quantum_handshake: true
