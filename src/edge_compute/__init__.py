@@ -9,6 +9,13 @@ from src.edge_compute.federated_engine import (
     scaffold_correction,
     topk_compress,
 )
+from src.edge_compute.data_value_assessor import DataValueEngine
+from src.edge_compute.governed_replication import (
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
+)
+from src.edge_compute.manager import EdgeComputeManager
 from src.edge_compute.models import (
     AggregationStrategy,
     EdgeNodeInfo,
@@ -17,6 +24,7 @@ from src.edge_compute.models import (
     PseudoLabelBatch,
     SelfTrainingStrategy,
 )
+from src.edge_compute.self_growth import GrowableModel, PlateauDetector, SelfGrowthEngine
 from src.edge_compute.self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
@@ -46,4 +54,12 @@ __all__ = [
     "gaussian_noise",
     "mixup",
     "apply_noise_chain",
+    "PlateauDetector",
+    "GrowableModel",
+    "SelfGrowthEngine",
+    "ReplicationToken",
+    "ReplicationPolicy",
+    "GovernedReplicationEngine",
+    "DataValueEngine",
+    "EdgeComputeManager",
 ]
