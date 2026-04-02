@@ -11,6 +11,7 @@ from src.edge_compute.federated_engine import (
 )
 from src.edge_compute.data_value_assessor import DataValueEngine
 from src.edge_compute.governed_replication import (
+    CLASSIFICATION_LEVELS,
     GovernedReplicationEngine,
     ReplicationPolicy,
     ReplicationToken,
@@ -57,6 +58,7 @@ __all__ = [
     "PlateauDetector",
     "GrowableModel",
     "SelfGrowthEngine",
+    "CLASSIFICATION_LEVELS",
     "ReplicationToken",
     "ReplicationPolicy",
     "GovernedReplicationEngine",
