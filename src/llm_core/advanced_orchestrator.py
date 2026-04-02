@@ -15,8 +15,10 @@ import logging
 import time
 import uuid
 from types import SimpleNamespace
-from typing import Dict, List, Optional, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 
+from .engine_output import StructuredEngineOutput
+from .engine_runtime import EngineRuntimeAdapter
 from .engine_registry import EngineConfig, EngineID, EngineRegistry, TaskDomain
 from .model_registry import ModelRegistry
 from .model_optimizer import ModelOptimizer
@@ -294,6 +296,7 @@ class AdvancedOrchestrator:
         self.metrics = OrchestratorMetrics()
         self.history_limit = max(10, history_limit)
         self.routing_history: List[Dict[str, object]] = []
+        self._engine_runtime = EngineRuntimeAdapter()
 
     def execute_with_confidence(
         self,
@@ -434,11 +437,14 @@ class AdvancedOrchestrator:
             reason="Primary route unavailable; fallback selected",
             latency_ms=0.0,
         )
-        raw_outputs = self._simulate_engine_outputs(
-            selected,
-            prompt,
-            domain or self._classify_domain(prompt),
+        structured_outputs: Dict[EngineID, StructuredEngineOutput] = self._engine_runtime.execute_engines(
+            engine_ids=selected,
+            prompt=prompt,
+            task_id=f"task-{uuid.uuid4().hex[:8]}",
         )
+        raw_outputs = {
+            eid: out.raw_text for eid, out in structured_outputs.items()
+        }
         return UnifiedResponse(
             recommendation_text=self._build_recommendation(raw_outputs, selected),
             normalized_strategy=RoutingStrategy.FALLBACK_CASCADE,
@@ -509,7 +515,14 @@ class AdvancedOrchestrator:
             confidence_scores=confidence_scores,
         )
 
-        raw_outputs = self._simulate_engine_outputs(selected_engines, prompt, domain)
+        structured_outputs: Dict[EngineID, StructuredEngineOutput] = self._engine_runtime.execute_engines(
+            engine_ids=selected_engines,
+            prompt=prompt,
+            task_id=f"task-{uuid.uuid4().hex[:8]}",
+        )
+        raw_outputs = {
+            eid: out.raw_text for eid, out in structured_outputs.items()
+        }
         recommendation = self._build_recommendation(raw_outputs, selected_engines)
         elapsed_ms = (time.perf_counter() - started_at) * 1000.0
         latency_ms = max(
@@ -846,22 +859,20 @@ class AdvancedOrchestrator:
             "details": self.optimizer.get_profile_details(profile),
         }
 
-    def _simulate_engine_outputs(
-        self,
-        selected_engines: List[EngineID],
-        prompt: str,
-        domain: TaskDomain,
-    ) -> Dict[EngineID, str]:
-        """Create deterministic placeholder outputs until runtime inference is wired."""
-        outputs: Dict[EngineID, str] = {}
-        prompt_excerpt = prompt[:80]
-        for engine_id in selected_engines:
-            config = self.registry.get_config(engine_id)
-            outputs[engine_id] = (
-                f"[{config.name}] Pending live inference for {domain.value} "
-                f"task. Prompt excerpt: {prompt_excerpt}"
+    def route_and_decide_structured(self, request) -> Dict[str, Any]:
+        """Route request and return structured outputs + reconciliation."""
+        # Tactical context: delegate to unified runtime to keep one authoritative
+        # mission pipeline for structured state and conflict resolution.
+        from .unified_runtime import MissionRequest, UnifiedRuntime
+
+        runtime = UnifiedRuntime()
+        result = runtime.execute_mission(
+            MissionRequest(
+                prompt=getattr(request, "prompt", ""),
+                mission_type=getattr(request, "mission_type", "general"),
             )
-        return outputs
+        )
+        return result.to_dict()
 
     def _build_recommendation(
         self,

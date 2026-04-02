@@ -17,9 +17,12 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
 from statistics import pstdev
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from difflib import SequenceMatcher
+from .engine_output import StructuredEngineOutput
+from .reconciliation_engine import ReconciliationEngine
+from .shared_state import MissionContext, MissionState
 
 logger = logging.getLogger("s3m.consensus")
 
@@ -606,6 +609,33 @@ class ConsensusEngine:
             review_status,
         )
         return result
+
+    def reconcile_structured(
+        self,
+        outputs: Dict[str, StructuredEngineOutput],
+        mission_context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Structured state reconciliation (upgrade from text consensus).
+
+        Uses ReconciliationEngine to merge structured outputs into a
+        single authoritative decision with conflict resolution.
+        """
+        recon = ReconciliationEngine()
+        state = MissionState()
+        if mission_context:
+            state.set_context(
+                MissionContext(
+                    mission_id=mission_context.get("mission_id", ""),
+                    mission_type=mission_context.get("mission_type", "general"),
+                    rules_of_engagement=mission_context.get("roe", "weapons_hold"),
+                )
+            )
+        decision = recon.reconcile(outputs, state)
+        return {
+            "decision": decision.to_dict(),
+            "state_snapshot": state.snapshot(),
+            "method": "structured_reconciliation",
+        }
 
     def _select_mode(
         self,
