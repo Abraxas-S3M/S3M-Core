@@ -1,5 +1,20 @@
-"""Edge heterogeneous compute package for S3M."""
+"""Unified edge compute package for tactical offline operations."""
 
+from src.edge_compute.federated_engine import (
+    FederatedEngine,
+    RDPAccountant,
+    decompress_gradient,
+    fedavg_aggregate,
+    fedprox_local_objective,
+    scaffold_correction,
+    topk_compress,
+)
+from src.edge_compute.governed_replication import (
+    CLASSIFICATION_LEVELS,
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
+)
 from src.edge_compute.hetero_compute import (
     AdaptiveScheduler,
     DeviceCapabilities,
@@ -7,23 +22,60 @@ from src.edge_compute.hetero_compute import (
     MemoryManager,
 )
 from src.edge_compute.models import (
+    AggregationStrategy,
     ComputeTask,
     DeviceStats,
     DeviceType,
+    EdgeNodeInfo,
+    FederatedRound,
+    NodeStatus,
     OperationType,
+    PseudoLabelBatch,
     SchedulerDecision,
     SchedulingPolicy,
+    SelfTrainingStrategy,
+)
+from src.edge_compute.self_training import (
+    NumpyLinearModel,
+    SelfTrainingEngine,
+    apply_noise_chain,
+    dropout_noise,
+    gaussian_noise,
+    mixup,
 )
 
 __all__ = [
+    "AggregationStrategy",
     "AdaptiveScheduler",
+    "CLASSIFICATION_LEVELS",
     "ComputeTask",
     "DeviceCapabilities",
     "DeviceStats",
     "DeviceType",
+    "EdgeNodeInfo",
+    "FederatedEngine",
+    "FederatedRound",
+    "GovernedReplicationEngine",
     "HeterogeneousComputeEngine",
     "MemoryManager",
+    "NodeStatus",
+    "NumpyLinearModel",
     "OperationType",
+    "PseudoLabelBatch",
+    "RDPAccountant",
+    "ReplicationPolicy",
+    "ReplicationToken",
     "SchedulerDecision",
     "SchedulingPolicy",
+    "SelfTrainingEngine",
+    "SelfTrainingStrategy",
+    "apply_noise_chain",
+    "decompress_gradient",
+    "dropout_noise",
+    "fedavg_aggregate",
+    "fedprox_local_objective",
+    "gaussian_noise",
+    "mixup",
+    "scaffold_correction",
+    "topk_compress",
 ]
