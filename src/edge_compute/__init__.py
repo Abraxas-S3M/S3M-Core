@@ -63,6 +63,8 @@ from src.edge_compute.models import (
     SchedulingPolicy,
     SelfTrainingStrategy,
 )
+from src.edge_compute.sandbox_controller import SandboxController
+from src.edge_compute.self_replication import ReplicationEngine
 from src.edge_compute.self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
@@ -124,4 +126,7 @@ __all__ = [
     "MemoryManager",
     "AdaptiveScheduler",
     "HeterogeneousComputeEngine",
+    # Runtime Sandbox / Replication
+    "SandboxController",
+    "ReplicationEngine",
 ]
