@@ -4,7 +4,7 @@ Four sovereign LLM engines running as one unified system.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from enum import Enum
 
 
@@ -45,7 +45,9 @@ class EngineConfig:
     memory_footprint_gb: float = 0.0
     warm_state: bool = False
     confidence_prior: float = 0.75
-    capabilities: Optional[Dict[TaskDomain, float]] = field(default=None)
+    capabilities: Optional[Dict[Union[TaskDomain, str], float]] = field(default=None)
+    version_tag: Optional[str] = "v1.0.0"
+    sha256_hash: Optional[str] = None
 
     def __post_init__(self):
         """Initialize mission-routing capability priors for tactical orchestration."""
@@ -62,6 +64,16 @@ class EngineConfig:
         }
         base[self.primary_domain] = 0.9
         return base
+
+    def get_capability_score(self, domain: TaskDomain) -> float:
+        """Get capability score for a domain with enum/string key tolerance."""
+        if self.capabilities is None:
+            return 0.5
+        if domain in self.capabilities:
+            return float(self.capabilities[domain])
+        if domain.value in self.capabilities:
+            return float(self.capabilities[domain.value])
+        return 0.5
 
 
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
@@ -212,8 +224,19 @@ class EngineRegistry:
     def get_capability_score(self, engine_id: EngineID, domain: TaskDomain) -> float:
         """Return domain confidence to support tactical engine arbitration."""
         config = self.get_config(engine_id)
-        return config.capabilities.get(domain, 0.5)
+        return config.get_capability_score(domain)
+
+    def get_all_capabilities(self, domain: TaskDomain) -> Dict[str, float]:
+        """Get capability scores for all engines in one domain."""
+        return {
+            config.engine_id.value: config.get_capability_score(domain)
+            for config in self.configs.values()
+        }
+
+    def get_memory_utilization(self, engines: List[EngineID]) -> float:
+        """Get total memory footprint for provided engines."""
+        return sum(self.get_config(engine_id).memory_footprint_gb for engine_id in engines)
 
     def get_total_memory_required(self, engine_ids: List[EngineID]) -> float:
         """Sum VRAM needed to co-load selected engines on edge hardware."""
-        return sum(self.get_config(engine_id).memory_footprint_gb for engine_id in engine_ids)
+        return self.get_memory_utilization(engine_ids)

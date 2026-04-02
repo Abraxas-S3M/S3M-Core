@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from .engine_registry import EngineID, TaskDomain, DOMAIN_ROUTING
 from .failover_system import FailoverSystem
 from .inference_engine import InferenceEngine, InferenceResult
+from .model_registry import ModelRegistry
 from .predictive_preload import PredictivePreloader
 
 logger = logging.getLogger("s3m.pool")
@@ -26,14 +27,17 @@ class EnginePool:
     def __init__(
         self,
         n_gpu_layers: int = -1,
-        failover: Optional[FailoverSystem] = None,
         preloader: Optional[PredictivePreloader] = None,
+        model_registry: Optional[ModelRegistry] = None,
+        failover: Optional[FailoverSystem] = None,
     ):
         self.n_gpu_layers = n_gpu_layers
         self.engines: Dict[EngineID, InferenceEngine] = {}
-        self.failover = failover or FailoverSystem()
         self.preloader = preloader or PredictivePreloader()
+        self.model_registry = model_registry or ModelRegistry()
+        self.failover = failover or FailoverSystem()
         self._initialize_engines()
+        logger.info("EnginePool initialized with Failover & Preload support")
 
     def _initialize_engines(self):
         for engine_id in EngineID:
@@ -142,14 +146,14 @@ class EnginePool:
         engine_id = DOMAIN_ROUTING[domain]
         return self.query_engine(engine_id, prompt, system_prompt)
 
-    def query_engine_with_preload_tracking(
+    def query_engine_with_tracking(
         self,
         engine_id: EngineID,
         prompt: str,
         domain: Optional[TaskDomain] = None,
         **kwargs,
     ) -> InferenceResult:
-        """Query engine and record usage for deterministic preload forecasting."""
+        """Query engine and track preload+failover state."""
         inferred_domain = domain or TaskDomain.TACTICAL
         try:
             result = self.query_engine(engine_id=engine_id, prompt=prompt, **kwargs)
@@ -169,6 +173,71 @@ class EnginePool:
                 latency_ms=0.0,
             )
             raise
+
+    def query_engine_with_preload_tracking(
+        self,
+        engine_id: EngineID,
+        prompt: str,
+        domain: Optional[TaskDomain] = None,
+        **kwargs,
+    ) -> InferenceResult:
+        """Backward-compatible alias for query_engine_with_tracking."""
+        return self.query_engine_with_tracking(
+            engine_id=engine_id,
+            prompt=prompt,
+            domain=domain,
+            **kwargs,
+        )
+
+    def select_healthy_engines(self, candidate_engines: List[EngineID]) -> List[EngineID]:
+        """Filter candidates to currently healthy/degraded engines."""
+        healthy = set(self.failover.get_healthy_engines())
+        return [engine_id for engine_id in candidate_engines if engine_id in healthy]
+
+    def get_engine_availability(self) -> Dict[str, Dict]:
+        """Get detailed engine availability and failover state."""
+        health = self.failover.get_health_snapshot()
+        return {
+            engine_id: {
+                "available": str(state.get("state", "")).lower() != "unavailable",
+                "state": state.get("state"),
+                "success_rate": state.get("success_rate"),
+            }
+            for engine_id, state in health.items()
+            if isinstance(state, dict)
+        }
+
+    def suggest_preload(
+        self,
+        domain_hint: Optional[TaskDomain] = None,
+        count: int = 2,
+    ) -> List[EngineID]:
+        """Suggest engines to preload from deterministic prediction."""
+        prediction = self.preloader.predict_next_engines(domain_hint=domain_hint, limit=count)
+        return prediction.predicted_engines
+
+    def get_pool_metrics(self) -> Dict:
+        """Return pool-level health and preload telemetry."""
+        health = self.failover.get_health_snapshot()
+        preload_stats = self.preloader.get_stats()
+        healthy = degraded = unavailable = 0
+        for state in health.values():
+            if not isinstance(state, dict):
+                continue
+            normalized = str(state.get("state", "")).lower()
+            if normalized == "healthy":
+                healthy += 1
+            elif normalized == "degraded":
+                degraded += 1
+            elif normalized == "unavailable":
+                unavailable += 1
+        return {
+            "engines_healthy": healthy,
+            "engines_degraded": degraded,
+            "engines_unavailable": unavailable,
+            "preload_stats": preload_stats,
+            "total_requests_tracked": preload_stats.get("total_requests", 0),
+        }
 
     def preload_predicted_engines(
         self,
