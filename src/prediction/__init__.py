@@ -1,33 +1,28 @@
-"""S3M Short-Horizon Prediction Engine."""
+"""Short-horizon tactical prediction package for S3M.
+
+This package is designed for offline, air-gapped operation on edge hardware.
+"""
 
 from .prediction_models import (
-    CoordinationIndicator,
     EntitySnapshot,
     ExplanationBlock,
     ForecastBundle,
-    HistoryPoint,
-    MovementMode,
+    ForecastWindow,
     PredictedEntityState,
     PredictionHypothesis,
-    PredictionRequest,
-    PredictionWindow,
     ThreatPosture,
     UncertaintyEstimate,
 )
 from .short_horizon_predictor import ShortHorizonPredictor
 
 __all__ = [
-    "ShortHorizonPredictor",
     "EntitySnapshot",
-    "HistoryPoint",
-    "PredictionRequest",
-    "ForecastBundle",
-    "PredictionWindow",
-    "PredictionHypothesis",
-    "PredictedEntityState",
-    "UncertaintyEstimate",
     "ExplanationBlock",
+    "ForecastBundle",
+    "ForecastWindow",
+    "PredictedEntityState",
+    "PredictionHypothesis",
+    "ShortHorizonPredictor",
     "ThreatPosture",
-    "MovementMode",
-    "CoordinationIndicator",
+    "UncertaintyEstimate",
 ]

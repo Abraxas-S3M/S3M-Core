@@ -1,586 +1,288 @@
-# File: src/prediction/short_horizon_predictor.py
-"""Short-horizon operational prediction engine for S3M.
-
-Forecasts what an entity is likely to do over configurable time windows
-(30s, 2min, 10min) using four layered algorithms:
-
-  1. Kinematic extrapolation: linear projection with uncertainty cone
-  2. Behavioral trend analysis: detect escalation/stability from history
-  3. Multi-hypothesis branching: generate tactical alternatives
-  4. Volatility-scaled uncertainty: erratic entities get wider bounds
-
-This is defensive decision-support — it predicts what threats and contacts
-WILL do, not what WE should do.  No offensive planning.
-
-Usage::
-
-    predictor = ShortHorizonPredictor()
-    bundle = predictor.forecast(entity_snapshot)
-    # or
-    bundle = predictor.forecast_from_request(prediction_request)
-"""
+"""Short-horizon tactical predictor with optional pattern/certainty upgrades."""
 
 from __future__ import annotations
 
 import math
-import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence
 
 from .prediction_models import (
-    CoordinationIndicator,
     EntitySnapshot,
     ExplanationBlock,
     ForecastBundle,
-    HistoryPoint,
-    MovementMode,
+    ForecastWindow,
     PredictedEntityState,
     PredictionHypothesis,
-    PredictionRequest,
-    PredictionWindow,
     ThreatPosture,
     UncertaintyEstimate,
-    _variance,
 )
+from .pattern_memory import PatternMemory, MotifMatch
+from .confidence_calibrator import ConfidenceCalibrator
 
 
-# =====================================================================
-# Threat level numeric mapping for trend analysis
-# =====================================================================
-
-_THREAT_RANK: Dict[str, int] = {
-    "negligible": 1, "low": 2, "medium": 3, "high": 4, "critical": 5, "unknown": 0,
-}
-
-_RANK_THREAT: Dict[int, str] = {v: k for k, v in _THREAT_RANK.items()}
+def _clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
+    return max(low, min(high, value))
 
 
-# =====================================================================
-# Tactical branch definitions
-# =====================================================================
-
-# Each branch: (label, speed_factor, heading_delta_deg, base_probability)
-_BRANCH_TEMPLATES = [
-    ("continue_course",  1.0,   0.0,  0.40),
-    ("accelerate",       1.5,   0.0,  0.10),
-    ("decelerate",       0.3,   0.0,  0.10),
-    ("turn_left",        0.9, -45.0,  0.10),
-    ("turn_right",       0.9,  45.0,  0.10),
-    ("stop",             0.0,   0.0,  0.08),
-    ("reverse",         -0.5, 180.0,  0.07),
-    ("evasive_maneuver", 1.2,  90.0,  0.05),
-]
+def _variance(values: Sequence[float]) -> float:
+    if not values:
+        return 0.0
+    mean = sum(values) / len(values)
+    return sum((v - mean) ** 2 for v in values) / len(values)
 
 
 class ShortHorizonPredictor:
-    """Produces multi-hypothesis forecasts over configurable time windows.
+    """Generate deterministic short-horizon hypotheses for an entity.
 
-    All weights and parameters are constructor-configurable.
-    The engine is stateless — every call is independent and deterministic
-    given the same input snapshot.
+    The implementation is intentionally lightweight for reliable edge execution.
     """
 
     def __init__(
         self,
-        default_windows_s: Optional[List[float]] = None,
-        max_hypotheses: int = 5,
-        # Uncertainty growth parameters
-        position_uncertainty_growth_rate: float = 2.0,   # metres per sqrt(second)
-        heading_uncertainty_base_deg: float = 5.0,
-        speed_uncertainty_base_mps: float = 1.0,
-        # Confidence decay over horizon
-        temporal_confidence_halflife_s: float = 300.0,
-        # Volatility amplification factor
-        volatility_amplification: float = 3.0,
-        # Trend detection minimum history
-        min_history_for_trend: int = 3,
-    ) -> None:
-        self.default_windows = default_windows_s or [30.0, 120.0, 600.0]
-        self.max_hypotheses = max_hypotheses
-        self.pos_unc_rate = position_uncertainty_growth_rate
-        self.heading_unc_base = heading_uncertainty_base_deg
-        self.speed_unc_base = speed_uncertainty_base_mps
-        self.conf_halflife = temporal_confidence_halflife_s
-        self.volatility_amp = volatility_amplification
-        self.min_trend_history = min_history_for_trend
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
-    def forecast(
-        self,
-        entity: EntitySnapshot,
         windows_s: Optional[List[float]] = None,
-        max_hypotheses: Optional[int] = None,
-        doctrine_bias: Optional[str] = None,
-    ) -> ForecastBundle:
-        """Forecast one entity across all time windows.
+        top_hypotheses_per_window: int = 3,
+        doctrine_bias: Optional[Dict[str, float]] = None,
+        # Chunk 4: optional pattern memory and calibrator
+        pattern_memory: Optional[PatternMemory] = None,
+        calibrator: Optional[ConfidenceCalibrator] = None,
+    ) -> None:
+        self.windows_s = windows_s or [30.0, 60.0, 120.0]
+        self.top_hypotheses_per_window = max(1, int(top_hypotheses_per_window))
+        self.doctrine_bias = doctrine_bias or {}
+        self.pattern_memory = pattern_memory
+        self.calibrator = calibrator
 
-        Parameters
-        ----------
-        entity : EntitySnapshot
-            Current state + history of the entity to predict.
-        windows_s : list of float, optional
-            Override time horizons in seconds.
-        max_hypotheses : int, optional
-            Override max hypotheses per window.
-        doctrine_bias : str, optional
-            Bias toward "defensive" or "aggressive" interpretations.
-
-        Returns
-        -------
-        ForecastBundle with all windows populated.
-        """
-        windows = windows_s or self.default_windows
-        n_hyp = max_hypotheses or self.max_hypotheses
-
-        # Analyze the entity
-        trend = self._detect_trend(entity)
+    def forecast(self, entity: EntitySnapshot) -> ForecastBundle:
+        """Build forecast windows for one entity snapshot."""
+        trend = self._infer_trend(entity)
         vol = entity.volatility
 
-        # Generate forecast for each window
-        pred_windows: List[PredictionWindow] = []
-        for w_s in sorted(windows):
-            pw = self._forecast_window(entity, w_s, n_hyp, trend, vol, doctrine_bias)
-            pred_windows.append(pw)
+        # Chunk 4: motif lookup
+        best_motif_match: Optional[MotifMatch] = None
+        motif_match_score = 0.0
+        if self.pattern_memory:
+            traits = self._extract_traits(entity)
+            motif_matches = self.pattern_memory.lookup(
+                traits,
+                entity_type=entity.entity_type,
+                entity_tags=set(entity.behavior_tags),
+                top_k=1,
+            )
+            if motif_matches:
+                best_motif_match = motif_matches[0]
+                motif_match_score = best_motif_match.effective_score
 
-        bundle = ForecastBundle(
-            request_id="",
+        doctrine_bias = self.doctrine_bias.get(entity.entity_type.lower(), 1.0)
+        windows: List[ForecastWindow] = []
+        for w_s in self.windows_s:
+            pw = self._forecast_window(
+                entity,
+                w_s,
+                self.top_hypotheses_per_window,
+                trend,
+                vol,
+                doctrine_bias,
+                motif_match_score=motif_match_score,
+                motif_name=best_motif_match.motif.name if best_motif_match else None,
+            )
+            windows.append(ForecastWindow(horizon_s=w_s, hypotheses=pw))
+
+        return ForecastBundle(
             entity_id=entity.entity_id,
-            entity_classification=entity.classification,
-            windows=pred_windows,
+            windows=windows,
             overall_trend=trend,
             volatility_score=vol,
-            forecast_confidence=self._overall_confidence(entity, pred_windows),
+            forecast_confidence=self._overall_confidence(windows),
+            matched_motif_name=best_motif_match.motif.name if best_motif_match else None,
+            motif_match_score=motif_match_score,
+            calibration_applied=self.calibrator is not None,
         )
-        return bundle
-
-    def forecast_from_request(self, request: PredictionRequest) -> List[ForecastBundle]:
-        """Forecast all entities in a request."""
-        bundles: List[ForecastBundle] = []
-        for entity in request.entities:
-            bundle = self.forecast(
-                entity,
-                windows_s=request.windows_seconds,
-                max_hypotheses=request.max_hypotheses,
-                doctrine_bias=request.doctrine_bias,
-            )
-            bundle.request_id = request.request_id
-            bundles.append(bundle)
-        return bundles
-
-    # ------------------------------------------------------------------
-    # Per-window forecast
-    # ------------------------------------------------------------------
 
     def _forecast_window(
         self,
         entity: EntitySnapshot,
         horizon_s: float,
-        max_hyp: int,
+        n_hyp: int,
         trend: ThreatPosture,
-        volatility: float,
-        doctrine_bias: Optional[str],
-    ) -> PredictionWindow:
-        """Generate all hypotheses for one time window."""
-        hypotheses: List[PredictionHypothesis] = []
+        vol: float,
+        doctrine_bias: float,
+        motif_match_score: float = 0.0,
+        motif_name: Optional[str] = None,
+    ) -> List[PredictionHypothesis]:
+        branch = self._branch_probabilities(entity, trend, horizon_s, vol)
+        sorted_branch = sorted(branch.items(), key=lambda kv: kv[1], reverse=True)[:n_hyp]
 
-        for label, speed_factor, heading_delta, base_prob in _BRANCH_TEMPLATES:
-            # Adjust probability based on trend and context
-            prob = self._adjust_probability(
-                base_prob, label, trend, volatility, entity, doctrine_bias,
+        out: List[PredictionHypothesis] = []
+        for label, base_prob in sorted_branch:
+            prob = _clamp(base_prob * doctrine_bias)
+            predicted = self._project_state(entity, label, horizon_s)
+            unc = self._estimate_uncertainty(entity, horizon_s, vol)
+            expl = ExplanationBlock(
+                summary=f"{label} projected over {int(horizon_s)}s",
+                factors={
+                    "base_prob": base_prob,
+                    "volatility": vol,
+                    "doctrine_bias": doctrine_bias,
+                    "motif_match": motif_match_score,
+                },
+                evidence=[f"trend={trend.value}", f"history_depth={entity.history_depth}"],
             )
-            if prob < 0.01:
-                continue  # skip negligible branches
-
-            # Project kinematic state
-            state = self._extrapolate(entity, horizon_s, speed_factor, heading_delta)
-
-            # Predict threat evolution
-            state.predicted_threat_level = self._project_threat_level(
-                entity, horizon_s, trend, label,
-            )
-            state.predicted_posture = self._label_to_posture(label, trend)
-            state.movement_mode = self._label_to_movement(label)
-
-            # Compute uncertainty
-            uncertainty = self._compute_uncertainty(entity, horizon_s, volatility)
-
-            # Build explanation
-            explanation = self._build_explanation(
-                entity, horizon_s, label, prob, trend, volatility,
-            )
-
-            hypotheses.append(PredictionHypothesis(
+            hyp = PredictionHypothesis(
                 label=label,
                 probability=prob,
-                predicted_state=state,
-                uncertainty=uncertainty,
-                explanation=explanation,
-            ))
+                predicted_state=predicted,
+                uncertainty=unc,
+                explanation=expl,
+                raw_probability=prob,
+                matched_motif=motif_name,
+            )
 
-        # Normalize probabilities to sum to 1.0
-        total_p = sum(h.probability for h in hypotheses)
-        if total_p > 0:
-            for h in hypotheses:
-                h.probability /= total_p
+            if self.calibrator:
+                heading_var = _variance([h.heading_deg for h in entity.history[-10:]]) if entity.history else 0.0
+                speed_var = _variance([h.speed_mps for h in entity.history[-10:]]) if entity.history else 0.0
+                threat_changes = self._count_threat_changes(entity)
+                cal = self.calibrator.calibrate(
+                    raw_score=prob,
+                    entity_confidence=entity.confidence,
+                    history_depth=entity.history_depth,
+                    heading_variance=heading_var,
+                    speed_variance=speed_var,
+                    threat_level_changes=threat_changes,
+                    pattern_match_score=motif_match_score,
+                    horizon_s=horizon_s,
+                    source_reliability=entity.confidence,
+                )
+                hyp.calibrated_confidence = cal.to_dict()
+                hyp.probability = prob * 0.6 + cal.calibrated_score * 0.4
 
-        # Sort by probability descending, keep top N
-        hypotheses.sort(key=lambda h: h.probability, reverse=True)
-        hypotheses = hypotheses[:max_hyp]
+            out.append(hyp)
+        return out
 
-        # Re-normalize after truncation
-        total_p = sum(h.probability for h in hypotheses)
-        if total_p > 0:
-            for h in hypotheses:
-                h.probability /= total_p
-
-        # Build window
-        dominant = hypotheses[0] if hypotheses else None
-        agg_uncertainty = self._compute_uncertainty(entity, horizon_s, volatility)
-
-        window = PredictionWindow(
-            window_seconds=horizon_s,
-            hypotheses=hypotheses,
-            dominant_hypothesis_id=dominant.hypothesis_id if dominant else None,
-            aggregate_uncertainty=agg_uncertainty,
-        )
-        return window
-
-    # ------------------------------------------------------------------
-    # Kinematic extrapolation
-    # ------------------------------------------------------------------
-
-    def _extrapolate(
+    def _branch_probabilities(
         self,
         entity: EntitySnapshot,
-        dt_s: float,
-        speed_factor: float,
-        heading_delta_deg: float,
-    ) -> PredictedEntityState:
-        """Linear kinematic projection with branch modifiers."""
-        new_heading = (entity.heading_deg + heading_delta_deg) % 360.0
-        new_speed = max(0.0, entity.speed_mps * speed_factor)
-
-        heading_rad = math.radians(new_heading)
-        vx = new_speed * math.cos(heading_rad)
-        vy = new_speed * math.sin(heading_rad)
-        vz = entity.velocity[2] * speed_factor if abs(speed_factor) > 0.01 else 0.0
-
-        px = entity.position[0] + vx * dt_s
-        py = entity.position[1] + vy * dt_s
-        pz = entity.position[2] + vz * dt_s
-
-        return PredictedEntityState(
-            predicted_position=(round(px, 2), round(py, 2), round(pz, 2)),
-            predicted_velocity=(round(vx, 2), round(vy, 2), round(vz, 2)),
-            predicted_heading_deg=round(new_heading, 1),
-            predicted_speed_mps=round(new_speed, 2),
-            predicted_allegiance=entity.allegiance,
-        )
-
-    # ------------------------------------------------------------------
-    # Uncertainty computation
-    # ------------------------------------------------------------------
-
-    def _compute_uncertainty(
-        self,
-        entity: EntitySnapshot,
-        horizon_s: float,
-        volatility: float,
-    ) -> UncertaintyEstimate:
-        """Compute uncertainty that grows with time horizon and volatility.
-
-        Spatial uncertainty grows as rate × sqrt(t) × (1 + volatility × amplification).
-        Temporal confidence decays exponentially with half-life.
-        """
-        vol_factor = 1.0 + volatility * self.volatility_amp
-        sqrt_t = math.sqrt(max(0.1, horizon_s))
-
-        spatial = self.pos_unc_rate * sqrt_t * vol_factor
-        heading_std = self.heading_unc_base * sqrt_t * vol_factor * 0.5
-        speed_std = self.speed_unc_base * sqrt_t * vol_factor * 0.3
-
-        # Temporal confidence: 2^(-t / halflife)
-        temporal_conf = math.pow(2.0, -horizon_s / self.conf_halflife)
-
-        # Threat level entropy: higher if entity is volatile or near a transition
-        threat_entropy = min(2.0, 0.3 + volatility * 1.5 + (1.0 - entity.confidence) * 0.5)
-
-        return UncertaintyEstimate(
-            spatial_radius_m=round(spatial, 2),
-            heading_std_deg=round(heading_std, 1),
-            speed_std_mps=round(speed_std, 2),
-            threat_level_entropy=round(threat_entropy, 3),
-            temporal_confidence=round(temporal_conf, 4),
-        )
-
-    # ------------------------------------------------------------------
-    # Trend detection from history
-    # ------------------------------------------------------------------
-
-    def _detect_trend(self, entity: EntitySnapshot) -> ThreatPosture:
-        """Detect behavioral trend from recent state history."""
-        if len(entity.history) < self.min_trend_history:
-            return ThreatPosture.UNKNOWN
-
-        recent = entity.history[-min(10, len(entity.history)):]
-
-        # Check threat level progression
-        threat_ranks = [_THREAT_RANK.get(h.threat_level, 0) for h in recent]
-        non_zero = [r for r in threat_ranks if r > 0]
-
-        if len(non_zero) >= 3:
-            deltas = [non_zero[i] - non_zero[i - 1] for i in range(1, len(non_zero))]
-            avg_delta = sum(deltas) / len(deltas) if deltas else 0
-            if avg_delta > 0.3:
-                return ThreatPosture.ESCALATING
-            if avg_delta < -0.3:
-                return ThreatPosture.DE_ESCALATING
-
-        # Check speed trend
-        speeds = [h.speed_mps for h in recent]
-        if len(speeds) >= 3:
-            speed_deltas = [speeds[i] - speeds[i - 1] for i in range(1, len(speeds))]
-            avg_speed_delta = sum(speed_deltas) / len(speed_deltas)
-            if avg_speed_delta < -1.0 and speeds[-1] < 1.0:
-                return ThreatPosture.WITHDRAWING
-
-        # Check heading variance for maneuvering
-        headings = [h.heading_deg for h in recent]
-        if _variance(headings) > 400:  # >20 deg std
-            return ThreatPosture.MANEUVERING
-
-        return ThreatPosture.STABLE
-
-    # ------------------------------------------------------------------
-    # Probability adjustment
-    # ------------------------------------------------------------------
-
-    def _adjust_probability(
-        self,
-        base_prob: float,
-        label: str,
         trend: ThreatPosture,
-        volatility: float,
-        entity: EntitySnapshot,
-        doctrine_bias: Optional[str],
-    ) -> float:
-        """Adjust branch probability based on context.
-
-        Trend modifiers:
-          - ESCALATING: boost accelerate/continue, suppress stop/reverse
-          - DE_ESCALATING: boost decelerate/stop, suppress accelerate
-          - WITHDRAWING: boost reverse, suppress continue
-          - MANEUVERING: boost turns/evasive, suppress continue
-          - STABLE: boost continue, suppress evasive
-
-        Volatility: boost erratic branches, suppress stable ones.
-        Doctrine: defensive boosts cautious predictions.
-        """
-        p = base_prob
-
-        # Trend adjustments
+        horizon_s: float,
+        vol: float,
+    ) -> Dict[str, float]:
+        """Compute branch probabilities for major tactical continuations."""
+        del entity  # API compatibility; current branch model uses trend/volatility.
+        horizon_scale = min(1.0, max(0.25, 120.0 / max(1.0, horizon_s)))
+        vol_penalty = max(0.6, 1.0 - vol * 0.4)
         if trend == ThreatPosture.ESCALATING:
-            if label in ("continue_course", "accelerate"):
-                p *= 1.5
-            elif label in ("stop", "reverse", "decelerate"):
-                p *= 0.3
-        elif trend == ThreatPosture.DE_ESCALATING:
-            if label in ("decelerate", "stop"):
-                p *= 1.8
-            elif label in ("accelerate", "evasive_maneuver"):
-                p *= 0.3
-        elif trend == ThreatPosture.WITHDRAWING:
-            if label == "reverse":
-                p *= 3.0
-            elif label == "continue_course":
-                p *= 0.5
-        elif trend == ThreatPosture.MANEUVERING:
-            if label in ("turn_left", "turn_right", "evasive_maneuver"):
-                p *= 2.0
-            elif label == "continue_course":
-                p *= 0.5
-        elif trend == ThreatPosture.STABLE:
-            if label == "continue_course":
-                p *= 1.6
-            elif label in ("evasive_maneuver", "reverse"):
-                p *= 0.3
-
-        # Volatility: erratic entities are less predictable
-        if volatility > 0.5:
-            if label == "continue_course":
-                p *= (1.0 - volatility * 0.5)
-            elif label in ("evasive_maneuver", "turn_left", "turn_right"):
-                p *= (1.0 + volatility)
-
-        # Stopped entity: strongly boost "stop", suppress movement branches
-        if not entity.is_moving:
-            if label == "stop":
-                p *= 5.0
-            elif label in ("continue_course", "accelerate", "turn_left", "turn_right"):
-                p *= 0.2
-            elif label == "reverse":
-                p *= 0.1
-
-        # Doctrine bias
-        if doctrine_bias == "defensive":
-            if label in ("stop", "reverse", "decelerate"):
-                p *= 1.3
-        elif doctrine_bias == "aggressive":
-            if label in ("accelerate", "continue_course"):
-                p *= 1.3
-
-        return max(0.0, p)
-
-    # ------------------------------------------------------------------
-    # Threat level projection
-    # ------------------------------------------------------------------
-
-    def _project_threat_level(
-        self,
-        entity: EntitySnapshot,
-        horizon_s: float,
-        trend: ThreatPosture,
-        branch_label: str,
-    ) -> str:
-        """Project the threat level forward in time."""
-        current_rank = _THREAT_RANK.get(entity.threat_level, 0)
-        if current_rank == 0:
-            return entity.threat_level
-
-        delta = 0
-        if trend == ThreatPosture.ESCALATING:
-            delta = 1 if horizon_s > 60 else 0
-        elif trend == ThreatPosture.DE_ESCALATING:
-            delta = -1 if horizon_s > 60 else 0
-
-        if branch_label in ("accelerate", "evasive_maneuver"):
-            delta = max(delta, 0) + (1 if horizon_s > 120 else 0)
-        elif branch_label in ("stop", "reverse"):
-            delta = min(delta, 0) - (1 if horizon_s > 60 else 0)
-
-        projected_rank = max(1, min(5, current_rank + delta))
-        return _RANK_THREAT.get(projected_rank, entity.threat_level)
-
-    # ------------------------------------------------------------------
-    # Label → enum mappings
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _label_to_posture(label: str, trend: ThreatPosture) -> ThreatPosture:
-        mapping = {
-            "continue_course": trend if trend != ThreatPosture.UNKNOWN else ThreatPosture.STABLE,
-            "accelerate": ThreatPosture.ESCALATING,
-            "decelerate": ThreatPosture.DE_ESCALATING,
-            "stop": ThreatPosture.DE_ESCALATING,
-            "turn_left": ThreatPosture.MANEUVERING,
-            "turn_right": ThreatPosture.MANEUVERING,
-            "reverse": ThreatPosture.WITHDRAWING,
-            "evasive_maneuver": ThreatPosture.MANEUVERING,
-        }
-        return mapping.get(label, ThreatPosture.UNKNOWN)
-
-    @staticmethod
-    def _label_to_movement(label: str) -> MovementMode:
-        mapping = {
-            "continue_course": MovementMode.CONTINUE_COURSE,
-            "accelerate": MovementMode.ACCELERATING,
-            "decelerate": MovementMode.DECELERATING,
-            "stop": MovementMode.STOPPED,
-            "turn_left": MovementMode.TURNING,
-            "turn_right": MovementMode.TURNING,
-            "reverse": MovementMode.REVERSING,
-            "evasive_maneuver": MovementMode.ERRATIC,
-        }
-        return mapping.get(label, MovementMode.UNKNOWN)
-
-    # ------------------------------------------------------------------
-    # Explanation generation
-    # ------------------------------------------------------------------
-
-    def _build_explanation(
-        self,
-        entity: EntitySnapshot,
-        horizon_s: float,
-        label: str,
-        probability: float,
-        trend: ThreatPosture,
-        volatility: float,
-    ) -> ExplanationBlock:
-        """Build human-readable explanation for a hypothesis."""
-        factors: List[str] = []
-        observations: List[str] = []
-        uncertainty_notes: List[str] = []
-
-        # Primary factors
-        factors.append(f"Branch '{label}' from kinematic extrapolation over {horizon_s:.0f}s")
-        if trend != ThreatPosture.UNKNOWN:
-            factors.append(f"Behavioral trend: {trend.value}")
-        if entity.is_moving:
-            factors.append(f"Entity moving at {entity.speed_mps:.1f} m/s, heading {entity.heading_deg:.0f}°")
+            base = {"continue_course": 0.35, "accelerate": 0.45, "decelerate": 0.20}
+        elif trend == ThreatPosture.DEESCALATING:
+            base = {"continue_course": 0.45, "accelerate": 0.15, "decelerate": 0.40}
         else:
-            factors.append("Entity is stationary")
+            base = {"continue_course": 0.55, "accelerate": 0.20, "decelerate": 0.25}
 
-        # Supporting observations
-        if entity.history_depth >= 3:
-            observations.append(f"Based on {entity.history_depth} historical state observations")
-        if entity.threat_level != "unknown":
-            observations.append(f"Current threat assessment: {entity.threat_level}")
-        if entity.confidence > 0.7:
-            observations.append(f"High-confidence entity (conf={entity.confidence:.2f})")
-        elif entity.confidence < 0.4:
-            observations.append(f"Low-confidence entity (conf={entity.confidence:.2f})")
+        weighted = {
+            "continue_course": base["continue_course"] * (0.9 + 0.1 * horizon_scale),
+            "accelerate": base["accelerate"] * vol_penalty,
+            "decelerate": base["decelerate"] * (2.0 - vol_penalty),
+        }
+        total = sum(weighted.values()) or 1.0
+        return {k: v / total for k, v in weighted.items()}
 
-        # Uncertainty notes
-        if horizon_s > 300:
-            uncertainty_notes.append("Long forecast horizon increases positional uncertainty significantly")
-        if volatility > 0.5:
-            uncertainty_notes.append(f"Entity is volatile (score={volatility:.2f}), predictions less reliable")
-        if entity.history_depth < 3:
-            uncertainty_notes.append("Insufficient history for reliable trend detection")
-        if entity.confidence < 0.5:
-            uncertainty_notes.append("Low entity confidence degrades forecast reliability")
+    def _project_state(self, entity: EntitySnapshot, label: str, horizon_s: float) -> PredictedEntityState:
+        """Project simple kinematics for each hypothesis branch."""
+        speed = entity.speed_mps
+        if label == "accelerate":
+            speed = speed * 1.15
+        elif label == "decelerate":
+            speed = speed * 0.75
 
-        methodology = (
-            "Recency-weighted kinematic extrapolation with behavioral trend modulation "
-            "and probabilistic branching. Uncertainty scales as sqrt(t) × volatility."
+        heading_rad = math.radians(entity.heading_deg)
+        dx = speed * horizon_s * math.cos(heading_rad)
+        dy = speed * horizon_s * math.sin(heading_rad)
+        z = entity.position[2]
+        if label == "accelerate":
+            z += min(20.0, horizon_s * 0.05)
+        elif label == "decelerate":
+            z -= min(20.0, horizon_s * 0.05)
+
+        tags = list(entity.behavior_tags)
+        if label not in tags:
+            tags.append(label)
+        return PredictedEntityState(
+            horizon_s=horizon_s,
+            position=(entity.position[0] + dx, entity.position[1] + dy, z),
+            speed_mps=speed,
+            heading_deg=entity.heading_deg,
+            threat_level=entity.threat_level,
+            behavior_tags=tags,
         )
 
-        return ExplanationBlock(
-            primary_factors=factors,
-            supporting_observations=observations,
-            uncertainty_notes=uncertainty_notes,
-            methodology=methodology,
+    def _estimate_uncertainty(self, entity: EntitySnapshot, horizon_s: float, vol: float) -> UncertaintyEstimate:
+        depth_factor = 1.0 - min(0.7, entity.history_depth * 0.05)
+        horizon_factor = min(1.0, horizon_s / 240.0)
+        aleatoric = _clamp(0.08 + vol * 0.25 + horizon_factor * 0.2, 0.01, 0.95)
+        epistemic = _clamp(0.10 + depth_factor * 0.4, 0.01, 0.95)
+        width = _clamp(0.10 + aleatoric * 0.2 + epistemic * 0.2, 0.05, 0.45)
+        center = _clamp(entity.confidence * 0.5 + 0.25)
+        return UncertaintyEstimate(
+            aleatoric=aleatoric,
+            epistemic=epistemic,
+            interval_low=_clamp(center - width),
+            interval_high=_clamp(center + width),
         )
 
-    # ------------------------------------------------------------------
-    # Overall confidence
-    # ------------------------------------------------------------------
+    def _infer_trend(self, entity: EntitySnapshot) -> ThreatPosture:
+        """Infer trajectory trend from recent threat levels or speed profile."""
+        if entity.history_depth >= 2:
+            threat_numeric = {"low": 1, "guarded": 2, "medium": 2, "elevated": 3, "high": 4, "critical": 5}
+            first = threat_numeric.get(entity.history[-2].threat_level.lower(), 2)
+            last = threat_numeric.get(entity.history[-1].threat_level.lower(), 2)
+            if last > first:
+                return ThreatPosture.ESCALATING
+            if last < first:
+                return ThreatPosture.DEESCALATING
 
-    def _overall_confidence(
-        self,
-        entity: EntitySnapshot,
-        windows: List[PredictionWindow],
-    ) -> float:
-        """Compute overall forecast confidence across all windows."""
-        if not windows:
-            return 0.0
+            recent_speeds = [h.speed_mps for h in entity.history[-5:]]
+            if len(recent_speeds) >= 3 and recent_speeds[-1] > recent_speeds[0] * 1.15:
+                return ThreatPosture.ESCALATING
+            if len(recent_speeds) >= 3 and recent_speeds[-1] < recent_speeds[0] * 0.85:
+                return ThreatPosture.DEESCALATING
+            return ThreatPosture.STABLE
+        return ThreatPosture.UNKNOWN
 
-        # Average temporal confidence across windows
-        confidences = []
-        for w in windows:
-            if w.aggregate_uncertainty:
-                confidences.append(w.aggregate_uncertainty.temporal_confidence)
+    @staticmethod
+    def _extract_traits(entity: EntitySnapshot) -> Dict[str, Any]:
+        traits: Dict[str, Any] = {"speed_range_mps": entity.speed_mps}
+        if entity.history and len(entity.history) >= 3:
+            headings = [h.heading_deg for h in entity.history[-10:]]
+            speeds = [h.speed_mps for h in entity.history[-10:]]
+            traits["heading_variance_deg"] = _variance(headings)
+            traits["speed_variance_mps"] = _variance(speeds)
+            alts = [h.position[2] for h in entity.history[-10:]]
+            traits["altitude_stable"] = _variance(alts) < 25.0
+            if len(entity.history) >= 2:
+                d_first = math.sqrt(entity.history[0].position[0] ** 2 + entity.history[0].position[1] ** 2)
+                d_last = math.sqrt(entity.position[0] ** 2 + entity.position[1] ** 2)
+                traits["closing"] = d_last < d_first
+                traits["moving_away"] = d_last > d_first
+        else:
+            traits["heading_variance_deg"] = 0.0
+        traits["high_speed"] = entity.speed_mps > 30.0
+        return traits
 
-        avg_temporal = sum(confidences) / len(confidences) if confidences else 0.5
+    @staticmethod
+    def _count_threat_changes(entity: EntitySnapshot) -> int:
+        if len(entity.history) < 2:
+            return 0
+        changes = 0
+        prev = entity.history[0].threat_level
+        for h in entity.history[1:]:
+            if h.threat_level != prev:
+                changes += 1
+                prev = h.threat_level
+        return changes
 
-        # Factor in entity confidence and history depth
-        history_factor = min(1.0, entity.history_depth / 10.0)
-        entity_conf_factor = entity.confidence
-
-        return round(
-            avg_temporal * 0.4 + entity_conf_factor * 0.35 + history_factor * 0.25,
-            3,
-        )
+    def _overall_confidence(self, windows: List[ForecastWindow]) -> float:
+        probs: List[float] = []
+        for window in windows:
+            if not window.hypotheses:
+                continue
+            probs.append(max(h.probability for h in window.hypotheses))
+        if not probs:
+            return 0.5
+        return _clamp(sum(probs) / len(probs), 0.01, 0.99)
