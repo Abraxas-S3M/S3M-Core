@@ -26,6 +26,7 @@ class ThreatGenomeStore:
     def __init__(self) -> None:
         self._lock = RLock()
         self._genomes: Dict[str, ThreatGenome] = {}
+        self._total_updates = 0
 
         self._technique_index: DefaultDict[str, Set[str]] = defaultdict(set)
         self._phase_index: DefaultDict[str, Set[str]] = defaultdict(set)
@@ -83,6 +84,15 @@ class ThreatGenomeStore:
         for tag in keys["tags"]:
             self._tag_index[tag].add(actor_id)
 
+    # Backward-compatible private aliases for Chunk 2 API.
+    def _index(self, genome: ThreatGenome) -> None:
+        self._index_genome(genome)
+
+    def _deindex(self, genome_id: str) -> None:
+        genome = self._genomes.get(genome_id)
+        if genome is not None:
+            self._deindex_genome(genome)
+
     def _deindex_genome(self, genome: ThreatGenome) -> None:
         keys = self._extract_index_keys(genome)
         actor_id = genome.actor_id
@@ -108,6 +118,7 @@ class ThreatGenomeStore:
                 raise ValueError(f"Genome already exists for actor_id: {genome.actor_id}")
             self._genomes[genome.actor_id] = genome
             self._index_genome(genome)
+            self._total_updates += 1
 
     def upsert_genome(self, genome: ThreatGenome) -> None:
         """Insert or replace a genome and refresh index edges."""
@@ -119,6 +130,7 @@ class ThreatGenomeStore:
                 self._deindex_genome(existing)
             self._genomes[genome.actor_id] = genome
             self._index_genome(genome)
+            self._total_updates += 1
 
     def refresh_genome(self, actor_id: str) -> None:
         """Rebuild indexes for a genome after in-place mutations."""
@@ -159,11 +171,65 @@ class ThreatGenomeStore:
             if genome is None:
                 return False
             self._deindex_genome(genome)
+            self._total_updates += 1
             return True
 
     def list_genomes(self) -> List[ThreatGenome]:
         with self._lock:
             return list(self._genomes.values())
+
+    def count(self) -> int:
+        with self._lock:
+            return len(self._genomes)
+
+    # ------------------------------------------------------------------
+    # Genome merging (Chunk 2)
+    # ------------------------------------------------------------------
+
+    def merge_genomes(self, survivor_id: str, absorbed_id: str,
+                      reason: str = "") -> Optional[Dict[str, Any]]:
+        """Merge two genomes when discovered to be the same actor.
+
+        The survivor absorbs all components from the absorbed genome.
+        The absorbed genome is removed from the store.
+        Returns a provenance dict, or None if either genome is missing.
+        """
+        with self._lock:
+            survivor = self._genomes.get(survivor_id)
+            absorbed = self._genomes.get(absorbed_id)
+            if survivor is None or absorbed is None:
+                return None
+
+            pre = {
+                "ttp_count": len(survivor.ttps),
+                "sig_count": len(survivor.signatures),
+                "confidence": survivor.confidence,
+            }
+
+            component_ids = survivor.merge_from(absorbed, merge_reason=reason)
+
+            self._deindex(survivor_id)
+            self._index(survivor)
+            self._deindex(absorbed_id)
+            self._genomes.pop(absorbed_id, None)
+            self._total_updates += 1
+
+            return {
+                "survivor_id": survivor_id,
+                "absorbed_id": absorbed_id,
+                "survivor_name": survivor.actor_name,
+                "absorbed_name": absorbed.actor_name,
+                "components_absorbed": len(component_ids),
+                "component_ids": component_ids,
+                "survivor_pre_merge": pre,
+                "survivor_post_merge": {
+                    "ttp_count": len(survivor.ttps),
+                    "sig_count": len(survivor.signatures),
+                    "confidence": survivor.confidence,
+                    "aliases": list(survivor.actor_aliases),
+                },
+                "reason": reason,
+            }
 
     def _resolve(self, actor_ids: Iterable[str]) -> List[ThreatGenome]:
         genomes = [self._genomes[actor_id] for actor_id in actor_ids if actor_id in self._genomes]
@@ -358,3 +424,23 @@ class ThreatGenomeStore:
     def __len__(self) -> int:
         with self._lock:
             return len(self._genomes)
+
+    def stats(self) -> Dict[str, Any]:
+        with self._lock:
+            return {
+                "genome_count": len(self._genomes),
+                "total_updates": self._total_updates,
+                "index_sizes": {
+                    "techniques": len(self._technique_index),
+                    "phases": len(self._phase_index),
+                    "regions": len(self._region_index),
+                    "platforms": len(self._platform_index),
+                    "actor_types": len(self._actor_type_index),
+                    "tags": len(self._tag_index),
+                },
+            }
+
+
+# Backward-compatible class aliases.
+GenomeStore = ThreatGenomeStore
+ThreatGenomeStore = GenomeStore
