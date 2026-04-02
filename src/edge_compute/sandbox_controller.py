@@ -318,6 +318,7 @@ class SandboxController:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         Path(path).touch(exist_ok=True)
         self._write_params(sandbox_id, self._read_params(sandbox_id))
+        initial_mtime_ns = os.stat(path).st_mtime_ns
 
         def _watch_loop() -> None:
             inotify = shutil.which("inotifywait")
@@ -334,6 +335,7 @@ class SandboxController:
                 stop_event=stop_event,
                 on_change=on_change,
                 poll_interval_sec=poll_interval_sec,
+                initial_mtime_ns=initial_mtime_ns,
             )
 
         thread = threading.Thread(
@@ -376,16 +378,18 @@ class SandboxController:
         stop_event: threading.Event,
         on_change: Callable[[Dict[str, Any]], None],
         poll_interval_sec: float,
+        initial_mtime_ns: int,
     ) -> None:
-        last_mtime = os.path.getmtime(path)
+        # Capture baseline before thread startup to avoid missing the first write.
+        last_mtime_ns = initial_mtime_ns
         while not stop_event.is_set():
             time.sleep(max(0.1, poll_interval_sec))
             try:
-                mtime = os.path.getmtime(path)
+                mtime_ns = os.stat(path).st_mtime_ns
             except FileNotFoundError:
                 continue
-            if mtime != last_mtime:
-                last_mtime = mtime
+            if mtime_ns != last_mtime_ns:
+                last_mtime_ns = mtime_ns
                 on_change(self._safe_read_params(path))
 
     def _safe_read_params(self, path: str) -> Dict[str, Any]:
