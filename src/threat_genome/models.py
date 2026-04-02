@@ -60,6 +60,8 @@ class TTPPhase(str, Enum):
     IMPACT = "impact"
     ISR_COLLECTION = "isr_collection"
     ELECTRONIC_ATTACK = "electronic_attack"
+    ELECTRONIC_WARFARE = "electronic_warfare"
+    KINETIC_MANEUVER = "kinetic_maneuver"
     KINETIC_PREPARATION = "kinetic_preparation"
     KINETIC_STRIKE = "kinetic_strike"
     LOGISTICS_STAGING = "logistics_staging"
@@ -81,13 +83,104 @@ class TTPPhase(str, Enum):
 ALL_TTP_PHASES: Tuple[TTPPhase, ...] = tuple(TTPPhase)
 
 
+class SignatureType(str, Enum):
+    """Behavioral signature families used for explainable matching."""
+
+    TEMPORAL = "temporal"
+    MOVEMENT = "movement"
+    COMMUNICATION = "communication"
+    TARGETING = "targeting"
+    EVASION = "evasion"
+    ESCALATION = "escalation"
+    LOGISTICS = "logistics"
+    FORMATION = "formation"
+
+    @classmethod
+    def from_value(cls, value: str | "SignatureType") -> "SignatureType":
+        if isinstance(value, SignatureType):
+            return value
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("signature_type must be a non-empty string or SignatureType")
+        normalized = value.strip().lower()
+        for sig_type in cls:
+            if sig_type.value == normalized:
+                return sig_type
+        raise ValueError(f"Unsupported signature type: {value}")
+
+
+class PlatformType(str, Enum):
+    """Platform categories for tactical capability profiles."""
+
+    FIXED_WING_UAV = "fixed_wing_uav"
+    LOITERING_MUNITION = "loitering_munition"
+    MULTIROTOR_UAV = "multirotor_uav"
+    GROUND_VEHICLE = "ground_vehicle"
+    MARITIME_SURFACE = "maritime_surface"
+
+    @classmethod
+    def from_value(cls, value: str | "PlatformType") -> "PlatformType":
+        if isinstance(value, PlatformType):
+            return value
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("platform_type must be a non-empty string or PlatformType")
+        normalized = value.strip().lower()
+        for platform_type in cls:
+            if platform_type.value == normalized:
+                return platform_type
+        raise ValueError(f"Unsupported platform type: {value}")
+
+
+@dataclass
+class GenomeEvolutionEntry:
+    """Single explainable mutation in a genome's evolution history."""
+
+    change_type: str
+    source_id: str = ""
+    description: str = ""
+    evidence_reference: str = ""
+    confidence_before: float = 0.0
+    confidence_after: float = 0.0
+    timestamp: datetime = field(default_factory=_utcnow)
+    event_id: str = field(default_factory=lambda: str(uuid4()))
+    details: Dict[str, Any] = field(default_factory=dict)
+
+    def __getitem__(self, key: str) -> Any:
+        mapping = {
+            "event_id": self.event_id,
+            "timestamp": self.timestamp.isoformat(),
+            "action": self.change_type,
+            "change_type": self.change_type,
+            "details": self.details,
+            "description": self.description,
+            "source_id": self.source_id,
+        }
+        if key not in mapping:
+            raise KeyError(key)
+        return mapping[key]
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "event_id": self.event_id,
+            "timestamp": self.timestamp.isoformat(),
+            "change_type": self.change_type,
+            "source_id": self.source_id,
+            "description": self.description,
+            "evidence_reference": self.evidence_reference,
+            "confidence_before": self.confidence_before,
+            "confidence_after": self.confidence_after,
+            "details": dict(self.details),
+        }
+
+
 @dataclass
 class TTP:
     """MITRE-aligned technique with Bayesian reinforcement and recency decay."""
 
-    technique_id: str
-    name: str
-    phase: TTPPhase | str
+    technique_id: str = ""
+    name: str = ""
+    phase: TTPPhase | str = TTPPhase.EXECUTION
+    mitre_id: str = ""
+    ttp_id: str = field(default_factory=lambda: f"ttp-{uuid4().hex[:8]}")
     confidence: float = 0.5
     observation_count: int = 0
     last_observed: Optional[datetime] = None
@@ -97,13 +190,22 @@ class TTP:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.technique_id, str) or not self.technique_id.strip():
-            raise ValueError("technique_id must be a non-empty string")
+        if not isinstance(self.technique_id, str):
+            raise ValueError("technique_id must be a string")
+        if not isinstance(self.mitre_id, str):
+            raise ValueError("mitre_id must be a string")
+        if not self.technique_id.strip():
+            self.technique_id = self.mitre_id.strip()
+        if not self.technique_id.strip():
+            self.technique_id = f"AUTO-{uuid4().hex[:8]}".upper()
         if not isinstance(self.name, str) or not self.name.strip():
             raise ValueError("name must be a non-empty string")
         self.technique_id = self.technique_id.strip().upper()
+        self.mitre_id = self.technique_id
         self.name = self.name.strip()
         self.phase = TTPPhase.from_value(self.phase)
+        if not isinstance(self.ttp_id, str) or not self.ttp_id.strip():
+            self.ttp_id = f"ttp-{uuid4().hex[:8]}"
         if not isinstance(self.confidence, (float, int)):
             raise ValueError("confidence must be numeric")
         self.confidence = _clamp01(float(self.confidence))
@@ -185,7 +287,9 @@ class TTP:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "ttp_id": self.ttp_id,
             "technique_id": self.technique_id,
+            "mitre_id": self.mitre_id,
             "name": self.name,
             "phase": self.phase.value,
             "confidence": self.confidence,
@@ -218,8 +322,10 @@ def _to_set(value: Any) -> Set[str]:
 class BehavioralSignature:
     """Quantified actor behavior over time, movement, comms, and tactical effects."""
 
-    signature_id: str
-    name: str
+    signature_id: str = ""
+    name: str = ""
+    signature_type: SignatureType = SignatureType.TEMPORAL
+    pattern_parameters: Dict[str, Any] = field(default_factory=dict)
     temporal_patterns: Dict[str, Any] = field(default_factory=dict)
     movement_patterns: Dict[str, Any] = field(default_factory=dict)
     communication_patterns: Dict[str, Any] = field(default_factory=dict)
@@ -229,17 +335,25 @@ class BehavioralSignature:
     logistics_patterns: Dict[str, Any] = field(default_factory=dict)
     formation_patterns: Dict[str, Any] = field(default_factory=dict)
     confidence: float = 0.5
+    specificity: float = 0.5
     provenance: List[str] = field(default_factory=list)
     created_at: datetime = field(default_factory=_utcnow)
     updated_at: datetime = field(default_factory=_utcnow)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.signature_id, str) or not self.signature_id.strip():
-            raise ValueError("signature_id must be a non-empty string")
-        if not isinstance(self.name, str) or not self.name.strip():
-            raise ValueError("name must be a non-empty string")
+        if not isinstance(self.signature_id, str):
+            raise ValueError("signature_id must be a string")
+        if not isinstance(self.name, str):
+            raise ValueError("name must be a string")
+        if not self.signature_id.strip():
+            self.signature_id = f"sig-{uuid4().hex[:8]}"
+        if not self.name.strip():
+            self.name = self.signature_id
         self.signature_id = self.signature_id.strip()
         self.name = self.name.strip()
+        self.signature_type = SignatureType.from_value(self.signature_type)
+        if not isinstance(self.pattern_parameters, dict):
+            raise ValueError("pattern_parameters must be a dictionary")
         for field_name in (
             "temporal_patterns",
             "movement_patterns",
@@ -261,6 +375,27 @@ class BehavioralSignature:
         self.provenance = [p.strip() for p in self.provenance]
         self.created_at = _ensure_utc(self.created_at)
         self.updated_at = _ensure_utc(self.updated_at)
+
+        # Backward compatibility path: fold generic pattern_parameters into
+        # the family dictionary implied by signature_type so legacy and new
+        # scoring code can both operate.
+        if self.pattern_parameters:
+            if self.signature_type == SignatureType.TEMPORAL:
+                self.temporal_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.MOVEMENT:
+                self.movement_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.COMMUNICATION:
+                self.communication_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.TARGETING:
+                self.targeting_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.EVASION:
+                self.evasion_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.ESCALATION:
+                self.escalation_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.LOGISTICS:
+                self.logistics_patterns.update(self.pattern_parameters)
+            elif self.signature_type == SignatureType.FORMATION:
+                self.formation_patterns.update(self.pattern_parameters)
 
     def _iter_expected(self) -> Iterable[Tuple[str, str, Any]]:
         families = (
@@ -371,7 +506,10 @@ class BehavioralSignature:
         return {
             "signature_id": self.signature_id,
             "name": self.name,
+            "signature_type": self.signature_type.value,
+            "pattern_parameters": dict(self.pattern_parameters),
             "confidence": self.confidence,
+            "specificity": self.specificity,
             "provenance": list(self.provenance),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
@@ -415,12 +553,26 @@ class CapabilityProfile:
     swarm_parameters: Dict[str, List[str]] = field(default_factory=dict)
     logistics_capabilities: Dict[str, List[str]] = field(default_factory=dict)
     confidence: float = 0.5
+    max_range_km: float = 0.0
     provenance: List[str] = field(default_factory=list)
+    assessment_basis: List[str] = field(default_factory=list)
     updated_at: datetime = field(default_factory=_utcnow)
 
     def __post_init__(self) -> None:
+        if isinstance(self.platforms, list):
+            platform_map: Dict[str, List[str]] = {}
+            for p in self.platforms:
+                if isinstance(p, PlatformType):
+                    key = p.value
+                else:
+                    key = _normalize_token(str(p))
+                if key:
+                    platform_map[key] = ["auto-import"]
+            self.platforms = platform_map
         self.platforms = _validate_evidence_mapping(self.platforms, "platforms")
         self.weapons = _validate_evidence_mapping(self.weapons, "weapons")
+        if isinstance(self.cyber_capabilities, list):
+            self.cyber_capabilities = {str(c): ["auto-import"] for c in self.cyber_capabilities}
         self.cyber_capabilities = _validate_evidence_mapping(self.cyber_capabilities, "cyber_capabilities")
         self.ew_capabilities = _validate_evidence_mapping(self.ew_capabilities, "ew_capabilities")
         self.swarm_parameters = _validate_evidence_mapping(self.swarm_parameters, "swarm_parameters")
@@ -428,9 +580,15 @@ class CapabilityProfile:
         if not isinstance(self.confidence, (float, int)):
             raise ValueError("confidence must be numeric")
         self.confidence = _clamp01(float(self.confidence))
+        if not isinstance(self.max_range_km, (float, int)):
+            raise ValueError("max_range_km must be numeric")
+        self.max_range_km = float(self.max_range_km)
         if not isinstance(self.provenance, list) or any(not isinstance(v, str) or not v.strip() for v in self.provenance):
             raise ValueError("provenance must be a list of non-empty strings")
         self.provenance = [p.strip() for p in self.provenance]
+        if not isinstance(self.assessment_basis, list):
+            raise ValueError("assessment_basis must be a list of strings")
+        self.assessment_basis = [str(v).strip() for v in self.assessment_basis if str(v).strip()]
         self.updated_at = _ensure_utc(self.updated_at)
 
     def _domain_map(self) -> Dict[str, Dict[str, List[str]]]:
@@ -491,7 +649,9 @@ class CapabilityProfile:
             "swarm_parameters": dict(self.swarm_parameters),
             "logistics_capabilities": dict(self.logistics_capabilities),
             "confidence": self.confidence,
+            "max_range_km": self.max_range_km,
             "provenance": list(self.provenance),
+            "assessment_basis": list(self.assessment_basis),
             "updated_at": self.updated_at.isoformat(),
         }
 
@@ -713,9 +873,14 @@ class IndicatorChain:
 class ThreatGenome:
     """Complete, evolving behavioral fingerprint for a threat actor."""
 
-    actor_id: str
-    actor_name: str
-    actor_type: str
+    actor_id: str = ""
+    actor_name: str = ""
+    actor_type: str = "unknown"
+    actor_aliases: List[str] = field(default_factory=list)
+    threat_rating: str = "unknown"
+    confidence: float = 0.5
+    observation_count: int = 0
+    regions_of_activity: List[str] = field(default_factory=list)
     regions: Set[str] = field(default_factory=set)
     tags: Set[str] = field(default_factory=set)
     ttps: Dict[str, TTP] = field(default_factory=dict)
@@ -725,26 +890,48 @@ class ThreatGenome:
     created_at: datetime = field(default_factory=_utcnow)
     updated_at: datetime = field(default_factory=_utcnow)
     last_activity: datetime = field(default_factory=_utcnow)
-    evolution_log: List[Dict[str, Any]] = field(default_factory=list)
+    evolution_log: List[Any] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.actor_id, str) or not self.actor_id.strip():
-            raise ValueError("actor_id must be a non-empty string")
-        if not isinstance(self.actor_name, str) or not self.actor_name.strip():
-            raise ValueError("actor_name must be a non-empty string")
+        if not isinstance(self.actor_id, str):
+            raise ValueError("actor_id must be a string")
+        if not self.actor_id.strip():
+            self.actor_id = f"gen-{uuid4().hex[:10]}"
+        if not isinstance(self.actor_name, str):
+            raise ValueError("actor_name must be a string")
+        if not self.actor_name.strip():
+            self.actor_name = self.actor_id
         if not isinstance(self.actor_type, str) or not self.actor_type.strip():
             raise ValueError("actor_type must be a non-empty string")
+        if not isinstance(self.actor_aliases, list):
+            raise ValueError("actor_aliases must be a list")
+        self.actor_aliases = [str(a).strip() for a in self.actor_aliases if str(a).strip()]
+        if not isinstance(self.threat_rating, str):
+            raise ValueError("threat_rating must be a string")
+        self.threat_rating = self.threat_rating.strip().lower() if self.threat_rating else "unknown"
+        if not isinstance(self.confidence, (float, int)):
+            raise ValueError("confidence must be numeric")
+        self.confidence = _clamp01(float(self.confidence))
+        if not isinstance(self.observation_count, int) or self.observation_count < 0:
+            raise ValueError("observation_count must be a non-negative integer")
         self.actor_id = self.actor_id.strip()
         self.actor_name = self.actor_name.strip()
         self.actor_type = _normalize_token(self.actor_type)
 
+        if not isinstance(self.regions_of_activity, list):
+            raise ValueError("regions_of_activity must be a list of strings")
         if not isinstance(self.regions, (set, list, tuple)):
             raise ValueError("regions must be a set/list/tuple of strings")
+        merged_regions = set(self.regions)
+        for region in self.regions_of_activity:
+            if isinstance(region, str) and region.strip():
+                merged_regions.add(region)
         self.regions = {
             _normalize_token(region)
-            for region in self.regions
+            for region in merged_regions
             if isinstance(region, str) and region.strip()
         }
+        self.regions_of_activity = list(self.regions_of_activity)
         if not isinstance(self.tags, (set, list, tuple)):
             raise ValueError("tags must be a set/list/tuple of strings")
         self.tags = {_normalize_token(tag) for tag in self.tags if isinstance(tag, str) and tag.strip()}
@@ -761,20 +948,259 @@ class ThreatGenome:
         self.last_activity = _ensure_utc(self.last_activity)
         if not isinstance(self.evolution_log, list):
             raise ValueError("evolution_log must be a list")
+        normalized_log: List[GenomeEvolutionEntry] = []
+        for entry in self.evolution_log:
+            if isinstance(entry, GenomeEvolutionEntry):
+                normalized_log.append(entry)
+            elif isinstance(entry, dict):
+                normalized_log.append(
+                    GenomeEvolutionEntry(
+                        change_type=str(entry.get("action") or entry.get("change_type") or "mutation"),
+                        source_id=str(entry.get("source_id", "")),
+                        description=str(entry.get("description", "")),
+                        details=dict(entry.get("details", {})) if isinstance(entry.get("details", {}), dict) else {},
+                    )
+                )
+            else:
+                normalized_log.append(GenomeEvolutionEntry(change_type="mutation", description=str(entry)))
+        self.evolution_log = normalized_log
+        self.regions_of_activity = list(self.regions)
+
+    # ------------------------------------------------------------------
+    # Observation absorption (Chunk 2 — genome evolution)
+    # ------------------------------------------------------------------
+
+    @property
+    def genome_id(self) -> str:
+        return self.actor_id
+
+    @property
+    def first_observed(self) -> datetime:
+        return self.created_at
+
+    @first_observed.setter
+    def first_observed(self, value: datetime) -> None:
+        self.created_at = _ensure_utc(value)
+
+    @property
+    def last_updated(self) -> datetime:
+        return self.updated_at
+
+    @last_updated.setter
+    def last_updated(self, value: datetime) -> None:
+        self.updated_at = _ensure_utc(value)
+        self.last_activity = self.updated_at
+
+    def _log_evolution(
+        self,
+        change_type: str,
+        source_id: str,
+        description: str,
+        evidence_reference: str,
+        confidence_before: float,
+        confidence_after: float,
+    ) -> None:
+        self.evolution_log.append(
+            GenomeEvolutionEntry(
+                change_type=change_type,
+                source_id=source_id,
+                description=description,
+                evidence_reference=evidence_reference,
+                confidence_before=float(confidence_before),
+                confidence_after=float(confidence_after),
+            )
+        )
+
+    def absorb_observation(self, obs_features: Dict[str, Any],
+                           observation_id: str = "") -> List[str]:
+        """Absorb extracted features from a correlated observation.
+
+        Called by the correlator when an observation matches this genome.
+        Updates TTPs, signatures, tags, regions, and confidence.
+        """
+        touched: List[str] = []
+
+        # --- TTP hints ---
+        for hint in obs_features.get("ttp_hints", []):
+            if not isinstance(hint, dict):
+                continue
+            mitre_id = str(hint.get("mitre_id", "") or "")
+            name = str(hint.get("name", "") or "")
+            phase_str = str(hint.get("phase", "execution") or "execution")
+            conf = float(hint.get("confidence", 0.5))
+            try:
+                phase = TTPPhase(phase_str)
+            except ValueError:
+                phase = TTPPhase.EXECUTION
+            ttp = TTP(mitre_id=mitre_id, name=name, phase=phase, confidence=conf)
+            self.add_ttp(ttp)
+            touched.append(ttp.ttp_id)
+
+        # --- Signature parameters ---
+        sig_params = obs_features.get("signature_params", {})
+        if isinstance(sig_params, dict) and sig_params:
+            sig_copy = dict(sig_params)
+            sig_type_str = str(sig_copy.pop("signature_type", "temporal") or "temporal")
+            try:
+                sig_type = SignatureType(sig_type_str)
+            except ValueError:
+                sig_type = SignatureType.TEMPORAL
+            sig = BehavioralSignature(
+                signature_type=sig_type,
+                name=f"auto_{sig_type.value}_{observation_id[:8]}",
+                pattern_parameters=sig_copy,
+                confidence=float(obs_features.get("raw_confidence", 0.5)),
+                specificity=0.4,
+            )
+            self.add_signature(sig)
+            touched.append(sig.signature_id)
+
+        # --- Comms features -> communication signature ---
+        comms = obs_features.get("comms_features", {})
+        if isinstance(comms, dict) and comms:
+            sig = BehavioralSignature(
+                signature_type=SignatureType.COMMUNICATION,
+                name=f"comms_{observation_id[:8]}",
+                pattern_parameters=dict(comms),
+                confidence=float(obs_features.get("raw_confidence", 0.5)),
+                specificity=0.5,
+            )
+            self.add_signature(sig)
+            touched.append(sig.signature_id)
+
+        # --- Cyber features -> capabilities ---
+        cyber = obs_features.get("cyber_features", {})
+        if isinstance(cyber, dict) and cyber:
+            caps_list = cyber.get("capabilities", [])
+            if caps_list and isinstance(caps_list, list):
+                if self.capabilities is None:
+                    self.set_capabilities(CapabilityProfile(
+                        cyber_capabilities={str(c): [observation_id or "auto-import"] for c in caps_list},
+                        confidence=float(obs_features.get("raw_confidence", 0.5)),
+                        assessment_basis=[observation_id],
+                    ))
+                else:
+                    for cap in caps_list:
+                        if str(cap) not in self.capabilities.cyber_capabilities:
+                            self.capabilities.cyber_capabilities[str(cap)] = [observation_id or "auto-import"]
+                    self.capabilities.assessment_basis.append(observation_id)
+                touched.append("cap")
+
+        # --- Tags ---
+        new_tags = set(str(t).lower() for t in obs_features.get("behavior_tags", []))
+        self.tags.update(new_tags)
+
+        # --- Regions ---
+        for r in obs_features.get("regions", []):
+            if r:
+                self.regions.add(_normalize_token(str(r)))
+
+        # --- Threat level ---
+        threat_hint = obs_features.get("threat_level")
+        if threat_hint and str(threat_hint) != self.threat_rating:
+            self.threat_rating = str(threat_hint)
+
+        # --- Confidence update (Bayesian blend) ---
+        raw_conf = float(obs_features.get("raw_confidence", 0.5))
+        old_conf = self.confidence
+        self.confidence = 1.0 - (1.0 - self.confidence) * (1.0 - raw_conf * 0.3)
+        self.confidence = min(0.98, self.confidence)
+
+        self._log_evolution(
+            "observation_absorbed", observation_id,
+            f"Absorbed obs {observation_id}: {len(touched)} components",
+            observation_id, old_conf, self.confidence,
+        )
+        self._touch()
+        return touched
+
+    def merge_from(self, other: "ThreatGenome", merge_reason: str = "") -> List[str]:
+        """Absorb all components from another genome into this one.
+
+        Used when two genomes are discovered to be the same actor.
+        Preserves aliases, regions, tags, evolution history.
+        Returns list of component IDs absorbed.
+        """
+        absorbed: List[str] = []
+
+        # Aliases
+        if other.actor_name and other.actor_name != self.actor_name:
+            if other.actor_name not in self.actor_aliases:
+                self.actor_aliases.append(other.actor_name)
+        for alias in other.actor_aliases:
+            if alias not in self.actor_aliases and alias != self.actor_name:
+                self.actor_aliases.append(alias)
+
+        # TTPs
+        for ttp in other.ttps.values():
+            self.add_ttp(ttp)
+            absorbed.append(ttp.ttp_id)
+
+        # Signatures
+        for sig in other.signatures.values():
+            if sig.signature_id not in self.signatures:
+                self.add_signature(sig)
+                absorbed.append(sig.signature_id)
+
+        # Capabilities
+        if other.capabilities:
+            if self.capabilities is None:
+                self.set_capabilities(other.capabilities)
+            else:
+                for p in other.capabilities.platforms:
+                    if p not in self.capabilities.platforms:
+                        self.capabilities.platforms[p] = list(other.capabilities.platforms[p])
+                for c in other.capabilities.cyber_capabilities:
+                    if c not in self.capabilities.cyber_capabilities:
+                        self.capabilities.cyber_capabilities[c] = list(other.capabilities.cyber_capabilities[c])
+
+        # Indicator chains
+        for chain in other.indicator_chains.values():
+            if chain.chain_id not in self.indicator_chains:
+                self.add_indicator_chain(chain)
+                absorbed.append(chain.chain_id)
+
+        # Regions, tags
+        self.regions.update(other.regions)
+        self.regions_of_activity = list(self.regions_of_activity)
+        self.tags.update(other.tags)
+
+        # Evolution history
+        self.evolution_log.extend(other.evolution_log)
+
+        # Timestamps
+        if other.first_observed < self.first_observed:
+            self.first_observed = other.first_observed
+        self.observation_count += other.observation_count
+
+        # Confidence boost from merge corroboration
+        self.confidence = min(0.98, max(self.confidence, other.confidence) + 0.03)
+
+        self._log_evolution(
+            "genome_merged", other.genome_id,
+            f"Merged '{other.actor_name}': {len(absorbed)} components. {merge_reason}",
+            f"merge-{other.genome_id}", other.confidence, self.confidence,
+        )
+        self._touch()
+        return absorbed
+
+    # ------------------------------------------------------------------
+    # Internal
+    # ------------------------------------------------------------------
 
     def _touch(self, activity_time: Optional[datetime] = None) -> None:
         now = _ensure_utc(activity_time) if activity_time else _utcnow()
         self.updated_at = now
         self.last_activity = now
+        self.observation_count += 1
 
     def _log_mutation(self, action: str, details: Dict[str, Any]) -> None:
         self.evolution_log.append(
-            {
-                "event_id": str(uuid4()),
-                "timestamp": _utcnow().isoformat(),
-                "action": action,
-                "details": details,
-            }
+            GenomeEvolutionEntry(
+                change_type=action,
+                description=action,
+                details=dict(details),
+            )
         )
 
     def add_ttp(self, ttp: TTP) -> None:
@@ -962,6 +1388,10 @@ class ThreatGenome:
             "actor_id": self.actor_id,
             "actor_name": self.actor_name,
             "actor_type": self.actor_type,
+            "actor_aliases": list(self.actor_aliases),
+            "threat_rating": self.threat_rating,
+            "confidence": self.confidence,
+            "observation_count": self.observation_count,
             "regions": sorted(self.regions),
             "tags": sorted(self.tags),
             "created_at": self.created_at.isoformat(),
@@ -973,5 +1403,5 @@ class ThreatGenome:
             "indicator_chains": {k: v.to_dict() for k, v in self.indicator_chains.items()},
             "completeness": self.compute_completeness(),
             "phase_coverage": self.get_phase_coverage(),
-            "evolution_log": list(self.evolution_log),
+            "evolution_log": [e.to_dict() if hasattr(e, "to_dict") else e for e in self.evolution_log],
         }
