@@ -36,3 +36,6 @@ cryptography>=41.0.0
 
 # Domain Apps (Phase 11)
 # pymavlink>=2.4.0  # Optional: autopilot bridge
+ortools>=9.8
+mlflow>=2.14
+dvc>=3.50
