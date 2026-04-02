@@ -470,8 +470,7 @@ class BeliefStore:
         self._audit.append(entry)
         while len(self._snapshots) > self._max_history:
             self._snapshots.pop(0)
-        max_audit = max(0, self._max_history - 1)
-        while len(self._audit) > max_audit:
+        while len(self._audit) > self._max_history:
             self._audit.pop(0)
 
     def _notify(self, state: BeliefState) -> None:
