@@ -13,6 +13,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from src.autonomy.models import AutonomyDecision, MissionStatus
+from src.autonomy.realtime_arbiter import RealtimeDecisionArbiter
 
 from .nodes import BTNode, BTStatus
 
@@ -20,7 +21,12 @@ from .nodes import BTNode, BTStatus
 class MissionExecutor:
     """Thread-safe behavior tree executor with tactical audit logging."""
 
-    def __init__(self, tree: BTNode, tick_rate_hz: float = 10.0) -> None:
+    def __init__(
+        self,
+        tree: BTNode,
+        tick_rate_hz: float = 10.0,
+        arbiter: RealtimeDecisionArbiter | None = None,
+    ) -> None:
         if tree is None:
             raise ValueError("tree is required")
         if tick_rate_hz <= 0:
@@ -40,6 +46,7 @@ class MissionExecutor:
         self._current_node_path: List[str] = []
         self._tick_log: List[Dict[str, Any]] = []
         self._context: Dict[str, Any] = {}
+        self.arbiter = arbiter
 
     def start(self, context: Dict[str, Any]) -> None:
         """Initialize mission execution state with fresh context."""
@@ -94,7 +101,25 @@ class MissionExecutor:
                 self._last_status = BTStatus.FAILURE
                 return BTStatus.FAILURE
 
-            status = self.tree.tick(self._context)
+            override_result: Dict[str, Any] | None = None
+            if self.arbiter is not None:
+                override_result = self.arbiter.arbitrate(self._context)
+
+            if override_result and bool(override_result.get("override")):
+                action = str(override_result.get("action", "hold"))
+                if action == "abort_rtb":
+                    self._context["mission_status"] = MissionStatus.ABORTED.value
+                    self._aborted = True
+                    status = BTStatus.FAILURE
+                elif action in {"hold_and_reassess", "continue"}:
+                    status = BTStatus.RUNNING
+                elif action in {"pivot_mission", "reroute", "add_subtask", "escalate"}:
+                    status = BTStatus.RUNNING
+                    self._context["replan_action"] = action
+                else:
+                    status = BTStatus.RUNNING
+            else:
+                status = self.tree.tick(self._context)
             self._ticks_executed += 1
             self._last_status = status
             self._current_node_path = self.tree.get_active_path()
@@ -106,6 +131,11 @@ class MissionExecutor:
                 "status": status.value,
                 "context_snapshot": self._snapshot_context(depth=int(self._context.get("snapshot_depth", 2))),
             }
+            if override_result is not None:
+                tick_entry["arbiter_override"] = bool(override_result.get("override", False))
+                tick_entry["arbiter_action"] = override_result.get("action")
+                tick_entry["risk_profile"] = override_result.get("risk_profile")
+                tick_entry["replan_trigger"] = override_result.get("replan_trigger")
             self._tick_log.append(tick_entry)
             self._context["executor_tick_log"].append(tick_entry)
 
@@ -183,3 +213,8 @@ class MissionExecutor:
         """Return active node path useful for tactical debugging and XAI."""
         with self._lock:
             return list(self._current_node_path)
+
+    def get_tick_log(self) -> List[Dict[str, Any]]:
+        """Return executor tick history including arbiter override records."""
+        with self._lock:
+            return list(self._tick_log)

@@ -51,6 +51,11 @@ class AssuranceChecker:
             approved = False
             reason = "Blocked pending review: strike decisions always require human authorization."
 
+        # Tactical assurance: Byzantine consensus faults require human adjudication.
+        consensus_result = str(decision.context.get("consensus_result", "")).upper()
+        if consensus_result in {"BYZANTINE_FAULT", "NO_QUORUM"}:
+            flags.append(f"consensus_{consensus_result.lower()}")
+
         llm_uncertain = bool(
             decision.llm_consulted
             and (

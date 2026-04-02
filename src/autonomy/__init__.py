@@ -28,6 +28,29 @@ from .models import (
     AutonomyDecision,
     DecisionType,
 )
+from .decision_engine import (
+    BeliefState,
+    BayesianThreatNet,
+    TacticalParticleFilter,
+    POMDPSolver,
+    ParetoOptimizer,
+    ProbabilisticDecisionEngine,
+)
+from .arbitration import (
+    CoalitionEngine,
+    AuctionAllocator,
+    ByzantineConsensus,
+    ConflictResolver,
+    MultiAgentArbitrator,
+)
+from .realtime_arbiter import (
+    TacticalPriority,
+    PriorityManager,
+    RiskAssessor,
+    ReplanDirective,
+    OnlineReplanner,
+    RealtimeDecisionArbiter,
+)
 
 __all__ = [
     "AgentState",
@@ -42,4 +65,21 @@ __all__ = [
     "FormationType",
     "AutonomyDecision",
     "DecisionType",
+    "BeliefState",
+    "BayesianThreatNet",
+    "TacticalParticleFilter",
+    "POMDPSolver",
+    "ParetoOptimizer",
+    "ProbabilisticDecisionEngine",
+    "CoalitionEngine",
+    "AuctionAllocator",
+    "ByzantineConsensus",
+    "ConflictResolver",
+    "MultiAgentArbitrator",
+    "TacticalPriority",
+    "PriorityManager",
+    "RiskAssessor",
+    "ReplanDirective",
+    "OnlineReplanner",
+    "RealtimeDecisionArbiter",
 ]

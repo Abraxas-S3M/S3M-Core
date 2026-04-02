@@ -5,6 +5,7 @@ from .formations import FormationController
 from .task_allocator import TaskAllocator
 from .swarm_protocol import SwarmProtocol
 from .nl_commander import NLCommander
+from src.autonomy.arbitration import MultiAgentArbitrator
 
 __all__ = [
     "SwarmCoordinator",
@@ -12,4 +13,5 @@ __all__ = [
     "TaskAllocator",
     "SwarmProtocol",
     "NLCommander",
+    "MultiAgentArbitrator",
 ]

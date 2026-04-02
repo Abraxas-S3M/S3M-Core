@@ -24,6 +24,8 @@ from src.autonomy.models import (
     SwarmCommand,
 )
 
+from src.autonomy.arbitration import MultiAgentArbitrator
+
 from .formations import FormationController
 from .swarm_protocol import SwarmProtocol
 from .task_allocator import TaskAllocator
@@ -47,6 +49,7 @@ class SwarmCoordinator:
         self.formation_controller = FormationController()
         self.task_allocator = TaskAllocator()
         self.protocol = SwarmProtocol()
+        self.arbitrator = MultiAgentArbitrator()
 
         self.current_formation: Optional[Dict[str, Any]] = None
         self.last_command: Optional[SwarmCommand] = None
@@ -155,6 +158,32 @@ class SwarmCoordinator:
         self._log(
             "assign_mission",
             {"mission_id": mission.mission_id, "assignments": assignments, "status": mission.status.value},
+        )
+        return assignments
+
+    def assign_mission_game_theoretic(self, mission: Mission, mode: str = "coalition") -> Dict[str, str]:
+        """Assign mission roles via arbitration engine with greedy fallback."""
+        if len(self.missions) >= self.max_missions and mission.mission_id not in self.missions:
+            raise ValueError("mission registry full")
+        available = list(self.agents.values())
+        result = self.arbitrator.arbitrate(mission=mission, agents=available, mode=mode)
+        assignments = dict(result.get("assignments", {}))
+        if not assignments:
+            assignments = self.task_allocator.allocate(mission, available)
+        mission.assigned_agents = list(assignments.keys())
+        self.missions[mission.mission_id] = mission
+        self.mission_assignments[mission.mission_id] = dict(assignments)
+        for agent_id in assignments:
+            if agent_id in self.agents:
+                self.agents[agent_id].current_mission = mission.mission_id
+        self._log(
+            "assign_mission_game_theoretic",
+            {
+                "mission_id": mission.mission_id,
+                "assignments": assignments,
+                "mode": mode,
+                "consensus_status": result.get("consensus_result", {}).get("result"),
+            },
         )
         return assignments
 

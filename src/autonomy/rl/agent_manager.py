@@ -16,6 +16,11 @@ import uuid
 from .environments import MilitaryEnvironment
 from .policy_registry import PolicyRegistry
 
+try:  # Air-gap safe optional import.
+    from src.autonomy.decision_engine import ProbabilisticDecisionEngine
+except Exception:  # pragma: no cover - optional dependency path
+    ProbabilisticDecisionEngine = None  # type: ignore[assignment]
+
 
 @dataclass
 class RewardConfig:
@@ -107,7 +112,7 @@ class RLAgentManager:
 
     def _select_backend(self, backend: str) -> str:
         requested = (backend or "auto").lower().strip()
-        if requested not in {"auto", "rllib", "sb3", "builtin"}:
+        if requested not in {"auto", "rllib", "sb3", "builtin", "decision_engine"}:
             requested = "auto"
 
         def _try_rllib() -> bool:
@@ -130,12 +135,17 @@ class RLAgentManager:
             except Exception:
                 return False
 
+        def _try_decision_engine() -> bool:
+            return ProbabilisticDecisionEngine is not None
+
         if requested == "rllib":
             return "rllib" if _try_rllib() else "builtin"
         if requested == "sb3":
             return "sb3" if _try_sb3() else "builtin"
         if requested == "builtin":
             return "builtin"
+        if requested == "decision_engine":
+            return "decision_engine" if _try_decision_engine() else "builtin"
         if _try_rllib():
             return "rllib"
         if _try_sb3():
@@ -152,6 +162,11 @@ class RLAgentManager:
         model = None
         if self.backend_name == "builtin":
             model = _BuiltinPolicy(env, algorithm=algo)
+        elif self.backend_name == "decision_engine":
+            if ProbabilisticDecisionEngine is None:
+                model = _BuiltinPolicy(env, algorithm=algo)
+            else:
+                model = ProbabilisticDecisionEngine()
         elif self.backend_name == "sb3":
             sb3 = self._backend_libs["sb3"]
             if algo == "SAC":
@@ -278,7 +293,7 @@ class RLAgentManager:
         if self.backend_name == "sb3":
             action, _ = managed.model.predict(observation, deterministic=True)
             return int(action)
-        if self.backend_name == "builtin":
+        if self.backend_name in {"builtin", "decision_engine"}:
             return int(managed.model.predict(observation))
         # RLlib fallback prediction path if trainer unavailable.
         if isinstance(managed.model, dict):
@@ -377,7 +392,7 @@ class RLAgentManager:
         """Return subsystem health snapshot for API liveness checks."""
         return {
             "backend": self.backend_name,
-            "backend_available": self.backend_name in {"rllib", "sb3", "builtin"},
+            "backend_available": self.backend_name in {"rllib", "sb3", "builtin", "decision_engine"},
             "active_agents": len(self.agents),
             "agents": self.list_agents(),
             "policies_on_disk": self.registry.list_policies(),
