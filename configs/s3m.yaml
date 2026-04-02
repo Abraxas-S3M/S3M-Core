@@ -56,3 +56,10 @@ logging:
 # configs/autonomy.yaml, configs/simulation.yaml, configs/navigation.yaml,
 # configs/dashboard.yaml, configs/security.yaml, configs/interop.yaml,
 # configs/apps.yaml, configs/datasets/registry.yaml
+
+gap_closure:
+  command_engine: enabled
+  force_awareness: enabled
+  logistics_twin: enabled
+  mission_planner: enabled
+  roe_checker: pre_commit

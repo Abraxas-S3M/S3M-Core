@@ -1,23 +1,5 @@
-"""Mission planning package for multi-domain operations."""
+"""Planning-layer mission abstractions for cross-domain orchestration."""
 
-from .mission_planner import (
-    Asset,
-    MissionDomain,
-    MissionPlan,
-    MissionTask,
-    MultiDomainMissionPlanner,
-    ORToolsPlanner,
-    TaskAssignment,
-    TaskPriority,
-)
+from src.planning.mission_planner import MultiDomainMissionPlanner
 
-__all__ = [
-    "Asset",
-    "MissionDomain",
-    "MissionPlan",
-    "MissionTask",
-    "MultiDomainMissionPlanner",
-    "ORToolsPlanner",
-    "TaskAssignment",
-    "TaskPriority",
-]
+__all__ = ["MultiDomainMissionPlanner"]

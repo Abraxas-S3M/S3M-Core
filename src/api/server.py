@@ -34,9 +34,11 @@ from src.api.portal_routes import router as portal_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
 from src.api.readiness_routes import readiness_router
+from src.api.quantum_security_routes import router as qss_router
 from src.api.simulation_routes import simulation_router
 from src.api.threat_routes import threat_router, sensor_router
 from src.api.training_sim_routes import training_sim_router
+from src.api.portal_routes import portal_router
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
 
@@ -175,7 +177,7 @@ app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
-app.include_router(portal_router, tags=["Portal RBAC"])
+app.include_router(portal_router, prefix="/v1", tags=["Gap Closure Portal"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
