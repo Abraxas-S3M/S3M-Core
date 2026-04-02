@@ -16,13 +16,15 @@ from .federated_engine import (
     scaffold_correction,
     topk_compress,
 )
-from .governed_replication import (
+from src.edge_compute.data_value_assessor import DataValueEngine
+from src.edge_compute.governed_replication import (
     CLASSIFICATION_LEVELS,
     GovernedReplicationEngine,
     ReplicationPolicy,
     ReplicationToken,
 )
-from .models import (
+from src.edge_compute.manager import EdgeComputeManager
+from src.edge_compute.models import (
     AggregationStrategy,
     DataGenStrategy,
     EdgeNodeInfo,
@@ -34,9 +36,8 @@ from .models import (
     SandboxState,
     SelfTrainingStrategy,
 )
-from .sandbox_controller import SandboxController
-from .self_replication import ReplicationEngine
-from .self_training import (
+from src.edge_compute.self_growth import GrowableModel, PlateauDetector, SelfGrowthEngine
+from src.edge_compute.self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
     apply_noise_chain,
@@ -80,6 +81,14 @@ __all__ = [
     "fedprox_local_objective",
     "gaussian_noise",
     "mixup",
-    "scaffold_correction",
-    "topk_compress",
+    "apply_noise_chain",
+    "PlateauDetector",
+    "GrowableModel",
+    "SelfGrowthEngine",
+    "CLASSIFICATION_LEVELS",
+    "ReplicationToken",
+    "ReplicationPolicy",
+    "GovernedReplicationEngine",
+    "DataValueEngine",
+    "EdgeComputeManager",
 ]

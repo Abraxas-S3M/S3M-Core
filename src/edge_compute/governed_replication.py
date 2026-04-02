@@ -23,7 +23,7 @@ import ipaddress
 import json
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 from uuid import uuid4
 
@@ -83,31 +83,38 @@ class ReplicationToken:
     def __init__(
         self,
         issuer: str,
-        subject: str,
+        subject: Optional[str] = None,
         max_replicas: int = 1,
         classification: str = "UNCLASSIFIED",
         ttl_seconds: int = 3600,
+        subject_node: Optional[str] = None,
     ) -> None:
+        # Backward compatibility: support both subject and subject_node.
+        resolved_subject = subject if subject is not None else subject_node
+
         if not _is_non_empty_string(issuer):
             raise ValueError("issuer must be a non-empty string")
-        if not _is_non_empty_string(subject):
+        if not _is_non_empty_string(resolved_subject):
             raise ValueError("subject must be a non-empty string")
         if not isinstance(max_replicas, int) or max_replicas <= 0:
             raise ValueError("max_replicas must be a positive integer")
-        if not isinstance(ttl_seconds, int) or ttl_seconds <= 0:
-            raise ValueError("ttl_seconds must be a positive integer")
+        if not isinstance(ttl_seconds, int) or ttl_seconds < 0:
+            raise ValueError("ttl_seconds must be a non-negative integer")
 
         now = datetime.now(timezone.utc)
         self.token_id = str(uuid4())
         self.issuer = issuer.strip()
-        self.subject = subject.strip()
+        self.subject = str(resolved_subject).strip()
         self.max_replicas = int(max_replicas)
         self.classification = _normalize_classification(classification)
         self.issued_at = now.isoformat()
-        self.expires_at = datetime.fromtimestamp(
-            time.time() + ttl_seconds, tz=timezone.utc
-        ).isoformat()
+        self.expires_at = (now + timedelta(seconds=ttl_seconds)).isoformat()
         self.signature = ""
+
+    @property
+    def subject_node(self) -> str:
+        """Compatibility alias for older callers."""
+        return self.subject
 
     def payload(self) -> Dict[str, Any]:
         return {
@@ -124,6 +131,26 @@ class ReplicationToken:
     def _canonical_payload_bytes(payload: Dict[str, Any]) -> bytes:
         return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
+    @staticmethod
+    def _payload_from_token_dict(token_dict: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        # Accept old token shape with subject_node and no classification.
+        if not isinstance(token_dict, dict):
+            return None
+        try:
+            subject_value = token_dict.get("subject", token_dict.get("subject_node"))
+            classification = token_dict.get("classification", "UNCLASSIFIED")
+            return {
+                "token_id": token_dict["token_id"],
+                "issuer": token_dict["issuer"],
+                "subject": subject_value,
+                "max_replicas": int(token_dict["max_replicas"]),
+                "classification": _normalize_classification(classification),
+                "issued_at": token_dict["issued_at"],
+                "expires_at": token_dict["expires_at"],
+            }
+        except Exception:
+            return None
+
     def sign(self, secret_key: str) -> str:
         """Sign token payload with HMAC-SHA256."""
         if not _is_non_empty_string(secret_key):
@@ -136,7 +163,10 @@ class ReplicationToken:
         return self.signature
 
     def to_dict(self) -> Dict[str, Any]:
-        return {**self.payload(), "signature": self.signature}
+        token = {**self.payload(), "signature": self.signature}
+        # Include compatibility field expected by older callers.
+        token["subject_node"] = token["subject"]
+        return token
 
     @classmethod
     def verify(
@@ -151,13 +181,11 @@ class ReplicationToken:
         if not _is_non_empty_string(token_dict.get("signature")):
             return False
 
-        try:
-            payload = {field: token_dict[field] for field in cls._PAYLOAD_FIELDS}
-        except KeyError:
+        payload = cls._payload_from_token_dict(token_dict)
+        if payload is None:
             return False
 
         try:
-            _normalize_classification(payload["classification"])
             if not isinstance(payload["max_replicas"], int) or payload["max_replicas"] <= 0:
                 return False
             if not _is_non_empty_string(payload["issuer"]) or not _is_non_empty_string(payload["subject"]):
@@ -197,17 +225,20 @@ class ReplicationPolicy:
     Built-in controls:
       - classification floor gate
       - fleet size cap (optionally tightened by token max_replicas)
-      - subnet allow-list using CIDR networks
+      - subnet allow-list using CIDR networks and prefix compatibility mode
       - UTC time window control
       - custom callable rules (fail-closed on exceptions)
     """
 
-    def __init__(self, rules: Optional[List[Dict[str, Any]]] = None) -> None:
+    def __init__(self, rules: Optional[List[Dict[str, Any]]] = None, max_fleet: Optional[int] = None) -> None:
         self._rules: List[Dict[str, Any]] = rules or []
         self._default_max_fleet = 16
         self._allowed_subnets: List[ipaddress._BaseNetwork] = []
+        self._allowed_prefixes: List[str] = []
         self._min_classification = "UNCLASSIFIED"
         self._time_window: Optional[Dict[str, int]] = None
+        if max_fleet is not None:
+            self.set_max_fleet(max_fleet)
 
     def set_max_fleet(self, n: int) -> None:
         if not isinstance(n, int) or n <= 0:
@@ -218,11 +249,17 @@ class ReplicationPolicy:
         if not isinstance(subnets, list):
             raise ValueError("subnets must be a list")
         parsed_networks: List[ipaddress._BaseNetwork] = []
+        parsed_prefixes: List[str] = []
         for subnet in subnets:
             if not _is_non_empty_string(subnet):
                 raise ValueError("each subnet must be a non-empty string")
-            parsed_networks.append(ipaddress.ip_network(subnet.strip(), strict=False))
+            raw = subnet.strip()
+            if "/" in raw:
+                parsed_networks.append(ipaddress.ip_network(raw, strict=False))
+            else:
+                parsed_prefixes.append(raw)
         self._allowed_subnets = parsed_networks
+        self._allowed_prefixes = parsed_prefixes
 
     def set_min_classification(self, level: str) -> None:
         self._min_classification = _normalize_classification(level)
@@ -277,21 +314,25 @@ class ReplicationPolicy:
             )
 
         # Rule 3: Subnet restriction for secure enclave boundaries.
-        if self._allowed_subnets and target_ip:
+        if (self._allowed_subnets or self._allowed_prefixes) and target_ip:
             try:
                 ip_obj = ipaddress.ip_address(target_ip)
             except ValueError:
-                violations.append(
-                    {"rule": "subnet_restriction", "detail": f"invalid target IP: {target_ip}"}
-                )
+                if any(target_ip.startswith(prefix) for prefix in self._allowed_prefixes):
+                    ip_allowed = True
+                else:
+                    ip_allowed = False
             else:
-                if not any(ip_obj in subnet for subnet in self._allowed_subnets):
-                    violations.append(
-                        {
-                            "rule": "subnet_restriction",
-                            "detail": f"target IP {target_ip} not in allowed subnets",
-                        }
-                    )
+                ip_allowed = any(ip_obj in subnet for subnet in self._allowed_subnets) or any(
+                    target_ip.startswith(prefix) for prefix in self._allowed_prefixes
+                )
+            if not ip_allowed:
+                violations.append(
+                    {
+                        "rule": "subnet_restriction",
+                        "detail": f"target IP {target_ip} not in allowed subnets",
+                    }
+                )
 
         # Rule 4: UTC time window for operational control windows.
         if self._time_window:
@@ -352,12 +393,14 @@ class GovernedReplicationEngine:
             raise ValueError("max_total_memory_mb must be a positive integer")
 
         self.secret_key = secret_key
+        self._secret_key = secret_key  # compatibility alias
         self.policy = ReplicationPolicy()
         self.policy.set_max_fleet(max_fleet)
         self.policy.set_min_classification(min_classification)
 
         self._max_total_memory_mb = max_total_memory_mb
         self._replicas: Dict[str, Dict[str, Any]] = {}
+        self._active = self._replicas  # compatibility alias
         self._quarantined: Dict[str, Dict[str, Any]] = {}
         self._killed: List[str] = []
         self._audit_log: List[Dict[str, Any]] = []
@@ -377,11 +420,16 @@ class GovernedReplicationEngine:
             raise ValueError("callback must be callable or None")
         self._audit_callback = callback
 
-    def _audit(self, action: str, details: Dict[str, Any], severity: str = "INFO") -> None:
+    def _audit(self, action: str, details: Optional[Dict[str, Any]] = None, severity: str = "INFO", **kwargs: Any) -> None:
+        payload: Dict[str, Any] = {}
+        if details:
+            payload.update(details)
+        payload.update(kwargs)
+
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "action": action,
-            "details": details,
+            "details": payload,
             "severity": severity,
         }
         self._audit_log.append(entry)
@@ -389,7 +437,7 @@ class GovernedReplicationEngine:
             try:
                 self._audit_callback(
                     action=action,
-                    details=details,
+                    details=payload,
                     severity=severity,
                     source="governed_replication",
                 )
@@ -399,15 +447,17 @@ class GovernedReplicationEngine:
     def issue_token(
         self,
         issuer: str,
-        subject: str,
+        subject: Optional[str] = None,
         max_replicas: int = 1,
         classification: str = "UNCLASSIFIED",
         ttl_seconds: int = 3600,
+        subject_node: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Issue signed replication authorization token."""
         token = ReplicationToken(
             issuer=issuer,
             subject=subject,
+            subject_node=subject_node,
             max_replicas=max_replicas,
             classification=classification,
             ttl_seconds=ttl_seconds,
@@ -433,6 +483,11 @@ class GovernedReplicationEngine:
             secret_key=self.secret_key,
             required_subject=required_subject,
         )
+
+    def _authorize_admin(self, token: Dict[str, Any]) -> bool:
+        if not self.verify_token(token):
+            return False
+        return str(token.get("issuer", "")).lower() == "admin"
 
     def replicate(
         self,
@@ -467,7 +522,7 @@ class GovernedReplicationEngine:
             )
             return {"error": "token verification failed", "gate": "crypto_auth"}
 
-        token_class = _normalize_classification(str(token["classification"]))
+        token_class = _normalize_classification(str(token.get("classification", "UNCLASSIFIED")))
         parent_class = self._entity_classification.get(parent_node_id, token_class)
         parent_level = CLASSIFICATION_LEVELS[parent_class]
 
@@ -539,6 +594,7 @@ class GovernedReplicationEngine:
         replica_info = {
             "replica_id": replica_id,
             "parent_node_id": parent_node_id,
+            "target_node": parent_node_id,  # compatibility key for older callers
             "classification": parent_class,
             "distillation_ratio": round(distillation_ratio, 3),
             "target_memory_mb": target_memory_mb,
@@ -546,6 +602,7 @@ class GovernedReplicationEngine:
             "created_at": datetime.now(timezone.utc).isoformat(),
             "token_id": str(token.get("token_id", "")),
             "target_ip": target_ip,
+            "param_shapes": {k: list(v.shape) for k, v in parent_params.items()},
         }
         self._replicas[replica_id] = replica_info
         self._entity_classification[parent_node_id] = parent_class
@@ -566,14 +623,14 @@ class GovernedReplicationEngine:
             raise ValueError("replica_id must be a non-empty string")
         if not self.verify_token(auth_token):
             self._audit("kill_denied", {"replica_id": replica_id, "reason": "invalid_token"}, "WARNING")
-            return {"error": "invalid authorization token"}
+            return {"error": "invalid authorization token", "gate": "crypto_auth"}
 
-        if replica_id not in self._replicas:
+        if replica_id not in self._replicas and replica_id not in self._quarantined:
             return {"error": f"replica {replica_id} not found"}
 
-        self._replicas[replica_id]["status"] = "killed"
+        self._replicas.pop(replica_id, None)
+        self._quarantined.pop(replica_id, None)
         self._killed.append(replica_id)
-        del self._replicas[replica_id]
         self._entity_classification.pop(replica_id, None)
         self._audit("replica_killed", {"replica_id": replica_id}, "CRITICAL")
         return {"success": True, "replica_id": replica_id, "action": "killed"}
@@ -595,21 +652,28 @@ class GovernedReplicationEngine:
                 {"replica_id": replica_id, "reason": "invalid_token"},
                 "WARNING",
             )
-            return {"error": "invalid authorization token"}
+            return {"error": "invalid authorization token", "gate": "crypto_auth"}
 
         if replica_id not in self._replicas:
-            return {"error": f"replica {replica_id} not found"}
+            return {"error": f"replica {replica_id} not found", "replica_id": replica_id}
 
         info = self._replicas.pop(replica_id)
         info["status"] = "quarantined"
         info["quarantine_reason"] = reason
+        info["quarantined_at"] = datetime.now(timezone.utc).isoformat()
         self._quarantined[replica_id] = info
         self._audit(
             "replica_quarantined",
             {"replica_id": replica_id, "reason": reason},
             "WARNING",
         )
-        return {"success": True, "replica_id": replica_id, "action": "quarantined"}
+        # Return both new and legacy shapes.
+        return {
+            "success": True,
+            "replica_id": replica_id,
+            "action": "quarantined",
+            "replica": info,
+        }
 
     def list_active(self) -> List[Dict[str, Any]]:
         return list(self._replicas.values())
@@ -628,6 +692,7 @@ class GovernedReplicationEngine:
 
     def health_check(self) -> Dict[str, Any]:
         allowed_subnets = [str(subnet) for subnet in self.policy._allowed_subnets]
+        allowed_subnets.extend(self.policy._allowed_prefixes)
         return {
             **self.fleet_status(),
             "policy_max_fleet": self.policy._default_max_fleet,
