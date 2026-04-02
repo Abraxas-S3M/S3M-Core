@@ -25,6 +25,12 @@ from src.edge_compute.federated_engine import (
     scaffold_correction,
     topk_compress,
 )
+from src.edge_compute.governed_replication import (
+    CLASSIFICATION_LEVELS,
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
+)
 from src.edge_compute.models import (
     AggregationStrategy,
     ComputeTask,
@@ -43,6 +49,14 @@ from src.edge_compute.models import (
     SchedulerDecision,
     SchedulingPolicy,
     SelfTrainingStrategy,
+)
+from src.edge_compute.self_training import (
+    NumpyLinearModel,
+    SelfTrainingEngine,
+    apply_noise_chain,
+    dropout_noise,
+    gaussian_noise,
+    mixup,
 )
 
 __all__ = [
@@ -74,4 +88,16 @@ __all__ = [
     "fedavg_aggregate",
     "fedprox_local_objective",
     "scaffold_correction",
+    # Self Training
+    "NumpyLinearModel",
+    "SelfTrainingEngine",
+    "dropout_noise",
+    "gaussian_noise",
+    "mixup",
+    "apply_noise_chain",
+    # Governed Replication
+    "CLASSIFICATION_LEVELS",
+    "ReplicationToken",
+    "ReplicationPolicy",
+    "GovernedReplicationEngine",
 ]
