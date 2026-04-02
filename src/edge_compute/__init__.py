@@ -46,6 +46,8 @@ from .self_training import (
 )
 
 __all__ = [
+    "AggregationStrategy",
+    "AdaptiveScheduler",
     "ActiveLearner",
     "AggregationStrategy",
     "CLASSIFICATION_LEVELS",
