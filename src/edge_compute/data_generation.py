@@ -434,12 +434,13 @@ class KnowledgeGraphBuilder:
             (min_count,),
         )
         new_edges = 0
+        eps = 1e-10
         for entity_a, entity_b, count_value in cursor.fetchall():
             count = float(count_value)
             p_ab = count / total
             p_a = marginals.get(entity_a, 1.0) / total
             p_b = marginals.get(entity_b, 1.0) / total
-            pmi = float(np.log2((p_ab / (p_a * p_b + 1e-10)) + 1e-10))
+            pmi = float(np.log2((p_ab + eps) / (p_a * p_b + eps)))
             if pmi < float(min_pmi):
                 continue
 
