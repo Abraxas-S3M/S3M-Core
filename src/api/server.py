@@ -4,12 +4,12 @@ Provides 13 endpoints for inference, consensus, engine management, and audit log
 Designed for air-gapped deployment on NVIDIA Jetson AGX Orin 64GB.
 """
 
-import asyncio
 import hashlib
 import logging
 import os
 import time
 import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -20,7 +20,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import yaml
 
-from src.api.config import api_config
+from src.api.command_routes import command_router
+from src.api.config import api_config, mission_command_lifespan
 from src.api.apps_routes import apps_router
 from src.api.autonomy_routes import autonomy_router
 from src.api.comms_routes import comms_router
@@ -93,6 +94,37 @@ class HealthResponse(BaseModel):
     timestamp: str
 
 
+async def optimization_startup_hook() -> None:
+    """Run Phase 12 startup sequencing and memory checks at API boot."""
+    try:
+        from src.optimization import MemoryBudgetManager, StartupSequencer
+
+        manager = MemoryBudgetManager(total_budget_gb=48.0)
+        sequencer = StartupSequencer(memory_manager=manager)
+        startup = sequencer.run()
+        report = manager.get_usage()
+        state.log_audit(
+            "optimization_startup",
+            {
+                "layers_loaded": startup.get("layers_loaded", 0),
+                "layers_skipped": startup.get("layers_skipped", 0),
+                "layers_unavailable": startup.get("layers_unavailable", 0),
+                "memory_used_mb": report.get("used_mb", 0.0),
+                "memory_budget_mb": report.get("total_budget_mb", 0.0),
+            },
+        )
+    except Exception as exc:
+        LOGGER.warning("Optimization startup hook failed: %s", exc)
+        state.log_audit("optimization_startup_error", {"error": str(exc)})
+
+
+@asynccontextmanager
+async def app_lifespan(app: FastAPI):
+    await optimization_startup_hook()
+    async with mission_command_lifespan(app):
+        yield
+
+
 # ── Application Setup ────────────────────────────────────────
 
 app = FastAPI(
@@ -100,7 +132,8 @@ app = FastAPI(
     description="Tactical AI inference API for air-gapped deployment",
     version="4.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=app_lifespan,
 )
 
 app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
@@ -123,6 +156,7 @@ app.include_router(intel_router, tags=["Intelligence & OSINT Briefings"])
 app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
 app.include_router(comms_router, tags=["Secure Communications"])
+app.include_router(command_router, tags=["Mission Command"])
 
 # Load security config
 security_config = {}
@@ -487,26 +521,3 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-@app.on_event("startup")
-async def optimization_startup_hook():
-    """Run Phase 12 startup sequencing and memory checks at API boot."""
-    try:
-        from src.optimization import MemoryBudgetManager, StartupSequencer
-
-        manager = MemoryBudgetManager(total_budget_gb=48.0)
-        sequencer = StartupSequencer(memory_manager=manager)
-        startup = sequencer.run()
-        report = manager.get_usage()
-        state.log_audit(
-            "optimization_startup",
-            {
-                "layers_loaded": startup.get("layers_loaded", 0),
-                "layers_skipped": startup.get("layers_skipped", 0),
-                "layers_unavailable": startup.get("layers_unavailable", 0),
-                "memory_used_mb": report.get("used_mb", 0.0),
-                "memory_budget_mb": report.get("total_budget_mb", 0.0),
-            },
-        )
-    except Exception as exc:
-        LOGGER.warning("Optimization startup hook failed: %s", exc)
-        state.log_audit("optimization_startup_error", {"error": str(exc)})
