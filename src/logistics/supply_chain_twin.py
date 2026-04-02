@@ -1,7 +1,7 @@
 """
-S3M Supply Chain Digital Twin — Gap 3 of 7.
+S3M Supply Chain Digital Twin - Gap 3 of 7.
 
-Depot → consumer flow model with PPO-based reorder optimization.
+Depot to consumer flow model with PPO-based reorder optimization.
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ logger = logging.getLogger("s3m.logistics.twin")
 
 class SupplyStatus(str, Enum):
     CRITICAL = "CRITICAL"  # < 10 % stock
-    LOW = "LOW"  # 10–30 %
-    ADEQUATE = "ADEQUATE"  # 30–80 %
+    LOW = "LOW"  # 10-30 %
+    ADEQUATE = "ADEQUATE"  # 30-80 %
     SURPLUS = "SURPLUS"  # > 80 %
 
 
@@ -95,7 +95,7 @@ class PPOReorderAgent:
     State vector:
       [stock_pct, demand_pressure, threshold_pct, lead_time_pressure, days_remaining_norm]
     Action index:
-      reorder fraction ∈ {0%, 25%, 50%, 75%, 100%} of max capacity
+      reorder fraction in {0%, 25%, 50%, 75%, 100%} of max capacity
     """
 
     ACTIONS = [0.0, 0.25, 0.50, 0.75, 1.0]
@@ -208,7 +208,7 @@ class SupplyChainTwin:
         for depot in self._depots.values():
             for item in depot.inventory.values():
                 consumed = item.daily_consumption_rate * days
-                # Tactical realism: local operations tempo introduces ±10% draw variability.
+                # Tactical realism: local operations tempo introduces +/-10% draw variability.
                 consumed *= 1 + random.uniform(-0.1, 0.1)
                 depot.consume(item.item_id, consumed)
 
