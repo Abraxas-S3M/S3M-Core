@@ -6,9 +6,11 @@ Depot to consumer flow model with PPO-based reorder optimization.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import logging
 import random
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -269,4 +271,69 @@ class SupplyChainTwin:
                 for did, d in self._depots.items()
             },
             "alerts": self.generate_alerts(),
+        }
+
+    def predict_disruptions(self, supply_records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Compatibility API for portal-level sustainment prediction.
+
+        Tactical context: this lightweight heuristic keeps logistics triage
+        available in air-gapped deployments when heavier analytics are absent.
+        """
+        if not isinstance(supply_records, list):
+            raise ValueError("supply_records must be a list")
+
+        disruptions: List[Dict[str, Any]] = []
+        for idx, record in enumerate(supply_records):
+            if not isinstance(record, dict):
+                continue
+            shipment_id = str(record.get("id", f"shipment-{idx+1}"))
+            delay_hours = float(record.get("delay_hours", 0.0))
+            priority = float(record.get("priority", 1.0))
+            route_distance = float(record.get("route_distance", 0.0))
+            is_disrupted = delay_hours >= 12.0 or (delay_hours >= 4.0 and priority >= 8.0)
+            if not is_disrupted:
+                continue
+            disruptions.append(
+                {
+                    "shipment_id": shipment_id,
+                    "anomaly_score": round(min(1.0, max(0.0, delay_hours / 24.0)), 3),
+                    "analysis": (
+                        f"Delay={delay_hours:.1f}h, priority={priority:.0f}, "
+                        f"route_distance={route_distance:.1f}km indicates sustainment risk."
+                    ),
+                    "recommended_action": "Reroute convoy and prioritize escort for critical shipments",
+                }
+            )
+
+        total = len([r for r in supply_records if isinstance(r, dict)])
+        ratio = (len(disruptions) / total) if total else 0.0
+        overall_risk = "LOW"
+        if ratio >= 0.35:
+            overall_risk = "HIGH"
+        elif ratio >= 0.15:
+            overall_risk = "MEDIUM"
+
+        return {
+            "total_shipments": total,
+            "anomalies_detected": len(disruptions),
+            "disruptions": disruptions,
+            "overall_risk": overall_risk,
+        }
+
+    def run_cycle(self, supply_records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Compatibility wrapper returning prediction + twin status payload."""
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "prediction": self.predict_disruptions(supply_records),
+            "status": self.full_status(),
+        }
+
+    def health_check(self) -> Dict[str, Any]:
+        """Compatibility health payload used by integrated portal routes."""
+        return {
+            "status": "operational",
+            "component": "supply_chain_twin",
+            "depots": len(self._depots),
+            "model_loaded": self._agent.model_loaded,
         }

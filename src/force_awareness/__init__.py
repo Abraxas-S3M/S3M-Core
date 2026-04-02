@@ -1,21 +1,5 @@
-"""Force awareness package for tactical asset state tracking."""
+"""Force-awareness interfaces for tactical COP updates."""
 
-from src.force_awareness.force_tracker import (
-    AssetState,
-    Domain,
-    ForceAwarenessManager,
-    ForceStateStore,
-    ForceStatus,
-    GeoPoint,
-    PredictiveReadinessEngine,
-)
+from src.force_awareness.force_tracker import ForceAwarenessManager
 
-__all__ = [
-    "AssetState",
-    "Domain",
-    "ForceAwarenessManager",
-    "ForceStateStore",
-    "ForceStatus",
-    "GeoPoint",
-    "PredictiveReadinessEngine",
-]
+__all__ = ["ForceAwarenessManager"]
