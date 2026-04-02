@@ -1,0 +1,11 @@
+# S3M Edge Node — CPU-Only Dependencies
+# Install with: pip install -r requirements-edge.txt
+
+numpy>=1.24.0
+pydantic>=2.5.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pyyaml>=6.0
+
+# Optional: PyTorch CPU-only (uncomment for hybrid CPU/GPU nodes)
+# torch>=2.1.0 --index-url https://download.pytorch.org/whl/cpu

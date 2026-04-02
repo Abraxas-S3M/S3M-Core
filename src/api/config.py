@@ -1,7 +1,16 @@
 """API Configuration for S3M Quad-Engine System."""
 
+import asyncio
+import logging
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Dict, Optional
+
+from fastapi import FastAPI
+
+from src.command.mission_command_engine import MissionCommandEngine
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,3 +62,29 @@ class RateLimitConfig:
 # Global config instance
 api_config = APIConfig()
 rate_limit_config = RateLimitConfig()
+
+
+@asynccontextmanager
+async def mission_command_lifespan(app: FastAPI):
+    """
+    FastAPI lifespan hook that runs Mission Command Engine in background.
+
+    Tactical context:
+    Keeps command-and-control event processing active throughout API uptime,
+    then performs orderly shutdown to preserve operational state consistency.
+    """
+    mce = MissionCommandEngine()
+    app.state.mce = mce
+    mce_task = asyncio.create_task(mce.start(), name="mission-command-engine")
+    try:
+        yield
+    finally:
+        mce.stop()
+        if not mce_task.done():
+            mce_task.cancel()
+        try:
+            await mce_task
+        except asyncio.CancelledError:
+            pass
+        except Exception as exc:  # pragma: no cover - defensive shutdown logging
+            LOGGER.warning("Mission Command Engine shutdown warning: %s", exc)

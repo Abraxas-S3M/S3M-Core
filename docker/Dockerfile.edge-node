@@ -1,0 +1,49 @@
+# S3M Edge Node Container - CPU-Optimized Self-Training Sandbox
+# UNCLASSIFIED - FOUO
+#
+# Build:  docker build -t s3m-edge-node:latest -f docker/Dockerfile.edge-node .
+# Run:    docker run --cpus=4 --memory=4g -v ./models:/opt/s3m/models:ro s3m-edge-node:latest
+
+FROM python:3.11-slim AS base
+
+LABEL maintainer="S3M Project" \
+      description="S3M Edge CPU Node - Federated Self-Training Sandbox" \
+      classification="UNCLASSIFIED - FOUO"
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    inotify-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies (CPU-only, minimal footprint)
+COPY requirements-edge.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+
+# Application code
+WORKDIR /opt/s3m
+COPY src/ ./src/
+COPY configs/ ./configs/
+
+# Directories for runtime data
+RUN mkdir -p /opt/s3m/data/edge/generated \
+             /opt/s3m/data/edge \
+             /opt/s3m/models \
+             /opt/s3m/config
+
+# Config watcher script - polls params.json for hot-reconfiguration
+COPY docker/entrypoint-edge.sh /opt/s3m/entrypoint.sh
+RUN chmod +x /opt/s3m/entrypoint.sh
+
+# Default environment
+ENV S3M_NODE_ID="" \
+    S3M_CONFIG_PATH="/opt/s3m/config/params.json" \
+    S3M_LOG_LEVEL="INFO" \
+    PYTHONPATH="/opt/s3m"
+
+EXPOSE 9090
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -sf http://localhost:9090/edge/health || exit 1
+
+ENTRYPOINT ["/opt/s3m/entrypoint.sh"]
