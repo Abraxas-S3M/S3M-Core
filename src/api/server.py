@@ -29,6 +29,7 @@ from src.api.dashboard_routes import dashboard_router
 from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.navigation_routes import navigation_router
+from src.api.portal_routes import router as portal_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
 from src.api.readiness_routes import readiness_router
@@ -140,6 +141,7 @@ app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
+app.include_router(portal_router, tags=["Portal RBAC"])
 
 # Keep dashboard API routes active, then mount static frontend files.
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard", "frontend")
