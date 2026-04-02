@@ -382,6 +382,15 @@ class SandboxController:
     ) -> None:
         # Capture baseline before thread startup to avoid missing the first write.
         last_mtime_ns = initial_mtime_ns
+        # Handle an update that may have occurred between watch registration and
+        # polling thread startup in constrained edge schedulers.
+        try:
+            current_mtime_ns = os.stat(path).st_mtime_ns
+            if current_mtime_ns != last_mtime_ns:
+                last_mtime_ns = current_mtime_ns
+                on_change(self._safe_read_params(path))
+        except FileNotFoundError:
+            pass
         while not stop_event.is_set():
             time.sleep(max(0.1, poll_interval_sec))
             try:

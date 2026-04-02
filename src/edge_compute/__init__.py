@@ -1,5 +1,12 @@
-"""Federated and orchestration components for tactical edge compute."""
+"""Federated, self-training, replication, and data-generation edge components."""
 
+from .data_generation import (
+    ActiveLearner,
+    ContrastiveAugmentor,
+    DataGenerationEngine,
+    GenerativeReplay,
+    KnowledgeGraphBuilder,
+)
 from .federated_engine import (
     FederatedEngine,
     RDPAccountant,
@@ -9,16 +16,26 @@ from .federated_engine import (
     scaffold_correction,
     topk_compress,
 )
+from .governed_replication import (
+    CLASSIFICATION_LEVELS,
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
+)
 from .models import (
     AggregationStrategy,
+    DataGenStrategy,
     EdgeNodeInfo,
     FederatedRound,
+    GeneratedDataset,
     NodeStatus,
     PseudoLabelBatch,
-    SelfTrainingStrategy,
     ReplicaSpec,
     SandboxState,
+    SelfTrainingStrategy,
 )
+from .sandbox_controller import SandboxController
+from .self_replication import ReplicationEngine
 from .self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
@@ -27,41 +44,40 @@ from .self_training import (
     gaussian_noise,
     mixup,
 )
-from .governed_replication import (
-    CLASSIFICATION_LEVELS,
-    GovernedReplicationEngine,
-    ReplicationPolicy,
-    ReplicationToken,
-)
-from .sandbox_controller import SandboxController
-from .self_replication import ReplicationEngine
 
 __all__ = [
+    "ActiveLearner",
     "AggregationStrategy",
+    "CLASSIFICATION_LEVELS",
+    "ContrastiveAugmentor",
+    "DataGenStrategy",
+    "DataGenerationEngine",
     "EdgeNodeInfo",
-    "FederatedRound",
-    "NodeStatus",
-    "ReplicaSpec",
-    "SandboxState",
     "FederatedEngine",
+    "FederatedRound",
+    "GeneratedDataset",
+    "GenerativeReplay",
+    "GovernedReplicationEngine",
+    "KnowledgeGraphBuilder",
+    "NodeStatus",
+    "NumpyLinearModel",
+    "PseudoLabelBatch",
     "RDPAccountant",
-    "topk_compress",
+    "ReplicaSpec",
+    "ReplicationEngine",
+    "ReplicationPolicy",
+    "ReplicationToken",
+    "SandboxController",
+    "SandboxState",
+    "SelfTrainingEngine",
+    "SelfTrainingStrategy",
+    "apply_noise_chain",
     "decompress_gradient",
+    "dropout_noise",
     "fedavg_aggregate",
     "fedprox_local_objective",
-    "scaffold_correction",
-    "ReplicationEngine",
-    "SandboxController",
-    "PseudoLabelBatch",
-    "SelfTrainingStrategy",
-    "NumpyLinearModel",
-    "SelfTrainingEngine",
-    "dropout_noise",
     "gaussian_noise",
     "mixup",
-    "apply_noise_chain",
-    "CLASSIFICATION_LEVELS",
-    "ReplicationToken",
-    "ReplicationPolicy",
-    "GovernedReplicationEngine",
+    "scaffold_correction",
+    "topk_compress",
 ]
