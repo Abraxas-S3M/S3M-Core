@@ -25,6 +25,12 @@ from src.edge_compute.self_training import (
     gaussian_noise,
     mixup,
 )
+from src.edge_compute.governed_replication import (
+    CLASSIFICATION_LEVELS,
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
+)
 
 __all__ = [
     "AggregationStrategy",
@@ -46,4 +52,8 @@ __all__ = [
     "gaussian_noise",
     "mixup",
     "apply_noise_chain",
+    "CLASSIFICATION_LEVELS",
+    "ReplicationToken",
+    "ReplicationPolicy",
+    "GovernedReplicationEngine",
 ]
