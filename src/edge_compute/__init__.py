@@ -14,8 +14,24 @@ from .models import (
     EdgeNodeInfo,
     FederatedRound,
     NodeStatus,
+    PseudoLabelBatch,
+    SelfTrainingStrategy,
     ReplicaSpec,
     SandboxState,
+)
+from .self_training import (
+    NumpyLinearModel,
+    SelfTrainingEngine,
+    apply_noise_chain,
+    dropout_noise,
+    gaussian_noise,
+    mixup,
+)
+from .governed_replication import (
+    CLASSIFICATION_LEVELS,
+    GovernedReplicationEngine,
+    ReplicationPolicy,
+    ReplicationToken,
 )
 from .sandbox_controller import SandboxController
 from .self_replication import ReplicationEngine
@@ -36,4 +52,16 @@ __all__ = [
     "scaffold_correction",
     "ReplicationEngine",
     "SandboxController",
+    "PseudoLabelBatch",
+    "SelfTrainingStrategy",
+    "NumpyLinearModel",
+    "SelfTrainingEngine",
+    "dropout_noise",
+    "gaussian_noise",
+    "mixup",
+    "apply_noise_chain",
+    "CLASSIFICATION_LEVELS",
+    "ReplicationToken",
+    "ReplicationPolicy",
+    "GovernedReplicationEngine",
 ]

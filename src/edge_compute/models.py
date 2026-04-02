@@ -1,4 +1,4 @@
-"""Data contracts for edge federated learning and replication orchestration."""
+"""Data models for tactical edge learning and replication orchestration."""
 
 from __future__ import annotations
 
@@ -196,3 +196,21 @@ class SandboxState:
             raise ValueError("last_reconfigured must be datetime or None")
         if not isinstance(self.created_at, datetime):
             raise ValueError("created_at must be datetime")
+
+
+class SelfTrainingStrategy(str, Enum):
+    """Supported self-training strategies for edge adaptation."""
+
+    NOISY_STUDENT = "noisy_student"
+    PSEUDO_LABEL = "pseudo_label"
+    CO_TRAINING = "co_training"
+
+
+@dataclass
+class PseudoLabelBatch:
+    """Summary of pseudo-label output for one self-training cycle."""
+
+    strategy: SelfTrainingStrategy
+    sample_count: int
+    avg_confidence: float
+    noise_applied: bool = False
