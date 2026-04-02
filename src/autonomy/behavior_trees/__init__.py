@@ -17,6 +17,7 @@ from .nodes import (
 from .llm_replan_node import LLMReplanNode
 from .mission_tree import MissionTree
 from .mission_executor import MissionExecutor
+from src.autonomy.realtime_arbiter import RealtimeDecisionArbiter
 
 __all__ = [
     "BTNode",
@@ -34,4 +35,5 @@ __all__ = [
     "LLMReplanNode",
     "MissionTree",
     "MissionExecutor",
+    "RealtimeDecisionArbiter",
 ]

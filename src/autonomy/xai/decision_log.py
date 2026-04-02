@@ -87,7 +87,15 @@ class DecisionLog:
         """Export log to JSON file for secure mission archival."""
         path = Path(filepath)
         path.parent.mkdir(parents=True, exist_ok=True)
-        payload = [decision.to_dict() for decision in self._entries]
+        payload = []
+        for decision in self._entries:
+            entry = decision.to_dict()
+            # Tactical audit extension fields for realtime override analysis.
+            context = decision.context if isinstance(decision.context, dict) else {}
+            entry["arbiter_override"] = bool(context.get("arbiter_override", False))
+            entry["risk_profile"] = dict(context.get("risk_profile", {})) if isinstance(context.get("risk_profile"), dict) else {}
+            entry["replan_trigger"] = context.get("replan_trigger")
+            payload.append(entry)
         path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     def clear(self) -> None:

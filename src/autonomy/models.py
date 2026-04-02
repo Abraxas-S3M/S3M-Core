@@ -354,6 +354,9 @@ class DecisionType(Enum):
     RETREAT = "retreat"
     DELEGATE = "delegate"
     STRIKE = "strike"
+    BAYESIAN_INFERENCE = "bayesian_inference"
+    PARETO_SELECTION = "pareto_selection"
+    POMDP_ACTION = "pomdp_action"
 
 
 @dataclass

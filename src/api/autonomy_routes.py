@@ -45,6 +45,7 @@ from src.autonomy.models import (
     SwarmCommand,
 )
 from src.autonomy.rl import DroneSwarmEnv, MilitaryEnvironment, RLAgentManager
+from src.autonomy.realtime_arbiter import RealtimeDecisionArbiter
 from src.autonomy.swarm import NLCommander, SwarmCoordinator
 from src.autonomy.xai import AssuranceChecker, DecisionExplainer, DecisionLog
 
@@ -60,6 +61,7 @@ class _AutonomyRuntime:
         self.decision_explainer = DecisionExplainer()
         self.assurance = AssuranceChecker(risk_threshold=0.7, confidence_threshold=0.3)
         self.nl_commander = NLCommander()
+        self.realtime_arbiter = RealtimeDecisionArbiter()
         self.executors: Dict[str, MissionExecutor] = {}
         self.audit_log: List[Dict[str, Any]] = []
 
@@ -310,7 +312,7 @@ async def start_mission(request: StartMissionRequest) -> MissionResponse:
             "decision_log": [],
             "available_agents": len(mission.assigned_agents),
         }
-        executor = MissionExecutor(tree=tree, tick_rate_hz=10.0)
+        executor = MissionExecutor(tree=tree, tick_rate_hz=10.0, arbiter=runtime.realtime_arbiter)
         runtime.executors[mission.mission_id] = executor
         executor.start(context)
         for _ in range(3):
@@ -559,3 +561,34 @@ async def reject_decision(decision_id: str, payload: Dict[str, str]) -> Dict[str
         raise HTTPException(status_code=404, detail="Decision not in review queue")
     runtime.log("decision_reject", {"decision_id": decision_id, "reviewer": reviewer, "reason": reason})
     return {"status": "rejected", "decision_id": decision_id, "reviewer": reviewer, "reason": reason}
+
+
+@autonomy_router.post("/autonomy/arbiter/override")
+async def force_arbiter_override(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Force manual real-time arbiter override from command authority."""
+    action = str(payload.get("action", "hold_and_reassess"))
+    source = str(payload.get("source", "operator"))
+    reason = str(payload.get("reason", "manual override"))
+    override = runtime.realtime_arbiter.force_override(action=action, source=source, reason=reason)
+    runtime.log("arbiter_force_override", {"action": action, "source": source, "reason": reason})
+    return {"status": "ok", "override": override}
+
+
+@autonomy_router.delete("/autonomy/arbiter/override")
+async def cancel_arbiter_override() -> Dict[str, Any]:
+    """Cancel active manual real-time arbiter override."""
+    cleared = runtime.realtime_arbiter.cancel_override()
+    runtime.log("arbiter_cancel_override", {})
+    return {"status": "ok", "cleared": cleared}
+
+
+@autonomy_router.get("/autonomy/arbiter/state")
+async def get_arbiter_state() -> Dict[str, Any]:
+    """Return current real-time arbiter state and risk trend."""
+    return runtime.realtime_arbiter.get_state()
+
+
+@autonomy_router.get("/autonomy/arbiter/priorities")
+async def get_arbiter_priorities() -> Dict[str, Any]:
+    """Return active arbiter tactical priorities."""
+    return {"active_priorities": runtime.realtime_arbiter.list_priorities()}
