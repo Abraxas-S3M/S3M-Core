@@ -1,13 +1,29 @@
-"""Federated, self-training, replication, and data-generation edge components."""
+"""
+S3M Edge Computing & Heterogeneous Compute Layer
+UNCLASSIFIED - FOUO
 
-from .data_generation import (
+Two novel subsystems:
+  1. Edge CPU Network — Federated self-training, self-replication, autonomous
+     data generation, and sandboxed deployment on CPU-only edge devices.
+  2. Heterogeneous Compute — Adaptive GPU↔CPU task scheduling with RL-based
+     device assignment, unified memory, and remote offload bridge.
+
+Integrates with:
+  - Layer 01 (LLM Core) for model weights and inference
+  - Layer 02 (Threat Detection) for edge anomaly detection
+  - Layer 04 (Simulation) for synthetic data pipelines
+  - Layer 05 (Navigation) for edge inference engine
+  - Layer 06 (Dashboard) for monitoring
+"""
+
+from src.edge_compute.data_generation import (
     ActiveLearner,
     ContrastiveAugmentor,
     DataGenerationEngine,
     GenerativeReplay,
     KnowledgeGraphBuilder,
 )
-from .federated_engine import (
+from src.edge_compute.federated_engine import (
     FederatedEngine,
     RDPAccountant,
     decompress_gradient,
@@ -16,27 +32,39 @@ from .federated_engine import (
     scaffold_correction,
     topk_compress,
 )
-from src.edge_compute.data_value_assessor import DataValueEngine
 from src.edge_compute.governed_replication import (
     CLASSIFICATION_LEVELS,
     GovernedReplicationEngine,
     ReplicationPolicy,
     ReplicationToken,
 )
-from src.edge_compute.manager import EdgeComputeManager
+from src.edge_compute.hetero_compute import (
+    AdaptiveScheduler,
+    DeviceCapabilities,
+    HeterogeneousComputeEngine,
+    MemoryManager,
+)
 from src.edge_compute.models import (
     AggregationStrategy,
+    ComputeTask,
     DataGenStrategy,
+    DeviceStats,
+    DeviceType,
     EdgeNodeInfo,
     FederatedRound,
     GeneratedDataset,
     NodeStatus,
+    OffloadRequest,
+    OperationType,
     PseudoLabelBatch,
     ReplicaSpec,
     SandboxState,
+    SchedulerDecision,
+    SchedulingPolicy,
     SelfTrainingStrategy,
 )
-from src.edge_compute.self_growth import GrowableModel, PlateauDetector, SelfGrowthEngine
+from src.edge_compute.sandbox_controller import SandboxController
+from src.edge_compute.self_replication import ReplicationEngine
 from src.edge_compute.self_training import (
     NumpyLinearModel,
     SelfTrainingEngine,
@@ -47,48 +75,58 @@ from src.edge_compute.self_training import (
 )
 
 __all__ = [
+    # Enums
     "AggregationStrategy",
-    "AdaptiveScheduler",
-    "ActiveLearner",
-    "AggregationStrategy",
-    "CLASSIFICATION_LEVELS",
-    "ContrastiveAugmentor",
     "DataGenStrategy",
-    "DataGenerationEngine",
-    "EdgeNodeInfo",
-    "FederatedEngine",
-    "FederatedRound",
-    "GeneratedDataset",
-    "GenerativeReplay",
-    "GovernedReplicationEngine",
-    "KnowledgeGraphBuilder",
+    "DeviceType",
     "NodeStatus",
-    "NumpyLinearModel",
-    "PseudoLabelBatch",
-    "RDPAccountant",
-    "ReplicaSpec",
-    "ReplicationEngine",
-    "ReplicationPolicy",
-    "ReplicationToken",
-    "SandboxController",
-    "SandboxState",
-    "SelfTrainingEngine",
+    "OperationType",
+    "SchedulingPolicy",
     "SelfTrainingStrategy",
-    "apply_noise_chain",
+    # Edge Network
+    "EdgeNodeInfo",
+    "FederatedRound",
+    "PseudoLabelBatch",
+    "ReplicaSpec",
+    "GeneratedDataset",
+    "SandboxState",
+    # Heterogeneous Compute
+    "ComputeTask",
+    "DeviceStats",
+    "SchedulerDecision",
+    "OffloadRequest",
+    # Federated Engine
+    "FederatedEngine",
+    "RDPAccountant",
+    "topk_compress",
     "decompress_gradient",
-    "dropout_noise",
     "fedavg_aggregate",
     "fedprox_local_objective",
+    "scaffold_correction",
+    # Self Training
+    "NumpyLinearModel",
+    "SelfTrainingEngine",
+    "dropout_noise",
     "gaussian_noise",
     "mixup",
     "apply_noise_chain",
-    "PlateauDetector",
-    "GrowableModel",
-    "SelfGrowthEngine",
+    # Governed Replication
     "CLASSIFICATION_LEVELS",
     "ReplicationToken",
     "ReplicationPolicy",
     "GovernedReplicationEngine",
-    "DataValueEngine",
-    "EdgeComputeManager",
+    # Data Generation
+    "ContrastiveAugmentor",
+    "GenerativeReplay",
+    "KnowledgeGraphBuilder",
+    "ActiveLearner",
+    "DataGenerationEngine",
+    # Heterogeneous Compute Engine
+    "DeviceCapabilities",
+    "MemoryManager",
+    "AdaptiveScheduler",
+    "HeterogeneousComputeEngine",
+    # Runtime Sandbox / Replication
+    "SandboxController",
+    "ReplicationEngine",
 ]
