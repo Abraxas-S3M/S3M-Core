@@ -1,6 +1,7 @@
 """
-S3M Phase 21 — Austere Edge Runtime
+S3M Phase 21 - Austere Edge Runtime.
 CPU-first, local-first, multi-bearer resilient runtime for denied environments.
+UNCLASSIFIED - FOUO
 """
 
 from src.edge_runtime.hardware_profiler import HardwareProfiler, NodeProfile, HardwareTier
@@ -81,4 +82,5 @@ __all__ = [
     "BearerBroker", "DeliveryMode", "LinkMetrics", "LinkType", "LinkState", "MessageClass", "RoutingDecision",
     "DurableQueue", "QueueItem", "QueueItemState", "SyncReconciler",
     "OperatorHealthSurface",
+    "AustereEdgeRuntime",
 ]
