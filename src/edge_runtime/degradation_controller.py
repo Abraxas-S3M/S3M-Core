@@ -7,6 +7,7 @@ across all S3M layers.
 from __future__ import annotations
 
 import logging
+import math
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -127,10 +128,14 @@ class DegradationController:
 
     def subscribe(self, callback: Callable[[OperatingMode, ModePolicy], None]) -> None:
         """Register to be notified on mode transitions."""
+        if not callable(callback):
+            raise TypeError("callback must be callable")
         self._subscribers.append(callback)
 
     def report_link_state(self, any_bearer_up: bool) -> None:
         """Called by bearer broker whenever link state changes."""
+        if not isinstance(any_bearer_up, bool):
+            raise TypeError("any_bearer_up must be a bool")
         now = time.time()
         if any_bearer_up:
             self._link_healthy = True
@@ -141,10 +146,19 @@ class DegradationController:
 
     def report_thermal(self, temp_c: float) -> None:
         """Called by Jetson monitor or OS thermal watcher."""
-        self.profile = NodeProfile(**{**self.profile.__dict__, "thermal_zone_c": temp_c})
+        if not isinstance(temp_c, (int, float)):
+            raise TypeError("temp_c must be numeric")
+        thermal = float(temp_c)
+        if not math.isfinite(thermal):
+            raise ValueError("temp_c must be finite")
+        self.profile = NodeProfile(**{**self.profile.__dict__, "thermal_zone_c": thermal})
         self._reevaluate()
 
     def force_mode(self, mode: OperatingMode, reason: str = "operator_override") -> None:
+        if not isinstance(mode, OperatingMode):
+            raise TypeError("mode must be an OperatingMode")
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError("reason must be a non-empty string")
         self._transition(mode, reason)
 
     def get_transition_log(self) -> List[Dict[str, Any]]:

@@ -131,3 +131,30 @@ def test_service_tiers_includes_required_tier0_services() -> None:
     ):
         assert tiers[service_name]["tier"] == 0
         assert tiers[service_name]["cpu_safe"] is True
+
+
+def test_report_link_state_rejects_non_bool_input() -> None:
+    controller = DegradationController(_profile())
+    with pytest.raises(TypeError, match="any_bearer_up must be a bool"):
+        controller.report_link_state("up")  # type: ignore[arg-type]
+
+
+def test_report_thermal_rejects_non_numeric_and_non_finite_inputs() -> None:
+    controller = DegradationController(_profile())
+    with pytest.raises(TypeError, match="temp_c must be numeric"):
+        controller.report_thermal("hot")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="temp_c must be finite"):
+        controller.report_thermal(float("inf"))
+
+
+def test_force_mode_rejects_invalid_mode_and_reason() -> None:
+    controller = DegradationController(_profile())
+    with pytest.raises(TypeError, match="mode must be an OperatingMode"):
+        controller.force_mode("mode_a")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="reason must be a non-empty string"):
+        controller.force_mode(OperatingMode.MODE_B_CPU_CONSTRAINED, reason="   ")
+
+
+def test_node_profile_validation_rejects_invalid_ram() -> None:
+    with pytest.raises(ValueError, match="ram_available_gb must be finite and non-negative"):
+        _profile(ram_available_gb=-1.0)
