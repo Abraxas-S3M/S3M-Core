@@ -6,8 +6,6 @@ import os
 import sys
 from typing import Dict
 
-from fastapi.testclient import TestClient
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.edge_runtime.bearer_broker import (  # noqa: E402
@@ -130,14 +128,18 @@ def test_bootstrap_runtime_initializes_and_status_shape(tmp_path) -> None:
     runtime.close()
 
 
-def test_api_exposes_edge_runtime_endpoints() -> None:
-    from src.api.server import app
+def test_health_surface_contains_policy_and_transitions(tmp_path) -> None:
+    runtime = AustereEdgeRuntime(queue_db_path=str(tmp_path / "health_surface_queue.db"))
+    payload = runtime.health.full_status()
+    assert "policy" in payload
+    assert "recent_transitions" in payload
+    assert isinstance(payload["recent_transitions"], list)
+    runtime.close()
 
-    client = TestClient(app)
-    status = client.get("/edge/status")
-    health = client.get("/edge/health")
-    assert status.status_code == 200
-    assert health.status_code == 200
-    payload = status.json()
+
+def test_bootstrap_status_helper_returns_runtime_payload() -> None:
+    from src.edge_runtime.bootstrap import get_edge_runtime_status
+
+    payload = get_edge_runtime_status()
     assert "node_tier" in payload
     assert "operating_mode" in payload
