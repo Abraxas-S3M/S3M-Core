@@ -1,20 +1,47 @@
-"""Edge runtime controls for contested tactical environments."""
+"""S3M Phase 21 austere edge runtime package exports."""
 
-from src.edge_runtime.degradation_controller import (
-    MODE_POLICIES,
-    DegradationController,
-    ModePolicy,
-    ModeTransition,
-    OperatingMode,
+from .hardware_profiler import HardwareProfiler, HardwareTier, NodeProfile
+from .degradation_controller import DegradationController, ModePolicy, OperatingMode
+from .model_planner import (
+    ExecutionAction,
+    ExecutionPlan,
+    ModelExecutionPlanner,
+    ModelVariant,
+    QuantizationLevel,
 )
-from src.edge_runtime.hardware_profiler import HardwareTier, NodeProfile
+from .bearer_broker import (
+    BearerBroker,
+    LinkMetrics,
+    LinkType,
+    MessageClass,
+    RoutingDecision,
+)
+from .durable_queue import DurableQueue, SyncReconciler
+from .health_surface import OperatorHealthSurface
+from .bootstrap import AustereEdgeRuntime, get_edge_runtime, get_edge_runtime_status, initialize_edge_runtime
 
 __all__ = [
+    "AustereEdgeRuntime",
+    "BearerBroker",
     "DegradationController",
+    "DurableQueue",
+    "ExecutionAction",
+    "ExecutionPlan",
+    "HardwareProfiler",
     "HardwareTier",
-    "MODE_POLICIES",
+    "LinkMetrics",
+    "LinkType",
+    "MessageClass",
     "ModePolicy",
-    "ModeTransition",
+    "ModelExecutionPlanner",
+    "ModelVariant",
     "NodeProfile",
     "OperatingMode",
+    "OperatorHealthSurface",
+    "QuantizationLevel",
+    "RoutingDecision",
+    "SyncReconciler",
+    "get_edge_runtime",
+    "get_edge_runtime_status",
+    "initialize_edge_runtime",
 ]

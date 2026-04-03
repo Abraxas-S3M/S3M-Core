@@ -1,35 +1,48 @@
-# S3M Phase 21 — Austere Edge Runtime Configuration
+# S3M Phase 21 Austere Edge Runtime defaults
+# UNCLASSIFIED - FOUO
+runtime:
+  queue_db_path: "data/edge_runtime/outbound_queue.db"
 
-hardware_profiler:
-  thermal_throttle_c: 85
-  low_memory_threshold_gb: 4.0
-  gpu_probe_timeout_sec: 5
+hardware_thresholds:
+  cpu_standard_min_memory_mb: 16384
+  fixed_site_min_memory_mb: 32768
 
 degradation:
-  link_intermittent_threshold_sec: 60
-  link_offline_cpu_threshold_sec: 300
-  link_offline_gpu_threshold_sec: 600
-  thermal_hot_c: 85
-  low_ram_gb: 4.0
+  full_edge:
+    max_concurrent_models: 4
+    allow_gpu: true
+    allow_large_transfers: true
+    summarization_interval: 120
+    max_frame_rate: 30
+    queue_outbound: false
+  cpu_constrained:
+    max_concurrent_models: 1
+    allow_gpu: false
+    allow_large_transfers: false
+    summarization_interval: 45
+    max_frame_rate: 10
+    queue_outbound: true
+  intermittent_link:
+    max_concurrent_models: 2
+    allow_gpu: true
+    allow_large_transfers: false
+    summarization_interval: 30
+    max_frame_rate: 8
+    queue_outbound: true
+  offline_survival:
+    max_concurrent_models: 1
+    allow_gpu: false
+    allow_large_transfers: false
+    summarization_interval: 20
+    max_frame_rate: 5
+    queue_outbound: true
 
-model_planner:
-  default_precision: "int4"
-  max_context_austere: 2048
-  max_tokens_offline: 256
-  max_tokens_constrained: 512
-  max_batch_full_edge: 4
+queue:
+  claim_batch_size: 32
+  reconcile_max_batches: 8
 
-bearer_broker:
-  probe_interval_sec: 30
-  stale_bearer_sec: 120
-  min_bandwidth_bulk_kbps: 256
-
-durable_queue:
-  db_path: "data/edge_runtime/outbound_queue.db"
-  max_retries: 10
-  purge_delivered_hours: 24
-  sync_batch_size: 50
-
-health_surface:
-  transition_log_limit: 100
-  summary_refresh_sec: 10
+bearer_scoring:
+  latency_weight: 0.35
+  jitter_weight: 0.20
+  loss_weight: 0.30
+  bandwidth_weight: 0.15

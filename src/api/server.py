@@ -41,6 +41,7 @@ from src.api.training_sim_routes import training_sim_router
 from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
+from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
 
 LOGGER = logging.getLogger(__name__)
 
@@ -121,8 +122,25 @@ async def optimization_startup_hook() -> None:
         state.log_audit("optimization_startup_error", {"error": str(exc)})
 
 
+async def edge_runtime_startup_hook() -> None:
+    """Initialize austere edge runtime before service/model loading."""
+    try:
+        runtime = get_edge_runtime()
+        state.log_audit(
+            "edge_runtime_startup",
+            {
+                "node_tier": runtime.profile.tier.value,
+                "mode": runtime.controller.current_mode.value,
+            },
+        )
+    except Exception as exc:
+        LOGGER.warning("Edge runtime startup hook failed: %s", exc)
+        state.log_audit("edge_runtime_startup_error", {"error": str(exc)})
+
+
 @asynccontextmanager
 async def app_lifespan(app: FastAPI):
+    await edge_runtime_startup_hook()
     await optimization_startup_hook()
     async with mission_command_lifespan(app):
         yield
@@ -178,6 +196,11 @@ app.include_router(interop_ext_router, tags=["Interoperability & Standards (Exte
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(portal_router, tags=["Portal RBAC"])
+# Bootstrap austere runtime before optional edge service managers are mounted.
+try:
+    get_edge_runtime()
+except Exception as exc:  # pragma: no cover - defensive startup fallback
+    LOGGER.warning("Edge runtime eager bootstrap failed: %s", exc)
 mount_edge_compute(app)
 
 # Keep dashboard API routes active, then mount static frontend files.
@@ -283,6 +306,12 @@ async def health_check():
         memory=get_memory_info(),
         timestamp=datetime.now(timezone.utc).isoformat()
     )
+
+
+@app.get("/edge/status", tags=["Edge Runtime"])
+async def edge_status() -> Dict[str, Any]:
+    """Expose austere runtime status for operators and integrations."""
+    return get_edge_runtime_status()
 
 
 # ── Endpoint 2: Single Engine Inference ──────────────────────

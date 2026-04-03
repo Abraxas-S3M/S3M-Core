@@ -1,260 +1,175 @@
-"""
-CPU-first model execution planner.
-For each workload, chooses: which model variant, precision, context limits,
-and whether to run locally, defer, or summarize instead.
-"""
+"""CPU-first model execution planner for austere edge nodes."""
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Dict, List
 
-from src.edge_runtime.degradation_controller import (
-    DegradationController,
-    ModePolicy,
-    OperatingMode,
-)
+from src.edge_runtime.degradation_controller import DegradationController, OperatingMode
 from src.edge_runtime.hardware_profiler import NodeProfile
 
 logger = logging.getLogger("s3m.edge_runtime.model_planner")
 
 
-class Precision(Enum):
-    INT4 = "int4"  # Q4_K_M — CPU austere baseline
-    INT8 = "int8"  # Q8 — CPU standard
-    FP16 = "fp16"  # GPU required
-    FP32 = "fp32"  # Debug / server only
+class QuantizationLevel(str, Enum):
+    Q4 = "Q4"
+    Q8 = "Q8"
+    FP16 = "FP16"
 
 
-class ExecutionDecision(Enum):
-    RUN_LOCAL = "run_local"
-    DEFER_TO_PEER = "defer_to_peer"
-    SUMMARIZE_INSTEAD = "summarize_instead"
-    REJECT = "reject"
+class ExecutionAction(str, Enum):
+    RUN_LOCAL = "RUN_LOCAL"
+    DEFER_TO_PEER = "DEFER_TO_PEER"
+    SUMMARIZE_INSTEAD = "SUMMARIZE_INSTEAD"
+    REJECT = "REJECT"
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class ModelVariant:
-    """One quantized variant of a model available for selection."""
-
-    model_id: str  # e.g. "phi3-mini"
-    variant_tag: str  # e.g. "q4_k_m", "q8_0", "fp16"
-    precision: Precision
-    file_path: str
-    size_mb: float
-    min_ram_gb: float
+    model_name: str
+    quantization: QuantizationLevel
+    min_memory_mb: int
     requires_gpu: bool
-    max_context: int
-    estimated_tps_cpu: float  # tokens/sec on reference CPU
-    estimated_tps_gpu: float  # tokens/sec on reference GPU
+    preferred_latency_ms: int
 
 
-# ── Default variant catalog (extends engine_registry.py) ─────
-DEFAULT_VARIANTS: List[ModelVariant] = [
-    ModelVariant(
-        "phi3-mini",
-        "q4_k_m",
-        Precision.INT4,
-        "models/phi3/phi-3-mini-4k-instruct-q4_k_m.gguf",
-        2200,
-        3.0,
-        False,
-        4096,
-        12.0,
-        45.0,
-    ),
-    ModelVariant(
-        "phi3-mini",
-        "q8_0",
-        Precision.INT8,
-        "models/phi3/phi-3-mini-4k-instruct-q8_0.gguf",
-        4000,
-        5.0,
-        False,
-        4096,
-        8.0,
-        40.0,
-    ),
-    ModelVariant(
-        "mistral-7b",
-        "q4_k_m",
-        Precision.INT4,
-        "models/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf",
-        4100,
-        5.0,
-        False,
-        8192,
-        6.0,
-        35.0,
-    ),
-    ModelVariant(
-        "mistral-7b",
-        "fp16",
-        Precision.FP16,
-        "models/mistral/mistral-7b-instruct-v0.3-fp16.gguf",
-        14000,
-        16.0,
-        True,
-        32768,
-        0.5,
-        55.0,
-    ),
-    ModelVariant(
-        "grok-8b",
-        "q4_k_m",
-        Precision.INT4,
-        "models/grok/grok-8b-q4_k_m.gguf",
-        4600,
-        6.0,
-        False,
-        8192,
-        5.0,
-        30.0,
-    ),
-    ModelVariant(
-        "allam-7b",
-        "q4_k_m",
-        Precision.INT4,
-        "models/allam/allam-7b-q4_k_m.gguf",
-        4100,
-        5.0,
-        False,
-        4096,
-        5.5,
-        32.0,
-    ),
-]
-
-
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class ExecutionPlan:
-    decision: ExecutionDecision
-    variant: Optional[ModelVariant]
-    precision: Precision
-    max_tokens: int
-    max_context: int
-    max_batch: int
-    reason: str
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "decision": self.decision.value,
-            "variant": self.variant.variant_tag if self.variant else None,
-            "model_id": self.variant.model_id if self.variant else None,
-            "precision": self.precision.value,
-            "max_tokens": self.max_tokens,
-            "max_context": self.max_context,
-            "max_batch": self.max_batch,
-            "reason": self.reason,
-        }
+    action: ExecutionAction
+    selected_variant: ModelVariant | None
+    rationale: str
+    constraints: Dict[str, int | bool | str]
 
 
 class ModelExecutionPlanner:
-    """
-    Given a workload request, selects the best model variant that
-    fits within current hardware and degradation constraints.
-    CPU is the baseline, not the fallback.
-    """
+    """Computes execution decisions using tier and current degradation policy."""
 
-    def __init__(
-        self,
-        profile: NodeProfile,
-        controller: DegradationController,
-        variants: Optional[List[ModelVariant]] = None,
-    ) -> None:
+    def __init__(self, profile: NodeProfile, controller: DegradationController) -> None:
         self.profile = profile
         self.controller = controller
-        self.variants = variants or DEFAULT_VARIANTS
-        self._loaded_mb: float = 0.0
+        self.catalog = self._build_catalog()
 
-    def plan(self, model_id: str, requested_tokens: int = 512) -> ExecutionPlan:
-        """Select variant and execution strategy for a model workload."""
-        policy = self.controller.current_policy()
+    def plan(self, task_name: str, priority: int = 1) -> ExecutionPlan:
+        """
+        Return execution decision for an inference task.
 
-        # Filter to matching model
-        candidates = [v for v in self.variants if v.model_id == model_id]
-        if not candidates:
+        Priority: 0 critical, 1 normal, 2 background.
+        """
+        mode = self.controller.current_mode
+        policy = self.controller.policy()
+        variants = self.catalog.get(task_name, [])
+
+        if not variants:
             return ExecutionPlan(
-                ExecutionDecision.REJECT,
-                None,
-                Precision.INT4,
-                0,
-                0,
-                0,
-                f"No variants registered for {model_id}",
+                action=ExecutionAction.REJECT,
+                selected_variant=None,
+                rationale=f"Unknown task model: {task_name}",
+                constraints={"mode": mode.value, "priority": priority},
             )
 
-        # Filter by hardware capability
-        feasible = self._filter_feasible(candidates, policy)
-        if not feasible:
-            # Tactical context: if local execution cannot satisfy constraints,
-            # defer to a peer node only when policy allows external inference.
-            if policy.allow_external_inference:
+        affordable = [
+            v
+            for v in variants
+            if v.min_memory_mb <= self.profile.total_memory_mb
+            and (policy.allow_gpu or not v.requires_gpu)
+        ]
+
+        if affordable:
+            selected = self._pick_best(affordable)
+            if mode == OperatingMode.OFFLINE_SURVIVAL and priority >= 2:
+                # Preserve compute budget for tactical-critical operations under no-link state.
                 return ExecutionPlan(
-                    ExecutionDecision.DEFER_TO_PEER,
-                    None,
-                    Precision.INT4,
-                    requested_tokens,
-                    0,
-                    1,
-                    f"No feasible local variant for {model_id}; deferring to peer.",
+                    action=ExecutionAction.SUMMARIZE_INSTEAD,
+                    selected_variant=None,
+                    rationale="Background task converted to summary in offline survival mode",
+                    constraints=self._constraint_map(priority),
                 )
             return ExecutionPlan(
-                ExecutionDecision.SUMMARIZE_INSTEAD,
-                None,
-                Precision.INT4,
-                min(requested_tokens, 128),
-                0,
-                1,
-                "No feasible variant and no peer; falling back to summarization.",
+                action=ExecutionAction.RUN_LOCAL,
+                selected_variant=selected,
+                rationale=f"Selected {selected.quantization.value} variant for local execution",
+                constraints=self._constraint_map(priority),
             )
 
-        # Rank: prefer smallest memory footprint that still fits
-        feasible.sort(key=lambda v: v.size_mb)
-        chosen = feasible[0]
+        if mode in {OperatingMode.INTERMITTENT_LINK, OperatingMode.FULL_EDGE}:
+            return ExecutionPlan(
+                action=ExecutionAction.DEFER_TO_PEER,
+                selected_variant=None,
+                rationale="No local variant fits current memory or policy constraints",
+                constraints=self._constraint_map(priority),
+            )
 
-        # Constrain tokens/context based on mode
-        max_tokens = min(requested_tokens, self._token_ceiling(policy, chosen))
-        max_context = chosen.max_context
-        if policy.mode in (
-            OperatingMode.MODE_B_CPU_CONSTRAINED,
-            OperatingMode.MODE_D_OFFLINE_SURVIVAL,
-        ):
-            max_context = min(max_context, 2048)
+        if priority == 0:
+            return ExecutionPlan(
+                action=ExecutionAction.SUMMARIZE_INSTEAD,
+                selected_variant=None,
+                rationale="Critical request summarized due to severe local constraints",
+                constraints=self._constraint_map(priority),
+            )
 
         return ExecutionPlan(
-            decision=ExecutionDecision.RUN_LOCAL,
-            variant=chosen,
-            precision=chosen.precision,
-            max_tokens=max_tokens,
-            max_context=max_context,
-            max_batch=1 if policy.mode != OperatingMode.MODE_A_FULL_EDGE else 4,
-            reason=(
-                f"Selected {chosen.variant_tag} ({chosen.size_mb:.0f} MB) "
-                f"for {self.profile.tier.value}"
-            ),
+            action=ExecutionAction.REJECT,
+            selected_variant=None,
+            rationale="Cannot satisfy request in current austere mode",
+            constraints=self._constraint_map(priority),
         )
 
-    def _filter_feasible(
-        self, candidates: List[ModelVariant], policy: ModePolicy
-    ) -> List[ModelVariant]:
-        feasible = []
-        for variant in candidates:
-            if variant.requires_gpu and not policy.allow_gpu:
-                continue
-            if variant.requires_gpu and not self.profile.gpu_detected:
-                continue
-            if variant.min_ram_gb > self.profile.ram_available_gb:
-                continue
-            feasible.append(variant)
-        return feasible
+    def _constraint_map(self, priority: int) -> Dict[str, int | bool | str]:
+        policy = self.controller.policy()
+        return {
+            "mode": self.controller.current_mode.value,
+            "priority": priority,
+            "allow_gpu": policy.allow_gpu,
+            "max_concurrent_models": policy.max_concurrent_models,
+            "memory_mb": self.profile.total_memory_mb,
+        }
 
-    @staticmethod
-    def _token_ceiling(policy: ModePolicy, variant: ModelVariant) -> int:
-        if policy.mode == OperatingMode.MODE_D_OFFLINE_SURVIVAL:
-            return 256
-        if policy.mode == OperatingMode.MODE_B_CPU_CONSTRAINED:
-            return 512
-        return variant.max_context  # modes A/C: full capacity
+    def _pick_best(self, variants: List[ModelVariant]) -> ModelVariant:
+        # CPU-first policy: prefer non-GPU variants and smallest quantization footprint.
+        ranked = sorted(
+            variants,
+            key=lambda v: (
+                v.requires_gpu,
+                v.min_memory_mb,
+                0
+                if v.quantization == QuantizationLevel.Q4
+                else 1
+                if v.quantization == QuantizationLevel.Q8
+                else 2,
+                v.preferred_latency_ms,
+            ),
+        )
+        return ranked[0]
+
+    def _build_catalog(self) -> Dict[str, List[ModelVariant]]:
+        # Quad-engine variants tuned for tactical disconnected execution.
+        engines = ["phi3", "grok", "mistral", "allam"]
+        catalog: Dict[str, List[ModelVariant]] = {}
+        for engine in engines:
+            catalog[engine] = [
+                ModelVariant(
+                    model_name=engine,
+                    quantization=QuantizationLevel.Q4,
+                    min_memory_mb=4096,
+                    requires_gpu=False,
+                    preferred_latency_ms=1200,
+                ),
+                ModelVariant(
+                    model_name=engine,
+                    quantization=QuantizationLevel.Q8,
+                    min_memory_mb=8192,
+                    requires_gpu=False,
+                    preferred_latency_ms=850,
+                ),
+                ModelVariant(
+                    model_name=engine,
+                    quantization=QuantizationLevel.FP16,
+                    min_memory_mb=12288,
+                    requires_gpu=True,
+                    preferred_latency_ms=420,
+                ),
+            ]
+        logger.info("Model catalog initialized entries=%s", len(catalog))
+        return catalog
