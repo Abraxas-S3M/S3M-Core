@@ -21,6 +21,7 @@ from src.edge_compute.models import (
     EdgeNodeInfo,
     OperationType,
 )
+from src.edge_runtime.bootstrap import get_edge_runtime_status
 
 logger = logging.getLogger("s3m.edge.api")
 
@@ -124,8 +125,17 @@ def _to_1d_int(payload: List[int], expected: int, name: str) -> np.ndarray:
 
 @edge_compute_router.get("/health")
 async def edge_health() -> Dict[str, Any]:
-    """Full health check across all edge compute subsystems."""
-    return get_manager().health_check()
+    """
+    Combined edge status for tactical operators.
+
+    Returns legacy edge-compute health keys while exposing austere runtime status.
+    """
+    payload = get_manager().health_check()
+    try:
+        payload.update(get_edge_runtime_status())
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        logger.warning("Edge runtime status unavailable during /edge/health: %s", exc)
+    return payload
 
 
 @edge_compute_router.post("/federated/nodes")
