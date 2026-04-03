@@ -1,7 +1,5 @@
-# S3M Phase 21 Austere Edge Runtime defaults
+# S3M Phase 21 — Austere Edge Runtime Configuration
 # UNCLASSIFIED - FOUO
-runtime:
-  queue_db_path: "data/edge_runtime/outbound_queue.db"
 
 hardware_thresholds:
   cpu_standard_min_memory_mb: 16384

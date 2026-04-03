@@ -1,47 +1,49 @@
-"""S3M Phase 21 austere edge runtime package exports."""
+"""
+S3M Phase 21 - Austere Edge Runtime.
+CPU-first, local-first, multi-bearer resilient runtime for denied environments.
+UNCLASSIFIED - FOUO
+"""
 
-from .hardware_profiler import HardwareProfiler, HardwareTier, NodeProfile
-from .degradation_controller import DegradationController, ModePolicy, OperatingMode
-from .model_planner import (
-    ExecutionAction,
-    ExecutionPlan,
-    ModelExecutionPlanner,
-    ModelVariant,
-    QuantizationLevel,
-)
-from .bearer_broker import (
+from src.edge_runtime.hardware_profiler import HardwareProfiler, NodeProfile, HardwareTier
+from src.edge_runtime.degradation_controller import DegradationController, OperatingMode, ModePolicy, MODE_POLICIES
+from src.edge_runtime.model_planner import ModelExecutionPlanner, ExecutionPlan, ExecutionDecision, Precision, ModelVariant
+from src.edge_runtime.bearer_broker import (
     BearerBroker,
-    LinkMetrics,
     LinkType,
+    LinkState,
+    LinkMetrics,
     MessageClass,
+    DeliveryMode,
     RoutingDecision,
 )
-from .durable_queue import DurableQueue, SyncReconciler
-from .health_surface import OperatorHealthSurface
-from .bootstrap import AustereEdgeRuntime, get_edge_runtime, get_edge_runtime_status, initialize_edge_runtime
+from src.edge_runtime.durable_queue import DurableQueue, SyncReconciler, QueueItem, QueueItemState
+from src.edge_runtime.health_surface import OperatorHealthSurface
+from src.edge_runtime.bootstrap import AustereEdgeRuntime
 
 __all__ = [
-    "AustereEdgeRuntime",
-    "BearerBroker",
-    "DegradationController",
-    "DurableQueue",
-    "ExecutionAction",
-    "ExecutionPlan",
     "HardwareProfiler",
-    "HardwareTier",
-    "LinkMetrics",
-    "LinkType",
-    "MessageClass",
-    "ModePolicy",
-    "ModelExecutionPlanner",
-    "ModelVariant",
     "NodeProfile",
+    "HardwareTier",
+    "DegradationController",
     "OperatingMode",
-    "OperatorHealthSurface",
-    "QuantizationLevel",
+    "ModePolicy",
+    "MODE_POLICIES",
+    "ModelExecutionPlanner",
+    "ExecutionPlan",
+    "ExecutionDecision",
+    "Precision",
+    "ModelVariant",
+    "BearerBroker",
+    "LinkType",
+    "LinkState",
+    "LinkMetrics",
+    "MessageClass",
+    "DeliveryMode",
     "RoutingDecision",
+    "DurableQueue",
     "SyncReconciler",
-    "get_edge_runtime",
-    "get_edge_runtime_status",
-    "initialize_edge_runtime",
+    "QueueItem",
+    "QueueItemState",
+    "OperatorHealthSurface",
+    "AustereEdgeRuntime",
 ]

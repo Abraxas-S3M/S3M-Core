@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from services.comms.c2 import C2MessageRouter, CommsSecurityManager, MessageIntelExtractor
+from services.comms.bearer_bridge import BearerRelayBridge
 from services.comms.models import Channel, ChannelType, Message, MessagePriority, MessageStatus, MessageType, NodeType, RelayBackend
 from services.comms.nlp import ArabicNLPEngine, MessageSummarizer
 from services.comms.node_manager import CommsNodeManager
@@ -16,7 +17,7 @@ from services.comms.relays import RelayManager
 class CommsManager:
     """Top-level facade for secure tactical message flow and telemetry."""
 
-    def __init__(self) -> None:
+    def __init__(self, bearer_bridge: Optional[BearerRelayBridge] = None) -> None:
         self.relay_manager = RelayManager()
         self.nlp_engine = ArabicNLPEngine(model_backend="auto")
         self.message_summarizer = MessageSummarizer(engine=self.nlp_engine)
@@ -24,6 +25,7 @@ class CommsManager:
         self.node_manager = CommsNodeManager()
         self.c2_router = C2MessageRouter(relay_manager=self.relay_manager, nlp_engine=self.nlp_engine, node_manager=self.node_manager)
         self.intel_extractor = MessageIntelExtractor(nlp_engine=self.nlp_engine)
+        self.bearer_bridge = bearer_bridge
         self._message_log: List[Message] = []
 
     @staticmethod
@@ -89,6 +91,28 @@ class CommsManager:
         )
         if encrypt:
             message = self.security_manager.encrypt_message(message)
+        if self.bearer_bridge is not None:
+            # Tactical intent: adapt relay preference to bearer quality before C2 routing sends.
+            relay_plan = self.bearer_bridge.select_relay(
+                priority=prio.name,
+                payload_size_kb=max(1.0, len(body.encode("utf-8")) / 1024.0),
+            )
+            preferred = [relay_plan.get("primary"), *relay_plan.get("fallbacks", [])]
+            bridge_order: List[RelayBackend] = []
+            for candidate in preferred:
+                if not isinstance(candidate, str):
+                    continue
+                try:
+                    backend = RelayBackend(candidate.lower())
+                except Exception:
+                    continue
+                if backend not in bridge_order:
+                    bridge_order.append(backend)
+            if bridge_order:
+                for backend in list(self.relay_manager.fallback_order):
+                    if backend not in bridge_order:
+                        bridge_order.append(backend)
+                self.relay_manager.fallback_order = bridge_order
         route_result = self.c2_router.route_message(message)
         intel = self.intel_extractor.extract(message)
         self._message_log.append(message)
