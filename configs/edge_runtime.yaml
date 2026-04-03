@@ -1,4 +1,5 @@
 # S3M Phase 21 — Austere Edge Runtime Configuration
+# UNCLASSIFIED - FOUO
 
 hardware_profiler:
   thermal_throttle_c: 85

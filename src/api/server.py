@@ -25,6 +25,7 @@ from src.api.config import api_config, mission_command_lifespan
 from src.api.apps_routes import apps_router
 from src.api.autonomy_routes import autonomy_router
 from src.api.comms_routes import comms_router
+from src.api.edge_runtime_routes import router as edge_router
 from src.api.cyber_routes import cyber_router
 from src.api.dashboard_routes import dashboard_router
 from src.api.intel_routes import intel_router
@@ -139,6 +140,7 @@ app = FastAPI(
     lifespan=app_lifespan,
 )
 
+app.include_router(edge_router)
 app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
 
 app.add_middleware(
