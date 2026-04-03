@@ -23,6 +23,10 @@ class HardwareTier(Enum):
     EDGE_GPU = "edge_gpu"  # Jetson-class GPU present
     VEHICLE_NODE = "vehicle_node"  # GPU + constrained thermal/power
     FIXED_SITE = "fixed_site"  # Full server, may still be bandwidth-limited
+    # Compatibility aliases retained for planner/tests that reference prior names.
+    TIER_0_AUSTERE = "cpu_austere"
+    TIER_1_BALANCED = "cpu_standard"
+    TIER_2_ACCELERATED = "edge_gpu"
 
 
 @dataclass
@@ -30,18 +34,18 @@ class NodeProfile:
     """Immutable snapshot of node capabilities taken at boot."""
 
     tier: HardwareTier
-    cpu_cores: int
-    cpu_arch: str
-    ram_total_gb: float
     ram_available_gb: float
-    disk_total_gb: float
-    disk_free_gb: float
     gpu_detected: bool
-    gpu_name: Optional[str]
-    gpu_memory_mb: int
-    cuda_available: bool
-    thermal_zone_c: Optional[float]
-    power_source: str  # "mains" | "battery" | "vehicle" | "unknown"
+    cpu_cores: int = 1
+    cpu_arch: str = "unknown"
+    ram_total_gb: float = 0.0
+    disk_total_gb: float = 0.0
+    disk_free_gb: float = 0.0
+    gpu_name: Optional[str] = None
+    gpu_memory_mb: int = 0
+    cuda_available: bool = False
+    thermal_zone_c: Optional[float] = None
+    power_source: str = "unknown"  # "mains" | "battery" | "vehicle" | "unknown"
     active_links: List[str] = field(default_factory=list)
     profiled_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
