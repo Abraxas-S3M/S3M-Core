@@ -45,9 +45,16 @@ except Exception:  # pragma: no cover - exercised when later modules are absent
     MessageClass = None  # type: ignore[assignment]
 
 try:
-    from src.edge_runtime.durable_queue import DurableQueue, SyncReconciler
+    from src.edge_runtime.durable_queue import (
+        DurableQueue,
+        QueueItem,
+        QueueItemState,
+        SyncReconciler,
+    )
 except Exception:  # pragma: no cover - exercised when later modules are absent
     DurableQueue = None  # type: ignore[assignment]
+    QueueItem = None  # type: ignore[assignment]
+    QueueItemState = None  # type: ignore[assignment]
     SyncReconciler = None  # type: ignore[assignment]
 
 try:
@@ -61,6 +68,6 @@ __all__ = [
     "DEFAULT_VARIANTS", "ExecutionDecision", "ExecutionPlan",
     "ModelExecutionPlanner", "ModelVariant", "Precision",
     "BearerBroker", "LinkType", "LinkState", "MessageClass",
-    "DurableQueue", "SyncReconciler",
+    "DurableQueue", "QueueItem", "QueueItemState", "SyncReconciler",
     "OperatorHealthSurface",
 ]
