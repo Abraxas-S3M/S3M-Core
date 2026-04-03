@@ -9,15 +9,32 @@ from src.edge_runtime.hardware_profiler import HardwareProfiler, NodeProfile, Ha
 # independently. In austere deployments this keeps hardware profiling usable
 # even before all runtime modules are staged on the node image.
 try:
-    from src.edge_runtime.degradation_controller import DegradationController, OperatingMode
+    from src.edge_runtime.degradation_controller import (
+        DegradationController,
+        ModePolicy,
+        OperatingMode,
+    )
 except Exception:  # pragma: no cover - exercised when later modules are absent
     DegradationController = None  # type: ignore[assignment]
+    ModePolicy = None  # type: ignore[assignment]
     OperatingMode = None  # type: ignore[assignment]
 
 try:
-    from src.edge_runtime.model_planner import ModelExecutionPlanner
+    from src.edge_runtime.model_planner import (
+        DEFAULT_VARIANTS,
+        ExecutionDecision,
+        ExecutionPlan,
+        ModelExecutionPlanner,
+        ModelVariant,
+        Precision,
+    )
 except Exception:  # pragma: no cover - exercised when later modules are absent
+    DEFAULT_VARIANTS = None  # type: ignore[assignment]
+    ExecutionDecision = None  # type: ignore[assignment]
+    ExecutionPlan = None  # type: ignore[assignment]
     ModelExecutionPlanner = None  # type: ignore[assignment]
+    ModelVariant = None  # type: ignore[assignment]
+    Precision = None  # type: ignore[assignment]
 
 try:
     from src.edge_runtime.bearer_broker import BearerBroker, LinkType, LinkState, MessageClass
@@ -40,8 +57,9 @@ except Exception:  # pragma: no cover - exercised when later modules are absent
 
 __all__ = [
     "HardwareProfiler", "NodeProfile", "HardwareTier",
-    "DegradationController", "OperatingMode",
-    "ModelExecutionPlanner",
+    "DegradationController", "ModePolicy", "OperatingMode",
+    "DEFAULT_VARIANTS", "ExecutionDecision", "ExecutionPlan",
+    "ModelExecutionPlanner", "ModelVariant", "Precision",
     "BearerBroker", "LinkType", "LinkState", "MessageClass",
     "DurableQueue", "SyncReconciler",
     "OperatorHealthSurface",
