@@ -1,42 +1,46 @@
 """
-Bearer broker for resilient multi-transport comms routing.
-UNCLASSIFIED - FOUO
+Transport-agnostic bearer broker.
+Continuously scores all available bearers and routes each message
+class over the optimal transport.
 """
 
 from __future__ import annotations
 
+import logging
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-import time
 from typing import Any, Callable, Dict, List, Optional
 
+logger = logging.getLogger("s3m.edge_runtime.bearer_broker")
 
-class LinkType(str, Enum):
+
+class LinkType(Enum):
     WIFI = "wifi"
     CELLULAR = "cellular"
     SATELLITE = "satellite"
-    MESH = "mesh"
+    MESH = "mesh"  # Meshtastic / LoRa tactical mesh fallback
     LOCAL_RADIO_GATEWAY = "local_radio_gateway"
     WIRED = "wired"
 
 
-class LinkState(str, Enum):
+class LinkState(Enum):
     UP = "up"
     DEGRADED = "degraded"
     INTERMITTENT = "intermittent"
     DOWN = "down"
 
 
-class MessageClass(str, Enum):
-    URGENT_CONTROL = "urgent_control"
-    TELEMETRY = "telemetry"
-    LOGS = "logs"
-    SUMMARIES = "summaries"
-    BULK_SYNC = "bulk_sync"
-    MODEL_UPDATES = "model_updates"
+class MessageClass(Enum):
+    URGENT_CONTROL = "urgent_control"  # alerts, C2 commands
+    TELEMETRY = "telemetry"  # periodic sensor data
+    LOGS = "logs"  # operational logs
+    SUMMARIES = "summaries"  # SITREPs, compressed intel
+    BULK_SYNC = "bulk_sync"  # model artifacts, large logs
+    MODEL_UPDATES = "model_updates"  # weight pushes
 
 
-class DeliveryMode(str, Enum):
+class DeliveryMode(Enum):
     REALTIME = "realtime"
     NEAR_REALTIME = "near_realtime"
     DELAY_TOLERANT = "delay_tolerant"
@@ -51,62 +55,63 @@ class LinkMetrics:
     jitter_ms: float = 9999.0
     packet_loss_pct: float = 100.0
     bandwidth_kbps: float = 0.0
-    cost: float = 1.0
-    confidence: float = 0.0
+    cost: float = 1.0  # relative cost (1=cheap, 10=expensive)
+    confidence: float = 0.0  # 0-1, how reliable is this measurement
     power_draw_w: float = 0.0
     last_probed: float = field(default_factory=time.time)
 
     def composite_score(self) -> float:
+        """Lower is better. Weighted composite for routing decisions."""
         if self.state == LinkState.DOWN:
             return 99999.0
-        return (
-            (self.latency_ms / 100.0)
-            + (self.packet_loss_pct * 5.0)
-            + (self.cost * 2.0)
-            + ((1.0 - max(0.0, min(1.0, self.confidence))) * 10.0)
-        )
+        latency_factor = self.latency_ms / 100.0
+        loss_factor = self.packet_loss_pct * 5.0
+        cost_factor = self.cost * 2.0
+        confidence_bonus = (1.0 - self.confidence) * 10.0
+        return latency_factor + loss_factor + cost_factor + confidence_bonus
 
 
+# Routing policy: message class -> delivery requirements.
 MESSAGE_ROUTING: Dict[MessageClass, Dict[str, Any]] = {
     MessageClass.URGENT_CONTROL: {
-        "delivery_mode": DeliveryMode.REALTIME,
+        "delivery": DeliveryMode.REALTIME,
         "max_latency_ms": 2000,
         "max_size_kb": 4,
         "try_all_bearers": True,
         "compress": False,
     },
     MessageClass.TELEMETRY: {
-        "delivery_mode": DeliveryMode.NEAR_REALTIME,
+        "delivery": DeliveryMode.NEAR_REALTIME,
         "max_latency_ms": 10000,
         "max_size_kb": 64,
         "try_all_bearers": False,
         "compress": True,
     },
     MessageClass.LOGS: {
-        "delivery_mode": DeliveryMode.DELAY_TOLERANT,
+        "delivery": DeliveryMode.DELAY_TOLERANT,
         "max_latency_ms": 60000,
         "max_size_kb": 512,
         "try_all_bearers": False,
         "compress": True,
     },
     MessageClass.SUMMARIES: {
-        "delivery_mode": DeliveryMode.NEAR_REALTIME,
+        "delivery": DeliveryMode.NEAR_REALTIME,
         "max_latency_ms": 30000,
         "max_size_kb": 128,
         "try_all_bearers": False,
         "compress": True,
     },
     MessageClass.BULK_SYNC: {
-        "delivery_mode": DeliveryMode.OPPORTUNISTIC,
-        "max_latency_ms": None,
-        "max_size_kb": None,
+        "delivery": DeliveryMode.OPPORTUNISTIC,
+        "max_latency_ms": 0,  # no deadline
+        "max_size_kb": 0,  # unlimited
         "try_all_bearers": False,
         "compress": True,
     },
     MessageClass.MODEL_UPDATES: {
-        "delivery_mode": DeliveryMode.DELAY_TOLERANT,
-        "max_latency_ms": None,
-        "max_size_kb": None,
+        "delivery": DeliveryMode.DELAY_TOLERANT,
+        "max_latency_ms": 0,
+        "max_size_kb": 0,
         "try_all_bearers": False,
         "compress": True,
     },
@@ -123,11 +128,11 @@ class RoutingDecision:
     persist_if_fail: bool
     reason: str
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "message_class": self.message_class.value,
             "selected_bearer": self.selected_bearer.value if self.selected_bearer else None,
-            "fallback_bearers": [link.value for link in self.fallback_bearers],
+            "fallbacks": [b.value for b in self.fallback_bearers],
             "delivery_mode": self.delivery_mode.value,
             "compress": self.compress,
             "persist_if_fail": self.persist_if_fail,
@@ -136,41 +141,73 @@ class RoutingDecision:
 
 
 class BearerBroker:
-    """Scores links and emits bearer decisions for tactical message classes."""
+    """
+    The routing brain in the communications layer.
+    Sits above all relay adapters and continuously chooses the best
+    transport per message class.
+    """
 
     def __init__(self, on_link_change: Optional[Callable[[bool], None]] = None) -> None:
         self._bearers: Dict[LinkType, LinkMetrics] = {}
         self._on_link_change = on_link_change
         self._any_bearer_up = False
 
+    # Bearer registration and probing
     def register_bearer(self, link_type: LinkType, metrics: LinkMetrics) -> None:
+        if not isinstance(link_type, LinkType):
+            raise TypeError("link_type must be a LinkType")
+        if not isinstance(metrics, LinkMetrics):
+            raise TypeError("metrics must be LinkMetrics")
+        if metrics.link_type != link_type:
+            raise ValueError("metrics.link_type must match link_type")
         self._bearers[link_type] = metrics
         self._check_overall_state()
 
     def update_metrics(self, link_type: LinkType, **kwargs: Any) -> None:
-        metrics = self._bearers.get(link_type)
-        if metrics is None:
-            metrics = LinkMetrics(link_type=link_type, state=LinkState.DOWN)
-            self._bearers[link_type] = metrics
-        for key, value in kwargs.items():
-            if hasattr(metrics, key):
-                setattr(metrics, key, value)
-        metrics.last_probed = time.time()
+        if not isinstance(link_type, LinkType):
+            raise TypeError("link_type must be a LinkType")
+        if link_type not in self._bearers:
+            self._bearers[link_type] = LinkMetrics(link_type=link_type, state=LinkState.DOWN)
+        for k, v in kwargs.items():
+            if hasattr(self._bearers[link_type], k):
+                setattr(self._bearers[link_type], k, v)
+        self._bearers[link_type].last_probed = time.time()
         self._check_overall_state()
 
     def mark_down(self, link_type: LinkType) -> None:
-        self.update_metrics(link_type, state=LinkState.DOWN)
+        if not isinstance(link_type, LinkType):
+            raise TypeError("link_type must be a LinkType")
+        if link_type in self._bearers:
+            self._bearers[link_type].state = LinkState.DOWN
+            self._check_overall_state()
 
-    def mark_up(self, link_type: LinkType, latency_ms: float) -> None:
-        self.update_metrics(link_type, state=LinkState.UP, latency_ms=latency_ms)
+    def mark_up(self, link_type: LinkType, latency_ms: float = 100.0) -> None:
+        if not isinstance(link_type, LinkType):
+            raise TypeError("link_type must be a LinkType")
+        if latency_ms < 0:
+            raise ValueError("latency_ms must be >= 0")
+        if link_type in self._bearers:
+            self._bearers[link_type].state = LinkState.UP
+            self._bearers[link_type].latency_ms = latency_ms
+            self._check_overall_state()
 
+    # Route selection
     def route(self, message_class: MessageClass, payload_size_kb: float = 0) -> RoutingDecision:
-        policy = MESSAGE_ROUTING[message_class]
-        delivery_mode: DeliveryMode = policy["delivery_mode"]
+        """Select the best bearer for a given message class."""
+        if not isinstance(message_class, MessageClass):
+            raise TypeError("message_class must be a MessageClass")
+        if payload_size_kb < 0:
+            raise ValueError("payload_size_kb must be >= 0")
+
+        policy = MESSAGE_ROUTING.get(message_class, MESSAGE_ROUTING[MessageClass.LOGS])
+        delivery = policy["delivery"]
+        compress = policy["compress"]
+
+        # Score all UP or DEGRADED bearers.
         available = [
-            metrics
-            for metrics in self._bearers.values()
-            if metrics.state in {LinkState.UP, LinkState.DEGRADED}
+            (lt, m)
+            for lt, m in self._bearers.items()
+            if m.state in (LinkState.UP, LinkState.DEGRADED)
         ]
 
         if not available:
@@ -178,92 +215,85 @@ class BearerBroker:
                 message_class=message_class,
                 selected_bearer=None,
                 fallback_bearers=[],
-                delivery_mode=delivery_mode,
-                compress=bool(policy["compress"]),
+                delivery_mode=delivery,
+                compress=compress,
                 persist_if_fail=True,
-                reason="No available bearers; queue for delayed delivery.",
+                reason="No bearers available; message will be queued locally.",
             )
 
-        max_size_kb = policy["max_size_kb"]
-        if max_size_kb is not None and payload_size_kb > max_size_kb:
+        ranked = sorted(available, key=lambda pair: pair[1].composite_score())
+
+        if policy.get("try_all_bearers"):
+            selected = ranked[0][0]
+            fallbacks = [lt for lt, _ in ranked[1:]]
             return RoutingDecision(
                 message_class=message_class,
-                selected_bearer=None,
-                fallback_bearers=[],
-                delivery_mode=DeliveryMode.DELAY_TOLERANT,
-                compress=True,
+                selected_bearer=selected,
+                fallback_bearers=fallbacks,
+                delivery_mode=delivery,
+                compress=compress,
                 persist_if_fail=True,
-                reason="Payload exceeds tactical class size policy; persist for staged transfer.",
+                reason=f"Urgent: primary={selected.value}, all bearers attempted.",
             )
 
-        ranked = sorted(available, key=lambda metrics: metrics.composite_score())
-
-        if message_class == MessageClass.URGENT_CONTROL and bool(policy["try_all_bearers"]):
-            primary = ranked[0]
-            fallback = [metrics.link_type for metrics in ranked[1:]]
-            return RoutingDecision(
-                message_class=message_class,
-                selected_bearer=primary.link_type,
-                fallback_bearers=fallback,
-                delivery_mode=delivery_mode,
-                compress=bool(policy["compress"]),
-                persist_if_fail=False,
-                reason="Urgent control message fans out across all healthy bearers.",
-            )
-
-        if message_class in {MessageClass.BULK_SYNC, MessageClass.MODEL_UPDATES}:
-            high_bw = [metrics for metrics in ranked if metrics.bandwidth_kbps >= 256.0]
+        # Bulk/model transfers only proceed on high-bandwidth links.
+        if message_class in (MessageClass.BULK_SYNC, MessageClass.MODEL_UPDATES):
+            high_bw = [(lt, m) for lt, m in ranked if m.bandwidth_kbps >= 256]
             if not high_bw:
                 return RoutingDecision(
                     message_class=message_class,
                     selected_bearer=None,
                     fallback_bearers=[],
                     delivery_mode=DeliveryMode.OPPORTUNISTIC,
-                    compress=bool(policy["compress"]),
+                    compress=True,
                     persist_if_fail=True,
-                    reason="No bearer meets minimum bandwidth for bulk/model transfer.",
+                    reason="No high-bandwidth bearer; bulk transfer deferred.",
                 )
-            ranked = high_bw
+            selected = high_bw[0][0]
+            return RoutingDecision(
+                message_class=message_class,
+                selected_bearer=selected,
+                fallback_bearers=[lt for lt, _ in high_bw[1:]],
+                delivery_mode=delivery,
+                compress=True,
+                persist_if_fail=True,
+                reason=f"Bulk: selected {selected.value} ({high_bw[0][1].bandwidth_kbps:.0f} kbps).",
+            )
 
-        primary = ranked[0]
-        fallbacks = [metrics.link_type for metrics in ranked[1:3]]
-        persist = delivery_mode in {DeliveryMode.DELAY_TOLERANT, DeliveryMode.OPPORTUNISTIC}
-
+        selected = ranked[0][0]
         return RoutingDecision(
             message_class=message_class,
-            selected_bearer=primary.link_type,
-            fallback_bearers=fallbacks,
-            delivery_mode=delivery_mode,
-            compress=bool(policy["compress"]),
-            persist_if_fail=persist,
-            reason="Selected lowest composite-score bearer for message class.",
+            selected_bearer=selected,
+            fallback_bearers=[lt for lt, _ in ranked[1:3]],
+            delivery_mode=delivery,
+            compress=compress,
+            persist_if_fail=(delivery != DeliveryMode.REALTIME),
+            reason=f"Routed via {selected.value} (score={ranked[0][1].composite_score():.1f}).",
         )
 
-    def bearer_status(self) -> List[Dict[str, object]]:
-        now = time.time()
-        output: List[Dict[str, object]] = []
-        for metrics in sorted(self._bearers.values(), key=lambda item: item.composite_score()):
-            output.append(
-                {
-                    "type": metrics.link_type.value,
-                    "state": metrics.state.value,
-                    "latency_ms": metrics.latency_ms,
-                    "bandwidth_kbps": metrics.bandwidth_kbps,
-                    "packet_loss_pct": metrics.packet_loss_pct,
-                    "score": metrics.composite_score(),
-                    "age_seconds": round(max(0.0, now - metrics.last_probed), 2),
-                }
-            )
-        return output
+    # Observability
+    def bearer_status(self) -> List[Dict[str, Any]]:
+        return [
+            {
+                "type": lt.value,
+                "state": m.state.value,
+                "latency_ms": m.latency_ms,
+                "bandwidth_kbps": m.bandwidth_kbps,
+                "loss_pct": m.packet_loss_pct,
+                "score": m.composite_score(),
+                "age_sec": round(time.time() - m.last_probed, 1),
+            }
+            for lt, m in self._bearers.items()
+        ]
 
     def any_bearer_up(self) -> bool:
         return self._any_bearer_up
 
+    # Internal
     def _check_overall_state(self) -> None:
-        previous = self._any_bearer_up
+        was_up = self._any_bearer_up
         self._any_bearer_up = any(
-            metrics.state in {LinkState.UP, LinkState.DEGRADED}
-            for metrics in self._bearers.values()
+            m.state in (LinkState.UP, LinkState.DEGRADED) for m in self._bearers.values()
         )
-        if self._on_link_change and previous != self._any_bearer_up:
+        if was_up != self._any_bearer_up and self._on_link_change:
             self._on_link_change(self._any_bearer_up)
