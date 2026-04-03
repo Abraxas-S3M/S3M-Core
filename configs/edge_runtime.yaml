@@ -1,0 +1,35 @@
+# S3M Phase 21 — Austere Edge Runtime Configuration
+
+hardware_profiler:
+  thermal_throttle_c: 85
+  low_memory_threshold_gb: 4.0
+  gpu_probe_timeout_sec: 5
+
+degradation:
+  link_intermittent_threshold_sec: 60
+  link_offline_cpu_threshold_sec: 300
+  link_offline_gpu_threshold_sec: 600
+  thermal_hot_c: 85
+  low_ram_gb: 4.0
+
+model_planner:
+  default_precision: "int4"
+  max_context_austere: 2048
+  max_tokens_offline: 256
+  max_tokens_constrained: 512
+  max_batch_full_edge: 4
+
+bearer_broker:
+  probe_interval_sec: 30
+  stale_bearer_sec: 120
+  min_bandwidth_bulk_kbps: 256
+
+durable_queue:
+  db_path: "data/edge_runtime/outbound_queue.db"
+  max_retries: 10
+  purge_delivered_hours: 24
+  sync_batch_size: 50
+
+health_surface:
+  transition_log_limit: 100
+  summary_refresh_sec: 10
