@@ -2,10 +2,12 @@
 
 from src.training.cpu_adaptation.adapter_tuner import CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
+from src.training.cpu_adaptation.eval_harness import CPUEvaluationHarness
 
 __all__ = [
     "CPUAdapterTuner",
     "CPUClassifierRetrainer",
     "TrainingResult",
     "ClassifierResult",
+    "CPUEvaluationHarness",
 ]
