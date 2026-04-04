@@ -1,0 +1,139 @@
+"""Decision workspace adapter.
+
+Wraps AutonomyDashProvider to provide decision queue CRUD with the
+GUI's expected response shapes, including queueCounts.
+
+Internal dependencies:
+- src.dashboard.providers.autonomy_dash_provider.AutonomyDashProvider
+- src.api.gui_bridge.ws_bridge.emit_to_gui (for real-time updates)
+- src.api.gui_bridge.timeline_service.timeline_service (for event logging)
+"""
+
+from datetime import datetime, timezone
+from typing import Any, Dict
+
+from src.api.gui_bridge.models.gui_schemas import GUIDecision, DecisionStatus, SeverityLevel
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _to_percent(score: Any) -> int:
+    try:
+        value = float(score)
+    except (TypeError, ValueError):
+        value = 0.0
+    if value <= 1.0:
+        value *= 100.0
+    return int(min(100.0, max(0.0, value)))
+
+
+def _score_to_severity(score: float) -> SeverityLevel:
+    s = float(score) if score else 0.0
+    if s <= 1.0:
+        s = s * 100.0
+    if s >= 80:
+        return SeverityLevel.CRITICAL
+    if s >= 60:
+        return SeverityLevel.HIGH
+    if s >= 40:
+        return SeverityLevel.MEDIUM
+    return SeverityLevel.LOW
+
+
+class DecisionAdapter:
+    def __init__(self) -> None:
+        from src.dashboard.providers.autonomy_dash_provider import AutonomyDashProvider
+
+        self._autonomy = AutonomyDashProvider()
+
+    def get_queue(self) -> Dict[str, Any]:
+        """Return full decision queue with counts for the GUI."""
+        all_decisions = self._autonomy.get_decision_feed(limit=500)
+        gui_decisions = []
+        counts = {"pending": 0, "autoApproved": 0, "humanApproved": 0, "vetoed": 0, "stale": 0}
+
+        for d in all_decisions:
+            status_raw = str(d.get("status", "pending")).lower()
+            risk_raw = d.get("risk_score", 0.5)
+            risk_int = _to_percent(risk_raw)
+            conf_raw = d.get("confidence", 0.5)
+            conf_int = _to_percent(conf_raw)
+
+            if status_raw == "pending":
+                counts["pending"] += 1
+                ds = DecisionStatus.PENDING
+            elif status_raw == "approved":
+                if bool(d.get("requires_review", False)):
+                    counts["humanApproved"] += 1
+                else:
+                    counts["autoApproved"] += 1
+                ds = DecisionStatus.APPROVED
+            elif status_raw == "rejected":
+                counts["vetoed"] += 1
+                ds = DecisionStatus.REJECTED
+            else:
+                counts["stale"] += 1
+                ds = DecisionStatus.PENDING
+
+            gui_decisions.append(
+                GUIDecision(
+                    id=str(d.get("id", "")),
+                    title=str(d.get("type", "UNKNOWN")).upper(),
+                    risk=risk_int,
+                    confidence=conf_int,
+                    description=str(d.get("reasoning_snippet", d.get("context", ""))),
+                    status=ds,
+                    severity=_score_to_severity(risk_int),
+                    updatedAt=str(d.get("timestamp", _now_iso())),
+                ).model_dump()
+            )
+
+        return {
+            "decisions": gui_decisions,
+            "queueCounts": counts,
+            "updatedAt": _now_iso(),
+        }
+
+    async def approve(self, decision_id: str, comment: str = "") -> Dict[str, Any]:
+        result = self._autonomy.apply_review_decision(decision_id, approved=True, reason=comment)
+        if result.get("status") == "error":
+            return {"error": result.get("detail", "Approval failed"), "statusCode": 404}
+
+        try:
+            from src.api.gui_bridge.timeline_service import timeline_service
+            from src.api.gui_bridge.ws_bridge import emit_to_gui
+
+            await emit_to_gui("decision.updated", {"id": decision_id, "status": "approved"})
+            timeline_service.emit(
+                title=f"Decision {decision_id} approved",
+                category="decision",
+                severity="MEDIUM",
+                details=comment or "Commander approved via GUI",
+            )
+        except Exception:
+            pass
+
+        return {"status": "approved", "decisionId": decision_id, "updatedAt": _now_iso()}
+
+    async def reject(self, decision_id: str, comment: str = "") -> Dict[str, Any]:
+        result = self._autonomy.apply_review_decision(decision_id, approved=False, reason=comment)
+        if result.get("status") == "error":
+            return {"error": result.get("detail", "Rejection failed"), "statusCode": 404}
+
+        try:
+            from src.api.gui_bridge.timeline_service import timeline_service
+            from src.api.gui_bridge.ws_bridge import emit_to_gui
+
+            await emit_to_gui("decision.updated", {"id": decision_id, "status": "rejected"})
+            timeline_service.emit(
+                title=f"Decision {decision_id} rejected",
+                category="decision",
+                severity="HIGH",
+                details=comment or "Commander rejected via GUI",
+            )
+        except Exception:
+            pass
+
+        return {"status": "rejected", "decisionId": decision_id, "updatedAt": _now_iso()}

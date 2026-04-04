@@ -1,1 +1,1 @@
-"""GUI bridge package for workspace adapters and API mappings."""
+"""GUI bridge package for tactical operator workspaces."""
