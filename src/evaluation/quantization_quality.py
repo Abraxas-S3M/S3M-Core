@@ -1,174 +1,141 @@
-"""Quantization quality checks for edge-ready tactical model deployment."""
+"""Quantization quality benchmark for edge model deployment."""
 
 from __future__ import annotations
 
+from collections import Counter
+from dataclasses import dataclass, field
 import logging
 import math
-from dataclasses import dataclass, field
 from typing import Any
 
-import numpy as np
-
-from .latency_bench import _invoke_backend_generate
-
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
-    from sklearn.metrics.pairwise import cosine_similarity  # type: ignore
-
-    SKLEARN_AVAILABLE = True
-except ImportError:  # pragma: no cover - optional dependency path
-    SKLEARN_AVAILABLE = False
+try:  # pragma: no cover - optional dependency
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine_similarity
+except ImportError:  # pragma: no cover - optional dependency
     TfidfVectorizer = None
-    cosine_similarity = None
+    sklearn_cosine_similarity = None
 
-LOGGER = logging.getLogger("s3m.evaluation.quantization_quality")
-
-
-def _normalize(text: str) -> str:
-    return " ".join(str(text).strip().split()).casefold()
+logger = logging.getLogger("s3m.evaluation.quantization_quality")
 
 
-def _tokens(text: str) -> list[str]:
-    return _normalize(text).split()
+@dataclass(slots=True)
+class QuantQualityResult:
+    """Quality deltas between quantized and FP16 reference backends."""
+
+    rouge_l_vs_fp16: float
+    cosine_sim_vs_fp16: float
+    perplexity_increase_pct: float | None
+    samples: int
+    passed: bool
+    violations: list[str] = field(default_factory=list)
+
+
+def _extract_output_text(output: Any) -> str:
+    if isinstance(output, str):
+        return output
+    if isinstance(output, dict):
+        for key in ("response", "text", "output", "final_answer", "generated_text"):
+            value = output.get(key)
+            if isinstance(value, str):
+                return value
+        return str(output)
+    for attr in ("response", "text", "output", "final_answer", "generated_text"):
+        value = getattr(output, attr, None)
+        if isinstance(value, str):
+            return value
+    return str(output)
+
+
+def _invoke_backend(backend: Any, prompt: str) -> str:
+    for method_name in ("infer", "generate"):
+        method = getattr(backend, method_name, None)
+        if callable(method):
+            return _extract_output_text(method(prompt))
+    if callable(backend):
+        return _extract_output_text(backend(prompt))
+    raise AttributeError("Backend must implement infer(prompt), generate(prompt), or __call__(prompt)")
 
 
 def _lcs_len(a: list[str], b: list[str]) -> int:
     if not a or not b:
         return 0
-    dp = [[0] * (len(b) + 1) for _ in range(len(a) + 1)]
-    for i in range(1, len(a) + 1):
-        for j in range(1, len(b) + 1):
-            if a[i - 1] == b[j - 1]:
-                dp[i][j] = dp[i - 1][j - 1] + 1
+    prev = [0] * (len(b) + 1)
+    for token_a in a:
+        curr = [0]
+        for j, token_b in enumerate(b, start=1):
+            if token_a == token_b:
+                curr.append(prev[j - 1] + 1)
             else:
-                dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
-    return dp[len(a)][len(b)]
+                curr.append(max(curr[-1], prev[j]))
+        prev = curr
+    return prev[-1]
 
 
-def _rouge_l_f1(candidate: str, reference: str) -> float:
-    cand_toks = _tokens(candidate)
-    ref_toks = _tokens(reference)
-    if not cand_toks and not ref_toks:
+def _rouge_l(prediction: str, reference: str) -> float:
+    pred_tokens = prediction.strip().split()
+    ref_tokens = reference.strip().split()
+    if not ref_tokens and not pred_tokens:
         return 1.0
-    if not cand_toks or not ref_toks:
+    if not ref_tokens:
         return 0.0
+    return float(_lcs_len(pred_tokens, ref_tokens)) / float(len(ref_tokens))
 
-    lcs = _lcs_len(cand_toks, ref_toks)
-    precision = lcs / len(cand_toks)
-    recall = lcs / len(ref_toks)
-    if precision + recall == 0:
+
+def _manual_cosine_similarity(text_a: str, text_b: str) -> float:
+    counts_a = Counter(text_a.split())
+    counts_b = Counter(text_b.split())
+    if not counts_a and not counts_b:
+        return 1.0
+    if not counts_a or not counts_b:
         return 0.0
-    return (2 * precision * recall) / (precision + recall)
+    dot = sum(counts_a[token] * counts_b.get(token, 0) for token in counts_a)
+    norm_a = math.sqrt(sum(value * value for value in counts_a.values()))
+    norm_b = math.sqrt(sum(value * value for value in counts_b.values()))
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return float(dot) / (norm_a * norm_b)
 
 
-def _safe_float_list(value: Any) -> list[float] | None:
+def _cosine_similarity(text_a: str, text_b: str) -> float:
+    if TfidfVectorizer is None or sklearn_cosine_similarity is None:
+        return _manual_cosine_similarity(text_a, text_b)
+    vectorizer = TfidfVectorizer()
+    matrix = vectorizer.fit_transform([text_a, text_b])
+    return float(sklearn_cosine_similarity(matrix[0], matrix[1])[0][0])
+
+
+def _extract_log_probs(value: Any) -> list[float] | None:
     if value is None:
         return None
-    if isinstance(value, (list, tuple)):
-        out: list[float] = []
-        for item in value:
-            try:
-                out.append(float(item))
-            except (TypeError, ValueError):
-                continue
-        return out if out else None
+    if isinstance(value, dict):
+        if "log_probs" in value and isinstance(value["log_probs"], list):
+            return [float(v) for v in value["log_probs"]]
+        if "token_logprobs" in value and isinstance(value["token_logprobs"], list):
+            return [float(v) for v in value["token_logprobs"]]
+    if isinstance(value, list):
+        return [float(v) for v in value]
     return None
 
 
-def _extract_log_probs(backend: Any, model_id: str, prompt: str, output: str) -> list[float] | None:
-    method_candidates = ("get_logprobs", "log_probs", "logprobs")
-    signatures = (
-        ((), {"model_id": model_id, "prompt": prompt, "output": output}),
-        ((prompt, output), {"model_id": model_id}),
-        ((prompt, output), {}),
-        ((), {"prompt": prompt, "output": output}),
-    )
-    for method_name in method_candidates:
-        if not hasattr(backend, method_name):
-            continue
-        method = getattr(backend, method_name)
-        for args, kwargs in signatures:
-            try:
-                payload = method(*args, **kwargs)
-            except TypeError:
-                continue
-            if isinstance(payload, dict):
-                nested = payload.get("log_probs", payload.get("logprobs"))
-                values = _safe_float_list(nested)
-                if values:
-                    return values
-            values = _safe_float_list(payload)
-            if values:
-                return values
+def _estimate_perplexity(backend: Any, prompt: str, output: str) -> float | None:
+    direct_ppl = getattr(backend, "perplexity", None)
+    if callable(direct_ppl):
+        return float(direct_ppl(prompt, output))
+
+    for method_name in ("score_log_probs", "log_probs", "score_sequence"):
+        method = getattr(backend, method_name, None)
+        if callable(method):
+            log_probs = _extract_log_probs(method(prompt, output))
+            if log_probs:
+                return float(math.exp(-sum(log_probs) / len(log_probs)))
     return None
-
-
-def _perplexity(log_probs: list[float] | None) -> float | None:
-    if not log_probs:
-        return None
-    arr = np.array(log_probs, dtype=float)
-    return float(math.exp(-float(np.mean(arr))))
-
-
-def _cosine_pairs(quant_outputs: list[str], fp16_outputs: list[str]) -> list[float]:
-    if not quant_outputs or len(quant_outputs) != len(fp16_outputs):
-        return []
-
-    if SKLEARN_AVAILABLE and TfidfVectorizer is not None and cosine_similarity is not None:
-        docs: list[str] = []
-        for quant_text, fp16_text in zip(quant_outputs, fp16_outputs):
-            docs.extend([quant_text, fp16_text])
-        matrix = TfidfVectorizer(token_pattern=r"(?u)\b\w+\b").fit_transform(docs)
-        sims: list[float] = []
-        for idx in range(0, matrix.shape[0], 2):
-            sims.append(float(cosine_similarity(matrix[idx], matrix[idx + 1])[0][0]))
-        return sims
-
-    all_docs = quant_outputs + fp16_outputs
-    tokenized = [_tokens(doc) for doc in all_docs]
-    vocab = sorted({token for doc in tokenized for token in doc})
-    if not vocab:
-        return [1.0 for _ in quant_outputs]
-    idx_map = {tok: i for i, tok in enumerate(vocab)}
-
-    df = np.zeros(len(vocab), dtype=float)
-    for doc in tokenized:
-        for token in set(doc):
-            df[idx_map[token]] += 1.0
-    idf = np.log((1.0 + len(tokenized)) / (1.0 + df)) + 1.0
-
-    vectors: list[np.ndarray] = []
-    for doc in tokenized:
-        vec = np.zeros(len(vocab), dtype=float)
-        if doc:
-            for token in doc:
-                vec[idx_map[token]] += 1.0
-            vec /= len(doc)
-            vec *= idf
-        vectors.append(vec)
-
-    sims: list[float] = []
-    n = len(quant_outputs)
-    for i in range(n):
-        a = vectors[i]
-        b = vectors[n + i]
-        denom = np.linalg.norm(a) * np.linalg.norm(b)
-        sims.append(float(np.dot(a, b) / denom) if denom > 0 else 0.0)
-    return sims
-
-
-@dataclass(slots=True)
-class QuantQualityResult:
-    rouge_l_vs_fp16: float
-    cosine_sim_vs_fp16: float
-    perplexity_increase_pct: float | None
-    sample_count: int
-    passed: bool
-    violations: list[str] = field(default_factory=list)
 
 
 class QuantizationQualityBenchmark:
-    """Check quantized output fidelity against an fp16 tactical reference."""
+    """Compare quantized quality against FP16 for tactical output integrity."""
+
+    def __init__(self, thresholds: dict[str, float] | None = None):
+        self.thresholds = thresholds or {}
 
     def run(
         self,
@@ -176,65 +143,72 @@ class QuantizationQualityBenchmark:
         quant_backend: Any,
         fp16_backend: Any,
         prompts: list[str],
-        thresholds: dict[str, float],
     ) -> QuantQualityResult:
-        prompt_list = [p for p in prompts if isinstance(p, str)]
-        if not prompt_list:
-            return QuantQualityResult(
-                rouge_l_vs_fp16=0.0,
-                cosine_sim_vs_fp16=0.0,
-                perplexity_increase_pct=None,
-                sample_count=0,
-                passed=False,
-                violations=["No prompts provided for quantization-quality benchmark"],
-            )
+        if not prompts:
+            raise ValueError("prompts must contain at least one prompt")
 
-        quant_outputs: list[str] = []
-        fp16_outputs: list[str] = []
+        logger.info("Starting quantization quality benchmark for model_id=%s", model_id)
+
         rouge_scores: list[float] = []
-        ppl_increases: list[float] = []
+        cosine_scores: list[float] = []
+        perplexity_increases: list[float] = []
 
-        for prompt in prompt_list:
-            quant_text = _invoke_backend_generate(quant_backend, model_id, prompt)
-            fp16_text = _invoke_backend_generate(fp16_backend, model_id, prompt)
-            quant_outputs.append(quant_text)
-            fp16_outputs.append(fp16_text)
-            rouge_scores.append(_rouge_l_f1(quant_text, fp16_text))
+        for prompt in prompts:
+            quant_text = _invoke_backend(quant_backend, prompt)
+            fp16_text = _invoke_backend(fp16_backend, prompt)
 
-            quant_ppl = _perplexity(_extract_log_probs(quant_backend, model_id, prompt, quant_text))
-            fp16_ppl = _perplexity(_extract_log_probs(fp16_backend, model_id, prompt, fp16_text))
+            rouge_scores.append(_rouge_l(quant_text, fp16_text))
+            cosine_scores.append(_cosine_similarity(quant_text, fp16_text))
+
+            quant_ppl = _estimate_perplexity(quant_backend, prompt, quant_text)
+            fp16_ppl = _estimate_perplexity(fp16_backend, prompt, fp16_text)
             if quant_ppl is not None and fp16_ppl is not None and fp16_ppl > 0:
-                ppl_increases.append(((quant_ppl - fp16_ppl) / fp16_ppl) * 100.0)
+                increase_pct = ((quant_ppl - fp16_ppl) / fp16_ppl) * 100.0
+                perplexity_increases.append(increase_pct)
 
-        rouge_l_vs_fp16 = float(np.mean(rouge_scores))
-        cosine_scores = _cosine_pairs(quant_outputs, fp16_outputs)
-        cosine_sim_vs_fp16 = float(np.mean(cosine_scores)) if cosine_scores else 0.0
-        perplexity_increase_pct = float(np.mean(ppl_increases)) if ppl_increases else None
+        rouge_l_vs_fp16 = sum(rouge_scores) / len(rouge_scores)
+        cosine_sim_vs_fp16 = sum(cosine_scores) / len(cosine_scores)
+        perplexity_increase_pct = (
+            sum(perplexity_increases) / len(perplexity_increases) if perplexity_increases else None
+        )
 
         violations: list[str] = []
-        min_rouge = float(thresholds.get("min_rouge_l_vs_fp16", 0.0))
-        min_cosine = float(thresholds.get("min_cosine_sim_vs_fp16", 0.0))
-        max_perplexity_increase = float(thresholds.get("max_perplexity_increase_pct", float("inf")))
+        min_rouge = self.thresholds.get("min_rouge_l_vs_fp16")
+        min_cosine = self.thresholds.get("min_cosine_sim_vs_fp16")
+        max_ppl_increase = self.thresholds.get("max_perplexity_increase_pct")
 
-        if rouge_l_vs_fp16 < min_rouge:
+        if min_rouge is not None and rouge_l_vs_fp16 < float(min_rouge):
             violations.append(
-                f"rouge_l_vs_fp16 below threshold ({rouge_l_vs_fp16:.4f} < {min_rouge:.4f})"
+                f"rouge_l_vs_fp16 below minimum: {rouge_l_vs_fp16:.4f} < {float(min_rouge):.4f}"
             )
-        if cosine_sim_vs_fp16 < min_cosine:
+        if min_cosine is not None and cosine_sim_vs_fp16 < float(min_cosine):
             violations.append(
-                f"cosine_sim_vs_fp16 below threshold ({cosine_sim_vs_fp16:.4f} < {min_cosine:.4f})"
+                f"cosine_sim_vs_fp16 below minimum: {cosine_sim_vs_fp16:.4f} < {float(min_cosine):.4f}"
             )
-        if perplexity_increase_pct is not None and perplexity_increase_pct > max_perplexity_increase:
+        if (
+            max_ppl_increase is not None
+            and perplexity_increase_pct is not None
+            and perplexity_increase_pct > float(max_ppl_increase)
+        ):
             violations.append(
-                "perplexity_increase_pct exceeded threshold "
-                f"({perplexity_increase_pct:.2f} > {max_perplexity_increase:.2f})"
+                "perplexity_increase_pct exceeded maximum: "
+                f"{perplexity_increase_pct:.2f} > {float(max_ppl_increase):.2f}"
             )
+
+        passed = not violations
+        logger.info(
+            "Quantization benchmark finished model_id=%s passed=%s rouge_l=%.4f cosine=%.4f",
+            model_id,
+            passed,
+            rouge_l_vs_fp16,
+            cosine_sim_vs_fp16,
+        )
 
         return QuantQualityResult(
             rouge_l_vs_fp16=rouge_l_vs_fp16,
             cosine_sim_vs_fp16=cosine_sim_vs_fp16,
             perplexity_increase_pct=perplexity_increase_pct,
-            sample_count=len(prompt_list),
-            passed=not violations,
+            samples=len(prompts),
+            passed=passed,
             violations=violations,
         )

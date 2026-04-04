@@ -1,127 +1,113 @@
-"""Latency benchmark primitives for S3M model-gate checks."""
+"""Latency benchmarking for tactical inference readiness gates."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any
 
 import numpy as np
 
-LOGGER = logging.getLogger("s3m.evaluation.latency_bench")
-
-
-def _normalize_output(raw: Any) -> str:
-    if isinstance(raw, str):
-        return raw
-    if isinstance(raw, dict):
-        for key in ("response", "text", "output", "generated_text"):
-            value = raw.get(key)
-            if isinstance(value, str):
-                return value
-    return str(raw)
-
-
-def _invoke_backend_generate(backend: Any, model_id: str, prompt: str) -> str:
-    callables: list[tuple[str, tuple[Any, ...], dict[str, Any]]] = []
-    if hasattr(backend, "generate"):
-        callables.extend(
-            [
-                ("generate", (), {"prompt": prompt, "model_id": model_id}),
-                ("generate", (prompt,), {"model_id": model_id}),
-                ("generate", (), {"prompt": prompt}),
-                ("generate", (prompt,), {}),
-            ]
-        )
-    if hasattr(backend, "infer"):
-        callables.extend(
-            [
-                ("infer", (), {"prompt": prompt, "model_id": model_id}),
-                ("infer", (prompt,), {"model_id": model_id}),
-                ("infer", (), {"prompt": prompt}),
-                ("infer", (prompt,), {}),
-            ]
-        )
-
-    for name, args, kwargs in callables:
-        func = getattr(backend, name)
-        try:
-            return _normalize_output(func(*args, **kwargs))
-        except TypeError:
-            continue
-    raise AttributeError("Backend does not expose a compatible generate/infer signature")
+logger = logging.getLogger("s3m.evaluation.latency_bench")
 
 
 @dataclass(slots=True)
 class LatencyResult:
+    """Percentile latency summary used by build gates."""
+
     p50_ms: float
     p95_ms: float
     p99_ms: float
     mean_ms: float
-    samples: list[float] = field(default_factory=list)
-    passed: bool = True
+    samples: list[float]
+    passed: bool
     violations: list[str] = field(default_factory=list)
 
 
+def _extract_output_text(output: Any) -> str:
+    if isinstance(output, str):
+        return output
+    if isinstance(output, dict):
+        for key in ("response", "text", "output", "final_answer", "generated_text"):
+            value = output.get(key)
+            if isinstance(value, str):
+                return value
+        return str(output)
+    for attr in ("response", "text", "output", "final_answer", "generated_text"):
+        value = getattr(output, attr, None)
+        if isinstance(value, str):
+            return value
+    return str(output)
+
+
+def _invoke_backend(backend: Any, prompt: str) -> str:
+    for method_name in ("infer", "generate"):
+        method = getattr(backend, method_name, None)
+        if callable(method):
+            return _extract_output_text(method(prompt))
+    if callable(backend):
+        return _extract_output_text(backend(prompt))
+    raise AttributeError("Backend must implement infer(prompt), generate(prompt), or __call__(prompt)")
+
+
 class LatencyBenchmark:
-    """Measure mission-response latency percentiles for build-gate enforcement."""
+    """Measure inference response envelopes for mission-time constraints."""
 
-    def __init__(self, warmup_calls: int = 3) -> None:
+    def __init__(self, thresholds: dict[str, float] | None = None, warmup_calls: int = 3):
+        self.thresholds = thresholds or {}
         self.warmup_calls = max(0, int(warmup_calls))
-        np.random.seed(42)
 
-    def run(
-        self,
-        model_id: str,
-        backend: Any,
-        prompts: Iterable[str],
-        thresholds: dict[str, float],
-    ) -> LatencyResult:
-        prompt_list = [p for p in prompts if isinstance(p, str)]
-        if not prompt_list:
-            return LatencyResult(
-                p50_ms=0.0,
-                p95_ms=0.0,
-                p99_ms=0.0,
-                mean_ms=0.0,
-                passed=False,
-                violations=["No prompts provided for latency benchmark"],
-            )
+    def run(self, model_id: str, backend: Any, prompts: list[str]) -> LatencyResult:
+        if not prompts:
+            raise ValueError("prompts must contain at least one prompt")
 
-        for warmup_index in range(self.warmup_calls):
-            prompt = prompt_list[warmup_index % len(prompt_list)]
-            try:
-                _invoke_backend_generate(backend, model_id, prompt)
-            except Exception as exc:  # pragma: no cover - defensive
-                LOGGER.warning("Warm-up call failed for %s: %s", model_id, exc)
+        logger.info("Starting latency benchmark for model_id=%s", model_id)
+
+        for idx in range(self.warmup_calls):
+            prompt = prompts[idx % len(prompts)]
+            _invoke_backend(backend, prompt)
 
         samples: list[float] = []
-        for prompt in prompt_list:
+        for prompt in prompts:
             start = time.perf_counter()
-            _invoke_backend_generate(backend, model_id, prompt)
+            _invoke_backend(backend, prompt)
             elapsed_ms = (time.perf_counter() - start) * 1000.0
             samples.append(float(elapsed_ms))
 
-        p50, p95, p99 = np.percentile(np.array(samples), [50, 95, 99]).tolist()
+        p50 = float(np.percentile(samples, 50))
+        p95 = float(np.percentile(samples, 95))
+        p99 = float(np.percentile(samples, 99))
         mean_ms = float(np.mean(samples))
 
         violations: list[str] = []
-        checks = {
-            "p50_ms": (float(p50), float(thresholds.get("p50_ms", float("inf")))),
-            "p95_ms": (float(p95), float(thresholds.get("p95_ms", float("inf")))),
-            "p99_ms": (float(p99), float(thresholds.get("p99_ms", float("inf")))),
-        }
-        for metric, (value, limit) in checks.items():
-            if value > limit:
-                violations.append(f"{metric} exceeded threshold ({value:.2f} > {limit:.2f})")
+        threshold_p50 = self.thresholds.get("p50_ms")
+        threshold_p95 = self.thresholds.get("p95_ms")
+        threshold_p99 = self.thresholds.get("p99_ms")
 
+        # Tactical gate: percentile breaches imply delayed command-response loops.
+        if threshold_p50 is not None and p50 > float(threshold_p50):
+            violations.append(f"p50_ms exceeded: {p50:.2f} > {float(threshold_p50):.2f}")
+        if threshold_p95 is not None and p95 > float(threshold_p95):
+            violations.append(f"p95_ms exceeded: {p95:.2f} > {float(threshold_p95):.2f}")
+        if threshold_p99 is not None and p99 > float(threshold_p99):
+            violations.append(f"p99_ms exceeded: {p99:.2f} > {float(threshold_p99):.2f}")
+
+        passed = not violations
+        logger.info(
+            "Latency benchmark finished model_id=%s passed=%s p50=%.2f p95=%.2f p99=%.2f",
+            model_id,
+            passed,
+            p50,
+            p95,
+            p99,
+        )
         return LatencyResult(
-            p50_ms=float(p50),
-            p95_ms=float(p95),
-            p99_ms=float(p99),
+            p50_ms=p50,
+            p95_ms=p95,
+            p99_ms=p99,
             mean_ms=mean_ms,
             samples=samples,
-            passed=not violations,
+            passed=passed,
             violations=violations,
         )

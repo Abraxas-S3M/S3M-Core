@@ -1,4 +1,4 @@
-"""S3M evaluation harness package for CI and edge smoke gates."""
+"""S3M evaluation harness package."""
 
 from .accuracy_bench import AccuracyBenchmark, AccuracyResult
 from .harness import EvaluationHarness, HarnessReport, InferenceBackend
@@ -7,6 +7,8 @@ from .memory_bench import MemoryBenchmark, MemoryResult
 from .quantization_quality import QuantQualityResult, QuantizationQualityBenchmark
 
 __all__ = [
+    "AccuracyBenchmark",
+    "AccuracyResult",
     "EvaluationHarness",
     "HarnessReport",
     "InferenceBackend",
@@ -14,8 +16,6 @@ __all__ = [
     "LatencyResult",
     "MemoryBenchmark",
     "MemoryResult",
-    "AccuracyBenchmark",
-    "AccuracyResult",
     "QuantizationQualityBenchmark",
     "QuantQualityResult",
 ]

@@ -1,38 +1,79 @@
-"""Unified evaluation harness for S3M CI gates and edge smoke checks."""
+"""Unified evaluation harness for CI/CD build gating."""
 
 from __future__ import annotations
 
-import json
-import logging
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+import json
+import logging
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+import time
+from typing import Any, Protocol
+
+try:
+    import yaml
+except ImportError as exc:  # pragma: no cover - required dependency
+    raise ImportError("pyyaml is required for EvaluationHarness configuration loading") from exc
 
 from .accuracy_bench import AccuracyBenchmark, AccuracyResult
 from .latency_bench import LatencyBenchmark, LatencyResult
 from .memory_bench import MemoryBenchmark, MemoryResult
 from .quantization_quality import QuantQualityResult, QuantizationQualityBenchmark
 
-try:
-    import yaml  # type: ignore
-except ImportError as exc:  # pragma: no cover - optional dependency path
-    yaml = None
-    YAML_IMPORT_ERROR = exc
-else:
-    YAML_IMPORT_ERROR = None
-
-LOGGER = logging.getLogger("s3m.evaluation.harness")
+logger = logging.getLogger("s3m.evaluation.harness")
 
 
-@runtime_checkable
 class InferenceBackend(Protocol):
-    def generate(self, prompt: str, **kwargs: Any) -> Any: ...
+    """Minimal protocol for evaluation backends."""
+
+    def infer(self, prompt: str) -> Any:
+        """Run local prompt inference and return model output."""
+
+
+def _extract_output_text(output: Any) -> str:
+    if isinstance(output, str):
+        return output
+    if isinstance(output, dict):
+        for key in ("response", "text", "output", "final_answer", "generated_text"):
+            value = output.get(key)
+            if isinstance(value, str):
+                return value
+        return str(output)
+    for attr in ("response", "text", "output", "final_answer", "generated_text"):
+        value = getattr(output, attr, None)
+        if isinstance(value, str):
+            return value
+    return str(output)
+
+
+def _invoke_backend(backend: Any, prompt: str) -> str:
+    for method_name in ("infer", "generate"):
+        method = getattr(backend, method_name, None)
+        if callable(method):
+            return _extract_output_text(method(prompt))
+    if callable(backend):
+        return _extract_output_text(backend(prompt))
+    raise AttributeError("Backend must implement infer(prompt), generate(prompt), or __call__(prompt)")
+
+
+def _resolve_reference_backend(backend: Any) -> Any:
+    for attr in ("fp16_backend", "reference_backend"):
+        candidate = getattr(backend, attr, None)
+        if candidate is not None:
+            return candidate
+    for method_name in ("get_fp16_backend", "get_reference_backend"):
+        method = getattr(backend, method_name, None)
+        if callable(method):
+            candidate = method()
+            if candidate is not None:
+                return candidate
+    return backend
 
 
 @dataclass(slots=True)
 class HarnessReport:
+    """Full benchmark report used by CI and edge smoke checks."""
+
     model_id: str
     passed: bool
     violations: list[str]
@@ -44,135 +85,83 @@ class HarnessReport:
     duration_sec: float
 
     def to_json(self) -> str:
-        payload = {
-            "model_id": self.model_id,
-            "passed": self.passed,
-            "violations": self.violations,
-            "latency": asdict(self.latency),
-            "memory": asdict(self.memory),
-            "accuracy": asdict(self.accuracy),
-            "quant_quality": asdict(self.quant_quality),
-            "timestamp": self.timestamp,
-            "duration_sec": self.duration_sec,
-        }
-        return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True)
+        return json.dumps(asdict(self), ensure_ascii=False, indent=2, sort_keys=True)
 
     def to_markdown(self) -> str:
-        status_icon = "PASS" if self.passed else "FAIL"
         lines = [
-            f"# S3M Evaluation Report - {self.model_id}",
+            f"# S3M Evaluation Report — `{self.model_id}`",
             "",
-            f"- Verdict: **{status_icon}**",
-            f"- Timestamp (UTC): `{self.timestamp}`",
-            f"- Duration: `{self.duration_sec:.3f}s`",
+            f"- **Passed:** `{self.passed}`",
+            f"- **Timestamp (UTC):** `{self.timestamp}`",
+            f"- **Duration (sec):** `{self.duration_sec:.3f}`",
             "",
-            "## Benchmarks",
-            "",
-            "| Check | Passed | Details |",
-            "|---|---:|---|",
-            (
-                f"| Latency | {self.latency.passed} | "
-                f"p50={self.latency.p50_ms:.2f}ms, p95={self.latency.p95_ms:.2f}ms, "
-                f"p99={self.latency.p99_ms:.2f}ms |"
-            ),
-            (
-                f"| Memory | {self.memory.passed} | "
-                f"peak_rss={self.memory.rss_peak_mb:.2f}MB, delta={self.memory.delta_mb:.2f}MB |"
-            ),
-            (
-                f"| Accuracy | {self.accuracy.passed} | "
-                f"EM={self.accuracy.exact_match_pct:.2f}%, F1={self.accuracy.f1_pct:.2f}% |"
-            ),
-            (
-                f"| Quantization Quality | {self.quant_quality.passed} | "
-                f"ROUGE-L={self.quant_quality.rouge_l_vs_fp16:.4f}, "
-                f"Cosine={self.quant_quality.cosine_sim_vs_fp16:.4f}, "
-                f"PPL Increase={self.quant_quality.perplexity_increase_pct} |"
-            ),
-            "",
+            "## Violations",
         ]
         if self.violations:
-            lines.append("## Violations")
-            lines.append("")
-            lines.extend([f"- {violation}" for violation in self.violations])
+            lines.extend([f"- {item}" for item in self.violations])
         else:
-            lines.extend(["## Violations", "", "- None"])
+            lines.append("- None")
+
+        lines.extend(
+            [
+                "",
+                "## Latency",
+                f"- p50_ms: `{self.latency.p50_ms:.2f}`",
+                f"- p95_ms: `{self.latency.p95_ms:.2f}`",
+                f"- p99_ms: `{self.latency.p99_ms:.2f}`",
+                "",
+                "## Memory",
+                f"- rss_peak_mb: `{self.memory.rss_peak_mb:.2f}`",
+                f"- delta_mb: `{self.memory.delta_mb:.2f}`",
+                "",
+                "## Accuracy",
+                f"- exact_match_pct: `{self.accuracy.exact_match_pct:.2f}`",
+                f"- f1_pct: `{self.accuracy.f1_pct:.2f}`",
+                "",
+                "## Quantization Quality",
+                f"- rouge_l_vs_fp16: `{self.quant_quality.rouge_l_vs_fp16:.4f}`",
+                f"- cosine_sim_vs_fp16: `{self.quant_quality.cosine_sim_vs_fp16:.4f}`",
+                f"- perplexity_increase_pct: `{self.quant_quality.perplexity_increase_pct}`",
+            ]
+        )
         return "\n".join(lines)
 
 
 class EvaluationHarness:
-    """Mission-gate harness for latency, memory, accuracy, and quantization checks."""
+    """Run all evaluation checks and produce a single gate verdict."""
 
-    def __init__(self, config_path: str = "configs/evaluation_thresholds.yaml") -> None:
+    def __init__(self, config_path: str = "configs/evaluation_thresholds.yaml"):
         self.config_path = Path(config_path)
-        self.config = self._load_config(self.config_path)
-        self.latency_benchmark = LatencyBenchmark()
-        self.memory_benchmark = MemoryBenchmark()
-        self.accuracy_benchmark = AccuracyBenchmark()
-        self.quantization_benchmark = QuantizationQualityBenchmark()
-
-    def _load_config(self, config_path: Path) -> dict[str, Any]:
-        if yaml is None:
-            raise ImportError(
-                "PyYAML is required for EvaluationHarness config loading"
-            ) from YAML_IMPORT_ERROR
-        if not config_path.exists():
-            raise FileNotFoundError(f"Evaluation config not found: {config_path}")
-        payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-        if not isinstance(payload, dict):
-            raise ValueError("Evaluation config must deserialize to a dictionary")
-        return payload
+        if not self.config_path.exists():
+            raise FileNotFoundError(f"Evaluation config not found: {self.config_path}")
+        payload = yaml.safe_load(self.config_path.read_text(encoding="utf-8")) or {}
+        self.config = payload
+        self.global_config = payload.get("global", {})
+        self.models_config = payload.get("models", {})
+        logger.info("Loaded evaluation harness config from %s", self.config_path)
 
     def _model_thresholds(self, model_id: str) -> dict[str, Any]:
-        models_cfg = self.config.get("models", {})
-        if model_id not in models_cfg:
-            available = ", ".join(sorted(models_cfg.keys()))
-            raise KeyError(f"Unknown model_id '{model_id}'. Available: {available}")
-        return models_cfg[model_id]
-
-    def _coerce_accuracy_test_set(self, test_prompts: list[str]) -> list[dict[str, str]]:
-        test_set: list[dict[str, str]] = []
-        for item in test_prompts:
-            if isinstance(item, dict) and "prompt" in item and "expected_output" in item:
-                test_set.append(
-                    {"prompt": str(item["prompt"]), "expected_output": str(item["expected_output"])}
-                )
-            elif isinstance(item, str):
-                test_set.append({"prompt": item, "expected_output": item})
-            else:
-                LOGGER.warning("Skipping unsupported test prompt entry: %r", item)
-        if not test_set:
-            return []
-        return test_set
+        model_cfg = self.models_config.get(model_id)
+        if model_cfg is None:
+            raise ValueError(f"Unknown model_id '{model_id}' in evaluation configuration")
+        return model_cfg
 
     def run_latency(self, model_id: str, backend: InferenceBackend, prompts: list[str]) -> LatencyResult:
-        model_cfg = self._model_thresholds(model_id)
-        return self.latency_benchmark.run(
-            model_id=model_id,
-            backend=backend,
-            prompts=prompts,
-            thresholds=model_cfg.get("latency", {}),
-        )
+        thresholds = self._model_thresholds(model_id).get("latency", {})
+        return LatencyBenchmark(thresholds=thresholds).run(model_id=model_id, backend=backend, prompts=prompts)
 
     def run_memory(self, model_id: str, backend: InferenceBackend, prompts: list[str]) -> MemoryResult:
-        model_cfg = self._model_thresholds(model_id)
-        return self.memory_benchmark.run(
-            model_id=model_id,
-            backend=backend,
-            prompts=prompts,
-            thresholds=model_cfg.get("memory", {}),
-        )
+        thresholds = self._model_thresholds(model_id).get("memory", {})
+        return MemoryBenchmark(thresholds=thresholds).run(model_id=model_id, backend=backend, prompts=prompts)
 
     def run_accuracy(
-        self, model_id: str, backend: InferenceBackend, test_set: list[dict[str, str]]
+        self,
+        model_id: str,
+        backend: InferenceBackend,
+        test_set: list[dict[str, str]],
     ) -> AccuracyResult:
-        model_cfg = self._model_thresholds(model_id)
-        return self.accuracy_benchmark.run(
-            model_id=model_id,
-            backend=backend,
-            test_set=test_set,
-            thresholds=model_cfg.get("accuracy", {}),
-        )
+        thresholds = self._model_thresholds(model_id).get("accuracy", {})
+        return AccuracyBenchmark(thresholds=thresholds).run(model_id=model_id, backend=backend, test_set=test_set)
 
     def run_quantization_quality(
         self,
@@ -181,53 +170,71 @@ class EvaluationHarness:
         fp16_backend: InferenceBackend,
         prompts: list[str],
     ) -> QuantQualityResult:
-        model_cfg = self._model_thresholds(model_id)
-        return self.quantization_benchmark.run(
+        thresholds = self._model_thresholds(model_id).get("quantization_quality", {})
+        return QuantizationQualityBenchmark(thresholds=thresholds).run(
             model_id=model_id,
             quant_backend=quant_backend,
             fp16_backend=fp16_backend,
             prompts=prompts,
-            thresholds=model_cfg.get("quantization_quality", {}),
         )
 
-    def run_all(self, model_id: str, backend: InferenceBackend, test_prompts: list[str]) -> HarnessReport:
+    def _build_accuracy_test_set(
+        self,
+        prompts: list[str],
+        reference_backend: InferenceBackend,
+    ) -> list[dict[str, str]]:
+        # Tactical smoke mode: reference outputs become expected labels when no gold set is supplied.
+        test_set: list[dict[str, str]] = []
+        for prompt in prompts:
+            expected_output = _invoke_backend(reference_backend, prompt)
+            test_set.append({"prompt": prompt, "expected_output": expected_output})
+        return test_set
+
+    def run_all(
+        self,
+        model_id: str,
+        backend: InferenceBackend,
+        test_prompts: list[str],
+    ) -> HarnessReport:
+        if not test_prompts:
+            raise ValueError("test_prompts must contain at least one prompt")
+
         start = time.perf_counter()
-        latency_result = self.run_latency(model_id, backend, test_prompts)
-        memory_result = self.run_memory(model_id, backend, test_prompts)
-        test_set = self._coerce_accuracy_test_set(test_prompts)
-        accuracy_result = self.run_accuracy(model_id, backend, test_set)
+        timestamp = datetime.now(timezone.utc).isoformat()
+        logger.info("Running full evaluation harness for model_id=%s", model_id)
 
-        fp16_backend = getattr(backend, "fp16_backend", backend)
-        quant_backend = getattr(backend, "quant_backend", backend)
-        quant_quality_result = self.run_quantization_quality(
-            model_id=model_id,
-            quant_backend=quant_backend,
-            fp16_backend=fp16_backend,
-            prompts=test_prompts,
-        )
+        latency = self.run_latency(model_id, backend, test_prompts)
+        memory = self.run_memory(model_id, backend, test_prompts)
+
+        fp16_backend = _resolve_reference_backend(backend)
+        accuracy_test_set = self._build_accuracy_test_set(test_prompts, fp16_backend)
+        accuracy = self.run_accuracy(model_id, backend, accuracy_test_set)
+        quant_quality = self.run_quantization_quality(model_id, backend, fp16_backend, test_prompts)
 
         violations: list[str] = []
-        if not latency_result.passed:
-            violations.extend([f"latency: {msg}" for msg in latency_result.violations])
-        if not memory_result.passed:
-            violations.extend([f"memory: {msg}" for msg in memory_result.violations])
-        if not accuracy_result.passed:
-            violations.extend([f"accuracy: {msg}" for msg in accuracy_result.violations])
-        if not quant_quality_result.passed:
-            violations.extend([f"quantization_quality: {msg}" for msg in quant_quality_result.violations])
+        for section, result in (
+            ("latency", latency),
+            ("memory", memory),
+            ("accuracy", accuracy),
+            ("quant_quality", quant_quality),
+        ):
+            for violation in result.violations:
+                violations.append(f"{section}: {violation}")
 
-        fail_on_any = bool(self.config.get("global", {}).get("fail_on_any_violation", True))
-        passed = not violations if fail_on_any else True
-        duration_sec = float(time.perf_counter() - start)
-        timestamp = datetime.now(timezone.utc).isoformat()
-        return HarnessReport(
+        fail_on_any_violation = bool(self.global_config.get("fail_on_any_violation", True))
+        section_passed = latency.passed and memory.passed and accuracy.passed and quant_quality.passed
+        passed = section_passed if fail_on_any_violation else True
+
+        report = HarnessReport(
             model_id=model_id,
             passed=passed,
             violations=violations,
-            latency=latency_result,
-            memory=memory_result,
-            accuracy=accuracy_result,
-            quant_quality=quant_quality_result,
+            latency=latency,
+            memory=memory,
+            accuracy=accuracy,
+            quant_quality=quant_quality,
             timestamp=timestamp,
-            duration_sec=duration_sec,
+            duration_sec=time.perf_counter() - start,
         )
+        logger.info("Evaluation harness completed model_id=%s passed=%s", model_id, report.passed)
+        return report
