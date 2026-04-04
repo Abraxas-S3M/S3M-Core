@@ -1,5 +1,10 @@
-"""Adapters that translate backend domain data into GUI bridge schemas.
+"""Adapters that translate backend data into GUI workspace schemas.
 
-Each module maps one GUI workspace's data needs into calls against
-existing S3M-Core services.
+This package reshapes core runtime/service outputs so tactical operator
+workspaces can consume a stable API contract.
 """
+
+from .decision_adapter import DecisionAdapter
+from .risk_adapter import RiskAdapter
+
+__all__ = ["DecisionAdapter", "RiskAdapter"]

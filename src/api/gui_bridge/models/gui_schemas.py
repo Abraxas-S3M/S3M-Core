@@ -1,12 +1,70 @@
-"""Shared GUI bridge schemas.
+"""Schema models for GUI decision and risk workspaces.
 
-These models normalize payload shape for tactical GUI panels so each
-workspace can consume a consistent envelope regardless of backend source.
+These payloads are optimized for command-post dashboards where operators
+need compact, validated tactical summaries.
 """
 
-from typing import Any, Dict, Optional
+from __future__ import annotations
 
-from pydantic import BaseModel
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
+
+class SeverityLevel(str, Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class DecisionStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class TrendDirection(str, Enum):
+    UP = "up"
+    DOWN = "down"
+    STEADY = "steady"
+
+
+class GUIDecision(BaseModel):
+    id: str
+    title: str
+    risk: int = Field(ge=0, le=100)
+    confidence: int = Field(ge=0, le=100)
+    description: str
+    status: DecisionStatus
+    severity: SeverityLevel
+    updatedAt: str
+
+
+class GUIRiskDomain(BaseModel):
+    domain: str
+    score: int = Field(ge=0, le=100)
+    trend: TrendDirection
+
+
+class GUIRiskForecast(BaseModel):
+    timestamp: str
+    score: int = Field(ge=0, le=100)
+
+
+class GUIRiskDriver(BaseModel):
+    name: str
+    impact: float = Field(ge=0.0, le=1.0)
+    direction: str
+
+
+class GUIRiskData(BaseModel):
+    composite: int = Field(ge=0, le=100)
+    domains: List[GUIRiskDomain]
+    forecast: List[GUIRiskForecast]
+    drivers: List[GUIRiskDriver]
+    updatedAt: str
 
 
 class GUIEnvelope(BaseModel):
@@ -22,6 +80,3 @@ class WorkspaceLink(BaseModel):
 
     workspace: str
     resourceId: Optional[str] = None
-
-
-__all__ = ["GUIEnvelope", "WorkspaceLink"]
