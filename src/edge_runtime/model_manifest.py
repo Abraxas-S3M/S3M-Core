@@ -1,294 +1,169 @@
 """
-Per-model manifest loader for austere tactical edge deployments.
+Model manifest loader for CPU-first edge deployments.
 UNCLASSIFIED - FOUO
 """
 
 from __future__ import annotations
 
-import logging
-import math
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Dict, List, Optional
 
 import yaml
 
-LOGGER = logging.getLogger("s3m.edge_runtime.manifest")
+
+@dataclass(frozen=True)
+class ManifestVariant:
+    model_id: str
+    variant_tag: str
+    file_path: str
+    runtime_format: str = "gguf"
+    precision: str = "int4"
+    size_mb: float = 0.0
+    min_ram_gb: float = 0.0
+    requires_gpu: bool = False
+    max_context: int = 4096
+    estimated_tps_cpu: float = 0.0
 
 
 class ModelManifest:
-    """Loads and validates per-model manifests from YAML."""
+    """
+    Loads model-level deployment policy and variants from YAML.
 
-    _VALID_RUNTIME_FORMATS = {"gguf", "onnx", "openvino"}
-    _REQUIRED_TOP_LEVEL = {
-        "model_id",
-        "provider",
-        "family",
-        "parameters",
-        "variants",
-        "adapter_tuning_allowed",
-        "qat_supported",
-        "export_targets",
-        "primary_domain",
-        "arabic_support",
-        "bilingual_ar_en",
-        "quality_thresholds",
-    }
-    _REQUIRED_VARIANT_FIELDS = {
-        "tag",
-        "runtime_format",
-        "file",
-        "size_mb",
-        "max_ram_mb",
-        "cpu_tokens_per_sec",
-        "gpu_tokens_per_sec",
-        "requires_gpu",
-        "max_context",
-    }
-    _REQUIRED_THRESHOLD_FIELDS = {"min_accuracy_pct", "max_latency_p95_ms", "max_memory_mb"}
+    Tactical context:
+    Manifest policy is treated as the mission-authoritative contract for what
+    can run locally on disconnected and CPU-constrained nodes.
+    """
 
-    def __init__(self, manifest_dir: str = "configs/model_manifests"):
-        self.manifest_dir = Path(manifest_dir)
-        self._cache: dict[str, dict[str, Any]] | None = None
-
-    def load_all(self) -> dict[str, dict]:
-        """Load all YAML manifests, return dict keyed by model_id."""
-        if self._cache is not None:
-            return self._cache
-
-        manifests: dict[str, dict[str, Any]] = {}
-        if not self.manifest_dir.exists():
-            LOGGER.warning("Manifest directory not found: %s", self.manifest_dir)
-            self._cache = manifests
-            return manifests
-        if not self.manifest_dir.is_dir():
-            LOGGER.warning("Manifest path is not a directory: %s", self.manifest_dir)
-            self._cache = manifests
-            return manifests
-
-        for manifest_path in sorted(self.manifest_dir.glob("*.yaml")):
-            payload = self._load_yaml_file(manifest_path)
-            if payload is None:
-                continue
-
-            try:
-                self._validate_manifest(payload, manifest_path)
-            except (TypeError, ValueError) as exc:
-                LOGGER.warning("Skipping invalid manifest %s: %s", manifest_path, exc)
-                continue
-
-            model_id = payload["model_id"]
-            if model_id in manifests:
-                LOGGER.warning("Duplicate model_id in manifests: %s", model_id)
-                continue
-
-            manifests[model_id] = payload
-
-        self._cache = manifests
-        return manifests
-
-    def get_manifest(self, model_id: str) -> dict:
-        """Get manifest for a specific model."""
-        self._require_non_empty_string("model_id", model_id)
-        manifest = self.load_all().get(model_id)
-        if manifest is None:
-            LOGGER.warning("Requested model_id not found in manifests: %s", model_id)
-            return {}
-        return manifest
-
-    def get_variant(self, model_id: str, tag: str) -> dict:
-        """Get a specific variant from a model manifest."""
-        self._require_non_empty_string("model_id", model_id)
-        self._require_non_empty_string("tag", tag)
-
-        manifest = self.get_manifest(model_id)
-        if not manifest:
-            return {}
-
-        for variant in manifest.get("variants", []):
-            if variant.get("tag") == tag:
-                return variant
-        return {}
-
-    def get_cpu_variants(self, model_id: str) -> list[dict]:
-        """Return only variants where requires_gpu is false."""
-        manifest = self.get_manifest(model_id)
-        if not manifest:
-            return []
-        variants = manifest.get("variants", [])
-        return [variant for variant in variants if not bool(variant.get("requires_gpu", False))]
-
-    def get_best_cpu_variant(self, model_id: str, available_ram_mb: float) -> dict | None:
-        """Return highest cpu_tokens_per_sec variant that fits in RAM."""
-        self._require_non_empty_string("model_id", model_id)
-        self._require_finite_number("available_ram_mb", available_ram_mb, allow_zero=True)
-
-        candidates = [
-            variant
-            for variant in self.get_cpu_variants(model_id)
-            if float(variant["max_ram_mb"]) <= float(available_ram_mb)
-        ]
-        if not candidates:
-            return None
-        return max(candidates, key=lambda variant: float(variant["cpu_tokens_per_sec"]))
-
-    def get_export_targets(self, model_id: str) -> list[str]:
-        """Return supported export formats."""
-        manifest = self.get_manifest(model_id)
-        if not manifest:
-            return []
-        return list(manifest.get("export_targets", []))
-
-    def validate_thresholds(
+    def __init__(
         self,
         model_id: str,
-        latency_ms: float,
-        memory_mb: float,
-        accuracy_pct: float,
-    ) -> dict:
-        """Check measured values against manifest thresholds. Return pass/fail dict."""
-        self._require_non_empty_string("model_id", model_id)
-        self._require_finite_number("latency_ms", latency_ms, allow_zero=True)
-        self._require_finite_number("memory_mb", memory_mb, allow_zero=True)
-        self._require_finite_number("accuracy_pct", accuracy_pct, allow_zero=True)
-
-        manifest = self.get_manifest(model_id)
-        if not manifest:
-            return {
-                "pass": False,
-                "error": "model_manifest_not_found",
-                "model_id": model_id,
-            }
-
-        thresholds = manifest["quality_thresholds"]
-        accuracy_ok = float(accuracy_pct) >= float(thresholds["min_accuracy_pct"])
-        latency_ok = float(latency_ms) <= float(thresholds["max_latency_p95_ms"])
-        memory_ok = float(memory_mb) <= float(thresholds["max_memory_mb"])
-
-        return {
-            "pass": bool(accuracy_ok and latency_ok and memory_ok),
-            "accuracy_ok": bool(accuracy_ok),
-            "latency_ok": bool(latency_ok),
-            "memory_ok": bool(memory_ok),
-            "model_id": model_id,
-            "measured": {
-                "latency_ms": float(latency_ms),
-                "memory_mb": float(memory_mb),
-                "accuracy_pct": float(accuracy_pct),
-            },
-            "thresholds": dict(thresholds),
-        }
-
-    @staticmethod
-    def _load_yaml_file(path: Path) -> dict[str, Any] | None:
-        try:
-            payload = yaml.safe_load(path.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            LOGGER.warning("Manifest file missing: %s", path)
-            return None
-        except Exception as exc:
-            LOGGER.warning("Unable to parse manifest file %s: %s", path, exc)
-            return None
-
-        if payload is None:
-            LOGGER.warning("Manifest file is empty: %s", path)
-            return None
-        if not isinstance(payload, dict):
-            LOGGER.warning("Manifest file must contain a mapping at top-level: %s", path)
-            return None
-        return payload
+        model_name: str,
+        variants: List[ManifestVariant],
+        runtime_backend: str = "llama_cpp",
+        training: Optional[Dict[str, object]] = None,
+        thresholds: Optional[Dict[str, object]] = None,
+    ) -> None:
+        self.model_id = model_id
+        self.model_name = model_name
+        self.variants = list(variants)
+        self.runtime_backend = str(runtime_backend)
+        self.training = dict(training or {})
+        self.thresholds = dict(thresholds or {})
 
     @classmethod
-    def _validate_manifest(cls, manifest: dict[str, Any], source_path: Path) -> None:
-        missing_top_level = cls._REQUIRED_TOP_LEVEL - set(manifest.keys())
-        if missing_top_level:
-            raise ValueError(f"missing required top-level fields: {sorted(missing_top_level)}")
+    def load(cls, model_id: str, manifest_dir: str = "configs/model_manifests") -> "ModelManifest":
+        manifest_root = Path(manifest_dir)
+        if not manifest_root.exists():
+            raise FileNotFoundError(f"Manifest directory not found: {manifest_root}")
 
-        cls._require_non_empty_string("model_id", manifest["model_id"])
-        cls._require_non_empty_string("provider", manifest["provider"])
-        cls._require_non_empty_string("family", manifest["family"])
-        cls._require_non_empty_string("parameters", manifest["parameters"])
-        cls._require_non_empty_string("primary_domain", manifest["primary_domain"])
+        normalized = str(model_id).strip()
+        candidate_names = [
+            f"{normalized}.yaml",
+            f"{normalized}.yml",
+            f"{normalized.replace('-', '_')}.yaml",
+            f"{normalized.replace('-', '_')}.yml",
+        ]
+        for candidate in candidate_names:
+            candidate_path = manifest_root / candidate
+            if candidate_path.exists():
+                return cls._from_file(candidate_path)
 
-        variants = manifest["variants"]
-        if not isinstance(variants, list) or not variants:
-            raise ValueError("variants must be a non-empty list")
+        for path in sorted(manifest_root.glob("*.y*ml")):
+            manifest = cls._from_file(path)
+            if manifest.model_id == normalized:
+                return manifest
 
-        seen_tags: set[str] = set()
-        for variant in variants:
-            if not isinstance(variant, dict):
-                raise ValueError("each variant must be a mapping")
-            cls._validate_variant(variant)
-            tag = str(variant["tag"])
-            if tag in seen_tags:
-                raise ValueError(f"duplicate variant tag: {tag}")
-            seen_tags.add(tag)
-
-        export_targets = manifest["export_targets"]
-        if not isinstance(export_targets, list) or not export_targets:
-            raise ValueError("export_targets must be a non-empty list")
-        for target in export_targets:
-            cls._require_non_empty_string("export_target", target)
-            if str(target) not in cls._VALID_RUNTIME_FORMATS:
-                raise ValueError(f"unsupported export target: {target}")
-
-        thresholds = manifest["quality_thresholds"]
-        if not isinstance(thresholds, dict):
-            raise ValueError("quality_thresholds must be a mapping")
-        missing_thresholds = cls._REQUIRED_THRESHOLD_FIELDS - set(thresholds.keys())
-        if missing_thresholds:
-            raise ValueError(f"missing quality_thresholds fields: {sorted(missing_thresholds)}")
-        cls._require_finite_number("min_accuracy_pct", thresholds["min_accuracy_pct"], allow_zero=True)
-        cls._require_finite_number("max_latency_p95_ms", thresholds["max_latency_p95_ms"], allow_zero=False)
-        cls._require_finite_number("max_memory_mb", thresholds["max_memory_mb"], allow_zero=False)
-
-        if not isinstance(manifest["adapter_tuning_allowed"], bool):
-            raise TypeError("adapter_tuning_allowed must be a bool")
-        if not isinstance(manifest["qat_supported"], bool):
-            raise TypeError("qat_supported must be a bool")
-        if not isinstance(manifest["arabic_support"], bool):
-            raise TypeError("arabic_support must be a bool")
-        if not isinstance(manifest["bilingual_ar_en"], bool):
-            raise TypeError("bilingual_ar_en must be a bool")
-
-        if not source_path.name.endswith(".yaml"):
-            raise ValueError("manifest source must be .yaml")
+        raise FileNotFoundError(f"No manifest found for model_id='{normalized}' in {manifest_root}")
 
     @classmethod
-    def _validate_variant(cls, variant: dict[str, Any]) -> None:
-        missing_variant_fields = cls._REQUIRED_VARIANT_FIELDS - set(variant.keys())
-        if missing_variant_fields:
-            raise ValueError(f"missing variant fields: {sorted(missing_variant_fields)}")
+    def load_all(cls, manifest_dir: str = "configs/model_manifests") -> Dict[str, "ModelManifest"]:
+        manifest_root = Path(manifest_dir)
+        if not manifest_root.exists():
+            return {}
+        loaded: Dict[str, ModelManifest] = {}
+        for path in sorted(manifest_root.glob("*.y*ml")):
+            try:
+                manifest = cls._from_file(path)
+            except Exception:
+                continue
+            loaded[manifest.model_id] = manifest
+        return loaded
 
-        cls._require_non_empty_string("tag", variant["tag"])
-        cls._require_non_empty_string("runtime_format", variant["runtime_format"])
-        cls._require_non_empty_string("file", variant["file"])
-        cls._require_finite_number("size_mb", variant["size_mb"], allow_zero=False)
-        cls._require_finite_number("max_ram_mb", variant["max_ram_mb"], allow_zero=False)
-        cls._require_finite_number("cpu_tokens_per_sec", variant["cpu_tokens_per_sec"], allow_zero=True)
-        cls._require_finite_number("gpu_tokens_per_sec", variant["gpu_tokens_per_sec"], allow_zero=True)
-        cls._require_finite_number("max_context", variant["max_context"], allow_zero=False)
+    @classmethod
+    def _from_file(cls, path: Path) -> "ModelManifest":
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        model_id = str(data.get("model_id") or path.stem)
+        model_name = str(data.get("model_name") or model_id)
+        runtime_backend = str(data.get("runtime_backend", "llama_cpp"))
+        raw_variants = list(data.get("variants") or [])
 
-        if variant["runtime_format"] not in cls._VALID_RUNTIME_FORMATS:
-            raise ValueError(f"unsupported runtime_format: {variant['runtime_format']}")
-        if not isinstance(variant["requires_gpu"], bool):
-            raise TypeError("requires_gpu must be a bool")
+        variants: List[ManifestVariant] = []
+        for item in raw_variants:
+            if not isinstance(item, dict):
+                continue
+            variant_tag = str(item.get("variant_tag") or "default")
+            variants.append(
+                ManifestVariant(
+                    model_id=model_id,
+                    variant_tag=variant_tag,
+                    file_path=str(item.get("file_path") or ""),
+                    runtime_format=str(item.get("runtime_format") or "gguf"),
+                    precision=str(item.get("precision") or "int4"),
+                    size_mb=float(item.get("size_mb") or 0.0),
+                    min_ram_gb=float(item.get("min_ram_gb") or 0.0),
+                    requires_gpu=bool(item.get("requires_gpu", False)),
+                    max_context=int(item.get("max_context") or 4096),
+                    estimated_tps_cpu=float(item.get("estimated_tps_cpu") or 0.0),
+                )
+            )
 
-    @staticmethod
-    def _require_non_empty_string(name: str, value: Any) -> None:
-        if not isinstance(value, str):
-            raise TypeError(f"{name} must be a string")
-        if not value.strip():
-            raise ValueError(f"{name} must be a non-empty string")
+        return cls(
+            model_id=model_id,
+            model_name=model_name,
+            variants=variants,
+            runtime_backend=runtime_backend,
+            training=data.get("training") if isinstance(data.get("training"), dict) else {},
+            thresholds=data.get("thresholds") if isinstance(data.get("thresholds"), dict) else {},
+        )
 
-    @staticmethod
-    def _require_finite_number(name: str, value: Any, *, allow_zero: bool) -> None:
-        if not isinstance(value, (int, float)):
-            raise TypeError(f"{name} must be numeric")
-        value_float = float(value)
-        if not math.isfinite(value_float):
-            raise ValueError(f"{name} must be finite")
-        if allow_zero:
-            if value_float < 0:
-                raise ValueError(f"{name} must be non-negative")
-        elif value_float <= 0:
-            raise ValueError(f"{name} must be positive")
+    def get_variant(self, variant_tag: str) -> Optional[ManifestVariant]:
+        requested = str(variant_tag).strip()
+        for variant in self.variants:
+            if variant.variant_tag == requested:
+                return variant
+        return None
+
+    def get_best_cpu_variant(
+        self,
+        variant_tag: Optional[str] = None,
+        available_ram_gb: Optional[float] = None,
+    ) -> ManifestVariant:
+        if variant_tag:
+            tagged = self.get_variant(variant_tag)
+            if tagged is None:
+                raise ValueError(f"Unknown variant '{variant_tag}' for model '{self.model_id}'")
+            candidates = [tagged]
+        else:
+            candidates = [variant for variant in self.variants if not variant.requires_gpu]
+
+        if available_ram_gb is not None:
+            fitting = [variant for variant in candidates if variant.min_ram_gb <= float(available_ram_gb)]
+            if fitting:
+                candidates = fitting
+
+        if not candidates:
+            raise ValueError(f"No CPU-capable variants found for model '{self.model_id}'")
+
+        return sorted(candidates, key=lambda item: (item.size_mb, item.min_ram_gb))[0]
+
+    def is_adapter_tuning_allowed(self) -> bool:
+        return bool(self.training.get("adapter_tuning_allowed", False))
+
+    def validate_threshold(self, threshold_key: str, value: object) -> bool:
+        limit = self.thresholds.get(threshold_key)
+        if limit is None:
+            return True
+        if isinstance(limit, (int, float)) and isinstance(value, (int, float)):
+            return float(value) <= float(limit)
+        return True

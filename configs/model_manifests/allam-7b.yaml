@@ -1,0 +1,18 @@
+model_id: allam-7b
+model_name: ALLaM 7B
+runtime_backend: llama_cpp
+training:
+  adapter_tuning_allowed: true
+thresholds:
+  max_prompt_chars: 5000
+  max_adapter_samples: 3000
+variants:
+  - variant_tag: q4_k_m
+    runtime_format: gguf
+    precision: int4
+    file_path: models/allam/allam-7b-q4_k_m.gguf
+    size_mb: 4100
+    min_ram_gb: 5.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 7.0

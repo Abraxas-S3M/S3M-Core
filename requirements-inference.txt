@@ -7,5 +7,6 @@
 llama-cpp-python>=0.2.0
 
 # Already in base requirements
-pyyaml>=6.0
-pathlib2>=2.3.0
+PyYAML==6.0.2
+pathlib2==2.3.7.post1
+psutil==5.9.8

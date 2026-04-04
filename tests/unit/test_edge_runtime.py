@@ -170,6 +170,8 @@ class TestModelPlanner:
         assert "decision" in payload
         assert "precision" in payload
         assert "model_id" in payload
+        assert "runtime_format" in payload
+        assert "backend" in payload
 
     def test_default_variants_declared(self) -> None:
         assert len(DEFAULT_VARIANTS) >= 8

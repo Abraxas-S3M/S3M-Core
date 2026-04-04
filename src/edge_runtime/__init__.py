@@ -38,6 +38,12 @@ except Exception:  # pragma: no cover - exercised when later modules are absent
     Precision = None  # type: ignore[assignment]
 
 try:
+    from src.edge_runtime.model_manifest import ManifestVariant, ModelManifest
+except Exception:  # pragma: no cover - exercised when later modules are absent
+    ManifestVariant = None  # type: ignore[assignment]
+    ModelManifest = None  # type: ignore[assignment]
+
+try:
     from src.edge_runtime.bearer_broker import (
         BearerBroker,
         DeliveryMode,
@@ -74,13 +80,25 @@ try:
 except Exception:  # pragma: no cover - exercised when later modules are absent
     OperatorHealthSurface = None  # type: ignore[assignment]
 
+try:
+    from src.edge_runtime.cpu_orchestrator import CPUOrchestrator
+except Exception:  # pragma: no cover - exercised when later modules are absent
+    CPUOrchestrator = None  # type: ignore[assignment]
+
+try:
+    from src.edge_runtime.bootstrap import AustereEdgeRuntime
+except Exception:  # pragma: no cover - exercised when later modules are absent
+    AustereEdgeRuntime = None  # type: ignore[assignment]
+
 __all__ = [
     "HardwareProfiler", "NodeProfile", "HardwareTier",
     "DegradationController", "ModePolicy", "OperatingMode",
     "DEFAULT_VARIANTS", "ExecutionDecision", "ExecutionPlan",
     "ModelExecutionPlanner", "ModelVariant", "Precision",
+    "ManifestVariant", "ModelManifest",
     "BearerBroker", "DeliveryMode", "LinkMetrics", "LinkType", "LinkState", "MessageClass", "RoutingDecision",
     "DurableQueue", "QueueItem", "QueueItemState", "SyncReconciler",
     "OperatorHealthSurface",
+    "CPUOrchestrator",
     "AustereEdgeRuntime",
 ]

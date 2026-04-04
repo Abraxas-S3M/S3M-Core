@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 
 from src.edge_runtime.degradation_controller import DegradationController, OperatingMode
 from src.edge_runtime.hardware_profiler import NodeProfile
+from src.edge_runtime.model_manifest import ManifestVariant, ModelManifest
 
 
 class Precision(str, Enum):
@@ -39,6 +40,7 @@ class ModelVariant:
     max_context: int
     estimated_tps_cpu: float
     estimated_tps_gpu: float
+    runtime_format: str = "gguf"
 
 
 DEFAULT_VARIANTS: List[ModelVariant] = [
@@ -62,6 +64,8 @@ class ExecutionPlan:
     max_context: int
     max_batch: int
     reason: str
+    runtime_format: str = "gguf"
+    backend: str = "llama_cpp"
 
     def to_dict(self) -> Dict[str, object]:
         return {
@@ -73,6 +77,8 @@ class ExecutionPlan:
             "max_context": self.max_context,
             "max_batch": self.max_batch,
             "reason": self.reason,
+            "runtime_format": self.runtime_format,
+            "backend": self.backend,
         }
 
 
@@ -89,10 +95,66 @@ class ModelExecutionPlanner:
         self.controller = controller
         self.variants = list(variants) if variants is not None else list(DEFAULT_VARIANTS)
 
-    def plan(self, model_id: str, requested_tokens: int = 512) -> ExecutionPlan:
+    @staticmethod
+    def _precision_from_manifest(variant: ManifestVariant) -> Precision:
+        raw = str(variant.precision).strip().lower()
+        if raw == Precision.INT8.value:
+            return Precision.INT8
+        if raw == Precision.FP16.value:
+            return Precision.FP16
+        if raw == Precision.FP32.value:
+            return Precision.FP32
+        return Precision.INT4
+
+    @classmethod
+    def _from_manifest_variant(cls, model_id: str, variant: ManifestVariant) -> ModelVariant:
+        return ModelVariant(
+            model_id=model_id,
+            variant_tag=variant.variant_tag,
+            precision=cls._precision_from_manifest(variant),
+            file_path=variant.file_path,
+            size_mb=float(variant.size_mb),
+            min_ram_gb=float(variant.min_ram_gb),
+            requires_gpu=bool(variant.requires_gpu),
+            max_context=int(variant.max_context),
+            estimated_tps_cpu=float(variant.estimated_tps_cpu),
+            estimated_tps_gpu=0.0,
+            runtime_format=str(variant.runtime_format or "gguf"),
+        )
+
+    @staticmethod
+    def _backend_for_runtime(runtime_format: str) -> str:
+        runtime = str(runtime_format).strip().lower()
+        if runtime in {"gguf", "llama.cpp", "llama_cpp"}:
+            return "llama_cpp"
+        return "unknown"
+
+    def plan(
+        self,
+        model_id: str,
+        requested_tokens: int = 512,
+        manifest: Optional[ModelManifest] = None,
+    ) -> ExecutionPlan:
         mode = self.controller.current_mode
         policy = self.controller.current_policy()
-        candidates = [variant for variant in self.variants if variant.model_id == model_id]
+        if manifest is not None:
+            if manifest.model_id != model_id:
+                return ExecutionPlan(
+                    decision=ExecutionDecision.REJECT,
+                    variant=None,
+                    precision=Precision.INT4,
+                    max_tokens=0,
+                    max_context=0,
+                    max_batch=0,
+                    reason=f"Manifest model mismatch: expected {model_id}, got {manifest.model_id}",
+                )
+            try:
+                manifest_variant = manifest.get_best_cpu_variant(available_ram_gb=self.profile.ram_available_gb)
+                candidates = [self._from_manifest_variant(model_id, manifest_variant)]
+            except ValueError:
+                candidates = []
+        else:
+            candidates = [variant for variant in self.variants if variant.model_id == model_id]
         if not candidates:
             return ExecutionPlan(
                 decision=ExecutionDecision.REJECT,
@@ -147,6 +209,7 @@ class ModelExecutionPlanner:
             max_context = min(max_context, 2048)
         max_batch = 4 if mode == OperatingMode.MODE_A_FULL_EDGE else 1
 
+        runtime_format = str(chosen.runtime_format or "gguf")
         return ExecutionPlan(
             decision=ExecutionDecision.RUN_LOCAL,
             variant=chosen,
@@ -155,4 +218,6 @@ class ModelExecutionPlanner:
             max_context=max_context,
             max_batch=max_batch,
             reason=f"Selected smallest feasible variant under {mode.value} policy.",
+            runtime_format=runtime_format,
+            backend=self._backend_for_runtime(runtime_format),
         )

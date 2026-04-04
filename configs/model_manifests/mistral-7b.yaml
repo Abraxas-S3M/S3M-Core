@@ -1,0 +1,27 @@
+model_id: mistral-7b
+model_name: Mistral 7B
+runtime_backend: llama_cpp
+training:
+  adapter_tuning_allowed: true
+thresholds:
+  max_prompt_chars: 8000
+  max_adapter_samples: 4000
+variants:
+  - variant_tag: q4_k_m
+    runtime_format: gguf
+    precision: int4
+    file_path: models/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf
+    size_mb: 4100
+    min_ram_gb: 5.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 8.0
+  - variant_tag: q8_0
+    runtime_format: gguf
+    precision: int8
+    file_path: models/mistral/mistral-7b-q8_0.gguf
+    size_mb: 6200
+    min_ram_gb: 8.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 5.0
