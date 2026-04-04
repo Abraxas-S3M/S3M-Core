@@ -1,0 +1,64 @@
+model_id: "allam-7b"
+provider: "SDAIA"
+family: "Allam"
+parameters: "7B"
+
+variants:
+  - tag: "q4_k_m"
+    runtime_format: "gguf"
+    file: "models/allam-7b-q4_k_m.gguf"
+    size_mb: 4100
+    max_ram_mb: 5632
+    cpu_tokens_per_sec: 8.5
+    gpu_tokens_per_sec: 31.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "q8_0"
+    runtime_format: "gguf"
+    file: "models/allam-7b-q8_0.gguf"
+    size_mb: 6100
+    max_ram_mb: 7680
+    cpu_tokens_per_sec: 5.5
+    gpu_tokens_per_sec: 27.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "onnx-int8"
+    runtime_format: "onnx"
+    file: "models/allam-7b-int8.onnx"
+    size_mb: 5800
+    max_ram_mb: 7168
+    cpu_tokens_per_sec: 7.2
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "openvino-int8"
+    runtime_format: "openvino"
+    file: "models/allam-7b-int8-ov/"
+    size_mb: 5500
+    max_ram_mb: 6656
+    cpu_tokens_per_sec: 9.6
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "fp16"
+    runtime_format: "gguf"
+    file: "models/allam-7b-fp16.gguf"
+    size_mb: 14000
+    max_ram_mb: 19456
+    cpu_tokens_per_sec: 2.0
+    gpu_tokens_per_sec: 43.0
+    requires_gpu: true
+    max_context: 16384
+
+adapter_tuning_allowed: true
+qat_supported: true
+export_targets: ["gguf", "onnx", "openvino"]
+
+primary_domain: "arabic_nlp"
+arabic_support: true
+bilingual_ar_en: true
+
+quality_thresholds:
+  min_accuracy_pct: 80.0
+  max_latency_p95_ms: 6000
+  max_memory_mb: 19456
