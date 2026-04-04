@@ -25,7 +25,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import torch
+try:
+    import torch
+
+    TORCH_AVAILABLE = True
+except Exception:  # pragma: no cover - optional runtime
+    torch = None  # type: ignore
+    TORCH_AVAILABLE = False
 
 logger = logging.getLogger("s3m.training.checkpointing")
 
@@ -276,6 +282,8 @@ class HierarchicalCheckpointer:
 
     def load_checkpoint(self, manifest: CheckpointManifest) -> dict:
         """Load checkpoint data, verify SHA256, return state dicts."""
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required to load checkpoints")
         if not isinstance(manifest, CheckpointManifest):
             raise TypeError("manifest must be a CheckpointManifest")
         checkpoint_dir = Path(manifest.path)
@@ -512,6 +520,8 @@ class HierarchicalCheckpointer:
             return None
 
     def _serialize_payload(self, payload: Dict[str, Any]) -> bytes:
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required to save checkpoints")
         buffer = io.BytesIO()
         torch.save(payload, buffer)
         return buffer.getvalue()
