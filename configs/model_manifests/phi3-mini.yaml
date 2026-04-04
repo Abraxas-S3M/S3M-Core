@@ -1,0 +1,27 @@
+model_id: phi3-mini
+model_name: Phi-3 Mini
+runtime_backend: llama_cpp
+training:
+  adapter_tuning_allowed: true
+thresholds:
+  max_prompt_chars: 6000
+  max_adapter_samples: 5000
+variants:
+  - variant_tag: q4_k_m
+    runtime_format: gguf
+    precision: int4
+    file_path: models/phi3/phi-3-mini-4k-instruct-q4_k_m.gguf
+    size_mb: 2200
+    min_ram_gb: 3.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 16.0
+  - variant_tag: q8_0
+    runtime_format: gguf
+    precision: int8
+    file_path: models/phi3/phi-3-mini-4k-instruct-q8_0.gguf
+    size_mb: 3200
+    min_ram_gb: 4.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 11.0

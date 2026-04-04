@@ -1,0 +1,18 @@
+model_id: grok-8b
+model_name: Grok 8B
+runtime_backend: llama_cpp
+training:
+  adapter_tuning_allowed: false
+thresholds:
+  max_prompt_chars: 8000
+  max_adapter_samples: 0
+variants:
+  - variant_tag: q4_k_m
+    runtime_format: gguf
+    precision: int4
+    file_path: models/grok/grok-8b-q4_k_m.gguf
+    size_mb: 4600
+    min_ram_gb: 6.0
+    requires_gpu: false
+    max_context: 4096
+    estimated_tps_cpu: 6.0
