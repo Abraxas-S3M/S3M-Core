@@ -105,9 +105,26 @@ class InferenceEngine:
         """
         manifest = ModelManifest.load(model_id=model_id, manifest_dir=manifest_dir)
         variant = manifest.get_best_cpu_variant(variant_tag=variant_tag)
-        backend = BackendFactory.create(model_id=manifest.model_id, variant=variant)
+        backend = cls._create_backend_from_manifest(manifest, variant)
         engine_id = cls._resolve_engine_id(manifest.model_id)
         return cls(engine_id=engine_id, n_gpu_layers=0, n_ctx=variant.max_context, backend=backend)
+
+    @staticmethod
+    def _create_backend_from_manifest(manifest: ModelManifest, variant) -> InferenceBackend:
+        """Construct backend across both factory API variants."""
+        # Newer backend factory signature from main: create(runtime_format, model_path, config)
+        if hasattr(variant, "runtime_format") and hasattr(variant, "file_path"):
+            runtime_format = str(getattr(variant, "runtime_format", "gguf"))
+            model_path = str(getattr(variant, "file_path", ""))
+            config = {
+                "model_id": manifest.model_id,
+                "variant_tag": getattr(variant, "variant_tag", "default"),
+                "n_ctx": int(getattr(variant, "max_context", 4096)),
+                "runtime_backend": getattr(manifest, "runtime_backend", "llama_cpp"),
+            }
+            return BackendFactory.create(runtime_format, model_path, config)
+        # Legacy local signature from branch: create(model_id, variant)
+        return BackendFactory.create(model_id=manifest.model_id, variant=variant)
 
     def is_available(self) -> bool:
         if self.backend is not None:

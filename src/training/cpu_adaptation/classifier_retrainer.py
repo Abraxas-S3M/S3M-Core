@@ -370,3 +370,23 @@ class ClassifierRetrainer:
             with open(out_path, "wb") as handle:
                 pickle.dump(self._model, handle)
         return str(out_path)
+
+
+class CPUClassifierRetrainer:
+    """Compatibility wrapper preserving legacy retrain() interface."""
+
+    def retrain(self, model_type: str, X: Any, y: Any) -> ClassifierResult:
+        X_arr = np.asarray(X, dtype=np.float32)
+        if X_arr.ndim == 1:
+            X_arr = X_arr.reshape(-1, 1)
+        y_arr = np.asarray(y, dtype=np.int64)
+        if y_arr.ndim != 1:
+            y_arr = y_arr.reshape(-1)
+        if X_arr.shape[0] <= 0 or y_arr.shape[0] <= 0 or X_arr.shape[0] != y_arr.shape[0]:
+            return ClassifierResult(accuracy=0.0, f1_weighted=0.0, train_time_sec=0.0, model_size_kb=0.0)
+
+        classes = int(np.max(y_arr)) + 1
+        classes = max(2, classes)
+        config = ClassifierConfig(n_classes=classes, feature_dim=int(X_arr.shape[1]))
+        retrainer = ClassifierRetrainer(model_type=model_type, config=config)
+        return retrainer.train(X_arr, y_arr)

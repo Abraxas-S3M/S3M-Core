@@ -83,6 +83,10 @@ class TrainingResult:
     duration_seconds: float
     adapter_path: str
 
+    @property
+    def success(self) -> bool:
+        return self.steps_completed > 0
+
 
 class CPUAdapterTuner:
     """Fine-tunes LoRA adapters with strict CPU and memory constraints.
@@ -104,6 +108,11 @@ class CPUAdapterTuner:
         self._prepared = False
         self._backend = "uninitialized"
         self._last_adapter_path = ""
+
+    # Backward-compat entrypoint retained for existing orchestrator callers.
+    def train_adapter(self, model_id: str, dataset: list[dict], epochs: int = 1) -> TrainingResult:
+        del model_id, epochs
+        return self.train(dataset)
 
     def _current_rss_mb(self) -> float:
         if psutil is not None:
