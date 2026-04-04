@@ -70,6 +70,13 @@ from .predictive_preload import (
 )
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
+from .bilingual_attention_router import (
+    BilingualAttentionRouter,
+    Language as BilingualLanguage,
+    LanguageSegment,
+    RoutingDecision as BilingualRoutingDecision,
+    FusedResponse,
+)
 
 # Backward-compatible aliases from legacy orchestrator API surface.
 EngineResponse = OrchestratorEngineResponse
@@ -110,4 +117,9 @@ __all__ = [
     "UnifiedRuntime",
     "MissionRequest",
     "MissionResult",
+    "BilingualAttentionRouter",
+    "BilingualLanguage",
+    "LanguageSegment",
+    "BilingualRoutingDecision",
+    "FusedResponse",
 ]
