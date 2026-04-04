@@ -48,6 +48,18 @@ class EngineConfig:
     capabilities: Optional[Dict[Union[TaskDomain, str], float]] = field(default=None)
     version_tag: Optional[str] = "v1.0.0"
     sha256_hash: Optional[str] = None
+    # Training capability fields (new)
+    adapter_tuning_allowed: bool = True
+    adapter_tuning_min_ram_gb: float = 6.0
+    adapter_tuning_bf16_benefit: bool = True
+    preferred_student_model: Optional[str] = None
+    gguf_export_supported: bool = True
+    onnx_export_supported: bool = False
+    openvino_export_supported: bool = False
+    cpu_training_precision_default: str = "bf16_mixed"
+    max_lora_rank: int = 16
+    cpu_inference_tok_s_target: float = 0.0
+    cpu_inference_ram_mb: int = 0
 
     def __post_init__(self):
         """Initialize mission-routing capability priors for tactical orchestration."""
@@ -97,6 +109,11 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=2.5,
         warm_state=False,
         confidence_prior=0.85,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=4.0,
+        preferred_student_model=None,
+        cpu_inference_tok_s_target=40.0,
+        cpu_inference_ram_mb=2500,
         capabilities={
             TaskDomain.TACTICAL: 0.95,
             TaskDomain.REASONING: 0.60,
@@ -124,6 +141,11 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=5.5,
         warm_state=False,
         confidence_prior=0.82,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=8.0,
+        preferred_student_model="phi3-mini",
+        cpu_inference_tok_s_target=15.0,
+        cpu_inference_ram_mb=5000,
         capabilities={
             TaskDomain.TACTICAL: 0.60,
             TaskDomain.REASONING: 0.95,
@@ -151,6 +173,11 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=5.2,
         warm_state=False,
         confidence_prior=0.84,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=8.0,
+        preferred_student_model="phi3-mini",
+        cpu_inference_tok_s_target=20.0,
+        cpu_inference_ram_mb=4500,
         capabilities={
             TaskDomain.TACTICAL: 0.72,
             TaskDomain.REASONING: 0.78,
@@ -178,6 +205,12 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=5.0,
         warm_state=False,
         confidence_prior=0.83,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=8.0,
+        preferred_student_model="phi3-mini",
+        cpu_training_precision_default="bf16_mixed",
+        cpu_inference_tok_s_target=18.0,
+        cpu_inference_ram_mb=4500,
         capabilities={
             TaskDomain.TACTICAL: 0.58,
             TaskDomain.REASONING: 0.62,

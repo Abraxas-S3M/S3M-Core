@@ -11,6 +11,7 @@ from enum import Enum
 import os
 import platform
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
@@ -44,6 +45,17 @@ class NodeProfile:
     thermal_zone_c: Optional[float]
     power_source: str
     active_links: List[str]
+    # CPU ISA capability flags — detected at boot.
+    avx2_supported: bool = False
+    avx512_supported: bool = False
+    avx512_bf16_supported: bool = False
+    avx512_vnni_supported: bool = False
+    arm_neon_supported: bool = False
+    arm_sve_supported: bool = False
+    numa_node_count: int = 1
+    simd_register_width_bits: int = 128  # 128/256/512
+    # Tactical metadata enables commanders to select safe on-node training paths.
+    tier_metadata: Dict[str, object] = field(default_factory=dict)
     profiled_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, object]:
@@ -63,6 +75,15 @@ class NodeProfile:
             "thermal_zone_c": self.thermal_zone_c,
             "power_source": self.power_source,
             "active_links": list(self.active_links),
+            "avx2_supported": self.avx2_supported,
+            "avx512_supported": self.avx512_supported,
+            "avx512_bf16_supported": self.avx512_bf16_supported,
+            "avx512_vnni_supported": self.avx512_vnni_supported,
+            "arm_neon_supported": self.arm_neon_supported,
+            "arm_sve_supported": self.arm_sve_supported,
+            "numa_node_count": self.numa_node_count,
+            "simd_register_width_bits": self.simd_register_width_bits,
+            "tier_metadata": dict(self.tier_metadata),
             "profiled_at": self.profiled_at,
         }
 
@@ -83,13 +104,17 @@ class HardwareProfiler:
         thermal_zone_c = self._probe_thermal_zone()
         power_source = self._probe_power_source()
         active_links = self._probe_active_links()
+        isa_capabilities = self._probe_isa_capabilities()
+        numa_node_count = self._probe_numa_nodes()
         tier = self._classify(
             cores=cpu_cores,
             ram_gb=ram_total_gb,
             gpu=gpu_detected,
             thermal=thermal_zone_c,
             power=power_source,
+            isa_capabilities=isa_capabilities,
         )
+        tier_metadata = self._tier_metadata(tier=tier, isa_capabilities=isa_capabilities, numa_node_count=numa_node_count)
         self.profile = NodeProfile(
             tier=tier,
             cpu_cores=cpu_cores,
@@ -105,6 +130,15 @@ class HardwareProfiler:
             thermal_zone_c=thermal_zone_c,
             power_source=power_source,
             active_links=active_links,
+            avx2_supported=bool(isa_capabilities.get("avx2_supported", False)),
+            avx512_supported=bool(isa_capabilities.get("avx512_supported", False)),
+            avx512_bf16_supported=bool(isa_capabilities.get("avx512_bf16_supported", False)),
+            avx512_vnni_supported=bool(isa_capabilities.get("avx512_vnni_supported", False)),
+            arm_neon_supported=bool(isa_capabilities.get("arm_neon_supported", False)),
+            arm_sve_supported=bool(isa_capabilities.get("arm_sve_supported", False)),
+            numa_node_count=max(1, int(numa_node_count)),
+            simd_register_width_bits=max(128, int(isa_capabilities.get("simd_register_width_bits", 128))),
+            tier_metadata=tier_metadata,
         )
         return self.profile
 
@@ -250,16 +284,160 @@ class HardwareProfiler:
             return []
 
     @staticmethod
+    def _extract_feature_tokens(raw: str) -> set[str]:
+        """Extract lowercase CPU feature tokens from cpuinfo/lscpu-like text."""
+        tokens: set[str] = set()
+        pattern = re.compile(r"^(flags|features)\s*:\s*(.+)$", flags=re.IGNORECASE | re.MULTILINE)
+        for match in pattern.finditer(raw):
+            for token in match.group(2).strip().lower().split():
+                if token:
+                    tokens.add(token)
+        return tokens
+
+    @staticmethod
+    def _probe_isa_capabilities() -> dict:
+        """Detect CPU ISA extensions with conservative, non-crashing fallbacks."""
+        capabilities = {
+            "avx2_supported": False,
+            "avx512_supported": False,
+            "avx512_bf16_supported": False,
+            "avx512_vnni_supported": False,
+            "arm_neon_supported": False,
+            "arm_sve_supported": False,
+            "simd_register_width_bits": 128,
+        }
+        arch = str(platform.machine()).lower()
+        feature_tokens: set[str] = set()
+
+        try:
+            cpuinfo = Path("/proc/cpuinfo")
+            if cpuinfo.exists():
+                feature_tokens = HardwareProfiler._extract_feature_tokens(
+                    cpuinfo.read_text(encoding="utf-8", errors="ignore")
+                )
+        except Exception:
+            feature_tokens = set()
+
+        if not feature_tokens and arch in {"arm64", "aarch64"} and platform.system().lower() == "darwin":
+            try:
+                result = subprocess.run(
+                    ["sysctl", "-a"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    sysctl_text = result.stdout.lower()
+                    if "hw.optional.neon: 1" in sysctl_text or "hw.optional.advsimd: 1" in sysctl_text:
+                        feature_tokens.update({"neon", "asimd"})
+                    if "hw.optional.sve: 1" in sysctl_text or "hw.optional.arm.feat_sve: 1" in sysctl_text:
+                        feature_tokens.add("sve")
+            except Exception:
+                feature_tokens = set()
+
+        if not feature_tokens:
+            try:
+                result = subprocess.run(
+                    ["lscpu"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    feature_tokens = HardwareProfiler._extract_feature_tokens(result.stdout)
+            except Exception:
+                feature_tokens = set()
+
+        if arch in {"x86_64", "amd64", "i386", "i686"}:
+            avx512_vnni_aliases = {"avx512_vnni", "avx_vnni", "avxvnni"}
+            capabilities["avx2_supported"] = "avx2" in feature_tokens
+            capabilities["avx512_supported"] = "avx512f" in feature_tokens or "avx512" in feature_tokens
+            capabilities["avx512_bf16_supported"] = (
+                "avx512_bf16" in feature_tokens or "avx512bf16" in feature_tokens
+            )
+            capabilities["avx512_vnni_supported"] = any(flag in feature_tokens for flag in avx512_vnni_aliases)
+            if capabilities["avx512_supported"]:
+                capabilities["simd_register_width_bits"] = 512
+            elif capabilities["avx2_supported"]:
+                capabilities["simd_register_width_bits"] = 256
+            return capabilities
+
+        if arch in {"arm64", "aarch64"}:
+            capabilities["arm_neon_supported"] = any(token in feature_tokens for token in {"neon", "asimd", "advsimd"})
+            capabilities["arm_sve_supported"] = any(token == "sve" or token.startswith("sve") for token in feature_tokens)
+            if capabilities["arm_sve_supported"]:
+                try:
+                    raw = Path("/proc/sys/abi/sve_default_vector_length").read_text(
+                        encoding="utf-8",
+                        errors="ignore",
+                    ).strip()
+                    sve_bytes = int(raw)
+                    capabilities["simd_register_width_bits"] = max(128, sve_bytes * 8)
+                except Exception:
+                    capabilities["simd_register_width_bits"] = 256
+            elif capabilities["arm_neon_supported"]:
+                capabilities["simd_register_width_bits"] = 128
+            return capabilities
+
+        return capabilities
+
+    @staticmethod
+    def _probe_numa_nodes() -> int:
+        """Count NUMA nodes from sysfs with safe fallback."""
+        try:
+            nodes_root = Path("/sys/devices/system/node")
+            if nodes_root.exists():
+                count = sum(
+                    1
+                    for entry in nodes_root.iterdir()
+                    if entry.is_dir() and re.fullmatch(r"node[0-9]+", entry.name)
+                )
+                if count > 0:
+                    return count
+        except Exception:
+            pass
+        try:
+            result = subprocess.run(
+                ["lscpu"],
+                capture_output=True,
+                text=True,
+                timeout=3,
+                check=False,
+            )
+            if result.returncode == 0:
+                match = re.search(r"^NUMA node\(s\):\s*([0-9]+)\s*$", result.stdout, flags=re.MULTILINE)
+                if match:
+                    return max(1, int(match.group(1)))
+        except Exception:
+            pass
+        return 1
+
+    @staticmethod
+    def _tier_metadata(tier: HardwareTier, isa_capabilities: Dict[str, object], numa_node_count: int) -> Dict[str, object]:
+        metadata: Dict[str, object] = {"numa_node_count": max(1, int(numa_node_count))}
+        if tier is HardwareTier.CPU_STANDARD and bool(isa_capabilities.get("avx512_bf16_supported", False)):
+            metadata["cpu_precision_path"] = "avx512_bf16"
+            metadata["tier_note"] = "cpu_standard_bf16_accelerated"
+        return metadata
+
+    @staticmethod
     def _classify(
         cores: int,
         ram_gb: float,
         gpu: bool,
         thermal: Optional[float],
         power: str,
+        isa_capabilities: Optional[Dict[str, object]] = None,
     ) -> HardwareTier:
         del thermal
+        isa = isa_capabilities or {}
+        bf16_capable = bool(isa.get("avx512_bf16_supported", False))
         if not gpu:
             if cores <= 4 or ram_gb <= 8.0:
+                if bf16_capable and ram_gb >= 8.0:
+                    return HardwareTier.CPU_STANDARD
                 return HardwareTier.CPU_AUSTERE
             return HardwareTier.CPU_STANDARD
         if power in {"battery", "vehicle"}:

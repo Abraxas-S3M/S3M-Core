@@ -10,3 +10,6 @@ llama-cpp-python>=0.2.0
 PyYAML==6.0.2
 pathlib2==2.3.7.post1
 psutil==5.9.8
+
+# CPU training smoke-test support
+torch>=2.1.0
