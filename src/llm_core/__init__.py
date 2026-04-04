@@ -70,6 +70,13 @@ from .predictive_preload import (
 )
 from .tactical_prompts import get_system_prompt, DOMAIN_PROMPTS
 from .session import S3MSession
+from .adaptive_quantization_cascade import (
+    AdaptiveQuantizationCascade,
+    CascadeLevel,
+    CascadeProfile,
+    CascadeState,
+    MODE_TO_CASCADE,
+)
 from .bilingual_attention_router import (
     BilingualAttentionRouter,
     Language as BilingualLanguage,
@@ -117,6 +124,11 @@ __all__ = [
     "UnifiedRuntime",
     "MissionRequest",
     "MissionResult",
+    "AdaptiveQuantizationCascade",
+    "CascadeLevel",
+    "CascadeProfile",
+    "CascadeState",
+    "MODE_TO_CASCADE",
     "BilingualAttentionRouter",
     "BilingualLanguage",
     "LanguageSegment",
