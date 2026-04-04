@@ -135,8 +135,35 @@ class TestDegradationController:
         assert tiers["knowledge_distillation"]["tier"] == 1
         assert tiers["federated_adapter_merge"]["offline_safe"] is False
         assert tiers["full_model_finetune_large"]["tier"] == 2
-        assert tiers["model_fine_tune"]["deprecated_alias_for"] == "full_model_finetune_large"
-        assert tiers["model_fine_tune"]["max_memory_mb"] == tiers["full_model_finetune_large"]["max_memory_mb"]
+        assert tiers["classifier_retrain_small"]["tier"] == 0
+        assert tiers["adapter_finetune_small_llm"]["min_ram_gb"] == 8.0
+        assert tiers["distillation_job_medium"]["requires_bf16"] is True
+        assert tiers["federated_adapter_aggregation"]["offline_safe"] is False
+        assert tiers["full_weight_finetune_large"]["tier"] == 2
+        assert tiers["model_fine_tune"]["_deprecated"] is True
+        assert tiers["model_fine_tune"]["_alias_for"] == "full_weight_finetune_large"
+
+    def test_can_execute_training_blocks_gpu_only_tier_in_cpu_mode(
+        self,
+        cpu_austere_profile: NodeProfile,
+    ) -> None:
+        controller = DegradationController(cpu_austere_profile)
+        decision = controller.can_execute_training("full_weight_finetune_large")
+        assert decision["allowed"] is False
+        assert "not CPU-safe" in str(decision["reason"])
+        assert decision["estimated_memory_mb"] == 32768
+
+    def test_can_execute_training_logs_deprecated_alias_access(
+        self,
+        cpu_austere_profile: NodeProfile,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        controller = DegradationController(cpu_austere_profile)
+        with caplog.at_level("WARNING"):
+            decision = controller.can_execute_training("model_fine_tune")
+        assert decision["allowed"] is False
+        assert any("deprecated" in str(item).lower() for item in decision["warnings"])
+        assert "Deprecated training tier 'model_fine_tune' requested" in caplog.text
 
 
 class TestModelPlanner:
