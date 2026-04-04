@@ -28,7 +28,7 @@ Geometric median used instead of arithmetic mean for robustness to outliers.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import hmac
@@ -380,7 +380,7 @@ class FederatedAdapterConsensus:
            fixed_site=1.0, vehicle_node=0.8, cpu_standard=0.7,
            edge_gpu=0.9, cpu_austere=0.5
         2. loss_confidence: normalize loss across all updates, invert
-        3. median_proximity: cosine similarity between update and geo median
+        3. median_proximity: normalized inverse distance to geometric median
         4. attestation_score: verify hash chain integrity
 
         Final: weighted sum, clamped to [0, 1]
