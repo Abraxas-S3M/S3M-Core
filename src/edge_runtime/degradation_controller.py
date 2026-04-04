@@ -8,10 +8,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+import logging
 import time
 from typing import Callable, Dict, List
 
 from src.edge_runtime.hardware_profiler import HardwareTier, NodeProfile
+
+logger = logging.getLogger(__name__)
 
 
 class OperatingMode(str, Enum):
@@ -93,6 +96,25 @@ class ModeTransition:
     to_mode: OperatingMode
     reason: str
     timestamp: str
+
+
+class PrecisionPolicyEngine:
+    """Recommend training precision for sustained edge mission operations."""
+
+    @staticmethod
+    def recommend_training_precision(profile: NodeProfile, training_spec: Dict[str, object]) -> str:
+        requires_bf16 = bool(training_spec.get("requires_bf16", False))
+        cpu_arch = str(profile.cpu_arch or "").lower()
+        bf16_capable_arch = cpu_arch in {"aarch64", "arm64", "x86_64", "amd64"}
+        has_bf16_headroom = float(profile.ram_available_gb) >= 8.0
+
+        if requires_bf16 and bf16_capable_arch and has_bf16_headroom:
+            return "bf16_mixed"
+        if requires_bf16:
+            return "fp32"
+        if bf16_capable_arch and has_bf16_headroom:
+            return "bf16_mixed"
+        return "int8_qat"
 
 
 class DegradationController:
@@ -232,10 +254,166 @@ class DegradationController:
                 "max_memory_mb": 2048,
                 "description": "Merge LoRA adapter deltas from peer nodes",
             },
+            "classifier_retrain_small": {
+                "tier": 0,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 1024,
+                "min_cores": 2,
+                "description": "Retrain sklearn/small-torch classifiers on edge data",
+            },
+            "adapter_finetune_small_llm": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 4096,
+                "min_cores": 4,
+                "min_ram_gb": 8.0,
+                "requires_bf16": False,  # works without, faster with
+                "description": "LoRA adapter tuning with tanh-clipped 4-bit QAT on CPU",
+            },
+            "distillation_job_medium": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 6144,
+                "min_cores": 8,
+                "min_ram_gb": 16.0,
+                "requires_bf16": True,  # recommended for throughput
+                "description": "Teacher-student distillation using quantized CPU models",
+            },
+            "federated_adapter_aggregation": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": False,
+                "low_bw_safe": True,
+                "max_memory_mb": 2048,
+                "min_cores": 2,
+                "description": "Merge LoRA adapter deltas from peer nodes",
+            },
+            "full_weight_finetune_large": {
+                "tier": 2,
+                "cpu_safe": False,
+                "offline_safe": True,
+                "low_bw_safe": False,
+                "max_memory_mb": 32768,
+                "description": "Full parameter fine-tune requiring GPU",
+            },
+            # Backward compatibility alias
+            "model_fine_tune": {
+                "tier": 2,
+                "cpu_safe": False,
+                "offline_safe": True,
+                "low_bw_safe": False,
+                "_deprecated": True,
+                "_alias_for": "full_weight_finetune_large",
+                "description": "DEPRECATED: use specific training tier instead",
+            },
             "simulation_engine": {"tier": 2, "cpu_safe": False, "offline_safe": True, "low_bw_safe": False},
             "full_model_finetune_large": full_model_finetune_large,
-            "model_fine_tune": {
-                **full_model_finetune_large,
-                "deprecated_alias_for": "full_model_finetune_large",
-            },
+        }
+
+    def can_execute_training(self, training_tier: str, profile: NodeProfile = None) -> dict:
+        """
+        Check if a specific training operation can run on current hardware and mode.
+
+        Returns:
+            {
+                "allowed": bool,
+                "reason": str,
+                "recommended_precision": str,
+                "estimated_memory_mb": int,
+                "warnings": list[str]
+            }
+        """
+        active_profile = profile or self.profile
+        tiers = self.service_tiers()
+        if training_tier not in tiers:
+            return {
+                "allowed": False,
+                "reason": f"Unknown training tier '{training_tier}'.",
+                "recommended_precision": "int8_qat",
+                "estimated_memory_mb": 0,
+                "warnings": [],
+            }
+
+        warnings: List[str] = []
+        tier_spec = dict(tiers[training_tier])
+        if bool(tier_spec.get("_deprecated", False)):
+            alias_for = str(tier_spec.get("_alias_for", "")).strip()
+            logger.warning(
+                "Deprecated training tier '%s' requested; redirecting to '%s'.",
+                training_tier,
+                alias_for or "unknown",
+            )
+            warnings.append(
+                f"Training tier '{training_tier}' is deprecated; use '{alias_for or 'unknown'}' for mission planning."
+            )
+            if alias_for and alias_for in tiers:
+                tier_spec = dict(tiers[alias_for])
+
+        estimated_memory_mb = int(tier_spec.get("max_memory_mb", 0) or 0)
+        recommended_precision = PrecisionPolicyEngine.recommend_training_precision(active_profile, tier_spec)
+
+        cpu_mode = (not self.current_policy().allow_gpu) or (not bool(active_profile.gpu_detected))
+        if cpu_mode and not bool(tier_spec.get("cpu_safe", True)):
+            return {
+                "allowed": False,
+                "reason": f"Training tier '{training_tier}' is not CPU-safe in current mode.",
+                "recommended_precision": recommended_precision,
+                "estimated_memory_mb": estimated_memory_mb,
+                "warnings": warnings,
+            }
+
+        required_ram_gb = float(tier_spec.get("min_ram_gb", 0.0) or 0.0)
+        if estimated_memory_mb > 0:
+            required_ram_gb = max(required_ram_gb, estimated_memory_mb / 1024.0)
+        available_ram_gb = float(active_profile.ram_available_gb)
+        if required_ram_gb > 0 and available_ram_gb < required_ram_gb:
+            return {
+                "allowed": False,
+                "reason": (
+                    f"Insufficient RAM for tier '{training_tier}' "
+                    f"(required {required_ram_gb:.1f} GB, available {available_ram_gb:.1f} GB)."
+                ),
+                "recommended_precision": recommended_precision,
+                "estimated_memory_mb": estimated_memory_mb,
+                "warnings": warnings,
+            }
+
+        min_cores = int(tier_spec.get("min_cores", 1) or 1)
+        if int(active_profile.cpu_cores) < min_cores:
+            return {
+                "allowed": False,
+                "reason": (
+                    f"Insufficient CPU cores for tier '{training_tier}' "
+                    f"(required {min_cores}, available {active_profile.cpu_cores})."
+                ),
+                "recommended_precision": recommended_precision,
+                "estimated_memory_mb": estimated_memory_mb,
+                "warnings": warnings,
+            }
+
+        offline_now = self.current_mode == OperatingMode.MODE_D_OFFLINE_SURVIVAL or not bool(active_profile.active_links)
+        if offline_now and not bool(tier_spec.get("offline_safe", True)):
+            return {
+                "allowed": False,
+                "reason": f"Training tier '{training_tier}' is not allowed in offline posture.",
+                "recommended_precision": recommended_precision,
+                "estimated_memory_mb": estimated_memory_mb,
+                "warnings": warnings,
+            }
+
+        if bool(tier_spec.get("requires_bf16", False)) and recommended_precision != "bf16_mixed":
+            warnings.append("bf16 is recommended for this tier; expect reduced throughput on current node.")
+
+        return {
+            "allowed": True,
+            "reason": f"Training tier '{training_tier}' is executable under current mode and resources.",
+            "recommended_precision": recommended_precision,
+            "estimated_memory_mb": estimated_memory_mb,
+            "warnings": warnings,
         }
