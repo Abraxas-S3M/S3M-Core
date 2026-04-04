@@ -130,6 +130,13 @@ class TestDegradationController:
         assert tiers["llm_inference_q4"]["tier"] == 0
         assert tiers["llm_inference_q4"]["cpu_safe"] is True
         assert tiers["simulation_engine"]["tier"] == 2
+        assert tiers["adapter_finetune_small"]["cpu_safe"] is True
+        assert tiers["classifier_retrain"]["max_memory_mb"] == 1024
+        assert tiers["knowledge_distillation"]["tier"] == 1
+        assert tiers["federated_adapter_merge"]["offline_safe"] is False
+        assert tiers["full_model_finetune_large"]["tier"] == 2
+        assert tiers["model_fine_tune"]["deprecated_alias_for"] == "full_model_finetune_large"
+        assert tiers["model_fine_tune"]["max_memory_mb"] == tiers["full_model_finetune_large"]["max_memory_mb"]
 
 
 class TestModelPlanner:
