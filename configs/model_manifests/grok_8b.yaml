@@ -1,0 +1,64 @@
+model_id: "grok-8b"
+provider: "xAI"
+family: "Grok"
+parameters: "8B"
+
+variants:
+  - tag: "q4_k_m"
+    runtime_format: "gguf"
+    file: "models/grok-8b-q4_k_m.gguf"
+    size_mb: 4900
+    max_ram_mb: 6656
+    cpu_tokens_per_sec: 7.0
+    gpu_tokens_per_sec: 28.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "q8_0"
+    runtime_format: "gguf"
+    file: "models/grok-8b-q8_0.gguf"
+    size_mb: 7200
+    max_ram_mb: 9216
+    cpu_tokens_per_sec: 4.5
+    gpu_tokens_per_sec: 24.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "onnx-int8"
+    runtime_format: "onnx"
+    file: "models/grok-8b-int8.onnx"
+    size_mb: 6900
+    max_ram_mb: 8704
+    cpu_tokens_per_sec: 6.0
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "openvino-int8"
+    runtime_format: "openvino"
+    file: "models/grok-8b-int8-ov/"
+    size_mb: 6600
+    max_ram_mb: 8192
+    cpu_tokens_per_sec: 7.5
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "fp16"
+    runtime_format: "gguf"
+    file: "models/grok-8b-fp16.gguf"
+    size_mb: 16800
+    max_ram_mb: 24576
+    cpu_tokens_per_sec: 1.5
+    gpu_tokens_per_sec: 40.0
+    requires_gpu: true
+    max_context: 16384
+
+adapter_tuning_allowed: true
+qat_supported: true
+export_targets: ["gguf", "onnx", "openvino"]
+
+primary_domain: "planning"
+arabic_support: false
+bilingual_ar_en: false
+
+quality_thresholds:
+  min_accuracy_pct: 79.0
+  max_latency_p95_ms: 7000
+  max_memory_mb: 24576

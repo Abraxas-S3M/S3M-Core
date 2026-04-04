@@ -1,12 +1,21 @@
-"""Runtime backend abstractions for LLM inference."""
+"""
+S3M Backend Package
+Exposes pluggable air-gapped inference backends for tactical edge deployments.
+"""
 
-from src.llm_core.backends.base import BackendOutput, InferenceBackend
-from src.llm_core.backends.factory import BackendFactory
-from src.llm_core.backends.llama_cpp_backend import LlamaCppBackend
+from .base_backend import InferenceBackend
+from .llama_cpp_backend import LlamaCppBackend
+from .onnx_backend import OnnxBackend
+from .openvino_backend import OpenVinoBackend
+from .backend_factory import BackendFactory
+from .base import BackendOutput as LegacyBackendOutput, InferenceBackend as LegacyInferenceBackend
 
 __all__ = [
-    "BackendFactory",
-    "BackendOutput",
     "InferenceBackend",
     "LlamaCppBackend",
+    "OnnxBackend",
+    "OpenVinoBackend",
+    "BackendFactory",
+    "LegacyBackendOutput",
+    "LegacyInferenceBackend",
 ]

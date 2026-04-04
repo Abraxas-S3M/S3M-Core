@@ -1,11 +1,25 @@
-"""CPU adaptation entrypoints for austere edge learning loops."""
+"""CPU-only model adaptation stack for denied and disconnected operations."""
 
-from src.training.cpu_adaptation.adapter_tuner import CPUAdapterTuner, TrainingResult
-from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
+from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
+from src.training.cpu_adaptation.classifier_retrainer import (
+    ClassifierConfig,
+    ClassifierResult,
+    ClassifierRetrainer,
+)
+from src.training.cpu_adaptation.distillation_engine import DistillResult, DistillationEngine
+from src.training.cpu_adaptation.federated_aggregator import FederatedAggregator
 
 __all__ = [
-    "CPUAdapterTuner",
-    "CPUClassifierRetrainer",
+    "AdapterConfig",
     "TrainingResult",
+    "CPUAdapterTuner",
+    "ClassifierConfig",
     "ClassifierResult",
+    "ClassifierRetrainer",
+    "DistillationEngine",
+    "DistillResult",
+    "FederatedAggregator",
 ]
+
+# Backward-compat alias kept for integrations expecting CPUClassifierRetrainer.
+CPUClassifierRetrainer = ClassifierRetrainer

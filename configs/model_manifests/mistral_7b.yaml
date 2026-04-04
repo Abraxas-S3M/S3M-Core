@@ -1,0 +1,64 @@
+model_id: "mistral-7b"
+provider: "Mistral AI"
+family: "Mistral"
+parameters: "7B"
+
+variants:
+  - tag: "q4_k_m"
+    runtime_format: "gguf"
+    file: "models/mistral-7b-q4_k_m.gguf"
+    size_mb: 4300
+    max_ram_mb: 6144
+    cpu_tokens_per_sec: 8.0
+    gpu_tokens_per_sec: 30.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "q8_0"
+    runtime_format: "gguf"
+    file: "models/mistral-7b-q8_0.gguf"
+    size_mb: 6200
+    max_ram_mb: 8192
+    cpu_tokens_per_sec: 5.0
+    gpu_tokens_per_sec: 26.0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "onnx-int8"
+    runtime_format: "onnx"
+    file: "models/mistral-7b-int8.onnx"
+    size_mb: 5900
+    max_ram_mb: 7168
+    cpu_tokens_per_sec: 7.0
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "openvino-int8"
+    runtime_format: "openvino"
+    file: "models/mistral-7b-int8-ov/"
+    size_mb: 5600
+    max_ram_mb: 6656
+    cpu_tokens_per_sec: 9.0
+    gpu_tokens_per_sec: 0
+    requires_gpu: false
+    max_context: 8192
+  - tag: "fp16"
+    runtime_format: "gguf"
+    file: "models/mistral-7b-fp16.gguf"
+    size_mb: 14500
+    max_ram_mb: 20480
+    cpu_tokens_per_sec: 1.8
+    gpu_tokens_per_sec: 42.0
+    requires_gpu: true
+    max_context: 16384
+
+adapter_tuning_allowed: true
+qat_supported: true
+export_targets: ["gguf", "onnx", "openvino"]
+
+primary_domain: "reasoning"
+arabic_support: false
+bilingual_ar_en: false
+
+quality_thresholds:
+  min_accuracy_pct: 78.0
+  max_latency_p95_ms: 6500
+  max_memory_mb: 20480
