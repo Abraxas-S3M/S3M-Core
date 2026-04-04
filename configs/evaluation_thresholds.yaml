@@ -1,0 +1,73 @@
+# S3M Evaluation Thresholds — Build-gate configuration
+global:
+  fail_on_any_violation: true
+  report_format: "json"    # json | markdown
+
+models:
+  phi3-mini:
+    latency:
+      p50_ms: 2000
+      p95_ms: 5000
+      p99_ms: 8000
+    memory:
+      max_rss_mb: 4096
+      max_vram_mb: 0       # 0 = CPU-only check
+    accuracy:
+      min_exact_match_pct: 60.0
+      min_f1_pct: 70.0
+      regression_tolerance_pct: 5.0  # allowed drop from baseline
+    quantization_quality:
+      max_perplexity_increase_pct: 15.0
+      min_rouge_l_vs_fp16: 0.80
+      min_cosine_sim_vs_fp16: 0.92
+
+  mistral-7b:
+    latency:
+      p50_ms: 4000
+      p95_ms: 10000
+      p99_ms: 15000
+    memory:
+      max_rss_mb: 6144
+      max_vram_mb: 0
+    accuracy:
+      min_exact_match_pct: 55.0
+      min_f1_pct: 65.0
+      regression_tolerance_pct: 5.0
+    quantization_quality:
+      max_perplexity_increase_pct: 15.0
+      min_rouge_l_vs_fp16: 0.78
+      min_cosine_sim_vs_fp16: 0.90
+
+  allam-7b:
+    latency:
+      p50_ms: 4000
+      p95_ms: 10000
+      p99_ms: 15000
+    memory:
+      max_rss_mb: 6144
+      max_vram_mb: 0
+    accuracy:
+      min_exact_match_pct: 50.0
+      min_f1_pct: 60.0
+      regression_tolerance_pct: 5.0
+    quantization_quality:
+      max_perplexity_increase_pct: 20.0
+      min_rouge_l_vs_fp16: 0.75
+      min_cosine_sim_vs_fp16: 0.88
+
+  grok-8b:
+    latency:
+      p50_ms: 5000
+      p95_ms: 12000
+      p99_ms: 18000
+    memory:
+      max_rss_mb: 7168
+      max_vram_mb: 0
+    accuracy:
+      min_exact_match_pct: 50.0
+      min_f1_pct: 60.0
+      regression_tolerance_pct: 5.0
+    quantization_quality:
+      max_perplexity_increase_pct: 18.0
+      min_rouge_l_vs_fp16: 0.76
+      min_cosine_sim_vs_fp16: 0.89
