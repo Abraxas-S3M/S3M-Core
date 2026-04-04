@@ -70,6 +70,8 @@ class COPAdapter:
     @staticmethod
     def _to_percent(val) -> int:
         v = float(val) if val else 0
+        if v < 0:
+            return 0
         if v <= 1.0:
             return int(v * 100)
         return int(min(100, max(0, v)))
