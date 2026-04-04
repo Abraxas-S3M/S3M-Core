@@ -2,18 +2,19 @@
 
 from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
-from src.training.cpu_adaptation.eval_harness import CPUEvaluationHarness
+from src.training.cpu_adaptation.chunk_recurrent_trainer import (
+    ChunkRecurrentTrainer,
+    ChunkTrainingConfig,
+    PagedKVCache,
+)
 
 __all__ = [
     "AdapterConfig",
     "CPUAdapterTuner",
     "CPUClassifierRetrainer",
-    "QuantAwareAdamW",
-    "QuantAwareConv2d",
-    "QuantAwareLinear",
-    "QuantConfig",
-    "SymmetricQuantizer",
-    "TanhSoftClipper",
+    "ChunkRecurrentTrainer",
+    "ChunkTrainingConfig",
+    "PagedKVCache",
     "TrainingResult",
     "ClassifierResult",
     "CPUEvaluationHarness",
