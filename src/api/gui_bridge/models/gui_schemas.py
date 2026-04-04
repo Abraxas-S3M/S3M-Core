@@ -7,7 +7,7 @@ need compact, validated tactical summaries.
 from __future__ import annotations
 
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -65,3 +65,18 @@ class GUIRiskData(BaseModel):
     forecast: List[GUIRiskForecast]
     drivers: List[GUIRiskDriver]
     updatedAt: str
+
+
+class GUIEnvelope(BaseModel):
+    """Common envelope used by GUI workspace adapters."""
+
+    type: str
+    payload: Dict[str, Any]
+    timestamp: str
+
+
+class WorkspaceLink(BaseModel):
+    """Pointer that allows the GUI to deep-link into a mission workspace."""
+
+    workspace: str
+    resourceId: Optional[str] = None
