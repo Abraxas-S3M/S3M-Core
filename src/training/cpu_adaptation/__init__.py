@@ -1,11 +1,26 @@
 """CPU adaptation entrypoints for austere edge learning loops."""
 
-from src.training.cpu_adaptation.adapter_tuner import CPUAdapterTuner, TrainingResult
+from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
+from src.training.cpu_adaptation.quantization import (
+    QuantAwareAdamW,
+    QuantAwareConv2d,
+    QuantAwareLinear,
+    QuantConfig,
+    SymmetricQuantizer,
+    TanhSoftClipper,
+)
 
 __all__ = [
+    "AdapterConfig",
     "CPUAdapterTuner",
     "CPUClassifierRetrainer",
+    "QuantAwareAdamW",
+    "QuantAwareConv2d",
+    "QuantAwareLinear",
+    "QuantConfig",
+    "SymmetricQuantizer",
+    "TanhSoftClipper",
     "TrainingResult",
     "ClassifierResult",
 ]
