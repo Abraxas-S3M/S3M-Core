@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-import torch
+torch = pytest.importorskip("torch")
 
 from src.training.cpu_adaptation.chunk_recurrent_trainer import (
     ChunkRecurrentTrainer,
