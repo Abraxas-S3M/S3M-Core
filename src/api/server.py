@@ -42,6 +42,8 @@ from src.api.training_sim_routes import training_sim_router
 from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
+from src.api.gui_bridge import gui_bridge_router
+from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
 from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
 
 LOGGER = logging.getLogger(__name__)
@@ -163,7 +165,7 @@ app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=api_config.cors_origins,
+    allow_origins=api_config.cors_origins + ["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -198,6 +200,9 @@ app.include_router(interop_ext_router, tags=["Interoperability & Standards (Exte
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(portal_router, tags=["Portal RBAC"])
+# GUI Bridge — provides /api/v1/* endpoints for S3M-GUI frontend
+app.include_router(gui_bridge_router, prefix="/api/v1", tags=["GUI Bridge"])
+app.include_router(gui_ws_router, tags=["GUI WebSocket"])
 # Bootstrap austere runtime before optional edge service managers are mounted.
 try:
     get_edge_runtime()
