@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import time
 
+import pytest
 import yaml
 
 from src.evaluation.accuracy_bench import AccuracyBenchmark
@@ -147,7 +148,7 @@ def test_quantization_quality_benchmark_passes_with_similar_outputs() -> None:
 
     assert result.passed is True
     assert result.rouge_l_vs_fp16 == 1.0
-    assert result.cosine_sim_vs_fp16 == 1.0
+    assert result.cosine_sim_vs_fp16 == pytest.approx(1.0)
 
 
 def test_quantization_quality_benchmark_fails_on_quality_drop() -> None:
