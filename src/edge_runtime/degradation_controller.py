@@ -182,6 +182,14 @@ class DegradationController:
 
     @staticmethod
     def service_tiers() -> Dict[str, Dict[str, object]]:
+        full_model_finetune_large = {
+            "tier": 2,
+            "cpu_safe": False,
+            "offline_safe": True,
+            "low_bw_safe": False,
+            "max_memory_mb": 32768,
+            "description": "Full parameter fine-tune requiring GPU and significant RAM",
+        }
         return {
             "llm_inference_q4": {"tier": 0, "cpu_safe": True, "offline_safe": True, "low_bw_safe": True},
             "threat_classifier": {"tier": 0, "cpu_safe": True, "offline_safe": True, "low_bw_safe": True},
@@ -192,6 +200,42 @@ class DegradationController:
             "object_detector": {"tier": 1, "cpu_safe": True, "offline_safe": True, "low_bw_safe": True},
             "llm_inference_fp16": {"tier": 1, "cpu_safe": True, "offline_safe": True, "low_bw_safe": True},
             "bulk_log_sync": {"tier": 1, "cpu_safe": True, "offline_safe": False, "low_bw_safe": True},
+            "adapter_finetune_small": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 4096,
+                "description": "LoRA adapter tuning on <10k samples, CPU-safe",
+            },
+            "classifier_retrain": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 1024,
+                "description": "Retrain sklearn/small-torch classifiers on edge",
+            },
+            "knowledge_distillation": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": True,
+                "low_bw_safe": True,
+                "max_memory_mb": 6144,
+                "description": "Teacher-student distillation using quantized models on CPU",
+            },
+            "federated_adapter_merge": {
+                "tier": 1,
+                "cpu_safe": True,
+                "offline_safe": False,
+                "low_bw_safe": True,
+                "max_memory_mb": 2048,
+                "description": "Merge LoRA adapter deltas from peer nodes",
+            },
             "simulation_engine": {"tier": 2, "cpu_safe": False, "offline_safe": True, "low_bw_safe": False},
-            "model_fine_tune": {"tier": 2, "cpu_safe": False, "offline_safe": True, "low_bw_safe": False},
+            "full_model_finetune_large": full_model_finetune_large,
+            "model_fine_tune": {
+                **full_model_finetune_large,
+                "deprecated_alias_for": "full_model_finetune_large",
+            },
         }
