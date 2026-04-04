@@ -77,6 +77,13 @@ from .adaptive_quantization_cascade import (
     CascadeState,
     MODE_TO_CASCADE,
 )
+from .bilingual_attention_router import (
+    BilingualAttentionRouter,
+    Language as BilingualLanguage,
+    LanguageSegment,
+    RoutingDecision as BilingualRoutingDecision,
+    FusedResponse,
+)
 
 # Backward-compatible aliases from legacy orchestrator API surface.
 EngineResponse = OrchestratorEngineResponse
@@ -122,4 +129,9 @@ __all__ = [
     "CascadeProfile",
     "CascadeState",
     "MODE_TO_CASCADE",
+    "BilingualAttentionRouter",
+    "BilingualLanguage",
+    "LanguageSegment",
+    "BilingualRoutingDecision",
+    "FusedResponse",
 ]
