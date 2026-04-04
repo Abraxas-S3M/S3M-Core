@@ -6,7 +6,13 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import torch
+try:
+    import torch
+
+    TORCH_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    torch = None  # type: ignore
+    TORCH_AVAILABLE = False
 
 logger = logging.getLogger("s3m.training.federated_aggregator")
 
@@ -23,6 +29,8 @@ class FederatedAggregator:
     SUPPORTED_STRATEGIES = {"fedavg", "median", "trimmed_mean"}
 
     def __init__(self, aggregation_strategy: str = "fedavg") -> None:
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required for federated adapter aggregation")
         if aggregation_strategy not in self.SUPPORTED_STRATEGIES:
             raise ValueError(f"aggregation_strategy must be one of {sorted(self.SUPPORTED_STRATEGIES)}")
         self.aggregation_strategy = aggregation_strategy

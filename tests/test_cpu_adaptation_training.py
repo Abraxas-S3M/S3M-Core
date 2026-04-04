@@ -4,15 +4,24 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-import torch
 
 from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import ClassifierConfig, ClassifierRetrainer
 from src.training.cpu_adaptation.distillation_engine import DistillationEngine
 from src.training.cpu_adaptation.federated_aggregator import FederatedAggregator
 
+try:
+    import torch
+
+    TORCH_AVAILABLE = True
+except Exception:  # pragma: no cover - optional runtime
+    torch = None  # type: ignore
+    TORCH_AVAILABLE = False
+
 
 def test_federated_aggregator_fedavg_with_partial_updates() -> None:
+    if not TORCH_AVAILABLE:
+        pytest.skip("torch not installed in test environment")
     aggregator = FederatedAggregator("fedavg")
     aggregator.register_update("node-1", {"layer.a": torch.tensor([1.0, 2.0]), "layer.b": [5.0]}, n_samples=10)
     aggregator.register_update("node-2", {"layer.a": torch.tensor([3.0, 4.0])}, n_samples=30)
@@ -24,6 +33,8 @@ def test_federated_aggregator_fedavg_with_partial_updates() -> None:
 
 
 def test_federated_aggregator_trimmed_mean_reduces_outlier() -> None:
+    if not TORCH_AVAILABLE:
+        pytest.skip("torch not installed in test environment")
     aggregator = FederatedAggregator("trimmed_mean")
     values = [1.0, 1.1, 0.9, 1.0, 50.0]
     for idx, value in enumerate(values):
@@ -33,6 +44,8 @@ def test_federated_aggregator_trimmed_mean_reduces_outlier() -> None:
 
 
 def test_classifier_retrainer_mlp_torch_train_predict_export(tmp_path) -> None:
+    if not TORCH_AVAILABLE:
+        pytest.skip("torch not installed in test environment")
     rng = np.random.default_rng(42)
     X = rng.normal(size=(64, 6)).astype(np.float32)
     y = np.argmax(
@@ -59,6 +72,8 @@ def test_classifier_retrainer_mlp_torch_train_predict_export(tmp_path) -> None:
 
 
 def test_classifier_retrainer_validates_inputs() -> None:
+    if not TORCH_AVAILABLE:
+        pytest.skip("torch not installed in test environment")
     retrainer = ClassifierRetrainer("mlp_torch", ClassifierConfig(n_classes=2, feature_dim=4))
     X = np.ones((5, 3), dtype=np.float32)
     y = np.zeros((5,), dtype=np.int64)

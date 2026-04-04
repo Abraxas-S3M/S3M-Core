@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import logging
 import os
+import pickle
 import resource
 import tempfile
 import time
@@ -12,9 +13,23 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
-import torch
+
+try:
+    import joblib  # type: ignore
+
+    JOBLIB_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    joblib = None  # type: ignore
+    JOBLIB_AVAILABLE = False
+
+try:
+    import torch  # type: ignore
+
+    TORCH_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    torch = None  # type: ignore
+    TORCH_AVAILABLE = False
 
 try:
     import psutil  # type: ignore
@@ -92,7 +107,7 @@ class ClassifierRetrainer:
         self._is_torch_model = False
         self._torch_hidden_dim = max(16, min(256, config.feature_dim * 2))
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
-        if torch.cuda.is_available():
+        if TORCH_AVAILABLE and torch.cuda.is_available():
             logger.info("CUDA detected but disabled; forcing CPU-only retraining")
 
     @staticmethod
@@ -158,6 +173,8 @@ class ClassifierRetrainer:
         return float(weighted)
 
     def _build_torch_model(self) -> torch.nn.Module:
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required for mlp_torch retraining")
         return torch.nn.Sequential(
             torch.nn.Linear(self.config.feature_dim, self._torch_hidden_dim),
             torch.nn.ReLU(),
@@ -165,6 +182,8 @@ class ClassifierRetrainer:
         )
 
     def _train_torch_mlp(self, X: np.ndarray, y: np.ndarray, started: float) -> None:
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required for mlp_torch retraining")
         model = self._build_torch_model().to(torch.device("cpu"))
         optim = torch.optim.Adam(model.parameters(), lr=1e-3)
         criterion = torch.nn.CrossEntropyLoss()
@@ -199,6 +218,8 @@ class ClassifierRetrainer:
         if self._model is None:
             return 0.0
         if self._is_torch_model:
+            if not TORCH_AVAILABLE or torch is None:
+                raise RuntimeError("torch is required for torch model size estimation")
             buffer = io.BytesIO()
             torch.save(self._model.state_dict(), buffer)
             return float(len(buffer.getvalue())) / 1024.0
@@ -206,7 +227,11 @@ class ClassifierRetrainer:
         with tempfile.NamedTemporaryFile(suffix=".joblib", delete=False) as handle:
             tmp_path = handle.name
         try:
-            joblib.dump(self._model, tmp_path)
+            if JOBLIB_AVAILABLE and joblib is not None:
+                joblib.dump(self._model, tmp_path)
+            else:
+                with open(tmp_path, "wb") as handle:
+                    pickle.dump(self._model, handle)
             return float(os.path.getsize(tmp_path)) / 1024.0
         finally:
             if os.path.exists(tmp_path):
@@ -287,6 +312,8 @@ class ClassifierRetrainer:
 
         Xf = X.astype(np.float32, copy=False)
         if self._is_torch_model:
+            if not TORCH_AVAILABLE or torch is None:
+                raise RuntimeError("torch is required for mlp_torch prediction")
             self._model.eval()
             with torch.no_grad():
                 logits = self._model(torch.from_numpy(Xf).to(torch.device("cpu")))
@@ -308,6 +335,8 @@ class ClassifierRetrainer:
         if out_path.suffix.lower() == ".onnx":
             if not self._is_torch_model:
                 raise RuntimeError("ONNX export is currently supported only for mlp_torch models")
+            if not TORCH_AVAILABLE or torch is None:
+                raise RuntimeError("torch is required for ONNX export")
             dummy_input = torch.zeros((1, self.config.feature_dim), dtype=torch.float32)
             self._model.eval()
             torch.onnx.export(
@@ -328,8 +357,16 @@ class ClassifierRetrainer:
                 "hidden_dim": self._torch_hidden_dim,
                 "state_dict": self._model.state_dict(),
             }
-            joblib.dump(payload, str(out_path))
+            if JOBLIB_AVAILABLE and joblib is not None:
+                joblib.dump(payload, str(out_path))
+            else:
+                with open(out_path, "wb") as handle:
+                    pickle.dump(payload, handle)
             return str(out_path)
 
-        joblib.dump(self._model, str(out_path))
+        if JOBLIB_AVAILABLE and joblib is not None:
+            joblib.dump(self._model, str(out_path))
+        else:
+            with open(out_path, "wb") as handle:
+                pickle.dump(self._model, handle)
         return str(out_path)

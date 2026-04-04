@@ -15,7 +15,13 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-import torch
+try:
+    import torch
+
+    TORCH_AVAILABLE = True
+except Exception:  # pragma: no cover - optional dependency
+    torch = None  # type: ignore
+    TORCH_AVAILABLE = False
 
 try:
     import psutil  # type: ignore
@@ -150,6 +156,10 @@ class CPUAdapterTuner:
             logger.error("peft is required for adapter tuning but is unavailable")
             return False
 
+        if not TORCH_AVAILABLE or torch is None:
+            logger.error("torch is required for adapter tuning but is unavailable")
+            return False
+
         self._lora_config = LoraConfig(
             r=int(self.adapter_config.lora_rank),
             lora_alpha=int(self.adapter_config.lora_alpha),
@@ -219,6 +229,9 @@ class CPUAdapterTuner:
 
     def train(self, dataset: list[dict]) -> TrainingResult:
         """Run CPU LoRA adaptation loop with strict memory enforcement."""
+        if not TORCH_AVAILABLE or torch is None:
+            raise RuntimeError("torch is required for training but is unavailable")
+
         if not self._prepared and not self.prepare():
             raise RuntimeError("CPUAdapterTuner.prepare() failed")
 
