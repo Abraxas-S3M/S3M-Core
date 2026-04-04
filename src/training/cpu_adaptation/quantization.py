@@ -24,6 +24,17 @@ except Exception:  # pragma: no cover - optional dependency guard
     F = None  # type: ignore[assignment]
     TORCH_AVAILABLE = False
 
+if TORCH_AVAILABLE and nn is not None and torch is not None:
+    _ModuleBase = nn.Module
+    _AdamWBase = torch.optim.AdamW
+else:
+    class _ModuleBase:  # pragma: no cover - fallback when torch is absent
+        pass
+
+    class _AdamWBase:  # pragma: no cover - fallback when torch is absent
+        def __init__(self, *args, **kwargs) -> None:
+            raise RuntimeError("torch is required for QuantAwareAdamW")
+
 
 @dataclass
 class QuantConfig:
@@ -139,7 +150,7 @@ class SymmetricQuantizer:
         return int(torch.unique(w_q.detach()).numel())
 
 
-class QuantAwareLinear(nn.Module):
+class QuantAwareLinear(_ModuleBase):
     """
     Drop-in replacement for nn.Linear with 4-bit QAT.
 
@@ -182,7 +193,7 @@ class QuantAwareLinear(nn.Module):
         return F.linear(x, w_q, self.bias)
 
 
-class QuantAwareConv2d(nn.Module):
+class QuantAwareConv2d(_ModuleBase):
     """Drop-in replacement for nn.Conv2d with 4-bit QAT. Same STE approach."""
 
     def __init__(
@@ -243,7 +254,7 @@ class QuantAwareConv2d(nn.Module):
         )
 
 
-class QuantAwareAdamW(torch.optim.AdamW):
+class QuantAwareAdamW(_AdamWBase):
     """
     Custom AdamW that integrates tanh soft clipping after each step.
 
