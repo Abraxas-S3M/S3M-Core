@@ -2,11 +2,7 @@
 
 from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
-from src.training.cpu_adaptation.checkpointing import (
-    CheckpointManifest,
-    CheckpointPolicy,
-    HierarchicalCheckpointer,
-)
+from src.training.cpu_adaptation.eval_harness import CPUEvaluationHarness
 
 __all__ = [
     "AdapterConfig",
@@ -20,7 +16,5 @@ __all__ = [
     "TanhSoftClipper",
     "TrainingResult",
     "ClassifierResult",
-    "CheckpointManifest",
-    "CheckpointPolicy",
-    "HierarchicalCheckpointer",
+    "CPUEvaluationHarness",
 ]
