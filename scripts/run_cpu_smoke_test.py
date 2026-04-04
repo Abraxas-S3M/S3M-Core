@@ -5,7 +5,13 @@ CPU smoke-test runner for manifest-driven S3M inference.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Dict, List
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from src.edge_runtime.cpu_orchestrator import CPUOrchestrator
 from src.edge_runtime.hardware_profiler import HardwareProfiler
