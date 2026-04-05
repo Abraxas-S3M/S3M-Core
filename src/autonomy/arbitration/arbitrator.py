@@ -126,3 +126,64 @@ class MultiAgentArbitrator:
             "rational": True,
         }
 
+    def arbitrate_with_contract_net(
+        self,
+        task_id: str,
+        proposals: List[Dict[str, Any]],
+        evaluation_criteria: Dict[str, float] | None = None,
+        min_proposals: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Run Contract Net negotiation and return serialized result payload.
+
+        Tactical context: this adapter allows planners to combine centralized
+        arbitration and decentralized bidding under one arbitration facade.
+        """
+        from src.autonomy.swarm.negotiation.contract_net import ContractNetProtocol, Proposal
+
+        cnp = ContractNetProtocol()
+        cfp = cnp.create_cfp(
+            task_id=task_id,
+            evaluation_criteria=evaluation_criteria,
+            min_proposals=min_proposals,
+            issuer_id="multi_agent_arbitrator",
+        )
+        for item in proposals:
+            proposal = Proposal(
+                cfp_id=cfp.cfp_id,
+                agent_id=str(item.get("agent_id", "")),
+                coalition_ids=list(item.get("coalition_ids", [])),
+                cost_estimate=float(item.get("cost_estimate", 0.0)),
+                time_estimate_ms=float(item.get("time_estimate_ms", 0.0)),
+                capability_score=float(item.get("capability_score", 0.5)),
+                custom_attributes=dict(item.get("custom_attributes", {})),
+            )
+            cnp.submit_proposal(cfp.cfp_id, proposal)
+        result = cnp.evaluate_and_award(cfp.cfp_id)
+        payload = result.model_dump()
+        payload["task_id"] = task_id
+        return payload
+
+    def strategic_stability(
+        self,
+        mission: Mission | Dict[str, Any],
+        agents: List[AgentInfo],
+        mode: str = "coalition",
+    ) -> Dict[str, Any]:
+        """
+        Compute a Nash-style stability check for current arbitration outputs.
+
+        Tactical context: stability checks reduce allocation oscillations before
+        command dissemination to edge platforms.
+        """
+        from src.autonomy.swarm.game_theoretic_layer import GameTheoreticLayer
+
+        mission_payload = mission.to_dict() if isinstance(mission, Mission) else dict(mission)
+        gt = GameTheoreticLayer(seed=17)
+        return gt.coordinate_with_arbitrator(
+            mission=mission_payload,
+            agents=agents,
+            arbitrator=self,
+            mode=mode,
+        )
+

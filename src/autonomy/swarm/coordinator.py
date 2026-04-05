@@ -32,6 +32,9 @@ from .platform_bridge import SwarmPlatformBridge
 from .contract_net import ContractNetProtocol
 from .swarm_protocol import SwarmProtocol
 from .task_allocator import TaskAllocator
+from .agent_comm_protocol import AgentCommProtocol
+from .game_theoretic_layer import GameTheoreticLayer
+from .negotiation.contract_net import ContractNetProtocol, Proposal
 
 
 class SwarmCoordinator:
@@ -55,6 +58,10 @@ class SwarmCoordinator:
         self.contract_net = ContractNetProtocol()
         self.protocol = SwarmProtocol()
         self.arbitrator = MultiAgentArbitrator()
+        self.contract_net = ContractNetProtocol()
+        self.game_theory = GameTheoreticLayer()
+        self.agent_comm = AgentCommProtocol()
+        self.agent_comm.register_agent("swarm_coordinator")
 
         self.current_formation: Optional[Dict[str, Any]] = None
         self.last_command: Optional[SwarmCommand] = None
@@ -76,6 +83,7 @@ class SwarmCoordinator:
         if len(self.agents) >= self.max_agents and agent_info.agent_id not in self.agents:
             raise ValueError("max_agents limit reached")
         self.agents[agent_info.agent_id] = agent_info
+        self.agent_comm.register_agent(agent_info.agent_id)
         self._log("register_agent", {"agent_id": agent_info.agent_id})
 
     def remove_agent(self, agent_id: str) -> None:
@@ -208,6 +216,11 @@ class SwarmCoordinator:
                 "mode": mode,
                 "consensus_status": result.get("consensus_result", {}).get("result"),
             },
+        )
+        self.agent_comm.publish_arbitration_result(
+            sender_id="swarm_coordinator",
+            arbitrator_result={"mission_id": mission.mission_id, "assignments": assignments},
+            correlation_id=mission.mission_id,
         )
         return assignments
 

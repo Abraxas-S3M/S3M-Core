@@ -1,0 +1,43 @@
+# S3M CPU-First Training Configuration
+# UNCLASSIFIED // FOR OFFLINE EDGE DEPLOYMENT
+
+online_learning:
+  learning_rate: 0.01
+  l2_regularization: 0.001
+  feature_dimension: 256
+  hash_features: true
+  window_size: 1000
+  decay_rate: 0.999
+  n_trees: 10
+  max_tree_depth: 8
+
+sparse_moe:
+  n_experts: 16
+  top_k: 2
+  input_dim: 256
+  expert_hidden_dim: 128
+  output_dim: 256
+  load_balance_weight: 0.01
+  noise_std: 0.1
+  capacity_factor: 1.25
+
+distributed_cpu:
+  n_workers: 4
+  feature_dimension: 256
+  learning_rate: 0.03
+  l2_regularization: 0.0005
+  batch_size: 64
+  max_epochs: 3
+  shuffle_each_epoch: true
+  checkpoint_every_steps: 25
+  checkpoint_dir: "checkpoints/distributed_cpu"
+
+evolution:
+  retrain_interval_samples: 100
+  evaluation_window: 50
+  replay_batch_size: 32
+  auto_promote: true
+  max_replay_buffer: 50000
+  regression_threshold: 0.05
+  checkpoint_dir: "checkpoints/evolution"
+  checkpoint_every_cycles: 1
