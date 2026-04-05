@@ -1,0 +1,20 @@
+# S3M Advanced Multi-Agent Configuration
+# UNCLASSIFIED - FOUO
+
+contract_net:
+  max_rounds: 3
+  default_deadline_ms: 5000
+  min_proposals: 1
+  evaluation_criteria:
+    cost: 0.3
+    time: 0.3
+    capability: 0.4
+
+game_theory:
+  max_iterations: 200
+  fictitious_play_rounds: 100
+
+agent_communication:
+  inbox_capacity: 1000
+  default_ttl_ms: 30000
+  heartbeat_interval_ms: 5000
