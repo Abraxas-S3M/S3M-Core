@@ -1,1 +1,1 @@
-"""S3M platform adapter — Fixed installations."""
+"""Fixed-site platform adapters."""

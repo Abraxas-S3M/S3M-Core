@@ -1,1 +1,1 @@
-"""S3M-Core Platform Abstraction Layer — multi-domain autonomous platform adapters."""
+"""S3M platform abstraction layer packages."""

@@ -1,1 +1,1 @@
-"""S3M platform adapter — UAV domain."""
+"""UAV platform adapters."""
