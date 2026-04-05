@@ -19,7 +19,10 @@ from src.dashboard.aggregator import DashboardAggregator
 from src.dashboard.providers.alert_manager import AlertManager
 from src.dashboard.providers.autonomy_dash_provider import AutonomyDashProvider
 from src.dashboard.providers.cop_provider import COPDataProvider
+from src.dashboard.providers.engagement_provider import EngagementProvider
 from src.dashboard.providers.llm_monitor_provider import LLMMonitorProvider
+from src.dashboard.providers.mission_provider import MissionProvider
+from src.dashboard.providers.platform_provider import PlatformProvider
 from src.dashboard.providers.system_health_provider import SystemHealthProvider
 from src.dashboard.providers.threat_dash_provider import ThreatDashProvider
 from src.dashboard.websocket_manager import WebSocketManager
@@ -31,6 +34,9 @@ __all__ = [
     "ThreatDashProvider",
     "AutonomyDashProvider",
     "SystemHealthProvider",
+    "PlatformProvider",
+    "EngagementProvider",
+    "MissionProvider",
     "AlertManager",
     "WebSocketManager",
 ]
