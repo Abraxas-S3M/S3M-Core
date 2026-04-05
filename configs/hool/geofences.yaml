@@ -1,0 +1,15 @@
+geofences:
+  - geofence_id: "allowed-primary-box"
+    policy: "allowed"
+    polygon_xy:
+      - [0.0, 0.0]
+      - [12000.0, 0.0]
+      - [12000.0, 12000.0]
+      - [0.0, 12000.0]
+  - geofence_id: "forbidden-no-fire-hospital"
+    policy: "forbidden"
+    polygon_xy:
+      - [4800.0, 4800.0]
+      - [6200.0, 4800.0]
+      - [6200.0, 6200.0]
+      - [4800.0, 6200.0]

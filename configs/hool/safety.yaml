@@ -1,0 +1,18 @@
+safety:
+  health_poll_interval_seconds: 2.0
+  thresholds:
+    min_battery_pct: 20.0
+    min_fuel_pct: 15.0
+    max_comms_loss_seconds: 90.0
+    max_risk_score: 70.0
+  interlocks:
+    default_state: "safe"
+    require_engage_authorization: true
+    sim_mode_default: false
+  operators:
+    - operator_id: "hool-op-01"
+      authority_level: "operator"
+    - operator_id: "hool-tl-01"
+      authority_level: "team_lead"
+    - operator_id: "hool-cdr-01"
+      authority_level: "mission_commander"
