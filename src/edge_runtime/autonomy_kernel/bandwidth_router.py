@@ -117,6 +117,9 @@ class BandwidthRouter:
 
     def _classify_tier(self, mbps: float) -> BandwidthTier:
         """Classify bandwidth with hysteresis to prevent oscillation."""
+        # Tactical safety: if link is effectively down, force no-link posture.
+        if mbps <= 0.0:
+            return BandwidthTier.ZERO
         for tier in (BandwidthTier.FULL, BandwidthTier.MEDIUM, BandwidthTier.LOW):
             threshold = self.TIER_THRESHOLDS[tier]
             if self._current_tier == tier:
