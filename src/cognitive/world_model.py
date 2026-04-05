@@ -82,6 +82,7 @@ class BayesianWorldModel:
     """
 
     LOG_FLOOR = -300.0
+    LOG_CEIL = 300.0
 
     def __init__(self, max_hypotheses: int = 64, propagation_depth: int = 3) -> None:
         """Initialize bounded hypothesis/cause graph state."""
@@ -97,7 +98,7 @@ class BayesianWorldModel:
         """Add or replace a hypothesis; prune lower-probability tails when bounded."""
         with self._lock:
             self._hypotheses[hypothesis.hypothesis_id] = hypothesis
-            self._log_beliefs[hypothesis.hypothesis_id] = math.log(max(1e-30, hypothesis.prior))
+            self._log_beliefs[hypothesis.hypothesis_id] = self._to_log_odds(hypothesis.prior)
 
             if len(self._hypotheses) > self._max_hypotheses:
                 sorted_hypotheses = sorted(
@@ -129,9 +130,9 @@ class BayesianWorldModel:
                 if hypothesis_id not in self._log_beliefs:
                     continue
                 ll = max(1e-30, min(1.0 - 1e-10, likelihood))
-                self._log_beliefs[hypothesis_id] += weight * math.log(ll)
+                self._log_beliefs[hypothesis_id] += weight * self._log_likelihood_ratio(ll)
                 self._log_beliefs[hypothesis_id] = max(
-                    self.LOG_FLOOR, self._log_beliefs[hypothesis_id]
+                    self.LOG_FLOOR, min(self.LOG_CEIL, self._log_beliefs[hypothesis_id])
                 )
                 updated[hypothesis_id] = likelihood
 
@@ -144,9 +145,11 @@ class BayesianWorldModel:
                         propagated_ll = 0.5 + link.strength * (source_posterior - 0.5)
                         propagated_ll = max(0.01, min(0.99, propagated_ll))
                         damped_weight = weight * link.strength * 0.5
-                        self._log_beliefs[link.target_id] += damped_weight * math.log(propagated_ll)
+                        self._log_beliefs[link.target_id] += (
+                            damped_weight * self._log_likelihood_ratio(propagated_ll)
+                        )
                         self._log_beliefs[link.target_id] = max(
-                            self.LOG_FLOOR, self._log_beliefs[link.target_id]
+                            self.LOG_FLOOR, min(self.LOG_CEIL, self._log_beliefs[link.target_id])
                         )
                         updated[link.target_id] = propagated_ll
                         next_frontier.add(link.target_id)
@@ -206,3 +209,15 @@ class BayesianWorldModel:
         if abs(log_belief) < 500:
             return 1.0 / (1.0 + math.exp(-log_belief))
         return 1.0 if log_belief > 0 else 0.0
+
+    @staticmethod
+    def _to_log_odds(probability: float) -> float:
+        """Convert a probability to log-odds with numerical clipping."""
+        clipped = max(1e-8, min(1.0 - 1e-8, probability))
+        return math.log(clipped / (1.0 - clipped))
+
+    @staticmethod
+    def _log_likelihood_ratio(likelihood: float) -> float:
+        """Return log(likelihood / (1 - likelihood)) for Bayes odds updates."""
+        clipped = max(1e-8, min(1.0 - 1e-8, likelihood))
+        return math.log(clipped / (1.0 - clipped))

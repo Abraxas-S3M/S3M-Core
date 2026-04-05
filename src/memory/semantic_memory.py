@@ -109,7 +109,8 @@ class SemanticMemory:
                 matching_ids = self._keyword_index.get(token, set())
                 if not matching_ids:
                     continue
-                idf = math.log(n_docs / (1 + len(matching_ids)))
+                # Smooth IDF keeps weights positive and rewards discriminative terms.
+                idf = math.log((1 + n_docs) / (1 + len(matching_ids))) + 1.0
                 for concept_id in matching_ids:
                     concept = self._concepts.get(concept_id)
                     if concept is None:
@@ -125,9 +126,11 @@ class SemanticMemory:
                     if concept.category.lower() == category.lower():
                         candidates[concept_id] = concept.confidence
 
-            ranked = sorted(candidates.items(), key=lambda item: item[1], reverse=True)[
-                : max(0, limit)
-            ]
+            ranked = sorted(
+                candidates.items(),
+                key=lambda item: (item[1], self._concepts[item[0]].confidence),
+                reverse=True,
+            )[: max(0, limit)]
             results: List[Dict[str, Any]] = []
             for concept_id, score in ranked:
                 concept = self._concepts[concept_id]
