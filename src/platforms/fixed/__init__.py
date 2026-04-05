@@ -1,0 +1,1 @@
+"""Fixed-site platform adapters."""
