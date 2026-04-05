@@ -1,0 +1,22 @@
+# S3M Edge Autonomy Kernel Configuration
+# UNCLASSIFIED - FOUO
+
+offline_brain:
+  max_decision_queue: 500
+  heuristic_confidence_cap: 0.6
+  stale_model_penalty: 0.1
+  max_offline_hours: 72.0
+  sync_batch_size: 50
+  decision_timeout_ms: 200.0
+
+bandwidth_router:
+  hysteresis_mbps: 0.5
+  tier_thresholds:
+    full: 10.0
+    medium: 1.0
+    low: 0.1
+
+priority_allocator:
+  total_cores: 4.0
+  total_memory_mb: 16384.0
+  preemption_enabled: true

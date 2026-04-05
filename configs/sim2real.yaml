@@ -1,0 +1,17 @@
+# S3M Sim-to-Real Configuration
+# UNCLASSIFIED - FOUO
+
+domain_randomization:
+  sensor_noise_std: [0.01, 0.15]
+  sensor_dropout_rate: [0.0, 0.2]
+  position_jitter_m: [0.0, 5.0]
+  timing_offset_ms: [0.0, 50.0]
+  scale_factor: [0.8, 1.2]
+  weather_conditions: ["clear", "fog", "rain", "dust", "night"]
+  terrain_types: ["desert", "urban", "maritime", "mountain", "forest"]
+  adversarial_prob: 0.1
+
+transfer_bridge:
+  gap_threshold: 0.3
+  min_real_samples: 100
+  calibration_bins: 10
