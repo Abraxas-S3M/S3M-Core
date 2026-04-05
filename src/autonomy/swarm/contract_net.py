@@ -74,8 +74,9 @@ class ContractNetProtocol:
         leader = bids[0]
         assignments[leader.agent_id] = AgentRole.LEADER.value
 
+        scout_pool = [bid for bid in bids if bid.agent_id != leader.agent_id] or bids
         scout_bid = max(
-            bids,
+            scout_pool,
             key=lambda bid: len(self._agent_by_id(candidates, bid.agent_id).sensor_loadout),
         )
         assignments.setdefault(scout_bid.agent_id, AgentRole.SCOUT.value)
