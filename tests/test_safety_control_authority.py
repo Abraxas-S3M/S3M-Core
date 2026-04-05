@@ -72,7 +72,7 @@ def test_interlock_fault_and_emergency_stop_latch_behavior():
     assert interlock.fault is not None
 
     with pytest.raises(PermissionError):
-        interlock.transition_to(InterlockState.FIRING, tokens["mission_commander"])
+        interlock.transition_to(InterlockState.ARMED, tokens["weapons_officer"])
 
     interlock.clear_fault(tokens["mission_commander"])
     interlock.transition_to(InterlockState.ARMED, tokens["weapons_officer"])

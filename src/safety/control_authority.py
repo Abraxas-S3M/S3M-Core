@@ -353,8 +353,8 @@ class InterlockStateMachine:
         token_record = self._authority_service.assert_authorized(token, required_level)
         if self._emergency_stop_latched and destination != InterlockState.SAFE:
             raise PermissionError("emergency stop latch blocks non-SAFE transitions")
-        if self._fault is not None and destination == InterlockState.FIRING:
-            raise PermissionError("active fault blocks FIRING state")
+        if self._fault is not None and destination != InterlockState.SAFE:
+            raise PermissionError("active fault blocks non-SAFE transitions")
 
         prior = self._state
         self._state = destination
