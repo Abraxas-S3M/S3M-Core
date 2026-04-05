@@ -54,15 +54,33 @@ class EngagementPipeline:
 
     def __init__(self, roe_profile: ROEProfile = ROEProfile.WEAPONS_TIGHT) -> None:
         self.roe_profile = roe_profile
+        self.zone_roe_profiles: dict[str, ROEProfile] = {}
+
+    def configure_zone_roe_profiles(
+        self,
+        *,
+        default_profile: ROEProfile,
+        zone_profiles: dict[str, ROEProfile],
+    ) -> None:
+        """Set default and per-zone ROE for mission-area fire control."""
+        self.roe_profile = default_profile
+        self.zone_roe_profiles = dict(zone_profiles)
+
+    def resolve_roe_profile(self, zone_id: str | None = None) -> ROEProfile:
+        if zone_id and zone_id in self.zone_roe_profiles:
+            return self.zone_roe_profiles[zone_id]
+        return self.roe_profile
 
     def evaluate_threats(
         self,
         tracks: list[Track],
         available_effectors: dict[str, Any],
+        zone_id: str | None = None,
     ) -> list[EngagementRecommendation]:
         if not tracks:
             return []
 
+        active_roe = self.resolve_roe_profile(zone_id)
         ranked = sorted(
             tracks,
             key=lambda t: (self._priority_score(t.threat_priority), t.confidence),
@@ -73,7 +91,7 @@ class EngagementPipeline:
         for track in ranked:
             if track.confidence < 0.5:
                 continue
-            roe_ok = self._is_roe_compliant(track)
+            roe_ok = self._is_roe_compliant(track, active_roe)
             recommendations.append(
                 EngagementRecommendation(
                     track_id=track.track_id,
@@ -94,10 +112,10 @@ class EngagementPipeline:
         }
         return mapping[priority]
 
-    def _is_roe_compliant(self, track: Track) -> bool:
+    def _is_roe_compliant(self, track: Track, profile: ROEProfile) -> bool:
         """Apply simplified ROE gating suitable for smoke-test verification."""
-        if self.roe_profile == ROEProfile.WEAPONS_HOLD:
+        if profile == ROEProfile.WEAPONS_HOLD:
             return False
-        if self.roe_profile == ROEProfile.WEAPONS_TIGHT and track.classification.lower() in {"civilian", "friendly"}:
+        if profile == ROEProfile.WEAPONS_TIGHT and track.classification.lower() in {"civilian", "friendly"}:
             return False
         return True

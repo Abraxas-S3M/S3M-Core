@@ -1,0 +1,6 @@
+roe_profiles:
+  default: "weapons_tight"
+  zones:
+    training-range-alpha: "weapons_hold"
+    patrol-sector-bravo: "weapons_tight"
+    hostile-intercept-charlie: "weapons_free"
