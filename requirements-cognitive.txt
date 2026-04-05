@@ -1,0 +1,9 @@
+# S3M Gap Closure — New Dependencies
+# All features degrade gracefully if optional deps are absent
+
+# Required (already in base)
+numpy>=1.24.0
+pydantic>=2.5.0
+
+# Optional (for Sparse MoE GPU acceleration)
+# torch>=2.1.0

@@ -29,6 +29,7 @@ from src.autonomy.arbitration import MultiAgentArbitrator
 
 from .formations import FormationController
 from .platform_bridge import SwarmPlatformBridge
+from .contract_net import ContractNetProtocol
 from .swarm_protocol import SwarmProtocol
 from .task_allocator import TaskAllocator
 
@@ -51,6 +52,7 @@ class SwarmCoordinator:
 
         self.formation_controller = FormationController()
         self.task_allocator = TaskAllocator()
+        self.contract_net = ContractNetProtocol()
         self.protocol = SwarmProtocol()
         self.arbitrator = MultiAgentArbitrator()
 
@@ -205,6 +207,43 @@ class SwarmCoordinator:
                 "assignments": assignments,
                 "mode": mode,
                 "consensus_status": result.get("consensus_result", {}).get("result"),
+            },
+        )
+        return assignments
+
+    def assign_mission_negotiated(self, mission: Mission) -> Dict[str, str]:
+        """
+        Assign mission roles using Contract Net negotiation with safe fallback.
+
+        This provides a tactical bidding path that still degrades to the
+        deterministic allocator if negotiation yields no valid assignees.
+        """
+        if len(self.missions) >= self.max_missions and mission.mission_id not in self.missions:
+            raise ValueError("mission registry full")
+
+        available = list(self.agents.values())
+        assignments = self.contract_net.negotiate(
+            mission=mission,
+            available_agents=available,
+            scorer=self.task_allocator.score_agent,
+        )
+        if not assignments:
+            assignments = self.task_allocator.allocate(mission, available)
+
+        mission.assigned_agents = list(assignments.keys())
+        self.missions[mission.mission_id] = mission
+        self.mission_assignments[mission.mission_id] = dict(assignments)
+        for agent_id in assignments:
+            if agent_id in self.agents:
+                self.agents[agent_id].current_mission = mission.mission_id
+
+        self._log(
+            "assign_mission_negotiated",
+            {
+                "mission_id": mission.mission_id,
+                "assignments": assignments,
+                "protocol": "contract_net",
+                "n_bids": len(self.contract_net.last_bids),
             },
         )
         return assignments

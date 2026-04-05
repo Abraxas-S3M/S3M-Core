@@ -34,6 +34,14 @@ except ImportError:
     ProbabilisticDecisionEngine = None  # type: ignore[assignment]
 
 try:
+    from src.cognitive import UnifiedCognitiveEngine
+
+    _COGNITIVE_ENGINE_AVAILABLE = True
+except ImportError:
+    _COGNITIVE_ENGINE_AVAILABLE = False
+    UnifiedCognitiveEngine = None  # type: ignore[assignment]
+
+try:
     from src.replanning import PlanRepairEngine
 
     _REPLAN_AVAILABLE = True
@@ -235,6 +243,7 @@ class CognitiveLoop:
         belief_store: Optional[Any] = None,
         bayesian_updater: Optional[Any] = None,
         decision_engine: Optional[Any] = None,
+        unified_cognitive_engine: Optional[Any] = None,
         plan_repair_engine: Optional[Any] = None,
         trust_registry: Optional[Any] = None,
         inference_monitor: Optional[Any] = None,
@@ -244,13 +253,24 @@ class CognitiveLoop:
         self.belief_store = belief_store
         self.bayesian_updater = bayesian_updater
         self.decision_engine = decision_engine
+        self.unified_cognitive_engine = unified_cognitive_engine
         self.plan_repair_engine = plan_repair_engine
         self.trust_registry = trust_registry
         self.inference_monitor = inference_monitor
 
+        if self.unified_cognitive_engine is None and _COGNITIVE_ENGINE_AVAILABLE:
+            try:
+                self.unified_cognitive_engine = UnifiedCognitiveEngine(
+                    decision_engine=self.decision_engine,
+                    min_decision_confidence=self.config.min_decision_confidence,
+                )
+            except Exception:
+                self.unified_cognitive_engine = None
+
         self._belief_store = belief_store
         self._bayesian_updater = bayesian_updater
         self._decision_engine = decision_engine
+        self._unified_cognitive_engine = self.unified_cognitive_engine
         self._plan_repair_engine = plan_repair_engine
         self._trust_registry = trust_registry
         self._inference_monitor = inference_monitor
@@ -450,11 +470,7 @@ class CognitiveLoop:
             decision_detail = "No decision_options or subsystem unavailable"
             decision_error: Optional[str] = None
             try:
-                if (
-                    _DECISION_AVAILABLE
-                    and self.decision_engine is not None
-                    and input.decision_options
-                ):
+                if input.decision_options:
                     belief_for_decision = new_belief_state
                     if new_belief_state is not None:
                         # DecisionResult expects a string snapshot ID; BeliefState exposes UUID.
@@ -466,17 +482,27 @@ class CognitiveLoop:
                             doctrine_context=getattr(new_belief_state, "doctrine_context", None),
                             entropy=getattr(new_belief_state, "entropy", lambda: 0.0),
                         )
-                    decision_result = self.decision_engine.evaluate(
-                        options=input.decision_options,
-                        belief_state=belief_for_decision,
-                        author_id=input.author_id,
-                    )
-                    selected = decision_result.result.selected
-                    decision_status = StageStatus.COMPLETED
-                    decision_detail = (
-                        f"Selected: {selected.option.label} "
-                        f"utility={selected.utility_score:.4f}"
-                    )
+                    if self.unified_cognitive_engine is not None:
+                        decision_result = self.unified_cognitive_engine.evaluate(
+                            options=input.decision_options,
+                            belief_state=belief_for_decision,
+                            author_id=input.author_id,
+                            decision_engine=self.decision_engine,
+                        )
+                    elif _DECISION_AVAILABLE and self.decision_engine is not None:
+                        decision_result = self.decision_engine.evaluate(
+                            options=input.decision_options,
+                            belief_state=belief_for_decision,
+                            author_id=input.author_id,
+                        )
+
+                    if decision_result is not None:
+                        selected = decision_result.result.selected
+                        decision_status = StageStatus.COMPLETED
+                        decision_detail = (
+                            f"Selected: {selected.option.label} "
+                            f"utility={selected.utility_score:.4f}"
+                        )
             except Exception as exc:
                 decision_status = StageStatus.FAILED
                 decision_detail = "Decision evaluation failed"
@@ -917,6 +943,7 @@ class CognitiveLoop:
             "subsystems_available": {
                 "belief": _BELIEF_AVAILABLE,
                 "decision": _DECISION_AVAILABLE,
+                "unified_cognitive_engine": self.unified_cognitive_engine is not None,
                 "replanning": _REPLAN_AVAILABLE,
                 "trust_registry": _TRUST_AVAILABLE,
                 "inference_monitor": _INFERENCE_MONITOR_AVAILABLE,
@@ -1054,6 +1081,7 @@ def create_cognitive_loop(
     belief_store = None
     bayesian_updater = None
     decision_engine = None
+    unified_cognitive_engine = None
     plan_repair_engine = None
     trust_registry = None
     inference_monitor = None
@@ -1073,6 +1101,15 @@ def create_cognitive_loop(
         decision_engine = _ProbabilisticDecisionEngine(weights=decision_weights, roe=roe)
     except ImportError:
         pass
+
+    if _COGNITIVE_ENGINE_AVAILABLE:
+        try:
+            unified_cognitive_engine = UnifiedCognitiveEngine(
+                decision_engine=decision_engine,
+                min_decision_confidence=(config or LoopConfig.default()).min_decision_confidence,
+            )
+        except Exception:
+            unified_cognitive_engine = None
 
     try:
         from src.replanning import PlanRepairEngine as _PlanRepairEngine
@@ -1101,6 +1138,7 @@ def create_cognitive_loop(
         belief_store=belief_store,
         bayesian_updater=bayesian_updater,
         decision_engine=decision_engine,
+        unified_cognitive_engine=unified_cognitive_engine,
         plan_repair_engine=plan_repair_engine,
         trust_registry=trust_registry,
         inference_monitor=inference_monitor,
