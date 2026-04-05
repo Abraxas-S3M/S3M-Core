@@ -3,13 +3,15 @@
 
 from __future__ import annotations
 
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.engagement_routes import runtime
-from src.api.server import app
+from src.api.engagement_routes import engagement_router, runtime
 from src.platforms.common import ROEProfile
 
 
+app = FastAPI()
+app.include_router(engagement_router)
 client = TestClient(app)
 
 
