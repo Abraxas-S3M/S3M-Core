@@ -8,7 +8,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.dashboard.providers.mission_provider import MissionProvider
-from src.dashboard.providers.runtime_store import get_runtime_state, reset_runtime_state, set_missions
+from src.dashboard.providers.runtime_store import (
+    reset_runtime_state,
+    set_last_swarm_command,
+    set_missions,
+)
 
 
 def setup_function() -> None:
@@ -29,17 +33,7 @@ def test_mission_snapshot_contains_phase_status_timeline_and_queue() -> None:
             }
         ]
     )
-    runtime = get_runtime_state()
-    runtime["phase_transition_timeline"] = [
-        {
-            "mission_id": "m-1",
-            "timestamp": "2026-04-01T10:01:00+00:00",
-            "phase": "deploy",
-            "status": "active",
-            "reason": "mission_start",
-        }
-    ]
-    runtime["command_queue"] = [{"command_id": "cmd-1", "command_type": "move_to"}]
+    set_last_swarm_command({"command_id": "cmd-1", "command_type": "move_to"})
 
     provider = MissionProvider()
     snapshot = provider.get_snapshot()

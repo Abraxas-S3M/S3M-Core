@@ -114,6 +114,18 @@ class MissionProvider:
                 if isinstance(item, dict):
                     timeline.append(dict(item))
 
+        if not timeline:
+            for mission in self._mission_phase_status():
+                timeline.append(
+                    {
+                        "mission_id": str(mission.get("mission_id", "unknown")),
+                        "timestamp": self._as_iso(mission.get("started_at")),
+                        "phase": str(mission.get("phase", "unknown")),
+                        "status": str(mission.get("status", "unknown")),
+                        "reason": "current_state_snapshot",
+                    }
+                )
+
         timeline.sort(key=lambda row: str(row.get("timestamp", "")))
         return timeline
 
@@ -151,6 +163,10 @@ class MissionProvider:
             for item in runtime_queue:
                 if isinstance(item, dict):
                     queue.append(dict(item))
+        if not queue:
+            last_command = self._runtime.get("last_swarm_command")
+            if isinstance(last_command, dict) and last_command:
+                queue.append(dict(last_command))
         return queue
 
     def get_snapshot(self) -> Dict[str, Any]:
