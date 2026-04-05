@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Any
 
 from src.platforms.common import ROEProfile, ThreatPriority, Track
@@ -18,20 +19,68 @@ class EngagementRecommendation:
     rationale: str
 
 
+class ThreatPrioritizer:
+    """Rank tracks by urgency using confidence, threat level, and proximity."""
+
+    def __init__(self, default_reference_position: tuple[float, float, float] = (0.0, 0.0, 0.0)) -> None:
+        self.default_reference_position = default_reference_position
+
+    def prioritize_tracks(
+        self,
+        tracks: list[Track],
+        blue_force_positions: list[tuple[float, float, float]] | None = None,
+    ) -> list[Track]:
+        if not tracks:
+            return []
+        references = blue_force_positions or [self.default_reference_position]
+        # Tactical context: nearest-hostile pressure is amplified to protect friendly forces.
+        ranked = sorted(
+            tracks,
+            key=lambda track: self._composite_score(track=track, references=references),
+            reverse=True,
+        )
+        return ranked
+
+    def _composite_score(self, track: Track, references: list[tuple[float, float, float]]) -> float:
+        priority = float(EngagementPipeline._priority_score(track.threat_priority))
+        confidence = float(track.confidence)
+        min_distance = min(math.dist(track.position, reference) for reference in references)
+        proximity_score = 1.0 / (1.0 + (min_distance / 1000.0))
+        return (priority * 0.6) + (confidence * 0.3) + (proximity_score * 0.1)
+
+
 class EngagementPipeline:
     """Minimal deterministic threat-ranking pipeline for offline testing."""
 
     def __init__(self, roe_profile: ROEProfile = ROEProfile.WEAPONS_TIGHT) -> None:
         self.roe_profile = roe_profile
+        self.zone_roe_profiles: dict[str, ROEProfile] = {}
+
+    def configure_zone_roe_profiles(
+        self,
+        *,
+        default_profile: ROEProfile,
+        zone_profiles: dict[str, ROEProfile],
+    ) -> None:
+        """Set default and per-zone ROE for mission-area fire control."""
+        self.roe_profile = default_profile
+        self.zone_roe_profiles = dict(zone_profiles)
+
+    def resolve_roe_profile(self, zone_id: str | None = None) -> ROEProfile:
+        if zone_id and zone_id in self.zone_roe_profiles:
+            return self.zone_roe_profiles[zone_id]
+        return self.roe_profile
 
     def evaluate_threats(
         self,
         tracks: list[Track],
         available_effectors: dict[str, Any],
+        zone_id: str | None = None,
     ) -> list[EngagementRecommendation]:
         if not tracks:
             return []
 
+        active_roe = self.resolve_roe_profile(zone_id)
         ranked = sorted(
             tracks,
             key=lambda t: (self._priority_score(t.threat_priority), t.confidence),
@@ -42,7 +91,7 @@ class EngagementPipeline:
         for track in ranked:
             if track.confidence < 0.5:
                 continue
-            roe_ok = self._is_roe_compliant(track)
+            roe_ok = self._is_roe_compliant(track, active_roe)
             recommendations.append(
                 EngagementRecommendation(
                     track_id=track.track_id,
@@ -63,10 +112,10 @@ class EngagementPipeline:
         }
         return mapping[priority]
 
-    def _is_roe_compliant(self, track: Track) -> bool:
+    def _is_roe_compliant(self, track: Track, profile: ROEProfile) -> bool:
         """Apply simplified ROE gating suitable for smoke-test verification."""
-        if self.roe_profile == ROEProfile.WEAPONS_HOLD:
+        if profile == ROEProfile.WEAPONS_HOLD:
             return False
-        if self.roe_profile == ROEProfile.WEAPONS_TIGHT and track.classification.lower() in {"civilian", "friendly"}:
+        if profile == ROEProfile.WEAPONS_TIGHT and track.classification.lower() in {"civilian", "friendly"}:
             return False
         return True

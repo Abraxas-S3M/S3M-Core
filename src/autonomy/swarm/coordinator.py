@@ -23,10 +23,12 @@ from src.autonomy.models import (
     MissionStatus,
     SwarmCommand,
 )
+from src.platforms.common import PlatformAdapter
 
 from src.autonomy.arbitration import MultiAgentArbitrator
 
 from .formations import FormationController
+from .platform_bridge import SwarmPlatformBridge
 from .swarm_protocol import SwarmProtocol
 from .task_allocator import TaskAllocator
 
@@ -39,6 +41,7 @@ class SwarmCoordinator:
             raise ValueError("max_agents must be > 0")
         self.max_agents = int(max_agents)
         self.agents: Dict[str, AgentInfo] = {}
+        self.platform_bridges: Dict[str, SwarmPlatformBridge] = {}
         self.missions: Dict[str, Mission] = {}
         self.mission_assignments: Dict[str, Dict[str, str]] = {}
         self.command_queue: List[SwarmCommand] = []
@@ -76,7 +79,26 @@ class SwarmCoordinator:
     def remove_agent(self, agent_id: str) -> None:
         """Remove an agent from the swarm roster."""
         self.agents.pop(agent_id, None)
+        self.platform_bridges.pop(agent_id, None)
         self._log("remove_agent", {"agent_id": agent_id})
+
+    def register_platform(
+        self,
+        adapter: PlatformAdapter,
+        role: AgentRole = AgentRole.FOLLOWER,
+    ) -> SwarmPlatformBridge:
+        """Register a platform adapter and bridge it into swarm agent records."""
+        bridge = SwarmPlatformBridge(adapter=adapter, default_role=role)
+        self.register_agent(bridge.agent_info)
+        self.platform_bridges[bridge.agent_info.agent_id] = bridge
+        self._log(
+            "register_platform",
+            {
+                "agent_id": bridge.agent_info.agent_id,
+                "platform_type": bridge.agent_info.capability.value,
+            },
+        )
+        return bridge
 
     def update_agent(self, agent_id: str, **kwargs: Any) -> None:
         """Update mutable fields on an existing agent state record."""

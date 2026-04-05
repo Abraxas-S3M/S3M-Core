@@ -1,0 +1,20 @@
+missions:
+  - mission_template_id: "hool-patrol-template"
+    task_type: "patrol"
+    description: "Perimeter patrol with persistent ISR and deconfliction geofence."
+    assigned_platforms: ["hool-ugv-01", "hool-uav-01"]
+    zone_id: "patrol-sector-bravo"
+    waypoints:
+      - [500.0, 500.0, 0.0]
+      - [2500.0, 700.0, 0.0]
+      - [2800.0, 2600.0, 0.0]
+      - [700.0, 2400.0, 0.0]
+  - mission_template_id: "hool-recon-template"
+    task_type: "recon"
+    description: "Route reconnaissance for convoy lead security."
+    assigned_platforms: ["hool-uav-01", "hool-fixed-01"]
+    zone_id: "training-range-alpha"
+    waypoints:
+      - [1500.0, 1500.0, 80.0]
+      - [3500.0, 2100.0, 120.0]
+      - [4500.0, 4200.0, 120.0]

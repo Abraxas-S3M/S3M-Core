@@ -99,3 +99,43 @@ def test_safe_state_applies_full_brake_and_manual_fallback() -> None:
     assert safe["controls"]["throttle"] == 0.0
     assert safe["controls"]["brake"] == 1.0
     assert safe["autonomy_level"] == 0
+
+
+def test_navigation_stack_can_be_disabled_for_standalone_fallback() -> None:
+    adapter = HMMWVAdapter(seed=41, use_navigation_modules=False)
+    adapter.connect()
+    state = adapter.read_state()
+
+    assert state["navigation"]["backend"] == "fallback_physics"
+    assert state["navigation"]["localization_mode"] in {"gps_fused", "dead_reckoning"}
+
+
+def test_gps_denial_forces_dead_reckoning_in_navigation_stack() -> None:
+    adapter = HMMWVAdapter(seed=43)
+    adapter.connect()
+    if not adapter.navigation_modules_available:
+        return
+
+    adapter.simulate_gps_denial(enabled=True, duration_s=45.0)
+    for _ in range(3):
+        _force_dt(adapter, 0.5)
+        adapter.read_state()
+    state = adapter.read_state()
+
+    assert state["navigation"]["gps_available"] is False
+    assert state["navigation"]["localization_mode"] == "dead_reckoning"
+    assert state["sensors"]["navigation"]["gps_x_m"] is None
+
+
+def test_degraded_mode_updates_operating_policy_budget() -> None:
+    adapter = HMMWVAdapter(seed=47)
+    adapter.connect()
+    adapter.simulate_comms_loss(duration_s=90.0)
+    state = adapter.read_state()
+    budget = state["autonomy"]["compute_budget"]
+
+    assert state["autonomy"]["degraded_mode"] is True
+    assert "max_concurrent_models" in budget
+    assert "max_autonomy_level" in budget
+    capped = adapter.set_autonomy_level(4)
+    assert capped["autonomy_level"] <= budget["max_autonomy_level"]
