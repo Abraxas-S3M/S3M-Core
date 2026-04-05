@@ -29,6 +29,7 @@ from src.autonomy.arbitration import MultiAgentArbitrator
 
 from .formations import FormationController
 from .platform_bridge import SwarmPlatformBridge
+from .contract_net import ContractNetProtocol
 from .swarm_protocol import SwarmProtocol
 from .task_allocator import TaskAllocator
 from .agent_comm_protocol import AgentCommProtocol
@@ -54,6 +55,7 @@ class SwarmCoordinator:
 
         self.formation_controller = FormationController()
         self.task_allocator = TaskAllocator()
+        self.contract_net = ContractNetProtocol()
         self.protocol = SwarmProtocol()
         self.arbitrator = MultiAgentArbitrator()
         self.contract_net = ContractNetProtocol()
@@ -222,48 +224,22 @@ class SwarmCoordinator:
         )
         return assignments
 
-    def assign_mission_contract_net(self, mission: Mission, mode: str = "coalition") -> Dict[str, str]:
+    def assign_mission_negotiated(self, mission: Mission) -> Dict[str, str]:
         """
-        Assign mission using Contract Net negotiation with arbitration cross-check.
+        Assign mission roles using Contract Net negotiation with safe fallback.
 
-        Tactical context: this path enables decentralized bidding before mission
-        launch so assets can self-select by readiness and timing.
+        This provides a tactical bidding path that still degrades to the
+        deterministic allocator if negotiation yields no valid assignees.
         """
         if len(self.missions) >= self.max_missions and mission.mission_id not in self.missions:
             raise ValueError("mission registry full")
 
         available = list(self.agents.values())
-        cfp = self.contract_net.create_cfp_from_mission(
+        assignments = self.contract_net.negotiate(
             mission=mission,
-            issuer_id="swarm_coordinator",
-            deadline_ms=float(mission.parameters.get("deadline_ms", 5000.0)),
+            available_agents=available,
+            scorer=self.task_allocator.score_agent,
         )
-        for agent in available:
-            if not agent.is_available():
-                continue
-            capability_score = self.task_allocator.score_agent(agent, mission)
-            proposal = Proposal(
-                cfp_id=cfp.cfp_id,
-                agent_id=agent.agent_id,
-                cost_estimate=max(1.0, 100.0 - agent.battery_pct),
-                time_estimate_ms=max(500.0, agent.distance_to(*self.task_allocator._mission_area_center(mission)) * 10.0),
-                capability_score=max(0.0, min(1.0, capability_score)),
-            )
-            self.contract_net.submit_proposal(cfp.cfp_id, proposal)
-
-        negotiation = self.contract_net.evaluate_with_arbitrator(
-            cfp_id=cfp.cfp_id,
-            arbitrator=self.arbitrator,
-            agents=available,
-            mode=mode,
-        )
-
-        assignments: Dict[str, str] = {}
-        arbitration_assignments = negotiation.arbitration_summary.get("assignments", {})
-        if negotiation.success and negotiation.winner_agent_id:
-            assignments[negotiation.winner_agent_id] = AgentRole.LEADER.value
-        for agent_id in arbitration_assignments:
-            assignments.setdefault(agent_id, AgentRole.FOLLOWER.value)
         if not assignments:
             assignments = self.task_allocator.allocate(mission, available)
 
@@ -275,33 +251,15 @@ class SwarmCoordinator:
                 self.agents[agent_id].current_mission = mission.mission_id
 
         self._log(
-            "assign_mission_contract_net",
+            "assign_mission_negotiated",
             {
                 "mission_id": mission.mission_id,
                 "assignments": assignments,
-                "winner": negotiation.winner_agent_id,
-                "negotiation_success": negotiation.success,
+                "protocol": "contract_net",
+                "n_bids": len(self.contract_net.last_bids),
             },
-        )
-        self.agent_comm.publish_arbitration_result(
-            sender_id="swarm_coordinator",
-            arbitrator_result={
-                "mission_id": mission.mission_id,
-                "assignments": assignments,
-                "contract_net_winner": negotiation.winner_agent_id,
-            },
-            correlation_id=cfp.cfp_id,
         )
         return assignments
-
-    def evaluate_mission_stability(self, mission: Mission, mode: str = "coalition") -> Dict[str, Any]:
-        """Run strategic-stability check with the Nash layer."""
-        return self.game_theory.coordinate_with_arbitrator(
-            mission={"mission_id": mission.mission_id, "objectives": [mission.mission_id]},
-            agents=list(self.agents.values()),
-            arbitrator=self.arbitrator,
-            mode=mode,
-        )
 
     def start_mission(self, mission_id: str) -> bool:
         """Transition mission to active state if present and assignable."""

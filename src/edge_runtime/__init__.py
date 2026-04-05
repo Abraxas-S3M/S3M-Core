@@ -21,6 +21,11 @@ except Exception:  # pragma: no cover - exercised when later modules are absent
     OperatingMode = None  # type: ignore[assignment]
 
 try:
+    from src.edge_runtime.offline_brain import OfflineBrain
+except Exception:  # pragma: no cover - exercised when later modules are absent
+    OfflineBrain = None  # type: ignore[assignment]
+
+try:
     from src.edge_runtime.model_planner import (
         DEFAULT_VARIANTS,
         ExecutionDecision,
@@ -93,6 +98,7 @@ except Exception:  # pragma: no cover - exercised when later modules are absent
 __all__ = [
     "HardwareProfiler", "NodeProfile", "HardwareTier",
     "DegradationController", "ModePolicy", "OperatingMode",
+    "OfflineBrain",
     "DEFAULT_VARIANTS", "ExecutionDecision", "ExecutionPlan",
     "ModelExecutionPlanner", "ModelVariant", "Precision",
     "ManifestVariant", "ModelManifest",

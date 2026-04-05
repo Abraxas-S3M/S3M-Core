@@ -2,6 +2,9 @@
 
 from src.training.cpu_adaptation.adapter_tuner import AdapterConfig, CPUAdapterTuner, TrainingResult
 from src.training.cpu_adaptation.classifier_retrainer import CPUClassifierRetrainer, ClassifierResult
+from src.training.cpu_adaptation.eval_harness import CPUEvaluationHarness
+from src.training.cpu_adaptation.sparse_moe import SparseMoELayer
+from src.training.cpu_adaptation.stream_learner import StreamLearner
 from src.training.cpu_adaptation.survival_distiller import (
     DistillationResult,
     DistillationTrigger,
@@ -30,6 +33,8 @@ __all__ = [
     "TrainingResult",
     "ClassifierResult",
     "CPUEvaluationHarness",
+    "StreamLearner",
+    "SparseMoELayer",
     "SurvivalDistiller",
     "SurvivalStudentConfig",
     "DistillationTrigger",

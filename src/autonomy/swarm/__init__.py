@@ -1,6 +1,7 @@
 """Swarm coordination subsystem for Layer 03 tactical autonomy."""
 
 from .coordinator import SwarmCoordinator
+from .contract_net import ContractNetProtocol
 from .formations import FormationController
 from .platform_bridge import SwarmPlatformBridge
 from .task_allocator import TaskAllocator
@@ -13,6 +14,7 @@ from src.autonomy.arbitration import MultiAgentArbitrator
 
 __all__ = [
     "SwarmCoordinator",
+    "ContractNetProtocol",
     "FormationController",
     "SwarmPlatformBridge",
     "TaskAllocator",

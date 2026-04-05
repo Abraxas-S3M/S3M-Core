@@ -1,20 +1,8 @@
-"""
-S3M Continuous Evolution System.
+"""Edge-safe evolution loop exports for adaptive mission behavior updates."""
 
-Closes the learning loop:
-Sensor -> decision -> outcome -> feedback -> replay -> retrain -> promote/rollback.
-"""
-
-from .continuous_loop import ContinuousEvolutionLoop, EvolutionConfig, EvolutionCycle
-from .experience_replay import Experience, PrioritizedReplayBuffer
-from .model_versioner import ModelVersion, ModelVersioner
+from src.evolution.loop import EvolutionCandidate, EvolutionLoop
 
 __all__ = [
-    "ContinuousEvolutionLoop",
-    "EvolutionConfig",
-    "EvolutionCycle",
-    "PrioritizedReplayBuffer",
-    "Experience",
-    "ModelVersioner",
-    "ModelVersion",
+    "EvolutionLoop",
+    "EvolutionCandidate",
 ]

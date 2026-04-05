@@ -10,9 +10,13 @@ from datetime import datetime, timezone
 from enum import Enum
 import logging
 import time
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 from src.edge_runtime.hardware_profiler import HardwareTier, NodeProfile
+try:
+    from src.edge_runtime.offline_brain import OfflineBrain
+except Exception:  # pragma: no cover - optional while module staging is incomplete
+    OfflineBrain = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +131,9 @@ class DegradationController:
         self._subscribers: List[Callable[[OperatingMode, ModePolicy], None]] = []
         self._link_healthy: bool = bool(profile.active_links)
         self._link_last_seen: float = time.time() if self._link_healthy else 0.0
+        self.offline_brain: Optional[OfflineBrain] = None
+        if self.current_mode == OperatingMode.MODE_D_OFFLINE_SURVIVAL:
+            self._ensure_offline_brain("initial_offline_survival")
 
     def current_policy(self) -> ModePolicy:
         return MODE_POLICIES[self.current_mode]
@@ -187,12 +194,24 @@ class DegradationController:
         )
         self.current_mode = new_mode
         self._transitions.append(transition)
+        if new_mode == OperatingMode.MODE_D_OFFLINE_SURVIVAL:
+            self._ensure_offline_brain(reason)
         policy = MODE_POLICIES[new_mode]
         for callback in list(self._subscribers):
             try:
                 callback(new_mode, policy)
             except Exception:
                 continue
+
+    def _ensure_offline_brain(self, reason: str) -> None:
+        if OfflineBrain is None:
+            return
+        if self.offline_brain is None:
+            self.offline_brain = OfflineBrain()
+        try:
+            self.offline_brain.activate(reason=str(reason))
+        except Exception:
+            return
 
     @staticmethod
     def _initial_mode(profile: NodeProfile) -> OperatingMode:
