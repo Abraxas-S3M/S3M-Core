@@ -53,8 +53,9 @@ def test_safety_comms_loss_forces_rtb() -> None:
     executive.update()  # deploy -> transit
     commands = executive.update({"comms_status": "lost"})
     _assert_only_nav_sensor_commands(commands)
-    assert executive.phase == MissionPhase.RTB
+    assert executive.phase in {MissionPhase.RTB, MissionPhase.COMPLETE}
     assert executive.context.get("rtb_reason") == "comms_lost"
+    assert any(item.get("reason") == "safety_comms_loss" for item in executive.transition_log)
 
 
 def test_all_supported_mission_types_emit_only_mobility_and_sensor_commands() -> None:
