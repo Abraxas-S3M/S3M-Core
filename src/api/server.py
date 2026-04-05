@@ -25,6 +25,7 @@ from src.api.config import api_config, mission_command_lifespan
 from src.api.apps_routes import apps_router
 from src.api.autonomy_routes import autonomy_router
 from src.api.comms_routes import comms_router
+from src.api.engagement_routes import engagement_router
 from src.api.edge_runtime_routes import router as edge_router
 from src.api.cyber_routes import cyber_router
 from src.api.dashboard_routes import dashboard_router
@@ -185,8 +186,7 @@ app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
 app.include_router(comms_router, tags=["Secure Communications"])
 app.include_router(command_router, tags=["Mission Command"])
-app.include_router(platform_router, tags=["Platform Registry"])
-app.include_router(mission_router, tags=["Mission Executive"])
+app.include_router(engagement_router, tags=["Engagement"])
 
 # Load security config
 security_config = {}
