@@ -1,6 +1,7 @@
 """Shared platform abstraction contracts and messages."""
 
 from .contracts import PayloadAdapter, PlatformAdapter
+from .platform_registry import PlatformRegistry, RegisteredPlatform
 from .messages import (
     AuthorityLevel,
     AuthorizationType,
@@ -39,4 +40,6 @@ __all__ = [
     "AutonomyMode",
     "ROEProfile",
     "PayloadState",
+    "PlatformRegistry",
+    "RegisteredPlatform",
 ]

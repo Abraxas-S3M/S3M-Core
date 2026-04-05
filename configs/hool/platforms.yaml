@@ -1,0 +1,17 @@
+platforms:
+  - platform_id: "hool-ugv-01"
+    type: "ugv"
+    adapter_class: "HMMWVAdapter"
+    initial_position: [0.0, 0.0, 0.0]
+  - platform_id: "hool-uav-01"
+    type: "uav"
+    adapter_class: "WarWarAdapter"
+    initial_position: [200.0, 150.0, 50.0]
+  - platform_id: "hool-usv-01"
+    type: "usv"
+    adapter_class: "G24Adapter"
+    initial_position: [500.0, 20.0, 0.0]
+  - platform_id: "hool-fixed-01"
+    type: "fixed"
+    adapter_class: "HorizonAdapter"
+    initial_position: [1000.0, 1000.0, 5.0]
