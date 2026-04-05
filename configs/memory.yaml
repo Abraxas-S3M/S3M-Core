@@ -1,0 +1,19 @@
+# S3M Persistent Memory Configuration
+# UNCLASSIFIED - FOUO
+
+episodic_memory:
+  capacity: 10000
+  recency_weight: 0.4
+  relevance_weight: 0.35
+  importance_weight: 0.25
+  recency_halflife_seconds: 3600.0
+  max_memory_mb: 999.0
+
+semantic_memory:
+  capacity: 5000
+  max_memory_mb: 999.0
+
+decision_journal:
+  capacity: 50000
+  persist_path: "data/decision_journal.jsonl"
+  max_memory_mb: 999.0

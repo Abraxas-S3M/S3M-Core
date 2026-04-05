@@ -1,0 +1,40 @@
+# S3M Unified Cognitive Engine Configuration
+# UNCLASSIFIED - FOUO
+
+cognitive_engine:
+  max_hypotheses: 32
+  belief_convergence_threshold: 0.85
+  uncertainty_escalation_threshold: 0.7
+  max_think_time_ms: 500.0
+  discount_factor: 0.95
+  planning_horizon: 8
+  memory_query_limit: 5
+  require_human_review_confidence: 0.3
+  enable_memory_consultation: true
+  enable_multi_objective: true
+  enable_counterfactual: true
+  max_cycle_history: 1000
+
+world_model:
+  max_hypotheses: 64
+  propagation_depth: 3
+  default_prior: 0.5
+
+multi_objective:
+  strategy: "topsis" # weighted_sum | topsis | lexicographic | minimax_regret
+  objectives:
+    - name: survival
+      weight: 0.35
+      direction: maximize
+    - name: mission_progress
+      weight: 0.25
+      direction: maximize
+    - name: roe_compliance
+      weight: 0.20
+      direction: maximize
+    - name: resource_efficiency
+      weight: 0.10
+      direction: maximize
+    - name: information_gain
+      weight: 0.10
+      direction: maximize
