@@ -30,7 +30,9 @@ from src.api.cyber_routes import cyber_router
 from src.api.dashboard_routes import dashboard_router
 from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
+from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
+from src.api.platform_routes import platform_router
 from src.api.portal_routes import router as portal_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
@@ -183,6 +185,8 @@ app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
 app.include_router(comms_router, tags=["Secure Communications"])
 app.include_router(command_router, tags=["Mission Command"])
+app.include_router(platform_router, tags=["Platform Registry"])
+app.include_router(mission_router, tags=["Mission Executive"])
 
 # Load security config
 security_config = {}

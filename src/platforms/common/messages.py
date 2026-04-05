@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from enum import Enum
 import math
 import uuid
-from typing import Tuple
+from typing import Any, Tuple
 
 
 class PlatformType(Enum):
@@ -131,11 +131,18 @@ class MissionTask:
 
     task_type: MissionTaskType
     waypoints: list[Tuple[float, float, float]] = field(default_factory=list)
+    parameters: dict[str, Any] = field(default_factory=dict)
+    assigned_platform: str | None = None
 
     def __post_init__(self) -> None:
+        normalized_waypoints: list[Tuple[float, float, float]] = []
         for waypoint in self.waypoints:
             if len(waypoint) != 3:
                 raise ValueError("each waypoint must be a 3D tuple")
+            normalized_waypoints.append((float(waypoint[0]), float(waypoint[1]), float(waypoint[2])))
+        self.waypoints = normalized_waypoints
+        if self.assigned_platform is not None and not self.assigned_platform:
+            raise ValueError("assigned_platform must be a non-empty string when provided")
 
 
 @dataclass
