@@ -1,15 +1,20 @@
-"""Canonical path contracts for cloud CPU training in tactical environments."""
+"""Filesystem layout helpers for cloud CPU training state.
+
+Military/tactical context:
+Track-isolated directories limit blast radius if one adaptation stream is
+corrupted or compromised during disconnected, contested operations.
+"""
 
 from __future__ import annotations
 
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Dict
 
 
 class TrainingTrack(str, Enum):
-    """Domain training tracks for military scenario specialization."""
+    """Supported adaptation tracks."""
 
     SAUDI_MOD = "saudi_mod"
     UKRAINE_MOD = "ukraine_mod"
@@ -18,103 +23,61 @@ class TrainingTrack(str, Enum):
 
 
 @dataclass(frozen=True)
-class TrackCheckpointPaths:
-    """Track-specific checkpoint paths used by promotion and resume flows."""
+class TrackPaths:
+    """Per-track directory bundle."""
 
+    root: Path
+    scenarios: Path
     runs: Path
     promoted: Path
-    latest: Path
-
-    def ensure_dirs(self) -> None:
-        """Create all checkpoint directories for this track."""
-        for directory in (self.runs, self.promoted, self.latest):
-            directory.mkdir(parents=True, exist_ok=True)
+    processed: Path
+    rejected: Path
 
 
-@dataclass(frozen=True)
 class StatePaths:
-    """
-    Frozen directory contract for cloud CPU continuous training.
+    """Computes and materializes cloud CPU training directories."""
 
-    Tactical context: stable path contracts ensure deterministic checkpoint and
-    scenario handling during disconnected or degraded operations.
-    """
+    def __init__(self, root: Path | str) -> None:
+        self.root = Path(root).resolve()
+        self.inbox = self.root / "inbox"
+        self.rejected = self.root / "rejected"
+        self.processed = self.root / "processed"
+        self.tracks_root = self.root / "tracks"
+        self._track_paths: Dict[TrainingTrack, TrackPaths] = {}
 
-    state_root: Path = field(default_factory=lambda: Path(os.getenv("S3M_STATE_DIR", "/opt/s3m/state/")))
-    data_root: Path = field(default_factory=lambda: Path(os.getenv("S3M_DATA_DIR", "/opt/s3m/data/")))
-
-    checkpoints_root: Path = field(init=False)
-    manifests_dir: Path = field(init=False)
-    metrics_dir: Path = field(init=False)
-    journal_dir: Path = field(init=False)
-    locks_dir: Path = field(init=False)
-
-    scenarios_root: Path = field(init=False)
-    saudi_mod_scenarios_dir: Path = field(init=False)
-    ukraine_mod_scenarios_dir: Path = field(init=False)
-    nato_scenarios_dir: Path = field(init=False)
-    shared_scenarios_dir: Path = field(init=False)
-    inbox_dir: Path = field(init=False)
-    processed_dir: Path = field(init=False)
-    rejected_dir: Path = field(init=False)
-    evals_dir: Path = field(init=False)
-
-    def __post_init__(self) -> None:
-        state_root = self.state_root
-        data_root = self.data_root
-
-        object.__setattr__(self, "checkpoints_root", state_root / "checkpoints")
-        object.__setattr__(self, "manifests_dir", state_root / "manifests")
-        object.__setattr__(self, "metrics_dir", state_root / "metrics")
-        object.__setattr__(self, "journal_dir", state_root / "journal")
-        object.__setattr__(self, "locks_dir", state_root / "locks")
-
-        scenarios_root = data_root / "scenarios"
-        object.__setattr__(self, "scenarios_root", scenarios_root)
-        object.__setattr__(self, "saudi_mod_scenarios_dir", scenarios_root / TrainingTrack.SAUDI_MOD.value)
-        object.__setattr__(self, "ukraine_mod_scenarios_dir", scenarios_root / TrainingTrack.UKRAINE_MOD.value)
-        object.__setattr__(self, "nato_scenarios_dir", scenarios_root / TrainingTrack.NATO.value)
-        object.__setattr__(self, "shared_scenarios_dir", scenarios_root / TrainingTrack.SHARED.value)
-
-        object.__setattr__(self, "inbox_dir", data_root / "inbox")
-        object.__setattr__(self, "processed_dir", data_root / "processed")
-        object.__setattr__(self, "rejected_dir", data_root / "rejected")
-        object.__setattr__(self, "evals_dir", data_root / "evals")
-
-    def for_track(self, track: TrainingTrack) -> TrackCheckpointPaths:
-        """Return track-specific checkpoint directory paths."""
-        base = self.checkpoints_root / track.value
-        return TrackCheckpointPaths(
-            runs=base / "runs",
-            promoted=base / "promoted",
-            latest=base / "latest",
-        )
-
-    def scenario_dir(self, track: TrainingTrack) -> Path:
-        """Return scenario directory for one training track."""
-        return self.scenarios_root / track.value
-
-    def ensure_dirs(self) -> None:
-        """Create all configured state and data directories."""
-        for directory in (
-            self.state_root,
-            self.checkpoints_root,
-            self.manifests_dir,
-            self.metrics_dir,
-            self.journal_dir,
-            self.locks_dir,
-            self.data_root,
-            self.scenarios_root,
-            self.saudi_mod_scenarios_dir,
-            self.ukraine_mod_scenarios_dir,
-            self.nato_scenarios_dir,
-            self.shared_scenarios_dir,
-            self.inbox_dir,
-            self.processed_dir,
-            self.rejected_dir,
-            self.evals_dir,
-        ):
-            directory.mkdir(parents=True, exist_ok=True)
+        self._ensure_dir(self.root)
+        self._ensure_dir(self.inbox)
+        self._ensure_dir(self.rejected)
+        self._ensure_dir(self.processed)
+        self._ensure_dir(self.tracks_root)
 
         for track in TrainingTrack:
-            self.for_track(track).ensure_dirs()
+            track_root = self.tracks_root / track.value
+            paths = TrackPaths(
+                root=track_root,
+                scenarios=track_root / "scenarios",
+                runs=track_root / "checkpoints" / "runs",
+                promoted=track_root / "checkpoints" / "promoted",
+                processed=self.processed / track.value,
+                rejected=self.rejected / track.value,
+            )
+            self._track_paths[track] = paths
+            self._ensure_dir(paths.root)
+            self._ensure_dir(paths.scenarios)
+            self._ensure_dir(paths.runs)
+            self._ensure_dir(paths.promoted)
+            self._ensure_dir(paths.processed)
+            self._ensure_dir(paths.rejected)
+
+    def for_track(self, track: TrainingTrack) -> TrackPaths:
+        if not isinstance(track, TrainingTrack):
+            track = TrainingTrack(str(track))
+        return self._track_paths[track]
+
+    def scenario_dir(self, track: TrainingTrack) -> Path:
+        return self.for_track(track).scenarios
+
+    @staticmethod
+    def _ensure_dir(path: Path) -> None:
+        path.mkdir(parents=True, exist_ok=True)
+

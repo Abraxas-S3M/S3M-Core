@@ -19,3 +19,17 @@ __all__ = [
     "TrainerService",
     "JobScheduler",
 ]
+
+if PromotionDecision is not None:
+    __all__.append("PromotionDecision")
+if MetricsStore is not None:
+    __all__.append("MetricsStore")
+if PromotionGate is not None:
+    __all__.append("PromotionGate")
+if ResourceGuard is not None:
+    __all__.append("ResourceGuard")
+if ResourceStatus is not None:
+    __all__.append("ResourceStatus")
+if ThrottleAction is not None:
+    __all__.append("ThrottleAction")
+
