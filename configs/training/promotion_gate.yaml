@@ -1,0 +1,6 @@
+# Global promotion policy enforcing safe model rollout in tactical operations.
+min_steps_before_first_promotion: 500
+min_steps_between_promotions: 200
+regression_tolerance: 0.05
+require_all_thresholds: true
+cooldown_after_failed_promotion_steps: 100
