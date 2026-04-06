@@ -1,0 +1,22 @@
+# Ukraine MOD track profile for degraded-comms tactical adaptation resilience.
+track: ukraine_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+emphasis:
+  - degraded comms resilience
+  - rapid scenario adaptation
+  - battlefield summarization
+  - sparse data handling
+eval_suite:
+  - degraded_input_recovery
+  - scenario_adaptation_score
+  - structured_report_compliance
+promotion_thresholds:
+  degraded_recovery: 0.70
+  adaptation: 0.65
+  overall: 0.65
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200
