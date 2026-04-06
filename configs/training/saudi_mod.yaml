@@ -1,0 +1,23 @@
+# Saudi MOD track tuning profile for bilingual operational briefing quality.
+track: saudi_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - Arabic briefing quality
+  - bilingual fidelity
+  - logistics/readiness
+eval_suite:
+  - arabic_briefing_fidelity
+  - structured_output_validity
+  - command_summary_quality
+promotion_thresholds:
+  arabic_fidelity: 0.75
+  structured_output: 0.80
+  overall: 0.70
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200
+max_steps_per_cycle: 100
