@@ -1,59 +1,23 @@
-"""Cloud CPU training package for continuous track adaptation."""
+"""Cloud CPU training controls and orchestration services."""
 
-from src.training.cloud_cpu.contracts import (
-    CheckpointMeta,
-    CycleMetrics,
-    DataClass,
-    TrainerState,
-    TrainingExample,
-)
-from src.training.cloud_cpu.dataset_cursor import DatasetCursor
-from src.training.cloud_cpu.paths import StatePaths, TrainingTrack
-from src.training.cloud_cpu.resume_manager import ResumeManager
-from src.training.cloud_cpu.track_router import TrackRouter
-from src.training.cloud_cpu.training_loop import StubTrainingBackend, TrainingBackend, TrainingLoop
-
-# Merge-safety: newer branches may provide cloud CPU promotion/metrics controls.
-try:  # pragma: no cover - optional cross-branch compatibility
-    from src.training.cloud_cpu.contracts import PromotionDecision  # type: ignore
-except Exception:  # pragma: no cover - optional cross-branch compatibility
-    PromotionDecision = None  # type: ignore[assignment]
-
-try:  # pragma: no cover - optional cross-branch compatibility
-    from src.training.cloud_cpu.metrics_store import MetricsStore  # type: ignore
-except Exception:  # pragma: no cover - optional cross-branch compatibility
-    MetricsStore = None  # type: ignore[assignment]
-
-try:  # pragma: no cover - optional cross-branch compatibility
-    from src.training.cloud_cpu.promotion_gate import PromotionGate  # type: ignore
-except Exception:  # pragma: no cover - optional cross-branch compatibility
-    PromotionGate = None  # type: ignore[assignment]
-
-try:  # pragma: no cover - optional cross-branch compatibility
-    from src.training.cloud_cpu.resource_guard import (  # type: ignore
-        ResourceGuard,
-        ResourceStatus,
-        ThrottleAction,
-    )
-except Exception:  # pragma: no cover - optional cross-branch compatibility
-    ResourceGuard = None  # type: ignore[assignment]
-    ResourceStatus = None  # type: ignore[assignment]
-    ThrottleAction = None  # type: ignore[assignment]
+from .contracts import CheckpointMeta, CycleMetrics, PromotionDecision
+from .job_scheduler import JobScheduler
+from .metrics_store import MetricsStore
+from .promotion_gate import PromotionGate
+from .resource_guard import ResourceGuard, ResourceStatus, ThrottleAction
+from .trainer_service import TrainerService
 
 __all__ = [
     "CheckpointMeta",
     "CycleMetrics",
-    "DataClass",
-    "DatasetCursor",
-    "ResumeManager",
-    "StatePaths",
-    "StubTrainingBackend",
-    "TrackRouter",
-    "TrainerState",
-    "TrainingBackend",
-    "TrainingExample",
-    "TrainingLoop",
-    "TrainingTrack",
+    "PromotionDecision",
+    "MetricsStore",
+    "PromotionGate",
+    "ResourceGuard",
+    "ResourceStatus",
+    "ThrottleAction",
+    "TrainerService",
+    "JobScheduler",
 ]
 
 if PromotionDecision is not None:
