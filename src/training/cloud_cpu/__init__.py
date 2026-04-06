@@ -1,28 +1,17 @@
-"""
-S3M cloud CPU continuous training system for domain-adaptive military workflows.
+"""Cloud CPU training controls for promotion, metrics, and resource guarding."""
 
-This package defines shared contracts for cloud-side training orchestration so
-checkpoint promotion, scenario ingestion, and cycle telemetry remain consistent
-across Saudi MOD, Ukraine MOD, NATO, and shared tactical data tracks.
-"""
-
-from src.training.cloud_cpu.contracts import (
-    CheckpointMeta,
-    CycleMetrics,
-    PromotionDecision,
-    ScenarioManifest,
-    TrainerState,
-    TrainingExample,
-)
-from src.training.cloud_cpu.paths import StatePaths, TrainingTrack
+from .contracts import CheckpointMeta, CycleMetrics, PromotionDecision
+from .metrics_store import MetricsStore
+from .promotion_gate import PromotionGate
+from .resource_guard import ResourceGuard, ResourceStatus, ThrottleAction
 
 __all__ = [
-    "StatePaths",
-    "TrainingTrack",
-    "ScenarioManifest",
-    "TrainingExample",
     "CheckpointMeta",
-    "TrainerState",
     "CycleMetrics",
     "PromotionDecision",
+    "MetricsStore",
+    "PromotionGate",
+    "ResourceGuard",
+    "ResourceStatus",
+    "ThrottleAction",
 ]
