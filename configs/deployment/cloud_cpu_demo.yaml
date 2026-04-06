@@ -1,0 +1,38 @@
+# Cloud CPU Demo profile — Hetzner public API, no GPU, no air-gap
+system:
+  deployment_mode: "cloud_cpu_demo"
+
+middleware:
+  auth_enabled: true
+  api_key: "SET_VIA_ENV"
+  rate_limit_rpm: 120
+  cors_lockdown: true
+  sanitize_inputs: true
+
+memory:
+  total_budget_gb: 16  # Hetzner CPX41: 16 GB RAM typical
+
+startup:
+  order:
+    - security
+    - llm_core
+    - threat_detection
+    - dashboard
+    - simulation
+  skip_on_memory_pressure: [autonomy, navigation, apps]
+
+engines:
+  load_on_startup: ["phi3"]  # Single engine for demo responsiveness
+  quantization: "Q4_K_M"     # Smallest viable quant for CPU
+
+cpu:
+  omp_num_threads: 8
+  mkl_num_threads: 8
+  openblas_num_threads: 8
+  numexpr_num_threads: 8
+
+airgap:
+  verify_on_startup: false  # Not air-gapped in cloud
+
+jetson:
+  simulated_mode: true  # No Jetson hardware present
