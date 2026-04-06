@@ -2,3 +2,16 @@ __pycache__/
 *.pyc
 .pytest_cache/
 data/integrations/geoint-merged/
+
+# Cloud deployment secrets
+.env.cloud
+.env.production
+.env.local
+
+# Checkpoint and training state
+data/checkpoints/
+data/logs/worker.log
+
+# Model weights (downloaded separately)
+models/*.gguf
+models/*.bin
