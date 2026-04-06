@@ -1,0 +1,68 @@
+# File: docker/Dockerfile.cpu
+# S3M Sovereign Military AI — Cloud CPU Container
+# Target: Hetzner Cloud (or any x86_64 Linux with no GPU)
+# Build: docker build -t s3m-cpu:latest -f docker/Dockerfile.cpu .
+# Run:   docker run -p 8080:8080 --env-file .env.cloud s3m-cpu:latest
+
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/s3m \
+    DEPLOYMENT_MODE=cloud_cpu_demo \
+    S3M_DEVICE=cpu \
+    OMP_NUM_THREADS=8 \
+    MKL_NUM_THREADS=8 \
+    OPENBLAS_NUM_THREADS=8 \
+    NUMEXPR_NUM_THREADS=8
+
+WORKDIR /opt/s3m
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies — layered for cache efficiency
+COPY requirements-api.txt .
+COPY requirements-intel.txt .
+COPY requirements-cognitive.txt .
+COPY requirements-all.txt .
+
+# Install core deps first, then supplemental
+RUN pip install --no-cache-dir -r requirements-api.txt \
+    && pip install --no-cache-dir -r requirements-intel.txt \
+    && pip install --no-cache-dir -r requirements-cognitive.txt
+
+# Copy application code
+COPY src/ src/
+COPY scripts/ scripts/
+COPY configs/ configs/
+COPY docs/ docs/
+COPY architecture/ architecture/
+COPY services/ services/
+COPY packages/ packages/
+
+# Create persistent data directories
+RUN mkdir -p /opt/s3m/data/checkpoints \
+    /opt/s3m/data/logs \
+    /opt/s3m/data/replays \
+    /opt/s3m/data/cache \
+    /opt/s3m/data/uploads \
+    /opt/s3m/data/threat_logs \
+    /opt/s3m/data/security_audit \
+    /opt/s3m/data/synthetic \
+    /opt/s3m/data/manifests \
+    /opt/s3m/data/benchmarks \
+    /opt/s3m/data/osint \
+    /opt/s3m/data/decision_logs \
+    /opt/s3m/data/interop \
+    /opt/s3m/data/security_reports \
+    /opt/s3m/models
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -fsS http://localhost:8080/health || exit 1
+
+CMD ["python", "scripts/start_api.py"]

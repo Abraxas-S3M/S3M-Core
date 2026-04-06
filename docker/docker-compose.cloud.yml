@@ -1,0 +1,43 @@
+# File: docker/docker-compose.cloud.yml
+# S3M Cloud CPU Deployment — Hetzner
+# Usage: docker compose -f docker/docker-compose.cloud.yml up -d
+# Requires: .env.cloud in project root (NOT committed to git)
+
+version: "3.8"
+
+services:
+  s3m-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    container_name: s3m-api
+    env_file:
+      - ../.env.cloud
+    ports:
+      - "8080:8080"
+    volumes:
+      - s3m-data:/opt/s3m/data
+      - s3m-models:/opt/s3m/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  s3m-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    container_name: s3m-worker
+    env_file:
+      - ../.env.cloud
+    command: ["python", "scripts/start_worker.py"]
+    volumes:
+      - s3m-data:/opt/s3m/data
+      - s3m-models:/opt/s3m/models
+    restart: unless-stopped
+
+volumes:
+  s3m-data:
+  s3m-models:
