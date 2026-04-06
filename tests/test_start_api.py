@@ -20,7 +20,7 @@ def test_preflight_cloud_check_warns_on_insecure_settings() -> None:
 
     warnings = start_api._preflight_cloud_check(config)
 
-    assert "CORS_ORIGINS is wildcard or empty — set explicitly for production" in warnings
+    assert "CORS_ORIGINS is wildcard or empty - set explicitly for production" in warnings
     assert "S3M_AUTH_ENABLED=true but no S3M_API_KEY set" in warnings
     assert "Cloud demo should use CPU but device=cuda" in warnings
 

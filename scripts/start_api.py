@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Start the S3M API Server — deployment-mode aware."""
+"""Start the S3M API Server - deployment-mode aware."""
 
 import os
 import sys
@@ -38,7 +38,7 @@ def _preflight_cloud_check(config: Any) -> list[str]:
 
     # Tactical context: strict ingress/auth defaults reduce exposure of command paths.
     if not cors_origins or cors_origins == ["*"]:
-        warnings.append("CORS_ORIGINS is wildcard or empty — set explicitly for production")
+        warnings.append("CORS_ORIGINS is wildcard or empty - set explicitly for production")
     if auth_enabled and not api_key:
         warnings.append("S3M_AUTH_ENABLED=true but no S3M_API_KEY set")
     if device != "cpu":
