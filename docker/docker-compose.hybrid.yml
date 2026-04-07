@@ -1,0 +1,71 @@
+# S3M Hybrid Training Deployment — RunPod GPU + Hetzner CPU
+# 
+# Usage:
+#   On Hetzner: docker compose -f docker/docker-compose.cloud.yml up -d
+#   On RunPod:  docker compose -f docker/docker-compose.hybrid.yml --profile gpu up -d
+#   Both:       Sync via rsync over SSH (see configs/gpu_training.yaml hybrid section)
+version: "3.8"
+
+services:
+  # === GPU Services (RunPod 4090) ===
+  s3m-gpu-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+    container_name: s3m-gpu-worker
+    profiles: ["gpu"]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - S3M_DEVICE=cuda
+      - S3M_HETZNER_HOST=${S3M_HETZNER_HOST}
+      - S3M_HETZNER_SSH_KEY=/root/.ssh/s3m_hetzner
+      - WANDB_API_KEY=${WANDB_API_KEY:-}
+      - WANDB_PROJECT=s3m-training
+      - S3M_LOG_LEVEL=INFO
+    volumes:
+      - gpu-checkpoints:/opt/s3m/checkpoints
+      - gpu-models:/opt/s3m/models
+      - gpu-data:/opt/s3m/data
+      - gpu-state:/opt/s3m/state
+      - ${S3M_SSH_DIR:-~/.ssh}:/root/.ssh:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: ["python3", "scripts/gpu_worker.py", "--poll-interval", "30"]
+    restart: unless-stopped
+
+  # === Interactive training (manual runs) ===
+  s3m-gpu-interactive:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+    container_name: s3m-gpu-interactive
+    profiles: ["interactive"]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - S3M_DEVICE=cuda
+      - WANDB_API_KEY=${WANDB_API_KEY:-}
+    volumes:
+      - gpu-checkpoints:/opt/s3m/checkpoints
+      - gpu-models:/opt/s3m/models
+      - gpu-data:/opt/s3m/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true
+
+volumes:
+  gpu-checkpoints:
+  gpu-models:
+  gpu-data:
+  gpu-state:

@@ -1,0 +1,51 @@
+# S3M GPU Training Container — RunPod RTX 4090
+# Base: NVIDIA PyTorch with CUDA 12.x
+#
+# Build: docker build -t s3m-trainer-gpu -f docker/Dockerfile.gpu .
+# Run:   docker run --gpus all -v /workspace/s3m:/opt/s3m s3m-trainer-gpu
+
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-dev git build-essential \
+    cmake ninja-build openssh-client rsync curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/s3m
+
+# Install PyTorch with CUDA
+RUN pip3 install --no-cache-dir \
+    torch==2.3.0 --index-url https://download.pytorch.org/whl/cu124
+
+# Install training dependencies
+COPY requirements-gpu-training.txt .
+RUN pip3 install --no-cache-dir -r requirements-gpu-training.txt
+
+# Install Flash Attention 2 (requires CUDA build)
+RUN pip3 install --no-cache-dir flash-attn --no-build-isolation 2>/dev/null || true
+
+# Install Unsloth
+RUN pip3 install --no-cache-dir "unsloth[cu124-torch230] @ git+https://github.com/unslothai/unsloth.git" 2>/dev/null || true
+
+# Clone llama.cpp for GGUF conversion
+RUN git clone --depth 1 https://github.com/ggerganov/llama.cpp.git /opt/llama.cpp \
+    && cd /opt/llama.cpp && cmake -B build -DGGML_CUDA=ON && cmake --build build --config Release -j $(nproc) \
+    || true
+
+# Copy application
+COPY src/ src/
+COPY configs/ configs/
+COPY scripts/ scripts/
+COPY requirements-all.txt .
+
+# Create directories
+RUN mkdir -p data/datasets data/eval checkpoints/gpu models/merged models/gguf \
+    state/training/job_queue/{pending,running,completed,failed,promoted}
+
+ENV PYTHONPATH=/opt/s3m
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Default: run GPU worker
+CMD ["python3", "scripts/gpu_worker.py", "--poll-interval", "30"]
