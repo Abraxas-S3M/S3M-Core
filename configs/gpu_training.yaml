@@ -1,0 +1,120 @@
+# S3M GPU Training Configuration — RunPod RTX 4090 Cluster
+# UNCLASSIFIED - FOUO
+
+gpu_cluster:
+  provider: "runpod"
+  gpu_type: "RTX_4090"
+  vram_per_gpu_gb: 24
+  max_gpus: 4
+  ssh_key_path: "${S3M_RUNPOD_SSH_KEY:-~/.ssh/s3m_runpod}"
+  persistent_volume: "/workspace/s3m"
+
+training:
+  # === LoRA / QLoRA defaults ===
+  lora:
+    rank: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+    bias: "none"
+    task_type: "CAUSAL_LM"
+
+  quantization:
+    load_in_4bit: true
+    bnb_4bit_compute_dtype: "bfloat16"
+    bnb_4bit_quant_type: "nf4"
+    bnb_4bit_use_double_quant: true
+
+  optimizer:
+    name: "paged_adamw_8bit"
+    learning_rate: 2.0e-4
+    weight_decay: 0.01
+    warmup_ratio: 0.03
+    lr_scheduler_type: "cosine"
+
+  batch:
+    per_device_train_batch_size: 4
+    gradient_accumulation_steps: 4
+    effective_batch_size: 16   # per_device * grad_accum
+
+  precision:
+    bf16: true
+    tf32: true
+
+  training_args:
+    max_steps: 2000
+    logging_steps: 10
+    save_steps: 200
+    eval_steps: 200
+    save_total_limit: 3
+    gradient_checkpointing: true
+    max_seq_length: 2048
+
+  # Unsloth acceleration (when available)
+  unsloth:
+    enabled: true
+    max_seq_length: 2048
+    load_in_4bit: true
+    fast_inference: false
+
+# === Per-Engine Overrides ===
+engines:
+  phi3:
+    hf_repo: "microsoft/Phi-3-mini-4k-instruct"
+    lora_rank: 16
+    gpus_required: 1
+    max_seq_length: 4096
+    dataset: "s3m_tactical_instruct"
+
+  mistral:
+    hf_repo: "mistralai/Mistral-7B-Instruct-v0.3"
+    lora_rank: 16
+    gpus_required: 1
+    max_seq_length: 4096
+    dataset: "s3m_planning_instruct"
+
+  grok:
+    hf_repo: "xai-org/grok-1"
+    lora_rank: 32
+    gpus_required: 2
+    strategy: "deepspeed_zero2"
+    max_seq_length: 8192
+    dataset: "s3m_reasoning_instruct"
+
+  allam:
+    hf_repo: "sdaia/allam-7b"
+    lora_rank: 16
+    gpus_required: 1
+    max_seq_length: 4096
+    dataset: "s3m_arabic_bilingual_instruct"
+    tokenizer_kwargs:
+      add_bos_token: true
+      add_eos_token: true
+
+# === Hybrid Hetzner ↔ RunPod Bridge ===
+hybrid:
+  hetzner:
+    host: "${S3M_HETZNER_HOST}"
+    user: "root"
+    ssh_key: "${S3M_HETZNER_SSH_KEY:-~/.ssh/s3m_hetzner}"
+    roles: ["tokenization", "eval", "merge", "gguf_convert", "dataset_prep", "api_serve"]
+    docker_compose: "docker/docker-compose.cloud.yml"
+
+  runpod:
+    api_key: "${RUNPOD_API_KEY}"
+    roles: ["lora_finetune", "full_finetune", "dpo_training"]
+    pod_template: "s3m-trainer-4090"
+
+  checkpoint_sync:
+    method: "rsync_ssh"
+    interval_minutes: 30
+    direction: "bidirectional"
+    paths:
+      gpu_checkpoints: "/workspace/s3m/checkpoints"
+      cpu_checkpoints: "/opt/s3m/state/training"
+      merged_models: "/opt/s3m/models/merged"
+
+  job_queue:
+    backend: "filesystem"  # filesystem | redis
+    queue_dir: "state/training/job_queue"
+    poll_interval_seconds: 30

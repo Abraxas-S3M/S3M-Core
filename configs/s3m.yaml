@@ -11,6 +11,9 @@ system:
   hardware_target: "NVIDIA Jetson AGX Orin 64GB"
   deployment_mode: "development"  # development | production | field
 
+training_mode: "hybrid"  # hybrid | gpu_only | cpu_only
+gpu_config: "configs/gpu_training.yaml"
+
 memory:
   total_budget_gb: 48
   headroom_gb: 16
@@ -63,3 +66,5 @@ gap_closure:
   logistics_twin: enabled
   mission_planner: enabled
   roe_checker: pre_commit
+  gpu_training: enabled
+  hybrid_orchestrator: enabled
