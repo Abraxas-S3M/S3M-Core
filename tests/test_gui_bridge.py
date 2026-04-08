@@ -137,6 +137,26 @@ class TestCommsWorkspace:
             msg = data["inbox"][0]
             assert all(k in msg for k in ("id", "from", "to", "subject", "body"))
 
+    def test_bearer_health_shape(self):
+        r = client.get(f"{BASE}/workspaces/communication/bearer-health")
+        assert r.status_code == 200
+        data = r.json()
+        assert "bearers" in data
+        assert "updatedAt" in data
+        if data["bearers"]:
+            bearer = data["bearers"][0]
+            assert all(k in bearer for k in ("type", "status", "signal", "latency"))
+
+    def test_degradation_advice_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/communication/degradation-advice",
+            json={"bearers": [{"type": "HF", "status": "degraded"}]},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "advice" in data
+        assert "updatedAt" in data
+
 
 class TestCyberWorkspace:
     def test_incidents_shape(self):
