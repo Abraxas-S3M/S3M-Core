@@ -189,7 +189,6 @@ def _install_mission_planner_stub(monkeypatch) -> None:
 
 
 def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
-    _install_gui_schema_stubs(monkeypatch)
     _install_cop_provider_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
     adapter = adapter_module.COPAdapter()
@@ -210,7 +209,6 @@ def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
 
 
 def test_cop_adapter_percent_and_domain_helpers(monkeypatch):
-    _install_gui_schema_stubs(monkeypatch)
     _install_cop_provider_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
 

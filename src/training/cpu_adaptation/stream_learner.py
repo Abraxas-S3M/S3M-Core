@@ -2,10 +2,54 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
-from typing import Dict, Optional, Sequence
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional, Sequence
 
 import numpy as np
+
+
+_FLEET_MAINTENANCE_LOG = Path("data/training/fleet_maintenance.jsonl")
+
+
+def log_fleet_maintenance_training_sample(
+    fleet_health: Optional[Dict[str, Any]] = None,
+    maintenance_outcomes: Optional[Sequence[Dict[str, Any]]] = None,
+    output_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    Append one sustainment training sample for CPU adaptation.
+
+    Tactical context: field snapshots of fleet readiness and maintenance outcomes
+    are preserved as local JSONL so edge-only adaptation can continue without
+    external service dependencies.
+    """
+
+    if fleet_health is not None and not isinstance(fleet_health, dict):
+        raise ValueError("fleet_health must be a dictionary when provided")
+
+    normalized_outcomes: list[Dict[str, Any]] = []
+    if maintenance_outcomes is not None:
+        if isinstance(maintenance_outcomes, (str, bytes)):
+            raise ValueError("maintenance_outcomes must be a sequence of dictionaries")
+        for outcome in maintenance_outcomes:
+            if not isinstance(outcome, dict):
+                raise ValueError("each maintenance outcome must be a dictionary")
+            normalized_outcomes.append(dict(outcome))
+
+    payload = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "fleetHealth": dict(fleet_health or {}),
+        "maintenanceOutcomes": normalized_outcomes,
+    }
+    target = output_path or _FLEET_MAINTENANCE_LOG
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, default=str))
+        handle.write("\n")
+    return payload
 
 
 @dataclass(frozen=True)

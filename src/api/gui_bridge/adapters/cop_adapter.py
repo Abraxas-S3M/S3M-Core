@@ -41,7 +41,9 @@ class COPAdapter:
                 summary=t.get("classification", t.get("type", "Unknown track")),
                 lastSeen=t.get("last_update", _now_iso()),
             ))
-        return GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        emit_training_record("cop", {"query": "tracks"}, result)
+        return result
 
     def get_threat_tracks(self) -> GUITracksData:
         """Threat-specific tracks from the threat dashboard provider."""
@@ -59,7 +61,45 @@ class COPAdapter:
                 summary=t.get("description", t.get("title", "")),
                 lastSeen=t.get("timestamp", _now_iso()),
             ))
-        return GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        emit_training_record("cop", {"query": "threat_tracks"}, result)
+        return result
+
+    def get_enriched_tracks(self) -> GUITracksData:
+        """Pull from OperationalPictureService for full track enrichment."""
+        try:
+            from src.runtime.operational_picture_service import OperationalPictureService
+
+            ops = OperationalPictureService()
+            picture = ops.get_picture() if hasattr(ops, "get_picture") else {}
+            picture_payload = self._normalize_picture_payload(picture)
+
+            gui_tracks: List[GUIThreatTrack] = []
+            track_index: Dict[str, GUIThreatTrack] = {}
+
+            for entity in picture_payload.get("entities", []):
+                if not isinstance(entity, dict):
+                    continue
+                track = self._build_track_from_picture_entity(entity)
+                gui_tracks.append(track)
+                track_index[track.id] = track
+
+            # Tactical integration point: prefer confirmed fused tracks for reliable kinematics.
+            for fused_track in self._get_confirmed_fused_tracks():
+                fused_gui = self._build_track_from_fused_track(fused_track)
+                existing = track_index.get(fused_gui.id)
+                if existing is None:
+                    gui_tracks.append(fused_gui)
+                    track_index[fused_gui.id] = fused_gui
+                else:
+                    self._merge_track_enrichment(existing, fused_gui)
+
+            if not gui_tracks:
+                return self.get_tracks()
+            updated_at = str(picture_payload.get("generated_at", _now_iso()))
+            return GUITracksData(tracks=gui_tracks, updatedAt=updated_at)
+        except Exception:
+            return self.get_tracks()
 
     def get_replay(self, start_time: str, end_time: str) -> List[dict]:
         """Return replay frames within a commander-selected time window."""
@@ -285,3 +325,278 @@ class COPAdapter:
         if v <= 1.0:
             return int(v * 100)
         return int(min(100, max(0, v)))
+
+    @staticmethod
+    def _normalize_picture_payload(picture: Any) -> Dict[str, Any]:
+        if isinstance(picture, dict):
+            return picture
+        if hasattr(picture, "to_dict"):
+            try:
+                payload = picture.to_dict()
+                if isinstance(payload, dict):
+                    return payload
+            except Exception:
+                return {}
+        if hasattr(picture, "model_dump"):
+            try:
+                payload = picture.model_dump()
+                if isinstance(payload, dict):
+                    return payload
+            except Exception:
+                return {}
+        return {}
+
+    def _build_track_from_picture_entity(self, entity: Dict[str, Any]) -> GUIThreatTrack:
+        track_id = str(entity.get("entity_id", entity.get("id", "UNKNOWN")))
+        domain = self._infer_domain({"type": entity.get("entity_type", entity.get("type", ""))})
+        confidence_raw = entity.get(
+            "doctrine_adjusted_confidence",
+            entity.get("raw_confidence", entity.get("confidence", 0.5)),
+        )
+        confidence = self._to_percent(confidence_raw)
+        severity = self._threat_to_severity(entity.get("threat_level", "unknown"), confidence_raw)
+        correlated = self._safe_str_list(entity.get("correlated_track_ids", entity.get("correlatedTrackIds", [])))
+        summary = str(entity.get("classification") or entity.get("entity_type") or "Unknown track")
+        last_seen = str(entity.get("last_updated", entity.get("timestamp", _now_iso())))
+
+        pos_x, pos_y, pos_z = self._extract_xyz(entity.get("position"))
+        latitude = longitude = altitude = None
+        if pos_x is not None and pos_y is not None:
+            latitude, longitude = self._grid_to_geo(pos_x, pos_y)
+        if pos_z is not None:
+            altitude = float(pos_z)
+
+        speed, heading = self._velocity_to_kinematics(
+            entity.get("velocity"),
+            entity.get("speed_mps"),
+            entity.get("heading_deg"),
+        )
+        identity_probs = self._build_identity_probabilities(
+            entity.get("allegiance"),
+            entity.get("identityProbabilities"),
+        )
+        source_attr = self._safe_str_list(entity.get("sourceAttribution", entity.get("sensor_sources", [])))
+        history = self._history_to_geo(entity.get("history", []))
+        action = self._recommended_action(domain, entity.get("threat_level", "unknown"), confidence)
+
+        return GUIThreatTrack(
+            id=track_id,
+            domain=domain,
+            confidence=confidence,
+            severity=severity,
+            correlatedTrackIds=correlated,
+            summary=summary,
+            lastSeen=last_seen,
+            latitude=latitude,
+            longitude=longitude,
+            altitude=altitude,
+            speed=speed,
+            heading=heading,
+            identityProbabilities=identity_probs,
+            sourceAttribution=source_attr or None,
+            trackHistory=history or None,
+            recommendedAction=action,
+        )
+
+    def _build_track_from_fused_track(self, track: Any) -> GUIThreatTrack:
+        track_data = track.to_dict() if hasattr(track, "to_dict") else (track if isinstance(track, dict) else {})
+        track_id = str(track_data.get("track_id", track_data.get("id", "UNKNOWN")))
+        classification = str(track_data.get("classification", "Fused tactical track") or "Fused tactical track")
+        domain = self._infer_domain({"type": classification})
+        confidence_raw = track_data.get("confidence", 0.5)
+        confidence = self._to_percent(confidence_raw)
+        severity = self._threat_to_severity(track_data.get("threat_level", "medium"), confidence_raw)
+        last_seen = str(track_data.get("last_update", _now_iso()))
+
+        pos_x, pos_y, pos_z = self._extract_xyz(track_data.get("position"))
+        latitude = longitude = altitude = None
+        if pos_x is not None and pos_y is not None:
+            latitude, longitude = self._grid_to_geo(pos_x, pos_y)
+        if pos_z is not None:
+            altitude = float(pos_z)
+
+        speed, heading = self._velocity_to_kinematics(track_data.get("velocity"), None, None)
+        sources = self._safe_str_list(track_data.get("sensor_sources", []))
+        history = self._history_to_geo(track_data.get("history", []))
+        action = self._recommended_action(domain, track_data.get("threat_level", "medium"), confidence)
+
+        return GUIThreatTrack(
+            id=track_id,
+            domain=domain,
+            confidence=confidence,
+            severity=severity,
+            correlatedTrackIds=[],
+            summary=classification,
+            lastSeen=last_seen,
+            latitude=latitude,
+            longitude=longitude,
+            altitude=altitude,
+            speed=speed,
+            heading=heading,
+            sourceAttribution=sources or None,
+            trackHistory=history or None,
+            recommendedAction=action,
+        )
+
+    def _get_confirmed_fused_tracks(self) -> List[Any]:
+        try:
+            from src.api import threat_routes
+
+            sensor_manager = getattr(threat_routes, "_sensor_manager", None)
+            fuser = getattr(sensor_manager, "_fuser", None)
+            if fuser is not None and hasattr(fuser, "get_confirmed_tracks"):
+                tracks = fuser.get_confirmed_tracks()
+                if isinstance(tracks, list):
+                    return tracks
+        except Exception:
+            pass
+
+        try:
+            from src.sensor_fusion.track_fuser import TrackFuser
+
+            fuser = TrackFuser()
+            tracks = fuser.get_confirmed_tracks()
+            return tracks if isinstance(tracks, list) else []
+        except Exception:
+            return []
+
+    def _merge_track_enrichment(self, base: GUIThreatTrack, enriched: GUIThreatTrack) -> None:
+        for key in ("latitude", "longitude", "altitude", "speed", "heading"):
+            if getattr(base, key) is None and getattr(enriched, key) is not None:
+                setattr(base, key, getattr(enriched, key))
+
+        if enriched.sourceAttribution:
+            merged_sources = set(base.sourceAttribution or [])
+            merged_sources.update(enriched.sourceAttribution)
+            base.sourceAttribution = sorted(merged_sources)
+
+        if enriched.trackHistory:
+            base.trackHistory = enriched.trackHistory
+
+        if not base.recommendedAction and enriched.recommendedAction:
+            base.recommendedAction = enriched.recommendedAction
+
+        if enriched.correlatedTrackIds:
+            merged_correlated = set(base.correlatedTrackIds or [])
+            merged_correlated.update(enriched.correlatedTrackIds)
+            base.correlatedTrackIds = sorted(merged_correlated)
+
+        base.confidence = max(base.confidence, enriched.confidence)
+        base.severity = max(base.severity, enriched.severity)
+
+    @staticmethod
+    def _extract_xyz(raw_position: Any) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+        if not isinstance(raw_position, (list, tuple)):
+            return None, None, None
+        if len(raw_position) < 2:
+            return None, None, None
+        try:
+            x = float(raw_position[0])
+            y = float(raw_position[1])
+            z = float(raw_position[2]) if len(raw_position) > 2 else None
+            return x, y, z
+        except Exception:
+            return None, None, None
+
+    @staticmethod
+    def _grid_to_geo(x_meters: float, y_meters: float) -> Tuple[float, float]:
+        # Tactical COP grids are mission-relative; convert to geodetic for map overlays.
+        base_lat = 24.7136
+        base_lon = 46.6753
+        meters_per_deg_lat = 111_320.0
+        meters_per_deg_lon = meters_per_deg_lat * max(0.1, cos(radians(base_lat)))
+        latitude = base_lat + (y_meters / meters_per_deg_lat)
+        longitude = base_lon + (x_meters / meters_per_deg_lon)
+        return round(latitude, 6), round(longitude, 6)
+
+    @staticmethod
+    def _velocity_to_kinematics(
+        velocity: Any,
+        speed_hint: Optional[Any],
+        heading_hint: Optional[Any],
+    ) -> Tuple[Optional[float], Optional[float]]:
+        if isinstance(velocity, (list, tuple)) and len(velocity) >= 2:
+            vx = float(velocity[0])
+            vy = float(velocity[1])
+            vz = float(velocity[2]) if len(velocity) > 2 else 0.0
+            speed = round(sqrt(vx * vx + vy * vy + vz * vz), 2)
+            heading = round((degrees(atan2(vy, vx)) + 360.0) % 360.0, 1)
+            return speed, heading
+
+        speed = round(float(speed_hint), 2) if speed_hint is not None else None
+        heading = round(float(heading_hint), 1) if heading_hint is not None else None
+        return speed, heading
+
+    def _history_to_geo(self, raw_history: Any) -> List[Dict[str, Any]]:
+        if not isinstance(raw_history, list):
+            return []
+        output: List[Dict[str, Any]] = []
+        for point in raw_history:
+            if not isinstance(point, dict):
+                continue
+            pos_x, pos_y, _ = self._extract_xyz(point.get("pos", point.get("position")))
+            if pos_x is None or pos_y is None:
+                continue
+            latitude, longitude = self._grid_to_geo(pos_x, pos_y)
+            output.append(
+                {
+                    "lat": latitude,
+                    "lon": longitude,
+                    "timestamp": str(point.get("ts", point.get("timestamp", _now_iso()))),
+                }
+            )
+        return output
+
+    @staticmethod
+    def _safe_str_list(raw_values: Any) -> List[str]:
+        if not isinstance(raw_values, list):
+            return []
+        return [str(v) for v in raw_values if str(v).strip()]
+
+    def _threat_to_severity(self, threat_level: Any, confidence: Any) -> int:
+        base_map = {
+            "critical": 95,
+            "high": 80,
+            "medium": 55,
+            "low": 30,
+            "unknown": 40,
+        }
+        normalized = str(threat_level or "unknown").lower()
+        base = base_map.get(normalized, 40)
+        conf_pct = self._to_percent(confidence)
+        return int(min(100, max(base, conf_pct)))
+
+    @staticmethod
+    def _build_identity_probabilities(
+        allegiance: Any,
+        provided: Any,
+    ) -> Dict[str, float]:
+        if isinstance(provided, dict):
+            try:
+                friendly = float(provided.get("friendly", 0.0))
+                hostile = float(provided.get("hostile", 0.0))
+                unknown = float(provided.get("unknown", 0.0))
+            except Exception:
+                friendly, hostile, unknown = 0.1, 0.1, 0.8
+        else:
+            friendly, hostile, unknown = 0.1, 0.1, 0.8
+            normalized = str(allegiance or "unknown").lower()
+            if normalized in {"friendly", "blue"}:
+                friendly, hostile, unknown = 0.8, 0.05, 0.15
+            elif normalized in {"hostile", "adversary", "red"}:
+                friendly, hostile, unknown = 0.05, 0.85, 0.1
+        total = max(1e-9, friendly + hostile + unknown)
+        return {
+            "friendly": round(max(0.0, friendly) / total, 3),
+            "hostile": round(max(0.0, hostile) / total, 3),
+            "unknown": round(max(0.0, unknown) / total, 3),
+        }
+
+    @staticmethod
+    def _recommended_action(domain: str, threat_level: Any, severity: int) -> str:
+        threat = str(threat_level or "unknown").lower()
+        if domain == "cyber":
+            return "Isolate affected network segment and maintain SIGINT monitoring posture."
+        if threat in {"critical", "high"} or severity >= 80:
+            return "Prioritize ISR cueing and maintain defensive intercept readiness."
+        return "Continue track custody and collect corroborating sensor evidence."

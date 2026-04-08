@@ -14,6 +14,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUITaskingItem,
     TaskingStatus,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -30,12 +31,82 @@ class SurveillanceAdapter:
         assets = self._build_assets()
         tasking = self._build_tasking()
         targets = self._build_targets()
-        return GUISurveillanceData(
+        result = GUISurveillanceData(
             assets=assets,
             taskingQueue=tasking,
             targetBoard=targets,
             updatedAt=_now_iso(),
         ).model_dump()
+        emit_training_record("surveillance", {"query": "assets"}, result)
+        return result
+
+    def get_collection_status(self) -> dict:
+        """Expose collection-manager status for tactical retasking decisions."""
+        try:
+            from src.apps.intel.intel_manager import IntelManager
+
+            mgr = IntelManager()
+            result = mgr.collect_and_analyze()
+            return {"collection": result, "updatedAt": _now_iso()}
+        except Exception:
+            return {"collection": {}, "updatedAt": _now_iso()}
+
+    def get_source_reliability(self) -> dict:
+        """Return source reliability grades to support confidence weighting."""
+        try:
+            from src.apps.intel.osint.source_manager import SourceManager
+
+            sm = SourceManager()
+            sources = sm.get_sources() if hasattr(sm, "get_sources") else []
+            return {
+                "sources": [s.model_dump() if hasattr(s, "model_dump") else s for s in sources],
+                "updatedAt": _now_iso(),
+            }
+        except Exception:
+            return {"sources": [], "updatedAt": _now_iso()}
+
+    def get_fusion_brief(self, region: str = "all") -> dict:
+        """Provide OSINT/ISR fused SITREP for commander surveillance context."""
+        try:
+            from src.apps.intel.intel_manager import IntelManager
+
+            mgr = IntelManager()
+            sitrep = mgr.generate_sitrep(region)
+            return {
+                "brief": sitrep.model_dump() if hasattr(sitrep, "model_dump") else {},
+                "updatedAt": _now_iso(),
+            }
+        except Exception:
+            return {"brief": {}, "updatedAt": _now_iso()}
+
+    def get_watchlists(self) -> dict:
+        """Entity watchlists for tactical surveillance triage and persistence."""
+        try:
+            from src.apps.intel.intel_manager import IntelManager
+
+            mgr = IntelManager()
+            items = mgr.search_intel("") if hasattr(mgr, "search_intel") else []
+            return {
+                "watchlists": {
+                    "persons": [],
+                    "organizations": [],
+                    "vessels": [],
+                    "vehicles": [],
+                    "sites": [],
+                },
+                "updatedAt": _now_iso(),
+            }
+        except Exception:
+            return {
+                "watchlists": {
+                    "persons": [],
+                    "organizations": [],
+                    "vessels": [],
+                    "vehicles": [],
+                    "sites": [],
+                },
+                "updatedAt": _now_iso(),
+            }
 
     def _build_assets(self):
         agents = self._cop.get_agents()
