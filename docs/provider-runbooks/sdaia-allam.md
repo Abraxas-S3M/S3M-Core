@@ -14,10 +14,10 @@ Jetson AGX Orin guidance:
 
 ## VRAM Budget Reference
 - ALLaM int8: 7 GB
-- Phi-3 int4: 4 GB
-- Mistral int4: 4 GB
-- Grok adapter overhead: bounded
-- Combined budget fits 64 GB Jetson AGX Orin mission profile.
+- Phi-3 Medium int4: 10 GB
+- Mixtral 8x7B int4: 28 GB
+- Grok-1 int4: 85 GB
+- Combined quad-engine Q4 budget: ~128 GB VRAM class runtime.
 
 ## Arabic Military Benchmark Suite
 - Summarization quality for Arabic tactical traffic

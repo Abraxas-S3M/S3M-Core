@@ -8,17 +8,17 @@ from src.llm_core.engine_registry import EngineID
 
 
 def test_engine_initialization():
-    engine = InferenceEngine(EngineID.PHI3)
-    assert engine.engine_id == EngineID.PHI3
+    engine = InferenceEngine(EngineID.PHI3_MEDIUM)
+    assert engine.engine_id == EngineID.PHI3_MEDIUM
     assert engine.loaded == False
-    assert engine.config.name == "Phi-3 Mini"
+    assert engine.config.name == "Phi-3 Medium"
     print("PASS: Engine initializes correctly")
 
 
 def test_health_check():
-    engine = InferenceEngine(EngineID.GROK)
+    engine = InferenceEngine(EngineID.GROK1)
     health = engine.health_check()
-    assert health["engine"] == "grok-8b"
+    assert health["engine"] == "grok1-314b"
     assert health["loaded"] == False
     assert "model_file_exists" in health
     assert "llama_cpp_available" in health
@@ -26,7 +26,7 @@ def test_health_check():
 
 
 def test_generate_without_model():
-    engine = InferenceEngine(EngineID.MISTRAL)
+    engine = InferenceEngine(EngineID.MIXTRAL)
     result = engine.generate("test prompt")
     assert "[ERROR]" in result.response
     assert result.tokens_generated == 0
@@ -43,17 +43,17 @@ def test_all_engines_initialize():
 
 def test_result_to_dict():
     result = InferenceResult(
-        engine_id=EngineID.PHI3,
+        engine_id=EngineID.PHI3_MEDIUM,
         prompt="test",
         response="test response",
         tokens_generated=10,
         prompt_tokens=5,
         latency_ms=100.0,
         tokens_per_second=100.0,
-        model_name="Phi-3 Mini",
+        model_name="Phi-3 Medium",
     )
     d = result.to_dict()
-    assert d["engine"] == "phi3-mini"
+    assert d["engine"] == "phi3-medium"
     assert d["tokens_generated"] == 10
     print("PASS: InferenceResult serializes to dict")
 

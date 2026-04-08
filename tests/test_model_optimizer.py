@@ -23,21 +23,21 @@ class TestModelOptimizer:
         """Total memory calculation."""
         all_engines = list(EngineID)
         total = optimizer.estimate_total_memory(all_engines)
-        # Phi3: 2.5 + Grok: 5.5 + Mistral: 5.2 + ALLaM: 5.0 = 18.2
-        assert 18.0 < total < 20.0
+        # Phi-3 Medium: 10 + Grok-1: 85 + Mixtral: 28 + ALLaM: 5 = 128
+        assert 128.0 <= total <= 130.0
 
     def test_allocate_edge_16gb(self, optimizer):
         """16GB edge device can fit Phi-3 only by profile policy."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_16GB.value)
         assert plan.is_feasible()
-        assert EngineID.PHI3 in plan.allocated_engines
+        assert EngineID.PHI3_MEDIUM in plan.allocated_engines
         assert len(plan.allocated_engines) == 1
 
     def test_allocate_edge_32gb(self, optimizer):
         """32GB edge device fits Phi-3 + 1 other by profile policy."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_32GB.value)
         assert plan.is_feasible()
-        assert EngineID.PHI3 in plan.allocated_engines
+        assert EngineID.PHI3_MEDIUM in plan.allocated_engines
         assert len(plan.allocated_engines) == 2
 
     def test_allocate_edge_64gb(self, optimizer):
@@ -55,8 +55,8 @@ class TestModelOptimizer:
     def test_validate_budget_fits(self, optimizer):
         """Validation passes for engines that fit."""
         budget = optimizer.validate_budget(
-            [EngineID.PHI3, EngineID.MISTRAL],
-            available_memory_gb=32.0,
+            [EngineID.PHI3_MEDIUM, EngineID.MIXTRAL],
+            available_memory_gb=40.0,
         )
         assert budget.fits
         assert budget.overage_gb == 0.0
@@ -74,7 +74,7 @@ class TestModelOptimizer:
         """Phi-3 is always in startup_engines."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_64GB.value)
         preload = optimizer.plan_preload(plan)
-        assert EngineID.PHI3 in preload.startup_engines
+        assert EngineID.PHI3_MEDIUM in preload.startup_engines
 
     def test_preload_plan_opportunistic(self, optimizer):
         """Some engines marked opportunistic."""
@@ -123,7 +123,7 @@ class TestModelOptimizer:
     def test_load_plan_has_all_categories(self, optimizer):
         """Load plan marks unallocated engines as NEVER_LOADED."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_16GB.value)
-        assert plan.load_plan[EngineID.PHI3] == LoadCategory.ALWAYS_LOADED
+        assert plan.load_plan[EngineID.PHI3_MEDIUM] == LoadCategory.ALWAYS_LOADED
         assert any(cat == LoadCategory.NEVER_LOADED for cat in plan.load_plan.values())
 
 

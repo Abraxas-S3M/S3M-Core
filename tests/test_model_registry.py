@@ -41,28 +41,28 @@ class TestModelRegistry:
 
     def test_register_artifact(self, temp_registry, temp_model_file):
         """Artifact registration works."""
-        artifact = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        artifact = temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
 
-        assert artifact.engine_id == "phi3-mini"
+        assert artifact.engine_id == "phi3-medium"
         assert artifact.status == "CLEAN"
         assert artifact.version_tag == "v1.0.0"
         assert artifact.sha256_hash
 
     def test_verify_clean_artifact(self, temp_registry, temp_model_file):
         """Clean artifact verifies successfully."""
-        temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
 
-        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3)
+        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3_MEDIUM)
         assert is_clean is True
         assert status == "CLEAN"
         assert reason is None
 
     def test_detect_missing_file(self, temp_registry, temp_model_file):
         """Missing file detected."""
-        artifact = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        artifact = temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
         Path(artifact.local_path).unlink()
 
-        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3)
+        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3_MEDIUM)
         assert is_clean is False
         assert status == "MISSING"
         assert reason is not None
@@ -70,11 +70,11 @@ class TestModelRegistry:
 
     def test_detect_hash_mismatch(self, temp_registry, temp_model_file):
         """Hash mismatch detected."""
-        temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
         Path(temp_model_file).write_bytes(b"different data")
 
         is_clean, status, reason = temp_registry.verify_artifact(
-            EngineID.PHI3,
+            EngineID.PHI3_MEDIUM,
             recompute=True,
         )
         assert is_clean is False
@@ -84,14 +84,14 @@ class TestModelRegistry:
 
     def test_stale_verification(self, temp_registry, temp_model_file):
         """Stale verification detected."""
-        artifact = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        artifact = temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
 
         old_time = (datetime.utcnow() - timedelta(days=35)).isoformat()
         artifact.last_verified_at = old_time
-        temp_registry.artifacts["phi3-mini"] = artifact
+        temp_registry.artifacts["phi3-medium"] = artifact
         temp_registry._save_registry()
 
-        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3)
+        is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3_MEDIUM)
         assert is_clean is False
         assert status == "STALE"
         assert reason is not None
@@ -99,7 +99,7 @@ class TestModelRegistry:
 
     def test_registry_status(self, temp_registry, temp_model_file):
         """Registry status calculation."""
-        temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
 
         status = temp_registry.list_registry_status()
         assert status.total_artifacts == 1
@@ -108,27 +108,27 @@ class TestModelRegistry:
 
     def test_version_increment(self, temp_registry, temp_model_file):
         """Version tags increment."""
-        artifact1 = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        artifact1 = temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
         assert artifact1.version_tag == "v1.0.0"
 
         Path(temp_model_file).write_bytes(b"new data")
-        artifact2 = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        artifact2 = temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
         assert artifact2.version_tag == "v1.0.1"
 
     def test_drift_detection(self, temp_registry, temp_model_file):
         """Drift detection works."""
-        temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
+        temp_registry.register_artifact(EngineID.PHI3_MEDIUM, temp_model_file)
 
-        drift1 = temp_registry.detect_drift(EngineID.PHI3)
+        drift1 = temp_registry.detect_drift(EngineID.PHI3_MEDIUM)
         assert drift1 is None
 
         Path(temp_model_file).write_bytes(b"modified")
-        drift2 = temp_registry.detect_drift(EngineID.PHI3, recompute=True)
+        drift2 = temp_registry.detect_drift(EngineID.PHI3_MEDIUM, recompute=True)
         assert drift2 is not None
 
     def test_unregistered_artifact(self, temp_registry):
         """Unregistered artifact detection."""
-        is_clean, status, reason = temp_registry.verify_artifact(EngineID.GROK)
+        is_clean, status, reason = temp_registry.verify_artifact(EngineID.GROK1)
         assert is_clean is False
         assert status == "UNREGISTERED"
         assert reason is not None

@@ -33,7 +33,7 @@ def test_domain_classification():
 
 def test_query_unloaded_engine():
     pool = EnginePool()
-    result = pool.query_engine(EngineID.PHI3, "test query")
+    result = pool.query_engine(EngineID.PHI3_MEDIUM, "test query")
     assert "[ERROR]" in result.response
     print("PASS: Unloaded engine returns error gracefully")
 

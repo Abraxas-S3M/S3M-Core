@@ -212,7 +212,7 @@ class HOOLAgent:
         ]
         models = ["yolov8n.onnx"] if self.companion.gpu_available else []
         if self.companion.llm_capable:
-            models.append("phi3-mini-int4.gguf")
+            models.append("phi3-medium-int4.gguf")
         est_mem = 1500.0 + (900.0 if self.companion.llm_capable else 200.0)
         return {
             "platform": self.platform_class.value,
