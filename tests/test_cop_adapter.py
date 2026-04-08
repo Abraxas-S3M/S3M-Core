@@ -6,6 +6,7 @@ import importlib
 import sys
 import types
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -27,8 +28,22 @@ def _install_gui_schema_stubs(monkeypatch):
         tracks: list[GUIThreatTrack]
         updatedAt: str
 
+    @dataclass
+    class GUIReplayFrame:
+        timestamp: str
+        tracks: list[GUIThreatTrack]
+
+    @dataclass
+    class GUIMissionLayer:
+        missionId: str
+        waypoints: list[dict[str, Any]]
+        phaseLines: list[dict[str, Any]]
+        objectives: list[dict[str, Any]]
+
     schema_mod.GUIThreatTrack = GUIThreatTrack
     schema_mod.GUITracksData = GUITracksData
+    schema_mod.GUIReplayFrame = GUIReplayFrame
+    schema_mod.GUIMissionLayer = GUIMissionLayer
     monkeypatch.setitem(sys.modules, "src.api.gui_bridge.models.gui_schemas", schema_mod)
     return schema_mod
 
@@ -80,6 +95,90 @@ def _reload_cop_adapter():
     return importlib.import_module("src.api.gui_bridge.adapters.cop_adapter")
 
 
+def _install_replay_stub(monkeypatch) -> None:
+    replay_harness_mod = types.ModuleType("src.validation.replay_harness")
+
+    class ReplayHarness:
+        pass
+
+    replay_harness_mod.ReplayHarness = ReplayHarness
+    monkeypatch.setitem(sys.modules, "src.validation.replay_harness", replay_harness_mod)
+
+    replay_recorder_mod = types.ModuleType("src.simulation.adapters.replay_recorder")
+
+    @dataclass
+    class ReplayArtifact:
+        replay_id: str
+        created_at: datetime
+
+    class SimulationState:
+        def __init__(self, ts: datetime, entities: list[dict[str, Any]]):
+            self.timestamp = ts
+            self._entities = entities
+
+        def to_dict(self) -> dict[str, Any]:
+            return {
+                "timestamp": self.timestamp.isoformat(),
+                "entities": self._entities,
+            }
+
+    class ReplayRecorder:
+        def list_replays(self) -> list[ReplayArtifact]:
+            return [
+                ReplayArtifact(
+                    replay_id="r-1",
+                    created_at=datetime(2026, 4, 4, 2, 0, tzinfo=timezone.utc),
+                )
+            ]
+
+        def load_replay(self, replay_id: str):
+            assert replay_id == "r-1"
+            return [
+                SimulationState(
+                    datetime(2026, 4, 4, 2, 5, tzinfo=timezone.utc),
+                    [
+                        {
+                            "entity_id": "EN-1",
+                            "entity_type": "ENEMY_UGV",
+                            "health": 0.72,
+                            "metadata": {"correlatedTrackIds": ["EN-2"]},
+                        },
+                        {
+                            "entity_id": "FR-1",
+                            "entity_type": "FRIENDLY_UGV",
+                            "health": 0.91,
+                        },
+                    ],
+                )
+            ]
+
+    replay_recorder_mod.ReplayRecorder = ReplayRecorder
+    monkeypatch.setitem(
+        sys.modules,
+        "src.simulation.adapters.replay_recorder",
+        replay_recorder_mod,
+    )
+
+
+def _install_mission_planner_stub(monkeypatch) -> None:
+    mission_mod = types.ModuleType("src.planning.mission_planner")
+
+    class MissionPlanner:
+        def get_missions(self) -> list[dict[str, Any]]:
+            return [
+                {
+                    "mission_id": "mission-123",
+                    "mission_type": "RECON",
+                    "status": "planned",
+                    "waypoints": [(0.0, 0.0, 10.0), (100.0, 50.0, 20.0)],
+                    "objectives": [{"id": "OBJ-A", "label": "observe target", "status": "planned"}],
+                }
+            ]
+
+    mission_mod.MissionPlanner = MissionPlanner
+    monkeypatch.setitem(sys.modules, "src.planning.mission_planner", mission_mod)
+
+
 def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
     _install_gui_schema_stubs(monkeypatch)
     _install_cop_provider_stub(monkeypatch)
@@ -110,3 +209,37 @@ def test_cop_adapter_percent_and_domain_helpers(monkeypatch):
     assert adapter_module.COPAdapter._to_percent(150) == 100
     assert adapter_module.COPAdapter._to_percent(-10) == 0
     assert adapter_module.COPAdapter._infer_domain({"type": "sigint relay"}) == "intel"
+
+
+def test_cop_adapter_get_replay_filters_window(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
+    _install_cop_provider_stub(monkeypatch)
+    _install_replay_stub(monkeypatch)
+    adapter_module = _reload_cop_adapter()
+    adapter = adapter_module.COPAdapter()
+
+    frames = adapter.get_replay(
+        start_time="2026-04-04T01:59:00+00:00",
+        end_time="2026-04-04T02:06:00+00:00",
+    )
+
+    assert len(frames) == 1
+    assert frames[0]["timestamp"] == "2026-04-04T02:05:00+00:00"
+    assert len(frames[0]["tracks"]) == 1
+    assert frames[0]["tracks"][0].id == "EN-1"
+    assert frames[0]["tracks"][0].confidence == 72
+
+
+def test_cop_adapter_get_mission_overlay(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
+    _install_cop_provider_stub(monkeypatch)
+    _install_mission_planner_stub(monkeypatch)
+    adapter_module = _reload_cop_adapter()
+    adapter = adapter_module.COPAdapter()
+
+    overlay = adapter.get_mission_overlay(mission_id="mission-123")
+
+    assert overlay["missionId"] == "mission-123"
+    assert len(overlay["waypoints"]) == 2
+    assert len(overlay["phaseLines"]) == 1
+    assert overlay["objectives"][0]["id"] == "OBJ-A"

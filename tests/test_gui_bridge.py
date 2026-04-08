@@ -65,6 +65,31 @@ class TestCOPWorkspace:
         data = r.json()
         assert "tracks" in data
 
+    def test_replay_shape(self):
+        r = client.get(
+            f"{BASE}/workspaces/cop/replay",
+            params={
+                "start_time": "2026-01-01T00:00:00+00:00",
+                "end_time": "2026-12-31T23:59:59+00:00",
+            },
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert isinstance(data, list)
+        if data:
+            frame = data[0]
+            assert "timestamp" in frame
+            assert "tracks" in frame
+
+    def test_mission_layer_shape(self):
+        r = client.get(f"{BASE}/workspaces/cop/mission-layer")
+        assert r.status_code == 200
+        data = r.json()
+        assert "missionId" in data
+        assert "waypoints" in data
+        assert "phaseLines" in data
+        assert "objectives" in data
+
 
 class TestDecisionsWorkspace:
     def test_queue_shape(self):
