@@ -5,6 +5,7 @@ workspaces can consume a stable API contract.
 """
 
 from .decision_adapter import DecisionAdapter
+from .agent_adapter import AgentAdapter
 from .risk_adapter import RiskAdapter
 
-__all__ = ["DecisionAdapter", "RiskAdapter"]
+__all__ = ["DecisionAdapter", "AgentAdapter", "RiskAdapter"]

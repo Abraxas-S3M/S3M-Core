@@ -50,6 +50,50 @@ class TestCommandWorkspace:
         assert "events" in data
         assert "updatedAt" in data
 
+    def test_agents_shape(self):
+        r = client.get(f"{BASE}/workspaces/command/agents")
+        assert r.status_code == 200
+        data = r.json()
+        assert "agents" in data
+        assert isinstance(data["agents"], list)
+        if data["agents"]:
+            agent = data["agents"][0]
+            assert all(
+                k in agent
+                for k in ("id", "name", "role", "status", "health", "function")
+            )
+
+    def test_agent_detail_shape(self):
+        list_resp = client.get(f"{BASE}/workspaces/command/agents")
+        assert list_resp.status_code == 200
+        agents = list_resp.json().get("agents", [])
+        assert agents
+        agent_id = agents[0]["id"]
+        detail_resp = client.get(f"{BASE}/workspaces/command/agents/{agent_id}")
+        assert detail_resp.status_code == 200
+        detail = detail_resp.json()
+        assert "agent" in detail
+        assert "logs" in detail
+
+    def test_program_agent_returns_status(self):
+        list_resp = client.get(f"{BASE}/workspaces/command/agents")
+        assert list_resp.status_code == 200
+        agents = list_resp.json().get("agents", [])
+        assert agents
+        agent_id = agents[0]["id"]
+        r = client.post(
+            f"{BASE}/workspaces/command/agents/{agent_id}/program",
+            json={
+                "agentId": agent_id,
+                "instructions": "Hold pattern over route alpha.",
+                "language": "EN",
+            },
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "accepted"
+        assert data["agentId"] == agent_id
+
 
 class TestCOPWorkspace:
     def test_tracks_shape(self):

@@ -103,6 +103,23 @@ class GUIOperationalContextData(GUIBaseModel):
     updatedAt: str
 
 
+class GUIAgent(GUIBaseModel):
+    id: str
+    name: str
+    role: str  # SCOUT, SUPPLY, SIM, CYBER
+    status: str  # active, idle, error
+    health: int = Field(ge=0, le=100)
+    currentTask: Optional[str] = None
+    function: str
+    uptime: Optional[str] = None
+
+
+class GUIAgentProgramRequest(GUIBaseModel):
+    agentId: str
+    instructions: str
+    language: str = "EN"
+
+
 # -- Risk (RiskData) ------------------------------------------
 
 

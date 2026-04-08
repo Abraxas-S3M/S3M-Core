@@ -4,11 +4,12 @@ Each route instantiates an adapter singleton and delegates to it.
 Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from pydantic import BaseModel
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
+from src.api.gui_bridge.adapters.agent_adapter import AgentAdapter
 from src.api.gui_bridge.adapters.decision_adapter import DecisionAdapter
 from src.api.gui_bridge.adapters.risk_adapter import RiskAdapter
 from src.api.gui_bridge.adapters.cop_adapter import COPAdapter
@@ -19,11 +20,13 @@ from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
 from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
 from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
+from src.api.gui_bridge.models.gui_schemas import GUIAgentProgramRequest
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
 # ── Adapter singletons ──────────────────────────────────────
 _command = CommandAdapter()
+_agent = AgentAdapter()
 _decisions = DecisionAdapter()
 _risk = RiskAdapter()
 _cop = COPAdapter()
@@ -53,6 +56,38 @@ async def get_timeline_events(
     limit: int = Query(50, ge=1, le=500),
 ):
     return _command.get_timeline_events(category=category, limit=limit).model_dump()
+
+
+@workspace_router.get("/command/agents")
+async def get_agents():
+    agents = _agent.get_agents()
+    return {"agents": [a.model_dump() for a in agents]}
+
+
+@workspace_router.get("/command/agents/{agent_id}")
+async def get_agent_detail(agent_id: str):
+    try:
+        return _agent.get_agent_detail(agent_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Agent not found") from exc
+
+
+@workspace_router.post("/command/agents/{agent_id}/program")
+async def program_agent(agent_id: str, payload: GUIAgentProgramRequest):
+    if payload.agentId != agent_id:
+        raise HTTPException(status_code=422, detail="agentId in body must match path agent_id")
+    try:
+        return _agent.program_agent(
+            agent_id=agent_id,
+            instructions=payload.instructions,
+            language=payload.language,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Agent not found") from exc
 
 
 # ── COP ─────────────────────────────────────────────────────
