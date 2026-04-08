@@ -24,6 +24,15 @@ def _install_gui_schema_stubs(monkeypatch):
         correlatedTrackIds: list[str]
         summary: str
         lastSeen: str
+        latitude: float | None = None
+        longitude: float | None = None
+        altitude: float | None = None
+        speed: float | None = None
+        heading: float | None = None
+        identityProbabilities: dict[str, float] | None = None
+        sourceAttribution: list[str] | None = None
+        trackHistory: list[dict[str, Any]] | None = None
+        recommendedAction: str | None = None
 
     @dataclass
     class GUITracksData:
@@ -288,3 +297,23 @@ def test_cop_adapter_get_mission_overlay(monkeypatch):
     assert len(overlay["waypoints"]) == 2
     assert len(overlay["phaseLines"]) == 1
     assert overlay["objectives"][0]["id"] == "OBJ-A"
+
+
+def test_cop_adapter_enriched_tracks_populate_identity_probabilities(monkeypatch):
+    _install_cop_provider_stub(monkeypatch)
+    _install_operational_picture_stub(monkeypatch)
+    bridge_cls = _install_stonesoup_bridge_stub(monkeypatch)
+    adapter_module = _reload_cop_adapter()
+    adapter = adapter_module.COPAdapter()
+    adapter._get_confirmed_fused_tracks = lambda: []
+
+    enriched = adapter.get_enriched_tracks()
+
+    assert len(enriched.tracks) == 1
+    assert enriched.tracks[0].id == "TH-42"
+    assert enriched.tracks[0].identityProbabilities == {
+        "friendly": 0.1,
+        "hostile": 0.8,
+        "unknown": 0.1,
+    }
+    assert "TH-42" in bridge_cls.requested_track_ids

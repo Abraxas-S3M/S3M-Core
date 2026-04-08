@@ -91,10 +91,12 @@ class COPAdapter:
         """Pull from OperationalPictureService for full track enrichment."""
         try:
             from src.runtime.operational_picture_service import OperationalPictureService
+            from src.sensor_fusion.stone_soup_bridge import StoneSoupBridge
 
             ops = OperationalPictureService()
             picture = ops.get_picture() if hasattr(ops, "get_picture") else {}
             picture_payload = self._normalize_picture_payload(picture)
+            stone_soup_bridge = StoneSoupBridge()
 
             gui_tracks: List[GUIThreatTrack] = []
             track_index: Dict[str, GUIThreatTrack] = {}
@@ -115,6 +117,16 @@ class COPAdapter:
                     track_index[fused_gui.id] = fused_gui
                 else:
                     self._merge_track_enrichment(existing, fused_gui)
+
+            for track in gui_tracks:
+                base_probabilities = getattr(track, "identityProbabilities", None)
+                association_confidence = float(track.confidence) / 100.0 if track.confidence is not None else 0.0
+                stone_soup_bridge.set_track_context(
+                    track.id,
+                    identity_hypotheses=base_probabilities if isinstance(base_probabilities, dict) else None,
+                    association_confidence=association_confidence,
+                )
+                track.identityProbabilities = stone_soup_bridge.get_identity_probabilities(track.id)
 
             if not gui_tracks:
                 return self.get_tracks()

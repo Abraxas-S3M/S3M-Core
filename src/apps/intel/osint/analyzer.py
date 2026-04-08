@@ -260,6 +260,109 @@ class OSINTAnalyzer:
             )
         return sorted(out, key=lambda r: r["confidence"], reverse=True)
 
+    def semantic_cross_reference(self, items: list[OSINTItem], top_k: int = 5) -> list[dict]:
+        """Correlate semantically similar OSINT items across independent sources."""
+        if not isinstance(items, list):
+            raise ValueError("items must be a list of OSINTItem")
+        if not isinstance(top_k, int) or top_k <= 0:
+            raise ValueError("top_k must be a positive integer")
+        if len(items) < 2:
+            return []
+
+        rows = []
+        for item in items:
+            text = " ".join(
+                [
+                    item.title,
+                    item.content,
+                    item.summary or "",
+                    " ".join(item.topics),
+                    " ".join(item.regions),
+                    " ".join(str(ent.get("value", "")) for ent in item.entities),
+                ]
+            ).strip()
+            if not text:
+                continue
+            rows.append({"item": item, "text": text})
+        if len(rows) < 2:
+            return []
+
+        try:
+            from src.memory.embedding_utils import generate_embeddings
+            from src.memory.vector_store import FaissVectorStore
+
+            corpus = [row["text"] for row in rows]
+            embeddings = generate_embeddings(corpus)
+            store = FaissVectorStore(dimension=int(embeddings.shape[1]))
+            row_by_id = {}
+            for index, row in enumerate(rows):
+                item_id = row["item"].item_id
+                row_by_id[item_id] = row
+                store.add(item_id, embeddings[index])
+
+            pair_scores: dict[tuple[str, str], float] = {}
+            for index, row in enumerate(rows):
+                src_item = row["item"]
+                neighbors = store.search(embeddings[index], top_k=min(top_k + 1, len(rows)))
+                for neighbor in neighbors:
+                    dst_id = str(neighbor.get("id", ""))
+                    if not dst_id or dst_id == src_item.item_id:
+                        continue
+                    pair = tuple(sorted((src_item.item_id, dst_id)))
+                    score = float(neighbor.get("score", 0.0))
+                    if score <= 0.0:
+                        continue
+                    pair_scores[pair] = max(score, pair_scores.get(pair, 0.0))
+
+            linked: list[dict] = []
+            for (left_id, right_id), score in sorted(
+                pair_scores.items(), key=lambda item: item[1], reverse=True
+            )[:top_k]:
+                left_item = row_by_id[left_id]["item"]
+                right_item = row_by_id[right_id]["item"]
+                linked.append(
+                    {
+                        "item_a": left_id,
+                        "item_b": right_id,
+                        "source_a": left_item.source_id,
+                        "source_b": right_item.source_id,
+                        "semantic_score": round(score, 4),
+                        "shared_topics": sorted(set(left_item.topics) & set(right_item.topics)),
+                        "shared_regions": sorted(set(left_item.regions) & set(right_item.regions)),
+                    }
+                )
+            return linked
+        except Exception:
+            # Tactical continuity: lexical overlap fallback preserves cross-source triage.
+            scored: list[dict] = []
+            for i, left in enumerate(rows):
+                left_tokens = set(re.findall(r"[a-z0-9_]+", left["text"].lower()))
+                for right in rows[i + 1 :]:
+                    right_tokens = set(re.findall(r"[a-z0-9_]+", right["text"].lower()))
+                    union = left_tokens | right_tokens
+                    if not union:
+                        continue
+                    score = len(left_tokens & right_tokens) / len(union)
+                    if score <= 0.0:
+                        continue
+                    scored.append(
+                        {
+                            "item_a": left["item"].item_id,
+                            "item_b": right["item"].item_id,
+                            "source_a": left["item"].source_id,
+                            "source_b": right["item"].source_id,
+                            "semantic_score": round(float(score), 4),
+                            "shared_topics": sorted(
+                                set(left["item"].topics) & set(right["item"].topics)
+                            ),
+                            "shared_regions": sorted(
+                                set(left["item"].regions) & set(right["item"].regions)
+                            ),
+                        }
+                    )
+            scored.sort(key=lambda row: row["semantic_score"], reverse=True)
+            return scored[:top_k]
+
     @staticmethod
     def recent_within(items: list[OSINTItem], hours: int = 24) -> list[OSINTItem]:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)

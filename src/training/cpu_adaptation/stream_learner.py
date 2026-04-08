@@ -12,6 +12,7 @@ import numpy as np
 
 
 _FLEET_MAINTENANCE_LOG = Path("data/training/fleet_maintenance.jsonl")
+_EMBEDDING_STREAM_LOG = Path("data/training/embedding_stream.jsonl")
 
 
 def log_fleet_maintenance_training_sample(
@@ -45,6 +46,42 @@ def log_fleet_maintenance_training_sample(
         "maintenanceOutcomes": normalized_outcomes,
     }
     target = output_path or _FLEET_MAINTENANCE_LOG
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, default=str))
+        handle.write("\n")
+    return payload
+
+
+def log_embedding_training_sample(
+    sample_id: str,
+    embedding: Sequence[float],
+    metadata: Optional[Dict[str, Any]] = None,
+    output_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    Append one semantic embedding sample for CPU adaptation.
+
+    Tactical context: every semantic retrieval vector and its mission metadata is
+    captured locally so adaptation pipelines can learn from field observations.
+    """
+    if not isinstance(sample_id, str) or not sample_id.strip():
+        raise ValueError("sample_id must be a non-empty string")
+    if not isinstance(embedding, Sequence) or isinstance(embedding, (str, bytes)):
+        raise ValueError("embedding must be a numeric sequence")
+    vector = np.asarray(embedding, dtype=np.float32).reshape(-1)
+    if vector.size == 0:
+        raise ValueError("embedding must contain at least one value")
+    if metadata is not None and not isinstance(metadata, dict):
+        raise ValueError("metadata must be a dictionary when provided")
+
+    payload = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "sampleId": sample_id.strip(),
+        "embedding": vector.tolist(),
+        "metadata": dict(metadata or {}),
+    }
+    target = output_path or _EMBEDDING_STREAM_LOG
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, default=str))
