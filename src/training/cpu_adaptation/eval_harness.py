@@ -35,7 +35,7 @@ class CPUEvaluationHarness:
     Run quality gates after CPU training or quantization.
 
     Usage:
-        harness = CPUEvaluationHarness(model_id="phi3-mini")
+        harness = CPUEvaluationHarness(model_id="phi3-medium")
         report = harness.run_all(backend=my_backend, test_prompts=prompts)
         if not report.passed:
             raise RuntimeError(f"Quality gate failed: {report.violations}")
@@ -123,7 +123,7 @@ class CPUEvaluationHarness:
         Discard first 3 warm-up calls.
         Compare against thresholds from model manifest.
         Research benchmarks (MedLocalGPT):
-          phi3-mini: ~40 tok/s on modern CPU
+          phi3-medium: ~40 tok/s on modern CPU
           7B class: ~15-45 tok/s depending on CPU
         """
         durations_ms: list[float] = []
@@ -181,7 +181,7 @@ class CPUEvaluationHarness:
         """
         Measure RSS before load, after load, during inference, after unload.
         Research benchmarks:
-          phi3-mini 4-bit: ~2.5 GB
+          phi3-medium 4-bit: ~2.5 GB
           7B 4-bit: ~4.0 GB
           12B 4-bit: ~7.0 GB
         """

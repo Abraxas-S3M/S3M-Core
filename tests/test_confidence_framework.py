@@ -35,12 +35,12 @@ class TestConfidenceFrameworkCore:
                 "This is a complete response."
             ),
             "routing_certainty": 0.85,
-            "engine_health": {"phi3-mini": "HEALTHY", "grok-8b": "HEALTHY"},
+            "engine_health": {"phi3-medium": "HEALTHY", "grok1-314b": "HEALTHY"},
             "engine_responses": {
-                "phi3-mini": "42 based reasoning",
-                "grok-8b": "42 based reasoning",
+                "phi3-medium": "42 based reasoning",
+                "grok1-314b": "42 based reasoning",
             },
-            "selected_engines": ["phi3-mini", "grok-8b"],
+            "selected_engines": ["phi3-medium", "grok1-314b"],
             "failover_used": False,
             "model_drift_detected": False,
         }
@@ -55,8 +55,8 @@ class TestConfidenceFrameworkCore:
     def test_medium_confidence_review(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
         inputs["routing_certainty"] = 0.70
-        inputs["engine_health"] = {"phi3-mini": "HEALTHY", "grok-8b": "DEGRADED"}
-        inputs["engine_responses"] = {"phi3-mini": "Answer A", "grok-8b": "Answer B"}
+        inputs["engine_health"] = {"phi3-medium": "HEALTHY", "grok1-314b": "DEGRADED"}
+        inputs["engine_responses"] = {"phi3-medium": "Answer A", "grok1-314b": "Answer B"}
         score = framework.score_decision(**inputs)
         assert REVIEW_THRESHOLD <= score.confidence_score < ACCEPT_THRESHOLD
         assert score.review_status == ReviewStatus.REVIEW.value
@@ -64,8 +64,8 @@ class TestConfidenceFrameworkCore:
     def test_low_confidence_reject(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
         inputs["routing_certainty"] = 0.40
-        inputs["engine_health"] = {"phi3-mini": "DEGRADED", "grok-8b": "UNAVAILABLE"}
-        inputs["engine_responses"] = {"phi3-mini": "unclear", "grok-8b": ""}
+        inputs["engine_health"] = {"phi3-medium": "DEGRADED", "grok1-314b": "UNAVAILABLE"}
+        inputs["engine_responses"] = {"phi3-medium": "unclear", "grok1-314b": ""}
         inputs["failover_used"] = True
         inputs["model_drift_detected"] = True
         score = framework.score_decision(**inputs)
@@ -98,7 +98,7 @@ class TestConfidenceFrameworkCore:
 
     def test_low_health_penalty(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
-        inputs["engine_health"] = {"phi3-mini": "UNAVAILABLE", "grok-8b": "DEGRADED"}
+        inputs["engine_health"] = {"phi3-medium": "UNAVAILABLE", "grok1-314b": "DEGRADED"}
         score = framework.score_decision(**inputs)
         assert score.factors.engine_health < 0.7
         assert any("health" in penalty.lower() for penalty in score.penalties_applied)
@@ -106,8 +106,8 @@ class TestConfidenceFrameworkCore:
     def test_disagreement_penalty(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
         inputs["engine_responses"] = {
-            "phi3-mini": "Answer is definitely A for these reasons",
-            "grok-8b": "Answer is definitely B for different reasons",
+            "phi3-medium": "Answer is definitely A for these reasons",
+            "grok1-314b": "Answer is definitely B for different reasons",
         }
         score = framework.score_decision(**inputs)
         if score.factors.agreement_strength < 0.6:
@@ -141,16 +141,16 @@ class TestConfidenceFrameworkCore:
             response_text="The answer is 42.",
             routing_certainty=0.85,
             engine_health={
-                "phi3-mini": "HEALTHY",
-                "grok-8b": "HEALTHY",
-                "mistral-7b": "HEALTHY",
+                "phi3-medium": "HEALTHY",
+                "grok1-314b": "HEALTHY",
+                "mixtral-8x7b": "HEALTHY",
             },
             engine_responses={
-                "phi3-mini": "The answer is 42.",
-                "grok-8b": "The answer is 42.",
-                "mistral-7b": "The answer is 42.",
+                "phi3-medium": "The answer is 42.",
+                "grok1-314b": "The answer is 42.",
+                "mixtral-8x7b": "The answer is 42.",
             },
-            selected_engines=["phi3-mini", "grok-8b", "mistral-7b"],
+            selected_engines=["phi3-medium", "grok1-314b", "mixtral-8x7b"],
         )
         assert score.factors.agreement_strength > 0.85
 
@@ -158,9 +158,9 @@ class TestConfidenceFrameworkCore:
         score = framework.score_decision(
             response_text="Good response.",
             routing_certainty=0.85,
-            engine_health={"phi3-mini": "HEALTHY", "grok-8b": "DEGRADED"},
-            engine_responses={"phi3-mini": "response", "grok-8b": "response"},
-            selected_engines=["phi3-mini", "grok-8b"],
+            engine_health={"phi3-medium": "HEALTHY", "grok1-314b": "DEGRADED"},
+            engine_responses={"phi3-medium": "response", "grok1-314b": "response"},
+            selected_engines=["phi3-medium", "grok1-314b"],
         )
         assert 0.7 <= score.factors.engine_health <= 1.0
 
@@ -168,9 +168,9 @@ class TestConfidenceFrameworkCore:
         score_short = framework.score_decision(
             response_text="Yes.",
             routing_certainty=0.85,
-            engine_health={"phi3-mini": "HEALTHY"},
-            engine_responses={"phi3-mini": "Yes."},
-            selected_engines=["phi3-mini"],
+            engine_health={"phi3-medium": "HEALTHY"},
+            engine_responses={"phi3-medium": "Yes."},
+            selected_engines=["phi3-medium"],
         )
         score_long = framework.score_decision(
             response_text=(
@@ -178,9 +178,9 @@ class TestConfidenceFrameworkCore:
                 "Multiple factors contribute. This is well-explained."
             ),
             routing_certainty=0.85,
-            engine_health={"phi3-mini": "HEALTHY"},
-            engine_responses={"phi3-mini": "detailed response"},
-            selected_engines=["phi3-mini"],
+            engine_health={"phi3-medium": "HEALTHY"},
+            engine_responses={"phi3-medium": "detailed response"},
+            selected_engines=["phi3-medium"],
         )
         assert (
             score_long.factors.response_completeness
@@ -229,9 +229,9 @@ class TestConfidenceInputValidation:
         input_obj = ConfidenceInput(
             response_text="response",
             routing_certainty=1.5,
-            engine_health={"phi3-mini": "HEALTHY"},
-            engine_responses={"phi3-mini": "response"},
-            selected_engines=["phi3-mini"],
+            engine_health={"phi3-medium": "HEALTHY"},
+            engine_responses={"phi3-medium": "response"},
+            selected_engines=["phi3-medium"],
             failover_used=False,
             model_drift_detected=False,
         )
@@ -243,9 +243,9 @@ class TestConfidenceInputValidation:
         input_obj = ConfidenceInput(
             response_text="response",
             routing_certainty=0.85,
-            engine_health={"phi3-mini": "INVALID"},
-            engine_responses={"phi3-mini": "response"},
-            selected_engines=["phi3-mini"],
+            engine_health={"phi3-medium": "INVALID"},
+            engine_responses={"phi3-medium": "response"},
+            selected_engines=["phi3-medium"],
             failover_used=False,
             model_drift_detected=False,
         )
@@ -256,8 +256,8 @@ class TestConfidenceInputValidation:
         input_obj = ConfidenceInput(
             response_text="response",
             routing_certainty=0.85,
-            engine_health={"phi3-mini": "HEALTHY"},
-            engine_responses={"phi3-mini": "response"},
+            engine_health={"phi3-medium": "HEALTHY"},
+            engine_responses={"phi3-medium": "response"},
             selected_engines=[],
             failover_used=False,
             model_drift_detected=False,

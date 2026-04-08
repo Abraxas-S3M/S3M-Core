@@ -1,4 +1,4 @@
-model_id: "mistral-7b"
+model_id: "mixtral-8x7b"
 provider: "Mistral AI"
 family: "Mistral"
 parameters: "7B"
@@ -6,7 +6,7 @@ parameters: "7B"
 variants:
   - tag: "q4_k_m"
     runtime_format: "gguf"
-    file: "models/mistral-7b-q4_k_m.gguf"
+    file: "models/mixtral-8x7b-q4_k_m.gguf"
     size_mb: 4300
     max_ram_mb: 6144
     cpu_tokens_per_sec: 8.0
@@ -15,7 +15,7 @@ variants:
     max_context: 8192
   - tag: "q8_0"
     runtime_format: "gguf"
-    file: "models/mistral-7b-q8_0.gguf"
+    file: "models/mixtral-8x7b-q8_0.gguf"
     size_mb: 6200
     max_ram_mb: 8192
     cpu_tokens_per_sec: 5.0
@@ -24,7 +24,7 @@ variants:
     max_context: 8192
   - tag: "onnx-int8"
     runtime_format: "onnx"
-    file: "models/mistral-7b-int8.onnx"
+    file: "models/mixtral-8x7b-int8.onnx"
     size_mb: 5900
     max_ram_mb: 7168
     cpu_tokens_per_sec: 7.0
@@ -33,7 +33,7 @@ variants:
     max_context: 8192
   - tag: "openvino-int8"
     runtime_format: "openvino"
-    file: "models/mistral-7b-int8-ov/"
+    file: "models/mixtral-8x7b-int8-ov/"
     size_mb: 5600
     max_ram_mb: 6656
     cpu_tokens_per_sec: 9.0
@@ -42,7 +42,7 @@ variants:
     max_context: 8192
   - tag: "fp16"
     runtime_format: "gguf"
-    file: "models/mistral-7b-fp16.gguf"
+    file: "models/mixtral-8x7b-fp16.gguf"
     size_mb: 14500
     max_ram_mb: 20480
     cpu_tokens_per_sec: 1.8

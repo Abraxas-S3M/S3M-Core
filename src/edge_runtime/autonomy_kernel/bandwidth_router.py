@@ -60,8 +60,8 @@ class BandwidthRouter:
     }
 
     MODEL_MAP: Dict[BandwidthTier, str] = {
-        BandwidthTier.FULL: "mistral-7b-q4",
-        BandwidthTier.MEDIUM: "phi3-mini-q4",
+        BandwidthTier.FULL: "mixtral-8x7b-q4",
+        BandwidthTier.MEDIUM: "phi3-medium-q4",
         BandwidthTier.LOW: "distilled-1b-q8",
         BandwidthTier.ZERO: "rule_based_fallback",
     }

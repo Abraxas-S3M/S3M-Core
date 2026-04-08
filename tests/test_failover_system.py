@@ -28,37 +28,37 @@ class TestFailoverSystem:
 
     def test_single_failure_degrades(self, failover: FailoverSystem) -> None:
         """First failure should move engine to degraded posture."""
-        failover.mark_failure(EngineID.PHI3, "timeout")
-        assert failover.health[EngineID.PHI3].state == HealthState.DEGRADED
+        failover.mark_failure(EngineID.PHI3_MEDIUM, "timeout")
+        assert failover.health[EngineID.PHI3_MEDIUM].state == HealthState.DEGRADED
 
     def test_multiple_failures_trip_circuit(self, failover: FailoverSystem) -> None:
         """Three close failures must trip circuit above weighted threshold."""
         for i in range(3):
-            failover.mark_failure(EngineID.GROK, f"failure_{i}")
-        assert failover.health[EngineID.GROK].state == HealthState.UNAVAILABLE
-        assert failover.should_trip_circuit(EngineID.GROK)
+            failover.mark_failure(EngineID.GROK1, f"failure_{i}")
+        assert failover.health[EngineID.GROK1].state == HealthState.UNAVAILABLE
+        assert failover.should_trip_circuit(EngineID.GROK1)
 
     def test_recovery_after_cooldown(self, failover: FailoverSystem) -> None:
         """Unavailable engine transitions through warming and recovers on success."""
         for i in range(3):
-            failover.mark_failure(EngineID.MISTRAL, f"failure_{i}")
-        assert failover.health[EngineID.MISTRAL].state == HealthState.UNAVAILABLE
+            failover.mark_failure(EngineID.MIXTRAL, f"failure_{i}")
+        assert failover.health[EngineID.MIXTRAL].state == HealthState.UNAVAILABLE
 
-        failover.health[EngineID.MISTRAL].circuit_open_time = datetime.utcnow() - timedelta(
+        failover.health[EngineID.MIXTRAL].circuit_open_time = datetime.utcnow() - timedelta(
             seconds=65
         )
-        assert not failover.should_trip_circuit(EngineID.MISTRAL)
-        assert failover.health[EngineID.MISTRAL].state == HealthState.WARMING
+        assert not failover.should_trip_circuit(EngineID.MIXTRAL)
+        assert failover.health[EngineID.MIXTRAL].state == HealthState.WARMING
 
-        failover.mark_success(EngineID.MISTRAL)
-        assert failover.health[EngineID.MISTRAL].state == HealthState.HEALTHY
+        failover.mark_success(EngineID.MIXTRAL)
+        assert failover.health[EngineID.MIXTRAL].state == HealthState.HEALTHY
 
     def test_healthy_engines_excludes_unavailable(self, failover: FailoverSystem) -> None:
         """Unavailable engine must never be listed as healthy candidate."""
         for _ in range(3):
-            failover.mark_failure(EngineID.PHI3, "down")
+            failover.mark_failure(EngineID.PHI3_MEDIUM, "down")
         healthy = failover.get_healthy_engines()
-        assert EngineID.PHI3 not in healthy
+        assert EngineID.PHI3_MEDIUM not in healthy
         assert len(healthy) == 3
 
     def test_failover_mode_full_quad(self, failover: FailoverSystem) -> None:
@@ -75,7 +75,7 @@ class TestFailoverSystem:
 
     def test_failover_mode_single_tactical(self, failover: FailoverSystem) -> None:
         """One available engine maps to single tactical posture."""
-        for engine_id in [EngineID.PHI3, EngineID.GROK, EngineID.MISTRAL]:
+        for engine_id in [EngineID.PHI3_MEDIUM, EngineID.GROK1, EngineID.MIXTRAL]:
             for _ in range(3):
                 failover.mark_failure(engine_id, "down")
         _, mode = failover.get_available_engines_by_mode()
@@ -99,12 +99,12 @@ class TestFailoverSystem:
 
     def test_failure_audit_trail_records_events(self, failover: FailoverSystem) -> None:
         """Every failure should be persisted for post-mission forensics."""
-        failover.mark_failure(EngineID.PHI3, "timeout", {"code": "E_TIMEOUT"})
-        failover.mark_failure(EngineID.GROK, "oom", {"code": "E_OOM"})
+        failover.mark_failure(EngineID.PHI3_MEDIUM, "timeout", {"code": "E_TIMEOUT"})
+        failover.mark_failure(EngineID.GROK1, "oom", {"code": "E_OOM"})
         records = failover.get_failure_history()
         assert len(records) >= 2
         assert {record["engine_id"] for record in records}.issuperset(
-            {EngineID.PHI3.value, EngineID.GROK.value}
+            {EngineID.PHI3_MEDIUM.value, EngineID.GROK1.value}
         )
 
     def test_weighted_failures_decay_over_time(self, failover: FailoverSystem) -> None:
@@ -121,24 +121,24 @@ class TestFailoverSystem:
     def test_choose_fallback_prefers_healthy(self, failover: FailoverSystem) -> None:
         """Fallback selection must prioritize healthy engine deterministically."""
         for _ in range(3):
-            failover.mark_failure(EngineID.GROK, "unavailable")
+            failover.mark_failure(EngineID.GROK1, "unavailable")
         chosen = failover.choose_fallback(
-            primary_engine=EngineID.PHI3,
-            candidate_engines=[EngineID.GROK, EngineID.MISTRAL, EngineID.ALLAM],
+            primary_engine=EngineID.PHI3_MEDIUM,
+            candidate_engines=[EngineID.GROK1, EngineID.MIXTRAL, EngineID.ALLAM],
         )
-        assert chosen in {EngineID.MISTRAL, EngineID.ALLAM}
+        assert chosen in {EngineID.MIXTRAL, EngineID.ALLAM}
         assert failover.health[chosen].state in {HealthState.HEALTHY, HealthState.DEGRADED}
 
     def test_record_failover_appends_audit(self, failover: FailoverSystem) -> None:
         """Failover record should be queryable in audit history."""
         audit_id = failover.record_failover(
-            primary=EngineID.PHI3,
-            fallbacks_tried=[EngineID.GROK, EngineID.MISTRAL],
-            succeeded=EngineID.MISTRAL,
+            primary=EngineID.PHI3_MEDIUM,
+            fallbacks_tried=[EngineID.GROK1, EngineID.MIXTRAL],
+            succeeded=EngineID.MIXTRAL,
             reason="primary timeout",
             latency_ms=42.0,
         )
         history = failover.get_failover_history()
         assert history[-1]["audit_id"] == audit_id
-        assert history[-1]["succeeded"] == EngineID.MISTRAL.value
+        assert history[-1]["succeeded"] == EngineID.MIXTRAL.value
 

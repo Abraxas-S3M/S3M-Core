@@ -143,7 +143,7 @@ class BilingualAttentionRouter:
     def __init__(
         self,
         arabic_engine_id: str = "allam-7b",
-        english_engine_id: str = "phi3-mini",
+        english_engine_id: str = "phi3-medium",
         parallel_threshold: float = 0.3,
     ):
         """
