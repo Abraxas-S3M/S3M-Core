@@ -5,8 +5,8 @@ Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
-from pydantic import BaseModel
+from typing import Literal, Optional
+from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
 from src.api.gui_bridge.adapters.decision_adapter import DecisionAdapter
@@ -19,6 +19,7 @@ from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
 from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
 from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
+from src.command.action_board import ActionBoard
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
@@ -34,11 +35,30 @@ _sustainment = SustainmentAdapter()
 _comms = CommsAdapter()
 _simulation = SimulationAdapter()
 _planning = PlanningAdapter()
+_action_board = ActionBoard()
 
 
 # ── Request/Response helpers ────────────────────────────────
 class DecisionActionRequest(BaseModel):
     comment: str = ""
+
+
+class ActionBoardCreateRequest(BaseModel):
+    title: str
+    urgency: int = Field(ge=1, le=5)
+    impact: int = Field(ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Literal["pending", "active", "complete"] = "pending"
+    linkedDecisionId: Optional[str] = None
+
+
+class ActionBoardUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    urgency: Optional[int] = Field(default=None, ge=1, le=5)
+    impact: Optional[int] = Field(default=None, ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Optional[Literal["pending", "active", "complete"]] = None
+    linkedDecisionId: Optional[str] = None
 
 
 class PlanningSuggestionsRequest(BaseModel):
@@ -57,6 +77,40 @@ async def get_timeline_events(
     limit: int = Query(50, ge=1, le=500),
 ):
     return _command.get_timeline_events(category=category, limit=limit).model_dump()
+
+
+@workspace_router.get("/command/action-board")
+async def get_action_board():
+    return _command.get_action_board()
+
+
+@workspace_router.post("/command/action-board")
+async def create_action_board_task(payload: ActionBoardCreateRequest):
+    task = _action_board.add_task(
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    return task.model_dump()
+
+
+@workspace_router.patch("/command/action-board/{task_id}")
+async def update_action_board_task(task_id: str, payload: ActionBoardUpdateRequest):
+    task = _action_board.update_task(
+        task_id=task_id,
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Action task '{task_id}' not found")
+    return task.model_dump()
 
 
 # ── COP ─────────────────────────────────────────────────────
