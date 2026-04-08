@@ -100,7 +100,15 @@ class GUIOperationalContextData(GUIBaseModel):
     threats: List[GUIThreatItem]
     decisions: List[GUIDecision]
     directives: List[GUIDirectiveItem]
+    metrics: Optional["GUIOverviewMetrics"] = None
     updatedAt: str
+
+
+class GUIOverviewMetrics(GUIBaseModel):
+    readinessScore: int = Field(ge=0, le=100)
+    activeMissions: int = Field(ge=0)
+    assetAvailability: int = Field(ge=0, le=100)
+    openRisks: int = Field(ge=0)
 
 
 # -- Risk (RiskData) ------------------------------------------
