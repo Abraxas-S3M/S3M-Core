@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import sys
 import types
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 
@@ -91,8 +92,16 @@ def _install_cop_provider_stub(monkeypatch) -> None:
 
 
 def _reload_cop_adapter():
-    sys.modules.pop("src.api.gui_bridge.adapters.cop_adapter", None)
-    return importlib.import_module("src.api.gui_bridge.adapters.cop_adapter")
+    module_name = "cop_adapter_under_test"
+    sys.modules.pop(module_name, None)
+    adapter_path = Path(__file__).resolve().parents[1] / "src/api/gui_bridge/adapters/cop_adapter.py"
+    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("failed to load cop adapter test module")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def _install_replay_stub(monkeypatch) -> None:
