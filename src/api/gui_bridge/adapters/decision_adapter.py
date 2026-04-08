@@ -84,6 +84,36 @@ class DecisionAdapter:
         except Exception:
             pass
 
+    def _build_decision_context(self, decision_id: str) -> Dict[str, Any]:
+        """Build doctrine context for tactical ROE compliance checks."""
+        context: Dict[str, Any] = {
+            "decision_id": decision_id,
+            "target_type": "unknown",
+            "positive_id": False,
+            "near_civilian_zone": False,
+        }
+        try:
+            all_decisions = self._autonomy.get_decision_feed(limit=500)
+            match = next(
+                (item for item in all_decisions if str(item.get("id", "")).strip() == decision_id),
+                None,
+            )
+            if not match:
+                return context
+            context["target_type"] = str(match.get("target_type", match.get("type", "unknown")))
+            context["positive_id"] = bool(
+                match.get("positive_id", match.get("is_positive_id", False))
+            )
+            context["near_civilian_zone"] = bool(
+                match.get(
+                    "near_civilian_zone",
+                    match.get("civilian_zone_proximity", False),
+                )
+            )
+        except Exception:
+            pass
+        return context
+
     def get_queue(self) -> Dict[str, Any]:
         """Return full decision queue with counts for the GUI."""
         all_decisions = self._autonomy.get_decision_feed(limit=500)
@@ -189,11 +219,23 @@ class DecisionAdapter:
             pass
 
         try:
-            from src.doctrine.policy_bias_engine import PolicyBiasEngine
+            from src.doctrine.opa_evaluator import OPAEvaluator
 
-            pbe = PolicyBiasEngine()
-            checks = pbe.check_decision(safe_decision_id) if hasattr(pbe, "check_decision") else []
-            explanation["doctrineChecks"] = [GUIDoctrineCheck(**item).model_dump() for item in checks]
+            doctrine_context = self._build_decision_context(safe_decision_id)
+            doctrine_result = OPAEvaluator().evaluate_decision(doctrine_context)
+            violations = [str(item) for item in doctrine_result.get("violations", []) if str(item).strip()]
+            details = (
+                "; ".join(violations)
+                if violations
+                else "Rules of engagement check passed for current tactical context."
+            )
+            explanation["doctrineChecks"] = [
+                GUIDoctrineCheck(
+                    policyName=str(doctrine_result.get("policy", "s3m.roe")),
+                    compliant=bool(doctrine_result.get("compliant", False)),
+                    details=details,
+                ).model_dump()
+            ]
         except Exception:
             pass
 

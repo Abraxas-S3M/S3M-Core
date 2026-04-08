@@ -24,8 +24,10 @@ def _now_iso() -> str:
 class SurveillanceAdapter:
     def __init__(self):
         from src.dashboard.providers.cop_provider import COPDataProvider
+        from src.apps.intel.watchlists import WatchlistStore
 
         self._cop = COPDataProvider()
+        self._watchlists = WatchlistStore()
 
     def get_assets(self) -> dict:
         assets = self._build_assets()
@@ -82,17 +84,13 @@ class SurveillanceAdapter:
     def get_watchlists(self) -> dict:
         """Entity watchlists for tactical surveillance triage and persistence."""
         try:
-            from src.apps.intel.intel_manager import IntelManager
-
-            mgr = IntelManager()
-            items = mgr.search_intel("") if hasattr(mgr, "search_intel") else []
             return {
                 "watchlists": {
-                    "persons": [],
-                    "organizations": [],
-                    "vessels": [],
-                    "vehicles": [],
-                    "sites": [],
+                    "persons": self._watchlists.list_persons(),
+                    "organizations": self._watchlists.list_orgs(),
+                    "vessels": self._watchlists.list_vessels(),
+                    "vehicles": self._watchlists.list_vehicles(),
+                    "sites": self._watchlists.list_sites(),
                 },
                 "updatedAt": _now_iso(),
             }
@@ -107,6 +105,23 @@ class SurveillanceAdapter:
                 },
                 "updatedAt": _now_iso(),
             }
+
+    def get_watchlist_category(self, category: str) -> dict:
+        """Return one watchlist category for focused tactical triage workflows."""
+        entities = self._watchlists.list_entities(category)
+        return {"category": self._watchlists.normalize_category(category), "entities": entities, "updatedAt": _now_iso()}
+
+    def upsert_watchlist_entity(self, category: str, entity: dict) -> dict:
+        """Create or update one watchlist entity in local SQLite storage."""
+        normalized = self._watchlists.normalize_category(category)
+        stored = self._watchlists.upsert_entity(normalized, entity)
+        return {"category": normalized, "entity": stored, "updatedAt": _now_iso()}
+
+    def delete_watchlist_entity(self, category: str, entity_id: str) -> dict:
+        """Delete a watchlist entity once no longer relevant to surveillance."""
+        normalized = self._watchlists.normalize_category(category)
+        deleted = self._watchlists.delete_entity(normalized, entity_id)
+        return {"category": normalized, "entityId": entity_id, "deleted": deleted, "updatedAt": _now_iso()}
 
     def _build_assets(self):
         agents = self._cop.get_agents()

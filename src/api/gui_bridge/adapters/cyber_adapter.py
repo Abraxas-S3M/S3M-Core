@@ -7,6 +7,7 @@ Internal dependencies:
 
 from datetime import datetime, timezone
 from typing import List
+import os
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUICyberData,
@@ -54,10 +55,41 @@ class CyberAdapter:
 
     def get_model_security(self) -> dict:
         try:
-            from src.security.model_trust import ModelTrustManager
+            from src.api.config import api_config
+            from src.api.server import state
+            from src.security.model_scanner import ModelScanner
 
-            mtm = ModelTrustManager()
-            status = mtm.get_trust_status() if hasattr(mtm, "get_trust_status") else {}
+            scanner = ModelScanner()
+            engine_scans = {}
+            for engine_id, engine_status in state.engine_status.items():
+                if engine_status != "loaded":
+                    continue
+                model_path = str(api_config.model_paths.get(engine_id, "")).strip()
+                if not model_path:
+                    continue
+                integrity = scanner.scan_model_integrity(model_path)
+                vulnerabilities = scanner.probe_llm_vulnerabilities(engine_id)
+                engine_scans[engine_id] = {
+                    "modelPath": model_path,
+                    "integrity": integrity,
+                    "vulnerabilities": vulnerabilities,
+                }
+
+            if not engine_scans:
+                for engine_id, model_path in api_config.model_paths.items():
+                    safe_path = str(model_path).strip()
+                    if not safe_path or not os.path.exists(safe_path):
+                        continue
+                    integrity = scanner.scan_model_integrity(safe_path)
+                    vulnerabilities = scanner.probe_llm_vulnerabilities(engine_id)
+                    engine_scans[engine_id] = {
+                        "modelPath": safe_path,
+                        "integrity": integrity,
+                        "vulnerabilities": vulnerabilities,
+                    }
+
+            status = scanner.trust_manager.get_trust_status()
+            status["scans"] = engine_scans
             return {"modelSecurity": status, "updatedAt": _now_iso()}
         except Exception:
             return {
@@ -77,14 +109,13 @@ class CyberAdapter:
             return {"crypto": {}, "zeroKnowledge": {}, "updatedAt": _now_iso()}
 
     def get_attack_capabilities(self) -> dict:
-        """Expose available offensive cyber capabilities from Caldera/SOAR."""
+        """Expose ATT&CK adversary profiles from Caldera bridge."""
         try:
-            from services.cyber.soar import SOAREngine
+            from services.cyber.offensive.caldera_bridge import CalderaBridge
 
-            soar = SOAREngine()
-            playbooks = soar.list_playbooks() if hasattr(soar, "list_playbooks") else []
-            offensive = [p for p in playbooks if p.get("type") == "offensive"]
-            return {"capabilities": offensive, "updatedAt": _now_iso()}
+            bridge = CalderaBridge()
+            profiles = bridge.list_adversary_profiles()
+            return {"capabilities": profiles, "updatedAt": _now_iso()}
         except Exception:
             return {"capabilities": [], "updatedAt": _now_iso()}
 

@@ -152,6 +152,102 @@ class SimulationAdapter:
         except Exception:
             return {"comparison": {}, "updatedAt": _now_iso()}
 
+    def run_ai_vs_human(self, scenario_id: str) -> dict:
+        sid = str(scenario_id).strip() or "unknown"
+        env = None
+        try:
+            import numpy as np
+
+            from src.simulation.gym_wargame_env import (
+                ACTION_ENGAGE,
+                ACTION_HOLD,
+                ACTION_MOVE,
+                WargameEnv,
+            )
+
+            env = WargameEnv(scenario_id=sid)
+
+            def _active_unit_count(observation: dict[str, Any]) -> int:
+                health = np.asarray(observation.get("unit_health", []), dtype=np.float32)
+                return int(np.count_nonzero(health > 0.0))
+
+            def _rl_policy(observation: dict[str, Any]) -> Any:
+                actions = np.full((env.max_units,), ACTION_HOLD, dtype=np.int64)
+                active = _active_unit_count(observation)
+                threat_levels = np.asarray(observation.get("threat_levels", []), dtype=np.float32)
+                should_engage = bool(np.any(threat_levels > 0.0))
+                for idx in range(min(active, env.max_units)):
+                    actions[idx] = ACTION_ENGAGE if should_engage else ACTION_MOVE
+                return actions
+
+            def _scripted_human_baseline(observation: dict[str, Any]) -> Any:
+                actions = np.full((env.max_units,), ACTION_HOLD, dtype=np.int64)
+                active = _active_unit_count(observation)
+                # Tactical context: this scripted baseline mimics a cautious human commander advancing by doctrine.
+                for idx in range(min(active, env.max_units)):
+                    actions[idx] = ACTION_MOVE
+                return actions
+
+            def _run_episode(policy_name: str, policy_fn) -> dict[str, Any]:
+                observation, _ = env.reset(options={"scenario_id": sid})
+                terminated = False
+                truncated = False
+                total_reward = 0.0
+                last_info: dict[str, Any] = {}
+
+                while not (terminated or truncated):
+                    actions = policy_fn(observation)
+                    observation, reward, terminated, truncated, last_info = env.step(actions)
+                    total_reward += float(reward)
+
+                return {
+                    "name": policy_name,
+                    "totalReward": round(total_reward, 3),
+                    "steps": int(last_info.get("step", 0)),
+                    "objectivesMet": len(last_info.get("objectives_met", [])),
+                    "friendlyLosses": int(last_info.get("friendly_losses", 0)),
+                    "episodeTuples": env.get_episode_tuples(),
+                }
+
+            ai_metrics = _run_episode("rl_agent", _rl_policy)
+            baseline_metrics = _run_episode("scripted_human_baseline", _scripted_human_baseline)
+
+            comparison = {
+                "scenarioId": sid,
+                "modes": {
+                    "ai": "rl_agent",
+                    "human": "scripted_human_baseline",
+                },
+                "ai": {k: v for k, v in ai_metrics.items() if k != "episodeTuples"},
+                "human": {k: v for k, v in baseline_metrics.items() if k != "episodeTuples"},
+                "delta": {
+                    "reward": round(
+                        float(ai_metrics["totalReward"]) - float(baseline_metrics["totalReward"]),
+                        3,
+                    ),
+                    "objectiveCount": int(ai_metrics["objectivesMet"]) - int(baseline_metrics["objectivesMet"]),
+                    "friendlyLosses": int(baseline_metrics["friendlyLosses"]) - int(ai_metrics["friendlyLosses"]),
+                },
+            }
+
+            training_data = {
+                "targetModule": "src/training/gpu/dataset_builder.py",
+                "episodes": [
+                    {"policy": "rl_agent", "tuples": ai_metrics["episodeTuples"]},
+                    {"policy": "scripted_human_baseline", "tuples": baseline_metrics["episodeTuples"]},
+                ],
+                "engine": "phi3-medium",
+            }
+            return {"comparison": comparison, "trainingData": training_data, "updatedAt": _now_iso()}
+        except Exception:
+            return {"comparison": {}, "updatedAt": _now_iso()}
+        finally:
+            if env is not None:
+                try:
+                    env.close()
+                except Exception:
+                    pass
+
     def _map_catalog(self, catalog: Any) -> list[dict]:
         entries: list[Any]
         if isinstance(catalog, dict):

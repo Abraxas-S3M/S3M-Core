@@ -51,13 +51,36 @@ class SustainmentAdapter:
         return result
 
     def get_predictions(self) -> dict:
-        """Predictive maintenance from existing service."""
+        """Predictive maintenance ordered by lowest remaining life first."""
         try:
-            from services.maintenance.predictive import PredictiveMaintenanceEngine
+            from src.logistics.reliability_analyzer import OperationalStore, ReliabilityAnalyzer
 
-            engine = PredictiveMaintenanceEngine()
-            raw_predictions = engine.get_predictions() if hasattr(engine, "get_predictions") else []
-            predictions = self._normalize_rows(raw_predictions)
+            store = OperationalStore()
+            analyzer = ReliabilityAnalyzer(operational_store=store)
+            predictions: list[dict[str, Any]] = []
+
+            for asset in store.get_assets():
+                asset_id = str(getattr(asset, "asset_id", "")).strip()
+                if not asset_id:
+                    continue
+
+                raw_type = getattr(asset, "asset_type", "OTHER")
+                asset_type = raw_type.value if hasattr(raw_type, "value") else str(raw_type)
+                hours_in_service = max(0.0, self._safe_float(getattr(asset, "operating_hours", 0.0)))
+                remaining_hours = analyzer.estimate_rul(asset_type=asset_type, hours_in_service=hours_in_service)
+
+                predictions.append(
+                    {
+                        "assetId": asset_id,
+                        "designation": str(getattr(asset, "designation", asset_id)),
+                        "assetType": asset_type,
+                        "hoursInService": round(hours_in_service, 2),
+                        "estimatedRULHours": round(remaining_hours, 2),
+                        "urgency": self._urgency_from_rul(remaining_hours),
+                    }
+                )
+
+            predictions.sort(key=lambda row: float(row.get("estimatedRULHours", float("inf"))))
             self._log_training_sample(maintenance_outcomes=predictions)
             return {"predictions": predictions, "updatedAt": _now_iso()}
         except Exception:
@@ -214,6 +237,23 @@ class SustainmentAdapter:
             elif hasattr(row, "model_dump"):
                 normalized.append(row.model_dump())
         return normalized
+
+    @staticmethod
+    def _urgency_from_rul(remaining_hours: float) -> str:
+        if remaining_hours < 50:
+            return "critical"
+        if remaining_hours < 200:
+            return "high"
+        if remaining_hours < 500:
+            return "medium"
+        return "low"
+
+    @staticmethod
+    def _safe_float(value: Any) -> float:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
 
     @staticmethod
     def _log_training_sample(

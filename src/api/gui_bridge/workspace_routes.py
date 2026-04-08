@@ -7,7 +7,7 @@ Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
@@ -50,6 +50,9 @@ class DecisionActionRequest(BaseModel):
 
 class CyberAttackRequest(BaseModel):
     playbookId: Optional[str] = None
+    adversaryId: Optional[str] = None
+    targets: List[str] = Field(default_factory=list)
+    approvalToken: Optional[str] = None
     objective: str = ""
     parameters: dict = Field(default_factory=dict)
 
@@ -111,6 +114,11 @@ async def program_agent(agent_id: str, payload: GUIAgentProgramRequest):
 @workspace_router.get("/command/action-board")
 async def get_action_board():
     return _command.get_action_board()
+
+
+@workspace_router.get("/command/force-structure")
+async def get_force_structure():
+    return _command.get_force_structure()
 
 
 @workspace_router.post("/command/action-board")
@@ -237,6 +245,33 @@ async def get_surveillance_watchlists():
     return _surveillance.get_watchlists()
 
 
+@workspace_router.get("/surveillance/watchlists/{category}")
+async def get_surveillance_watchlist_category(category: str):
+    try:
+        return _surveillance.get_watchlist_category(category)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@workspace_router.post("/surveillance/watchlists/{category}")
+async def create_surveillance_watchlist_entity(category: str, payload: dict):
+    try:
+        return _surveillance.upsert_watchlist_entity(category, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@workspace_router.delete("/surveillance/watchlists/{category}/{entity_id}")
+async def delete_surveillance_watchlist_entity(category: str, entity_id: str):
+    try:
+        result = _surveillance.delete_watchlist_entity(category, entity_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if not result.get("deleted"):
+        raise HTTPException(status_code=404, detail="watchlist entity not found")
+    return result
+
+
 # ── Communications ──────────────────────────────────────────
 @workspace_router.get("/communication/messages")
 async def get_messages():
@@ -286,26 +321,42 @@ async def get_attack_capabilities():
 
 @workspace_router.post("/cyber/attack/plan")
 async def plan_cyber_attack(body: CyberAttackRequest):
-    capabilities = _cyber.get_attack_capabilities().get("capabilities", [])
-    selected = None
-    if body.playbookId:
-        selected = next(
-            (
-                cap
-                for cap in capabilities
-                if str(cap.get("playbook_id", cap.get("id", ""))) == body.playbookId
-            ),
-            None,
+    try:
+        from services.cyber.offensive.caldera_bridge import CalderaBridge
+
+        bridge = CalderaBridge()
+        adversary_id = (body.adversaryId or body.playbookId or "").strip()
+        targets = body.targets if body.targets else ["sim-target-001"]
+        operation_id = bridge.create_operation(
+            adversary_id=adversary_id,
+            targets=targets,
+            approval_token=body.approvalToken or "",
         )
-    return {
-        "status": "planned",
-        "plan": {
-            "playbook": selected,
-            "objective": body.objective,
-            "parameters": body.parameters,
-        },
-        "updatedAt": _now_iso(),
-    }
+        return {
+            "status": "planned",
+            "operationId": operation_id,
+            "plan": {
+                "adversaryId": adversary_id,
+                "targets": targets,
+                "objective": body.objective,
+                "parameters": body.parameters,
+            },
+            "updatedAt": _now_iso(),
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@workspace_router.get("/cyber/attack/{operation_id}/status")
+async def get_cyber_attack_status(operation_id: str):
+    try:
+        from services.cyber.offensive.caldera_bridge import CalderaBridge
+
+        bridge = CalderaBridge()
+        status = bridge.get_operation_status(operation_id)
+        return {"operationId": operation_id, "status": status, "updatedAt": _now_iso()}
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @workspace_router.post("/cyber/attack/execute")

@@ -7,6 +7,7 @@ the S3M-GUI frontend expects. Run with: pytest tests/test_gui_bridge.py -v
 import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime
+from uuid import uuid4
 
 from src.api.server import app
 
@@ -50,6 +51,14 @@ class TestCommandWorkspace:
         data = r.json()
         assert "events" in data
         assert "updatedAt" in data
+
+    def test_force_structure_shape(self):
+        r = client.get(f"{BASE}/workspaces/command/force-structure")
+        assert r.status_code == 200
+        data = r.json()
+        assert "units" in data
+        assert "updatedAt" in data
+        assert isinstance(data["units"], list)
 
     def test_agents_shape(self):
         r = client.get(f"{BASE}/workspaces/command/agents")
@@ -284,6 +293,33 @@ class TestSurveillanceWorkspace:
             for key in ("persons", "organizations", "vessels", "vehicles", "sites")
         )
 
+    def test_watchlist_category_crud_routes(self):
+        entity_id = f"wl-{uuid4().hex[:10]}"
+        create = client.post(
+            f"{BASE}/workspaces/surveillance/watchlists/persons",
+            json={
+                "id": entity_id,
+                "name": "Route Test Person",
+                "aliases": ["RTP"],
+                "country": "SA",
+            },
+        )
+        assert create.status_code == 200
+        create_data = create.json()
+        assert create_data["category"] == "persons"
+        assert create_data["entity"]["id"] == entity_id
+
+        read = client.get(f"{BASE}/workspaces/surveillance/watchlists/persons")
+        assert read.status_code == 200
+        read_data = read.json()
+        assert read_data["category"] == "persons"
+        assert any(item["id"] == entity_id for item in read_data["entities"])
+
+        delete = client.delete(f"{BASE}/workspaces/surveillance/watchlists/persons/{entity_id}")
+        assert delete.status_code == 200
+        delete_data = delete.json()
+        assert delete_data["deleted"] is True
+
 
 class TestCommsWorkspace:
     def test_messages_shape(self):
@@ -354,12 +390,43 @@ class TestCyberWorkspace:
     def test_attack_plan_shape(self):
         r = client.post(
             f"{BASE}/workspaces/cyber/attack/plan",
-            json={"playbookId": "", "objective": "Test", "parameters": {}},
+            json={
+                "adversaryId": "sim-red-team-phishing",
+                "targets": ["edge-node-1"],
+                "approvalToken": "approved-by-ops",
+                "objective": "Test",
+                "parameters": {},
+            },
         )
         assert r.status_code == 200
         data = r.json()
         assert "status" in data
+        assert "operationId" in data
         assert "plan" in data
+        assert "updatedAt" in data
+
+    def test_attack_status_shape(self):
+        planned = client.post(
+            f"{BASE}/workspaces/cyber/attack/plan",
+            json={
+                "adversaryId": "sim-red-team-lateral",
+                "targets": ["edge-node-2"],
+                "approvalToken": "approved-by-ops",
+                "objective": "Status test",
+                "parameters": {},
+            },
+        )
+        assert planned.status_code == 200
+        operation_id = planned.json().get("operationId")
+        assert operation_id
+
+        r = client.get(f"{BASE}/workspaces/cyber/attack/{operation_id}/status")
+        assert r.status_code == 200
+        data = r.json()
+        assert "operationId" in data
+        assert "status" in data
+        assert "steps_completed" in data["status"]
+        assert "techniques_used" in data["status"]
         assert "updatedAt" in data
 
     def test_attack_execute_shape(self):
