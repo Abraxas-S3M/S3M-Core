@@ -276,3 +276,26 @@ def test_command_adapter_fallbacks_seed_operational_defaults(monkeypatch):
     assert context.metrics.activeMissions == 4
     assert context.metrics.assetAvailability == 85
     assert context.metrics.openRisks == 0
+
+
+def test_command_adapter_force_structure_returns_expected_shape(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
+    _install_timeline_stub(monkeypatch)
+    _install_dashboard_stub(monkeypatch, threats=[], review_queue=[])
+
+    orbat_mod = types.ModuleType("src.command.orbat_store")
+
+    class ORBATStore:
+        def get_hierarchy(self) -> list[dict[str, Any]]:
+            return [{"id": "hq", "name": "HQ", "subordinates": []}]
+
+    orbat_mod.ORBATStore = ORBATStore
+    monkeypatch.setitem(sys.modules, "src.command.orbat_store", orbat_mod)
+
+    adapter_module = _reload_command_adapter()
+    adapter = adapter_module.CommandAdapter()
+
+    payload = adapter.get_force_structure()
+    assert "units" in payload
+    assert "updatedAt" in payload
+    assert payload["units"][0]["id"] == "hq"

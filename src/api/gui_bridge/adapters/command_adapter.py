@@ -102,6 +102,12 @@ class CommandAdapter:
         board = ActionBoard()
         return [item.model_dump() for item in board.get_prioritized()]
 
+    def get_force_structure(self) -> dict:
+        from src.command.orbat_store import ORBATStore
+
+        store = ORBATStore()
+        return {"units": store.get_hierarchy(), "updatedAt": _now_iso()}
+
     def _build_threats(self) -> List[GUIThreatItem]:
         feed = self._dashboard.threat_provider.get_threat_feed(limit=20)
         result = []
