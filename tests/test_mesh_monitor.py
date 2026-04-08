@@ -1,6 +1,42 @@
-from services.comms.mesh_monitor import MeshNetworkMonitor
-from services.comms.models import NodeType, RelayBackend
-from services.comms.node_manager import CommsNodeManager
+import sys
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+from types import ModuleType
+
+_services_pkg = ModuleType("services")
+_services_pkg.__path__ = []  # type: ignore[attr-defined]
+_comms_pkg = ModuleType("services.comms")
+_comms_pkg.__path__ = []  # type: ignore[attr-defined]
+sys.modules["services"] = _services_pkg
+sys.modules["services.comms"] = _comms_pkg
+
+_ROOT = Path(__file__).resolve().parents[1]
+
+_models_path = _ROOT / "services" / "comms" / "models.py"
+_models_spec = spec_from_file_location("services.comms.models", _models_path)
+assert _models_spec and _models_spec.loader
+_models_module = module_from_spec(_models_spec)
+sys.modules["services.comms.models"] = _models_module
+_models_spec.loader.exec_module(_models_module)
+
+_node_manager_path = _ROOT / "services" / "comms" / "node_manager.py"
+_node_spec = spec_from_file_location("services.comms.node_manager", _node_manager_path)
+assert _node_spec and _node_spec.loader
+_node_module = module_from_spec(_node_spec)
+sys.modules["services.comms.node_manager"] = _node_module
+_node_spec.loader.exec_module(_node_module)
+
+_mesh_monitor_path = _ROOT / "services" / "comms" / "mesh_monitor.py"
+_mesh_spec = spec_from_file_location("mesh_monitor_under_test", _mesh_monitor_path)
+assert _mesh_spec and _mesh_spec.loader
+_mesh_module = module_from_spec(_mesh_spec)
+sys.modules["mesh_monitor_under_test"] = _mesh_module
+_mesh_spec.loader.exec_module(_mesh_module)
+
+MeshNetworkMonitor = _mesh_module.MeshNetworkMonitor
+NodeType = _models_module.NodeType
+RelayBackend = _models_module.RelayBackend
+CommsNodeManager = _node_module.CommsNodeManager
 
 
 def test_get_mesh_status_filters_mesh_nodes_and_links() -> None:
