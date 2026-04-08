@@ -116,6 +116,32 @@ class TestReadinessWorkspace:
         p = data["personnel"]
         assert all(k in p for k in ("available", "deployed", "onLeave"))
 
+    def test_enriched_shape(self):
+        r = client.get(f"{BASE}/workspaces/readiness/enriched")
+        assert r.status_code == 200
+        data = r.json()
+        assert "personnel" in data
+        assert "equipment" in data
+        assert "unitStatus" in data
+        assert "certifications" in data
+        assert "qualificationMatrix" in data
+        assert "readinessForecast" in data
+        assert "updatedAt" in data
+        if data["certifications"]:
+            cert = data["certifications"][0]
+            assert all(
+                k in cert
+                for k in (
+                    "certType",
+                    "nameEn",
+                    "nameAr",
+                    "total",
+                    "current",
+                    "expiringSoon",
+                    "expired",
+                )
+            )
+
 
 class TestSurveillanceWorkspace:
     def test_assets_shape(self):

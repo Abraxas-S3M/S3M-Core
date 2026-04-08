@@ -94,6 +94,11 @@ async def get_readiness_summary():
     return _readiness.get_summary().model_dump()
 
 
+@workspace_router.get("/readiness/enriched")
+async def get_readiness_enriched():
+    return _readiness.get_enriched_summary()
+
+
 # ── Surveillance / ISR ──────────────────────────────────────
 @workspace_router.get("/surveillance/assets")
 async def get_surveillance_assets():
