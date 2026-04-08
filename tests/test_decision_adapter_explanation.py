@@ -46,20 +46,14 @@ def test_get_explanation_aggregates_sources_and_logs(tmp_path, monkeypatch):
     resolver_module.MultiObjectiveResolver = StubResolver
     monkeypatch.setitem(sys.modules, "src.cognitive.multi_objective_resolver", resolver_module)
 
-    doctrine_module = types.ModuleType("src.doctrine.policy_bias_engine")
+    doctrine_module = types.ModuleType("src.doctrine.opa_evaluator")
 
-    class StubPolicyBiasEngine:
-        def check_decision(self, _decision_id: str):
-            return [
-                {
-                    "policyName": "ROE-ALPHA",
-                    "compliant": True,
-                    "details": "Action remains within escalation and engagement constraints.",
-                }
-            ]
+    class StubOPAEvaluator:
+        def evaluate_decision(self, _decision_context):
+            return {"policy": "s3m.roe", "compliant": True, "violations": []}
 
-    doctrine_module.PolicyBiasEngine = StubPolicyBiasEngine
-    monkeypatch.setitem(sys.modules, "src.doctrine.policy_bias_engine", doctrine_module)
+    doctrine_module.OPAEvaluator = StubOPAEvaluator
+    monkeypatch.setitem(sys.modules, "src.doctrine.opa_evaluator", doctrine_module)
 
     adapter = DecisionAdapter.__new__(DecisionAdapter)
     response = adapter.get_explanation("DEC-42")
@@ -67,7 +61,8 @@ def test_get_explanation_aggregates_sources_and_logs(tmp_path, monkeypatch):
     assert response["decisionId"] == "DEC-42"
     assert response["evidence"][0]["source"] == "isr-feed-alpha"
     assert response["dissentingViews"][0]["engineId"] == "moo-resolver-v1"
-    assert response["doctrineChecks"][0]["policyName"] == "ROE-ALPHA"
+    assert response["doctrineChecks"][0]["policyName"] == "s3m.roe"
+    assert response["doctrineChecks"][0]["compliant"] is True
     assert response["expectedUpside"] == ["Reduced exposure for friendly forces"]
     assert response["expectedDownside"] == ["Delayed objective completion"]
 
@@ -83,6 +78,19 @@ def test_get_explanation_defaults_for_empty_decision_id(tmp_path, monkeypatch):
     log_path = tmp_path / "decision_explanations.jsonl"
     monkeypatch.setattr(decision_adapter_module, "DECISION_EXPLANATION_LOG_PATH", log_path)
 
+    doctrine_module = types.ModuleType("src.doctrine.opa_evaluator")
+
+    class StubOPAEvaluator:
+        def evaluate_decision(self, _decision_context):
+            return {
+                "policy": "s3m.roe",
+                "compliant": False,
+                "violations": ["Positive ID required near civilian zones"],
+            }
+
+    doctrine_module.OPAEvaluator = StubOPAEvaluator
+    monkeypatch.setitem(sys.modules, "src.doctrine.opa_evaluator", doctrine_module)
+
     adapter = DecisionAdapter.__new__(DecisionAdapter)
     response = adapter.get_explanation("   ")
 
@@ -90,7 +98,13 @@ def test_get_explanation_defaults_for_empty_decision_id(tmp_path, monkeypatch):
     assert response["evidence"] == []
     assert response["confidenceBreakdown"] == {}
     assert response["dissentingViews"] == []
-    assert response["doctrineChecks"] == []
+    assert response["doctrineChecks"] == [
+        {
+            "policyName": "s3m.roe",
+            "compliant": False,
+            "details": "Positive ID required near civilian zones",
+        }
+    ]
     assert response["expectedUpside"] == []
     assert response["expectedDownside"] == []
 
