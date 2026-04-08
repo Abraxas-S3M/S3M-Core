@@ -113,6 +113,11 @@ async def get_action_board():
     return _command.get_action_board()
 
 
+@workspace_router.get("/command/force-structure")
+async def get_force_structure():
+    return _command.get_force_structure()
+
+
 @workspace_router.post("/command/action-board")
 async def create_action_board_task(payload: ActionBoardCreateRequest):
     task = _action_board.add_task(

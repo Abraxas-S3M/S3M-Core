@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import sys
 import types
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Any, Optional
 
 
@@ -178,8 +180,23 @@ def _install_dashboard_stub(monkeypatch, *, threats: list[dict[str, Any]], revie
 
 
 def _reload_command_adapter():
-    sys.modules.pop("src.api.gui_bridge.adapters.command_adapter", None)
-    return importlib.import_module("src.api.gui_bridge.adapters.command_adapter")
+    module_name = "src.api.gui_bridge.adapters.command_adapter"
+    sys.modules.pop(module_name, None)
+    module_path = (
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "api"
+        / "gui_bridge"
+        / "adapters"
+        / "command_adapter.py"
+    )
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Unable to load module spec for {module_name}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_command_adapter_maps_live_dashboard_data(monkeypatch):
@@ -276,3 +293,26 @@ def test_command_adapter_fallbacks_seed_operational_defaults(monkeypatch):
     assert context.metrics.activeMissions == 4
     assert context.metrics.assetAvailability == 85
     assert context.metrics.openRisks == 0
+
+
+def test_command_adapter_force_structure_returns_expected_shape(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
+    _install_timeline_stub(monkeypatch)
+    _install_dashboard_stub(monkeypatch, threats=[], review_queue=[])
+
+    orbat_mod = types.ModuleType("src.command.orbat_store")
+
+    class ORBATStore:
+        def get_hierarchy(self) -> list[dict[str, Any]]:
+            return [{"id": "hq", "name": "HQ", "subordinates": []}]
+
+    orbat_mod.ORBATStore = ORBATStore
+    monkeypatch.setitem(sys.modules, "src.command.orbat_store", orbat_mod)
+
+    adapter_module = _reload_command_adapter()
+    adapter = adapter_module.CommandAdapter()
+
+    payload = adapter.get_force_structure()
+    assert "units" in payload
+    assert "updatedAt" in payload
+    assert payload["units"][0]["id"] == "hq"
