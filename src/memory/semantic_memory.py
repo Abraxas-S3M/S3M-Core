@@ -173,6 +173,64 @@ class SemanticMemory:
 
             return results[: max(0, limit)]
 
+    def search_similar(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Semantic retrieval hook using FAISS vectors with lexical fallback."""
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError("query must be a non-empty string")
+        if not isinstance(top_k, int) or top_k <= 0:
+            raise ValueError("top_k must be a positive integer")
+
+        with self._lock:
+            concept_rows = [
+                (
+                    concept_id,
+                    concept,
+                    " ".join(
+                        [
+                            concept.name,
+                            concept.category,
+                            concept.description,
+                            " ".join(concept.keywords),
+                        ]
+                    ).strip(),
+                )
+                for concept_id, concept in self._concepts.items()
+            ]
+        if not concept_rows:
+            return []
+
+        try:
+            from src.memory.embedding_utils import generate_embeddings
+            from src.memory.vector_store import FaissVectorStore
+
+            texts = [query.strip(), *[row[2] for row in concept_rows]]
+            embeddings = generate_embeddings(texts)
+            store = FaissVectorStore(dimension=int(embeddings.shape[1]))
+            for index, (concept_id, _concept, _text) in enumerate(concept_rows, start=1):
+                store.add(concept_id, embeddings[index])
+
+            matches = store.search(embeddings[0], top_k=top_k)
+            ranked: List[Dict[str, Any]] = []
+            with self._lock:
+                for match in matches:
+                    concept_id = str(match.get("id", ""))
+                    concept = self._concepts.get(concept_id)
+                    if concept is None:
+                        continue
+                    concept.access_count += 1
+                    ranked.append(
+                        {
+                            "concept_id": concept_id,
+                            "concept": concept.model_dump(),
+                            "score": float(match.get("score", 0.0)),
+                        }
+                    )
+            return ranked
+        except Exception:
+            # Tactical continuity: degrade to keyword retrieval if vector stack is unavailable.
+            keywords = [token for token in query.lower().split() if token]
+            return self.query(keywords=keywords, limit=top_k)
+
     def size(self) -> int:
         """Return number of concepts currently retained."""
         with self._lock:
