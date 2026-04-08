@@ -9,7 +9,8 @@ Internal dependencies:
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from math import atan2, cos, degrees, radians, sqrt
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUIMissionLayer,
@@ -17,6 +18,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIThreatTrack,
     GUITracksData,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -26,9 +28,28 @@ def _now_iso() -> str:
 class COPAdapter:
     def __init__(self):
         from src.dashboard.providers.cop_provider import COPDataProvider
+
         self._cop = COPDataProvider()
+        self._store = None
+        self._use_store_tracks = False
+        self._use_store_threats = False
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_tracks = self._store.has_data("tracks")
+            self._use_store_threats = self._store.has_data("threats")
+        except Exception:
+            pass
 
     def get_tracks(self) -> GUITracksData:
+        if self._store is not None and self._use_store_tracks:
+            stored_tracks = self._store.get_all("tracks")
+            if stored_tracks:
+                return GUITracksData(
+                    tracks=[GUIThreatTrack(**row) for row in stored_tracks if isinstance(row, dict)],
+                    updatedAt=_now_iso(),
+                )
         raw_tracks = self._cop.get_tracks()
         gui_tracks = []
         for t in raw_tracks:
@@ -41,12 +62,24 @@ class COPAdapter:
                 summary=t.get("classification", t.get("type", "Unknown track")),
                 lastSeen=t.get("last_update", _now_iso()),
             ))
+        self._persist_rows("tracks", gui_tracks)
         result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
         emit_training_record("cop", {"query": "tracks"}, result)
         return result
 
     def get_threat_tracks(self) -> GUITracksData:
         """Threat-specific tracks from the threat dashboard provider."""
+        if self._store is not None and self._use_store_threats:
+            stored_threats = self._store.get_all("threats")
+            if stored_threats:
+                return GUITracksData(
+                    tracks=[
+                        GUIThreatTrack(**row)
+                        for row in stored_threats
+                        if isinstance(row, dict)
+                    ],
+                    updatedAt=_now_iso(),
+                )
         raw_threats = self._cop.get_threats()
         gui_tracks = []
         for t in raw_threats:
@@ -61,6 +94,7 @@ class COPAdapter:
                 summary=t.get("description", t.get("title", "")),
                 lastSeen=t.get("timestamp", _now_iso()),
             ))
+        self._persist_rows("threats", gui_tracks)
         result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
         emit_training_record("cop", {"query": "threat_tracks"}, result)
         return result
@@ -600,3 +634,15 @@ class COPAdapter:
         if threat in {"critical", "high"} or severity >= 80:
             return "Prioritize ISR cueing and maintain defensive intercept readiness."
         return "Continue track custody and collect corroborating sensor evidence."
+
+    def _persist_rows(self, table: str, rows: list[GUIThreatTrack]) -> None:
+        if self._store is None or not rows:
+            return
+        for row in rows:
+            payload = row.model_dump() if hasattr(row, "model_dump") else row
+            if isinstance(payload, dict):
+                self._store.upsert(table, payload)
+        if table == "tracks":
+            self._use_store_tracks = True
+        if table == "threats":
+            self._use_store_threats = True

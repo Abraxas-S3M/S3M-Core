@@ -24,10 +24,19 @@ def _now_iso() -> str:
 class CyberAdapter:
     def __init__(self):
         self._soc = None
+        self._store = None
+        self._use_store_incidents = False
         try:
             from services.cyber.soc_manager import SOCManager
 
             self._soc = SOCManager()
+        except Exception:
+            pass
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_incidents = self._store.has_data("incidents")
         except Exception:
             pass
 
@@ -124,9 +133,12 @@ class CyberAdapter:
                         description=cd.get("description", cd.get("summary", "")),
                     ).model_dump()
                 )
-            return results if results else self._default_incidents()
+            if results:
+                self._persist_rows("incidents", results)
+                return results
+            return self._get_stored_or_default_incidents()
         except Exception:
-            return self._default_incidents()
+            return self._get_stored_or_default_incidents()
 
     def _fetch_resilience(self) -> List[dict]:
         try:
@@ -205,3 +217,21 @@ class CyberAdapter:
                 description="Multiple failed auth attempts on edge node.",
             ).model_dump(),
         ]
+
+    def _persist_rows(self, table: str, rows: list[dict]) -> None:
+        if self._store is None:
+            return
+        for row in rows:
+            if isinstance(row, dict):
+                self._store.upsert(table, row)
+        if table == "incidents":
+            self._use_store_incidents = True
+
+    def _get_stored_or_default_incidents(self) -> List[dict]:
+        if self._store is not None and self._use_store_incidents:
+            stored = self._store.get_all("incidents")
+            if stored:
+                return stored
+        defaults = self._default_incidents()
+        self._persist_rows("incidents", defaults)
+        return defaults

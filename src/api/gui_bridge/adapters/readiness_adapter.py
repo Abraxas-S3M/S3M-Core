@@ -27,10 +27,19 @@ def _now_iso() -> str:
 class ReadinessAdapter:
     def __init__(self):
         self._overview_func = None
+        self._store = None
+        self._use_store_units = False
         try:
             from src.api.readiness_routes import _readiness_store
 
             self._overview_func = _readiness_store
+        except Exception:
+            pass
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_units = self._store.has_data("readiness_personnel")
         except Exception:
             pass
 
@@ -125,9 +134,12 @@ class ReadinessAdapter:
                 result.append(
                     GUIUnitStatus(unitId=uid, readiness=int(score), status=status)
                 )
-            return result if result else self._default_units()
+            if result:
+                self._persist_rows("readiness_personnel", result)
+                return result
+            return self._get_stored_or_default_units()
         except Exception:
-            return self._default_units()
+            return self._get_stored_or_default_units()
 
     @staticmethod
     def _default_units():
@@ -304,3 +316,23 @@ class ReadinessAdapter:
                 }
             )
         return output
+
+    def _persist_rows(self, table: str, rows: list[Any]) -> None:
+        if self._store is None:
+            return
+        for row in rows:
+            payload = row.model_dump() if hasattr(row, "model_dump") else row
+            if isinstance(payload, dict):
+                self._store.upsert(table, payload)
+        if table == "readiness_personnel":
+            self._use_store_units = True
+
+    def _get_stored_or_default_units(self):
+        if self._store is not None and self._use_store_units:
+            rows = self._store.get_all("readiness_personnel")
+            units = [GUIUnitStatus(**row) for row in rows if isinstance(row, dict)]
+            if units:
+                return units
+        defaults = self._default_units()
+        self._persist_rows("readiness_personnel", defaults)
+        return defaults

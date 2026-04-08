@@ -14,8 +14,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from src.api.gui_bridge.models.gui_schemas import GUIDecision, DecisionStatus, SeverityLevel
+from src.api.gui_bridge.models.gui_schemas import (
+    GUIDecision,
+    GUIDecisionExplanation,
+    GUIDissentingView,
+    GUIDoctrineCheck,
+    GUIEvidenceItem,
+    DecisionStatus,
+    SeverityLevel,
+)
 from src.api.gui_bridge.training_emitter import emit_training_record
+
+DECISION_EXPLANATION_LOG_PATH = Path("data/training/decision_explanations.jsonl")
 
 
 def _now_iso() -> str:
@@ -64,10 +74,26 @@ class DecisionAdapter:
         from src.dashboard.providers.autonomy_dash_provider import AutonomyDashProvider
 
         self._autonomy = AutonomyDashProvider()
+        self._store = None
+        self._use_store_decisions = False
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_decisions = self._store.has_data("decisions")
+        except Exception:
+            pass
 
     def get_queue(self) -> Dict[str, Any]:
         """Return full decision queue with counts for the GUI."""
         all_decisions = self._autonomy.get_decision_feed(limit=500)
+        if self._store is not None and isinstance(all_decisions, list) and all_decisions:
+            for row in all_decisions:
+                if isinstance(row, dict):
+                    self._store.upsert("decisions", row)
+            self._use_store_decisions = True
+        elif self._store is not None and self._use_store_decisions:
+            all_decisions = self._store.get_all("decisions")
         gui_decisions = []
         counts = {"pending": 0, "autoApproved": 0, "humanApproved": 0, "vetoed": 0, "stale": 0}
 

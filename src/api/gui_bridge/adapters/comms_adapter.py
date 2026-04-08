@@ -24,10 +24,19 @@ def _now_iso() -> str:
 class CommsAdapter:
     def __init__(self):
         self._comms = None
+        self._store = None
+        self._use_store_messages = False
         try:
             from services.comms.comms_manager import CommsManager
 
             self._comms = CommsManager()
+        except Exception:
+            pass
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_messages = self._store.has_data("messages")
         except Exception:
             pass
 
@@ -59,15 +68,21 @@ class CommsAdapter:
                         "timestamp": md.get("timestamp", _now_iso()),
                     }
                 )
+            if inbox:
+                self._persist_rows("messages", inbox)
             result = {
-                "inbox": inbox if inbox else self._default_inbox(),
+                "inbox": inbox if inbox else self._get_stored_or_default_inbox(),
                 "relayQueue": [],
                 "updatedAt": _now_iso(),
             }
             emit_training_record("comms", {"query": "messages"}, result)
             return result
         except Exception:
-            result = {"inbox": self._default_inbox(), "relayQueue": [], "updatedAt": _now_iso()}
+            result = {
+                "inbox": self._get_stored_or_default_inbox(),
+                "relayQueue": [],
+                "updatedAt": _now_iso(),
+            }
             emit_training_record("comms", {"query": "messages"}, result)
             return result
 
@@ -174,3 +189,21 @@ class CommsAdapter:
                 "timestamp": _now_iso(),
             },
         ]
+
+    def _persist_rows(self, table: str, rows: list[dict]) -> None:
+        if self._store is None:
+            return
+        for row in rows:
+            if isinstance(row, dict):
+                self._store.upsert(table, row)
+        if table == "messages":
+            self._use_store_messages = True
+
+    def _get_stored_or_default_inbox(self) -> list[dict]:
+        if self._store is not None and self._use_store_messages:
+            stored = self._store.get_all("messages")
+            if stored:
+                return stored
+        defaults = self._default_inbox()
+        self._persist_rows("messages", defaults)
+        return defaults
