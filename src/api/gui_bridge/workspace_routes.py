@@ -61,6 +61,10 @@ class ActionBoardUpdateRequest(BaseModel):
     linkedDecisionId: Optional[str] = None
 
 
+class PlanningSuggestionsRequest(BaseModel):
+    plan_context: str = ""
+
+
 # ── Command Overview ────────────────────────────────────────
 @workspace_router.get("/command/operational-context")
 async def get_operational_context():
@@ -248,3 +252,13 @@ async def get_planning_phases():
 @workspace_router.get("/planning/coas")
 async def get_courses_of_action():
     return _planning.get_coas()
+
+
+@workspace_router.get("/planning/replan-triggers")
+async def get_replan_triggers():
+    return _planning.get_replan_triggers()
+
+
+@workspace_router.post("/planning/suggestions")
+async def get_planning_suggestions(payload: PlanningSuggestionsRequest = PlanningSuggestionsRequest()):
+    return _planning.get_suggestions(plan_context=payload.plan_context)
