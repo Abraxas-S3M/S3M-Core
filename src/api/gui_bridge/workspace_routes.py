@@ -4,8 +4,10 @@ Each route instantiates an adapter singleton and delegates to it.
 Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Query
-from typing import Literal, Optional
+from typing import Optional
 from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
@@ -43,22 +45,14 @@ class DecisionActionRequest(BaseModel):
     comment: str = ""
 
 
-class ActionBoardCreateRequest(BaseModel):
-    title: str
-    urgency: int = Field(ge=1, le=5)
-    impact: int = Field(ge=1, le=5)
-    assignee: Optional[str] = None
-    status: Literal["pending", "active", "complete"] = "pending"
-    linkedDecisionId: Optional[str] = None
+class CyberAttackRequest(BaseModel):
+    playbookId: Optional[str] = None
+    objective: str = ""
+    parameters: dict = Field(default_factory=dict)
 
 
-class ActionBoardUpdateRequest(BaseModel):
-    title: Optional[str] = None
-    urgency: Optional[int] = Field(default=None, ge=1, le=5)
-    impact: Optional[int] = Field(default=None, ge=1, le=5)
-    assignee: Optional[str] = None
-    status: Optional[Literal["pending", "active", "complete"]] = None
-    linkedDecisionId: Optional[str] = None
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 class PlanningSuggestionsRequest(BaseModel):
@@ -208,6 +202,58 @@ async def get_cyber_incidents():
 @workspace_router.get("/cyber/resilience")
 async def get_cyber_resilience():
     return _cyber.get_resilience()
+
+
+@workspace_router.get("/cyber/model-security")
+async def get_model_security():
+    return _cyber.get_model_security()
+
+
+@workspace_router.get("/cyber/trust-fabric")
+async def get_trust_fabric():
+    return _cyber.get_trust_fabric()
+
+
+@workspace_router.get("/cyber/attack-capabilities")
+async def get_attack_capabilities():
+    return _cyber.get_attack_capabilities()
+
+
+@workspace_router.post("/cyber/attack/plan")
+async def plan_cyber_attack(body: CyberAttackRequest):
+    capabilities = _cyber.get_attack_capabilities().get("capabilities", [])
+    selected = None
+    if body.playbookId:
+        selected = next(
+            (
+                cap
+                for cap in capabilities
+                if str(cap.get("playbook_id", cap.get("id", ""))) == body.playbookId
+            ),
+            None,
+        )
+    return {
+        "status": "planned",
+        "plan": {
+            "playbook": selected,
+            "objective": body.objective,
+            "parameters": body.parameters,
+        },
+        "updatedAt": _now_iso(),
+    }
+
+
+@workspace_router.post("/cyber/attack/execute")
+async def execute_cyber_attack(body: CyberAttackRequest):
+    return {
+        "status": "queued",
+        "execution": {
+            "playbookId": body.playbookId,
+            "objective": body.objective,
+            "parameters": body.parameters,
+        },
+        "updatedAt": _now_iso(),
+    }
 
 
 # ── Simulation ──────────────────────────────────────────────
