@@ -26,9 +26,9 @@ def test_model_entry_hash_and_from_file(tmp_path: Path) -> None:
     model_file = tmp_path / "test.gguf"
     model_file.write_bytes(b"abc123")
 
-    entry = mod.ModelEntry.from_file("mistral", "v1", model_file, "Q4_K_M")
+    entry = mod.ModelEntry.from_file("mixtral", "v1", model_file, "Q4_K_M")
 
-    assert entry.engine_id == "mistral"
+    assert entry.engine_id == "mixtral"
     assert entry.version == "v1"
     assert entry.filename == "test.gguf"
     assert entry.size_bytes == 6
@@ -46,7 +46,7 @@ def test_manifest_register_save_load_verify(tmp_path: Path, monkeypatch: pytest.
 
     model_file = cache_dir / "phi.gguf"
     model_file.write_bytes(b"phi-model")
-    entry = mod.ModelEntry.from_file("phi3", "v1", model_file, "Q4_K_M")
+    entry = mod.ModelEntry.from_file("phi3_medium", "v1", model_file, "Q4_K_M")
 
     manifest = mod.ModelManifest()
     manifest.register(entry)
@@ -54,11 +54,11 @@ def test_manifest_register_save_load_verify(tmp_path: Path, monkeypatch: pytest.
     assert manifest_path.exists()
 
     reloaded = mod.ModelManifest()
-    assert reloaded.get("phi3") is not None
-    assert reloaded.verify("phi3") is True
+    assert reloaded.get("phi3_medium") is not None
+    assert reloaded.verify("phi3_medium") is True
 
     model_file.write_bytes(b"tampered")
-    assert reloaded.verify("phi3") is False
+    assert reloaded.verify("phi3_medium") is False
 
 
 def test_package_model_unknown_and_dry_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -66,7 +66,7 @@ def test_package_model_unknown_and_dry_run(tmp_path: Path, monkeypatch: pytest.M
     monkeypatch.setattr(mod, "CACHE", tmp_path / "cache")
 
     assert mod.package_model("unknown_engine", "v1") is None
-    assert mod.package_model("mistral", "v1", dry_run=True) is None
+    assert mod.package_model("mixtral", "v1", dry_run=True) is None
 
 
 def test_package_model_returns_cached_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -75,10 +75,10 @@ def test_package_model_returns_cached_path(tmp_path: Path, monkeypatch: pytest.M
     cache_dir.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(mod, "CACHE", cache_dir)
 
-    cached_file = cache_dir / mod.ENGINE_CONFIGS["mistral"]["gguf_out"]
+    cached_file = cache_dir / mod.ENGINE_CONFIGS["mixtral"]["gguf_out"]
     cached_file.write_bytes(b"cached")
 
-    path = mod.package_model("mistral", "v1", dry_run=False)
+    path = mod.package_model("mixtral", "v1", dry_run=False)
     assert path == cached_file
 
 
@@ -93,15 +93,15 @@ def test_register_and_track_writes_manifest_without_mlflow(
     monkeypatch.setattr(mod, "CACHE", cache_dir)
     monkeypatch.setattr(mod, "MANIFEST", manifest_path)
 
-    model_file = cache_dir / "mistral.gguf"
-    model_file.write_bytes(b"mistral-model")
+    model_file = cache_dir / "mixtral.gguf"
+    model_file.write_bytes(b"mixtral-model")
 
     # Tactical resilience: simulate air-gapped runtime without MLflow package.
     monkeypatch.delitem(sys.modules, "mlflow", raising=False)
 
-    mod.register_and_track("mistral", "v5", model_file)
+    mod.register_and_track("mixtral", "v5", model_file)
 
     data = json.loads(manifest_path.read_text())
-    assert "mistral" in data
-    assert data["mistral"]["version"] == "v5"
-    assert data["mistral"]["filename"] == "mistral.gguf"
+    assert "mixtral" in data
+    assert data["mixtral"]["version"] == "v5"
+    assert data["mixtral"]["filename"] == "mixtral.gguf"

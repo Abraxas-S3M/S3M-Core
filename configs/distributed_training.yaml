@@ -1,0 +1,111 @@
+# S3M 3-Tier Distributed Training Configuration
+# UNCLASSIFIED - FOUO
+#
+# Architecture:
+#   Tier 1: Local Server (4-10TB) — Weight Vault, source of truth, always on
+#   Tier 2: Hetzner CCX33 (CPU) — 24/7 CPU training, orchestration, pseudo-labeling
+#   Tier 3: RunPod RTX 4090 (GPU) — 2-4 hr/day burst fine-tuning, quantization
+
+local_vault:
+  hostname: "s3m-vault"
+  storage:
+    mount_point: "/mnt/s3m-weights"
+    min_capacity_tb: 4
+    max_capacity_tb: 10
+    layout:
+      base_weights: "/mnt/s3m-weights/base/"
+      quantized: "/mnt/s3m-weights/quantized/"
+      lora_adapters: "/mnt/s3m-weights/adapters/"
+      merged: "/mnt/s3m-weights/merged/"
+      datasets: "/mnt/s3m-weights/datasets/"
+      eval_results: "/mnt/s3m-weights/eval/"
+      manifests: "/mnt/s3m-weights/manifests/"
+    weight_budget:
+      phi3_medium_fp16_gb: 28
+      grok1_fp16_gb: 300
+      mixtral_fp16_gb: 93
+      allam_fp16_gb: 14
+      total_fp16_gb: 435
+      total_q4_gb: 119
+  sync:
+    protocol: "rsync+ssh"
+    port: 22
+    ssh_key_path: "/root/.ssh/s3m_sync_key"
+    bandwidth_limit_mbps: 100
+  services:
+    weight_api_port: 8877
+    monitoring_port: 9100
+
+hetzner_ccx33:
+  hostname: "s3m-cpu-train"
+  specs:
+    vcpu: 8
+    ram_gb: 32
+    disk_gb: 240
+    gpu: none
+  role: "cpu_training_orchestrator"
+  sync:
+    pull_from_vault:
+      - source: "adapters/"
+        dest: "/opt/s3m/adapters/"
+        interval_minutes: 30
+      - source: "datasets/"
+        dest: "/opt/s3m/datasets/"
+        interval_hours: 6
+    push_to_vault:
+      - source: "/opt/s3m/gradients/"
+        dest: "adapters/federated/"
+        interval_minutes: 30
+      - source: "/opt/s3m/pseudo_labels/"
+        dest: "datasets/pseudo/"
+        interval_hours: 2
+  cpu_training:
+    federated_aggregation:
+      enabled: true
+      strategy: "fedprox"
+    self_training:
+      enabled: true
+      strategy: "noisy_student"
+      confidence_threshold: 0.85
+    pseudo_labeling:
+      model: "phi3-medium-q4"
+      batch_size: 4
+  orchestrator:
+    runpod_api_key_env: "RUNPOD_API_KEY"
+    check_interval_minutes: 15
+
+runpod_4090:
+  pod_type: "NVIDIA RTX 4090"
+  vram_gb: 24
+  ephemeral: true
+  role: "gpu_training_burst"
+  daily_budget:
+    max_hours: 4
+    max_cost_usd: 16
+    auto_shutdown: true
+  boot_sequence:
+    - "rsync_pull base/{engine}/ from vault"
+    - "rsync_pull datasets/{engine}/ from vault"
+    - "rsync_pull adapters/{engine}/ from vault"
+  completion_sequence:
+    - "rsync_push adapters/{engine}/ to vault"
+    - "rsync_push merged/{engine}/ to vault"
+    - "rsync_push quantized/{engine}/ to vault"
+    - "shutdown_pod"
+  training_profiles:
+    phi3_medium:
+      fits_single_4090: true
+      qlora_vram_gb: 10
+      estimated_hours: 2
+    allam:
+      fits_single_4090: true
+      qlora_vram_gb: 6
+      estimated_hours: 1.5
+    mixtral:
+      fits_single_4090: false
+      strategy: "2x4090_pod_or_expert_parallel"
+      estimated_hours: 4
+    grok1:
+      fits_single_4090: false
+      strategy: "4xA100_80GB_or_distillation"
+      notes: "314B MoE too large for consumer GPUs"

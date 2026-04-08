@@ -1,14 +1,14 @@
 {
   "traces": [
     {"trace_id": "tr_001", "category": "threat_assessment", "model": "grok-1", "latency_ms": 820, "tokens": 450, "status": "ok", "timestamp": "2026-04-01T08:00:00Z"},
-    {"trace_id": "tr_002", "category": "mission_planning", "model": "mistral-7b", "latency_ms": 610, "tokens": 380, "status": "ok", "timestamp": "2026-04-01T08:03:00Z"},
+    {"trace_id": "tr_002", "category": "mission_planning", "model": "mixtral-8x7b", "latency_ms": 610, "tokens": 380, "status": "ok", "timestamp": "2026-04-01T08:03:00Z"},
     {"trace_id": "tr_003", "category": "arabic_nlp", "model": "allam", "latency_ms": 700, "tokens": 410, "status": "ok", "timestamp": "2026-04-01T08:05:00Z"},
     {"trace_id": "tr_004", "category": "tactical_decision", "model": "phi-3-mini-4k", "latency_ms": 540, "tokens": 260, "status": "ok", "timestamp": "2026-04-01T08:08:00Z"},
     {"trace_id": "tr_005", "category": "adversary_reasoning", "model": "grok-1", "latency_ms": 960, "tokens": 520, "status": "error", "timestamp": "2026-04-01T08:10:00Z"},
-    {"trace_id": "tr_006", "category": "maintenance_report", "model": "mistral-7b", "latency_ms": 640, "tokens": 310, "status": "ok", "timestamp": "2026-04-01T08:12:00Z"},
+    {"trace_id": "tr_006", "category": "maintenance_report", "model": "mixtral-8x7b", "latency_ms": 640, "tokens": 310, "status": "ok", "timestamp": "2026-04-01T08:12:00Z"},
     {"trace_id": "tr_007", "category": "intel_briefing", "model": "grok-1", "latency_ms": 880, "tokens": 560, "status": "ok", "timestamp": "2026-04-01T08:15:00Z"},
     {"trace_id": "tr_008", "category": "command_processing", "model": "phi-3-mini-4k", "latency_ms": 500, "tokens": 190, "status": "ok", "timestamp": "2026-04-01T08:18:00Z"},
     {"trace_id": "tr_009", "category": "risk_analysis", "model": "grok-1", "latency_ms": 910, "tokens": 470, "status": "ok", "timestamp": "2026-04-01T08:20:00Z"},
-    {"trace_id": "tr_010", "category": "threat_assessment", "model": "mistral-7b", "latency_ms": 630, "tokens": 330, "status": "ok", "timestamp": "2026-04-01T08:24:00Z"}
+    {"trace_id": "tr_010", "category": "threat_assessment", "model": "mixtral-8x7b", "latency_ms": 630, "tokens": 330, "status": "ok", "timestamp": "2026-04-01T08:24:00Z"}
   ]
 }

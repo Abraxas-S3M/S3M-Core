@@ -4,7 +4,7 @@ Unified operator interface with read-only access to all S3M layers.
 
 Views:
 1. COP (Common Operating Picture) — Tactical map with agents, threats, tracks, paths
-2. LLM Monitor — Quad-engine status, inference metrics, audit log
+2. LLM Monitor — Quad-engine status (Phi-3 Medium, Grok-1, Mixtral 8x7B, ALLaM-7B), inference metrics, audit log
 3. Threat Dashboard — Threat feed, heatmap, sensor health
 4. Autonomy Command — Agents, missions, swarm, XAI, human review queue
 5. System Health — Jetson hardware, edge models, GPS, simulation, API health

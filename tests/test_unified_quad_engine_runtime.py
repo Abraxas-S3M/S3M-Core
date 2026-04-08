@@ -196,8 +196,8 @@ def test_reconciliation_action_conflict() -> None:
             action_type="defensive",
             confidence=0.71,
         ),
-        "mistral-7b": _make_structured(
-            engine="mistral-7b",
+        "mixtral-8x7b": _make_structured(
+            engine="mixtral-8x7b",
             threat="enemy",
             action="strike",
             action_type="offensive",
@@ -231,25 +231,25 @@ def test_degraded_engine_failover() -> None:
 
 def test_engine_runtime_no_simulation() -> None:
     responses = {
-        EngineID.PHI3: "Enemy observed. confidence: 0.8. Recommend hold.",
-        EngineID.GROK: "Threat missile detected. confidence: 0.7. defend.",
+        EngineID.PHI3_MEDIUM: "Enemy observed. confidence: 0.8. Recommend hold.",
+        EngineID.GROK1: "Threat missile detected. confidence: 0.7. defend.",
     }
     adapter = EngineRuntimeAdapter()
     with patch.object(adapter, "_get_pool", return_value=_FakePool(responses)):
         outputs = adapter.execute_engines(
-            engine_ids=[EngineID.PHI3, EngineID.GROK],
+            engine_ids=[EngineID.PHI3_MEDIUM, EngineID.GROK1],
             prompt="status",
             task_id="task-live",
         )
-    assert "Pending live inference" not in outputs[EngineID.PHI3].raw_text
-    assert "simulate" not in outputs[EngineID.PHI3].raw_text.lower()
-    assert outputs[EngineID.PHI3].health == EngineHealth.HEALTHY
+    assert "Pending live inference" not in outputs[EngineID.PHI3_MEDIUM].raw_text
+    assert "simulate" not in outputs[EngineID.PHI3_MEDIUM].raw_text.lower()
+    assert outputs[EngineID.PHI3_MEDIUM].health == EngineHealth.HEALTHY
 
 
 def test_unified_runtime_end_to_end() -> None:
     responses = {
-        EngineID.PHI3: "Enemy movement observed. confidence: 80%. Recommend hold.",
-        EngineID.MISTRAL: "Logistics stable. monitor and secure sector.",
+        EngineID.PHI3_MEDIUM: "Enemy movement observed. confidence: 80%. Recommend hold.",
+        EngineID.MIXTRAL: "Logistics stable. monitor and secure sector.",
     }
     runtime = UnifiedRuntime(runtime_adapter=EngineRuntimeAdapter())
     with patch.object(runtime.runtime_adapter, "_get_pool", return_value=_FakePool(responses)):

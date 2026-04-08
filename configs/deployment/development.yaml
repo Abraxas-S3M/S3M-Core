@@ -8,6 +8,6 @@ middleware:
 jetson:
   simulated_mode: true
 memory:
-  total_budget_gb: 48
+  total_budget_gb: 256  # was 48, now needs 256 for full quad
 startup:
   skip_on_memory_pressure: []

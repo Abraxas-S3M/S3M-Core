@@ -10,7 +10,7 @@ variants:
   - variant_tag: q4_k_m
     runtime_format: gguf
     precision: int4
-    file_path: models/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf
+    file_path: models/mistral/mixtral-8x7b-instruct-v0.3-q4_k_m.gguf
     size_mb: 4100
     min_ram_gb: 5.0
     requires_gpu: false
@@ -19,7 +19,7 @@ variants:
   - variant_tag: q8_0
     runtime_format: gguf
     precision: int8
-    file_path: models/mistral/mistral-7b-q8_0.gguf
+    file_path: models/mistral/mixtral-8x7b-q8_0.gguf
     size_mb: 6200
     min_ram_gb: 8.0
     requires_gpu: false

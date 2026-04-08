@@ -119,7 +119,7 @@ def test_cpu_orchestrator_evaluate_uses_harness(tmp_path: Path, profile: NodePro
     def fake_infer(model_id: str, prompt: str, **kwargs: object) -> InferenceResult:
         del kwargs
         return InferenceResult(
-            engine_id=EngineID.PHI3,
+            engine_id=EngineID.PHI3_MEDIUM,
             prompt=prompt,
             response=f"ok:{model_id}",
             tokens_generated=8,

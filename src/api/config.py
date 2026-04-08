@@ -157,19 +157,19 @@ class APIConfig:
 
     # Engine GPU layers
     gpu_layers: Dict[str, int] = field(default_factory=lambda: {
-        "phi3": 35,
-        "grok": 33,
-        "mistral": 35,
+        "phi3_medium": 35,
+        "grok1": 33,
+        "mixtral": 35,
         "allam": 35,
     })
 
     # Domain routing defaults
     domain_routing: Dict[str, str] = field(default_factory=lambda: {
-        "tactical": "phi3",
-        "intelligence": "grok",
-        "logistics": "mistral",
+        "tactical": "phi3_medium",
+        "intelligence": "grok1",
+        "logistics": "mixtral",
         "arabic": "allam",
-        "general": "phi3",
+        "general": "phi3_medium",
     })
 
     def is_cpu_mode(self) -> bool:

@@ -129,13 +129,18 @@ heterogeneous_compute:
 
   # Bridge for remote offloading
   offload_bridge:
-    enabled: false
-    remote_gpu_endpoint: ""           # "host:port" of GPU node
-    remote_cpu_endpoint: ""           # "host:port" of CPU node
-    transport: "grpc"                 # grpc | zmq | tcp
+    enabled: true
+    vault_endpoint: ""           # Local vault IP:port
+    gpu_endpoint: ""             # RunPod IP:port (when active)
+    cpu_endpoint: ""             # Hetzner CCX33 IP:port
+    transport: "grpc"
     encryption: true
-    max_payload_mb: 256
-    timeout_seconds: 30
+    max_payload_mb: 512
+    timeout_seconds: 60
+    vault_sync:
+      enabled: true
+      protocol: "rsync+ssh"
+      interval_minutes: 30
 
   # Unified Memory / Zero-Copy
   memory:

@@ -97,7 +97,7 @@ def test_mode_b_limits_context_tokens_and_batch() -> None:
         gpu_detected=True,
     )
 
-    plan = planner.plan("mistral-7b", requested_tokens=5000)
+    plan = planner.plan("mixtral-8x7b", requested_tokens=5000)
 
     assert plan.decision == ExecutionDecision.RUN_LOCAL
     assert plan.variant is not None
@@ -114,7 +114,7 @@ def test_mode_d_sets_survival_token_ceiling() -> None:
         gpu_detected=True,
     )
 
-    plan = planner.plan("mistral-7b", requested_tokens=2000)
+    plan = planner.plan("mixtral-8x7b", requested_tokens=2000)
 
     assert plan.decision == ExecutionDecision.RUN_LOCAL
     assert plan.variant is not None

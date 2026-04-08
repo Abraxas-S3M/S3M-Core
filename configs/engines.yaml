@@ -1,45 +1,56 @@
-# S3M Quad-Engine Configuration
-# UNCLASSIFIED - FOUO
-
 engines:
   phi3:
     name: "Phi-3 Medium"
     provider: "Microsoft"
-    parameters: "3.8B"
+    parameters: "14B"
     quantization: "Q4_K_M"
     runtime: "llama.cpp"
     source: "huggingface"
-    hf_repo: "microsoft/Phi-3-mini-4k-instruct-gguf"
-    gcs_bucket: "gs://s3m-weight-vault/phi3/"
+    hf_repo: "microsoft/Phi-3-medium-4k-instruct"
+    hf_repo_gguf: "bartowski/Phi-3-medium-4k-instruct-GGUF"
+    gcs_bucket: "gs://s3m-weight-vault/phi3-medium/"
     domain: "tactical"
     context_window: 4096
-    max_tokens: 512
+    max_tokens: 1024
+    fp16_size_gb: 28
+    q4_size_gb: 8.5
 
-  grok:
-    name: "Grok"
+  grok1:
+    name: "Grok-1"
     provider: "xAI"
-    parameters: "8B"
+    parameters: "314B (MoE, 8 experts)"
     quantization: "Q4_K_M"
     runtime: "llama.cpp"
-    source: "huggingface"
+    source: "huggingface+torrent"
     hf_repo: "xai-org/grok-1"
-    gcs_bucket: "gs://s3m-weight-vault/grok/"
+    github_repo: "https://github.com/xai-org/grok-1"
+    gcs_bucket: "gs://s3m-weight-vault/grok1/"
     domain: "reasoning"
     context_window: 8192
-    max_tokens: 1024
+    max_tokens: 2048
+    fp16_size_gb: 300
+    q4_size_gb: 80
+    moe_experts: 8
+    active_experts_per_token: 2
+    pull_instructions: "huggingface-cli download xai-org/grok-1 --repo-type model --include ckpt-0/* --local-dir checkpoints"
 
   mistral:
     name: "Mixtral 8x7B"
     provider: "Mistral AI"
-    parameters: "7B"
+    parameters: "46.7B effective (MoE, 8x7B)"
     quantization: "Q4_K_M"
     runtime: "llama.cpp"
     source: "huggingface"
-    hf_repo: "mistralai/Mistral-7B-Instruct-v0.3"
-    gcs_bucket: "gs://s3m-weight-vault/mistral/"
+    hf_repo: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+    hf_repo_gguf: "TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
+    gcs_bucket: "gs://s3m-weight-vault/mixtral/"
     domain: "planning"
     context_window: 32768
-    max_tokens: 1024
+    max_tokens: 2048
+    fp16_size_gb: 93
+    q4_size_gb: 26
+    moe_experts: 8
+    active_experts_per_token: 2
 
   allam:
     name: "ALLaM-7B"
@@ -48,15 +59,26 @@ engines:
     quantization: "Q4_K_M"
     runtime: "llama.cpp"
     source: "huggingface"
-    hf_repo: "sdaia/allam-7b"
+    hf_repo: "humain-ai/ALLaM-7B-Instruct-preview"
     gcs_bucket: "gs://s3m-weight-vault/allam/"
+    local_path: "models/allam/allam-7b-instruct.Q4_K_M.gguf"
     domain: "arabic_nlp"
     context_window: 4096
     max_tokens: 1024
+    fp16_size_gb: 14
+    q4_size_gb: 4
 
 weight_vault:
-  primary: "google_cloud_storage"
-  bucket: "s3m-weight-vault"
-  region: "me-central1"
-  local_mirror: "./models/"
-  sync_strategy: "pull-on-deploy"
+  primary: "local_server"
+  local_server:
+    path: "/mnt/s3m-weights/"
+    capacity_tb: 4
+    expandable_to_tb: 10
+    sync_method: "rsync+ssh"
+  cloud_backup:
+    provider: "google_cloud_storage"
+    bucket: "s3m-weight-vault"
+    region: "me-central1"
+  sync_strategy: "local-primary-cloud-backup"
+  total_fp16_budget_gb: 435
+  total_q4_budget_gb: 119

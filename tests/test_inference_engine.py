@@ -8,15 +8,15 @@ from src.llm_core.engine_registry import EngineID
 
 
 def test_engine_initialization():
-    engine = InferenceEngine(EngineID.PHI3)
-    assert engine.engine_id == EngineID.PHI3
+    engine = InferenceEngine(EngineID.PHI3_MEDIUM)
+    assert engine.engine_id == EngineID.PHI3_MEDIUM
     assert engine.loaded == False
     assert engine.config.name == "Phi-3 Medium"
     print("PASS: Engine initializes correctly")
 
 
 def test_health_check():
-    engine = InferenceEngine(EngineID.GROK)
+    engine = InferenceEngine(EngineID.GROK1)
     health = engine.health_check()
     assert health["engine"] == "grok1"
     assert health["loaded"] == False
@@ -26,7 +26,7 @@ def test_health_check():
 
 
 def test_generate_without_model():
-    engine = InferenceEngine(EngineID.MISTRAL)
+    engine = InferenceEngine(EngineID.MIXTRAL)
     result = engine.generate("test prompt")
     assert "[ERROR]" in result.response
     assert result.tokens_generated == 0
@@ -43,7 +43,7 @@ def test_all_engines_initialize():
 
 def test_result_to_dict():
     result = InferenceResult(
-        engine_id=EngineID.PHI3,
+        engine_id=EngineID.PHI3_MEDIUM,
         prompt="test",
         response="test response",
         tokens_generated=10,

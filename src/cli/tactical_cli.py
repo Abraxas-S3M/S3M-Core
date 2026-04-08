@@ -40,7 +40,7 @@ class TacticalCLI(cmd.Cmd):
     def __init__(self, api_url: str = "http://localhost:8080"):
         super().__init__()
         self.api_url = api_url
-        self.current_engine = "phi3"
+        self.current_engine = "phi3_medium"
         self.current_domain = "general"
         self.temperature = 0.7
         self.max_tokens = 512
@@ -194,7 +194,7 @@ class TacticalCLI(cmd.Cmd):
             self._print_warning("Usage: threat <threat description>")
             return
         old_engine = self.current_engine
-        self.current_engine = "grok"
+        self.current_engine = "grok1"
         prompt = f"Provide a tactical threat assessment for: {arg}. Include threat level (LOW/MEDIUM/HIGH/CRITICAL), confidence score, and recommended actions."
         self.do_ask(prompt)
         self.current_engine = old_engine
@@ -202,8 +202,8 @@ class TacticalCLI(cmd.Cmd):
     # ── Engine Management ─────────────────────────────────────
 
     def do_engine(self, arg):
-        """Set current engine. Usage: engine <phi3|grok|mistral|allam>"""
-        valid = ["phi3", "grok", "mistral", "allam"]
+        """Set current engine. Usage: engine <phi3_medium|grok1|mixtral|allam>"""
+        valid = ["phi3_medium", "grok1", "mixtral", "allam"]
         if arg not in valid:
             self._print_warning(f"Usage: engine <{'|'.join(valid)}>")
             self._print_info(f"Current engine: {self.current_engine}")
@@ -228,13 +228,13 @@ class TacticalCLI(cmd.Cmd):
         else:
             # Fallback display
             self._print_info("Engine status (local):")
-            for eng in ["phi3", "grok", "mistral", "allam"]:
+            for eng in ["phi3_medium", "grok1", "mixtral", "allam"]:
                 marker = ">>>" if eng == self.current_engine else "   "
                 print(f"  {marker} {eng}")
 
     def do_load(self, arg):
         """Load an engine into memory. Usage: load <engine_name>"""
-        valid = ["phi3", "grok", "mistral", "allam"]
+        valid = ["phi3_medium", "grok1", "mixtral", "allam"]
         if arg not in valid:
             self._print_warning(f"Usage: load <{'|'.join(valid)}>")
             return
@@ -245,7 +245,7 @@ class TacticalCLI(cmd.Cmd):
 
     def do_unload(self, arg):
         """Unload an engine from memory. Usage: unload <engine_name>"""
-        valid = ["phi3", "grok", "mistral", "allam"]
+        valid = ["phi3_medium", "grok1", "mixtral", "allam"]
         if arg not in valid:
             self._print_warning(f"Usage: unload <{'|'.join(valid)}>")
             return
@@ -365,8 +365,8 @@ class TacticalCLI(cmd.Cmd):
             self._print_table(["Domain", "Engine"], rows)
         else:
             self._print_info("Domain routing (local defaults):")
-            for d, e in [("tactical", "phi3"), ("intelligence", "grok"),
-                         ("logistics", "mistral"), ("arabic", "allam"), ("general", "phi3")]:
+            for d, e in [("tactical", "phi3_medium"), ("intelligence", "grok1"),
+                         ("logistics", "mixtral"), ("arabic", "allam"), ("general", "phi3_medium")]:
                 print(f"  {d:15s} -> {e}")
             print()
 

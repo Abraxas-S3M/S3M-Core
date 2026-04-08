@@ -735,18 +735,18 @@ def register_s3m_engines(
         provider="Microsoft",
         version="4k-instruct",
         domain=ModelDomain.TACTICAL,
-        parameter_count="3.8B",
+        parameter_count="14B",
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
-        hf_repo="microsoft/Phi-3-mini-4k-instruct-gguf",
-        local_path="models/phi3/phi-3-mini-4k-instruct-q4_k_m.gguf",
+        hf_repo="microsoft/Phi-3-medium-4k-instruct",
+        local_path="models/phi3-medium/phi-3-medium-4k-instruct.Q4_K_M.gguf",
     )
     grok = ModelIdentity(
-        name="Grok",
+        name="Grok-1",
         provider="xAI",
         version="1.0",
         domain=ModelDomain.REASONING,
-        parameter_count="8B",
+        parameter_count="314B (MoE)",
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
         hf_repo="xai-org/grok-1",
@@ -755,13 +755,13 @@ def register_s3m_engines(
     mistral = ModelIdentity(
         name="Mixtral 8x7B",
         provider="Mistral AI",
-        version="0.3",
+        version="v0.1",
         domain=ModelDomain.PLANNING,
-        parameter_count="7B",
+        parameter_count="46.7B (MoE)",
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
-        hf_repo="mistralai/Mistral-7B-Instruct-v0.3",
-        local_path="models/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf",
+        hf_repo="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        local_path="models/mixtral/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
     )
     allam = ModelIdentity(
         name="ALLaM-7B",
@@ -772,15 +772,17 @@ def register_s3m_engines(
         parameter_count="7B",
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
-        hf_repo="sdaia/allam-7b",
-        local_path="models/allam/allam-7b-q4_k_m.gguf",
+        hf_repo="humain-ai/ALLaM-7B-Instruct-preview",
+        local_path="models/allam/allam-7b-instruct.Q4_K_M.gguf",
         description_ar="نموذج اللغة العربية السيادي من SDAIA",
     )
     return {
-        "phi3": registry.register(phi3, artifact_bytes=None, version_allowlist=version_allowlist),
-        "grok": registry.register(grok, artifact_bytes=None, version_allowlist=version_allowlist),
-        "mistral": registry.register(
-            mistral, artifact_bytes=None, version_allowlist=version_allowlist
+        "phi3_medium": registry.register(
+            phi3, artifact_bytes=None, version_allowlist=version_allowlist
+        ),
+        "grok1": registry.register(grok, artifact_bytes=None, version_allowlist=version_allowlist),
+        "mixtral": registry.register(
+            mixtral, artifact_bytes=None, version_allowlist=version_allowlist
         ),
         "allam": registry.register(allam, artifact_bytes=None, version_allowlist=version_allowlist),
     }
