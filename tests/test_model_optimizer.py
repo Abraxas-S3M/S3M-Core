@@ -1,6 +1,6 @@
 import pytest
 
-from src.llm_core.engine_registry import EngineID
+from src.llm_core.engine_registry import EngineID, TaskDomain
 from src.llm_core.model_optimizer import (
     HardwareProfile,
     LoadCategory,
@@ -23,34 +23,44 @@ class TestModelOptimizer:
         """Total memory calculation."""
         all_engines = list(EngineID)
         total = optimizer.estimate_total_memory(all_engines)
-        # Phi3: 2.5 + Grok: 5.5 + Mistral: 5.2 + ALLaM: 5.0 = 18.2
-        assert 18.0 < total < 20.0
+        # Phi-3 Medium: 10 + Grok-1: 85 + Mixtral: 28 + ALLaM: 5.5 = 128.5
+        assert 128.0 < total < 130.0
 
     def test_allocate_edge_16gb(self, optimizer):
-        """16GB edge device can fit Phi-3 only by profile policy."""
+        """16GB edge device is restricted to ALLaM by profile policy."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_16GB.value)
         assert plan.is_feasible()
-        assert EngineID.PHI3 in plan.allocated_engines
+        assert EngineID.ALLAM in plan.allocated_engines
+        assert EngineID.PHI3 not in plan.allocated_engines
         assert len(plan.allocated_engines) == 1
 
     def test_allocate_edge_32gb(self, optimizer):
-        """32GB edge device fits Phi-3 + 1 other by profile policy."""
+        """32GB edge device allocates one domain-prioritized engine."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_32GB.value)
         assert plan.is_feasible()
-        assert EngineID.PHI3 in plan.allocated_engines
-        assert len(plan.allocated_engines) == 2
+        assert len(plan.allocated_engines) == 1
+        assert plan.allocated_engines[0] in {EngineID.PHI3, EngineID.ALLAM}
 
     def test_allocate_edge_64gb(self, optimizer):
-        """64GB edge device fits 3 engines by profile policy."""
+        """64GB edge device fits 2-3 engines and excludes Grok-1."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_64GB.value)
         assert plan.is_feasible()
-        assert len(plan.allocated_engines) >= 3
+        assert 2 <= len(plan.allocated_engines) <= 3
+        assert EngineID.GROK not in plan.allocated_engines
 
     def test_allocate_server_128gb(self, optimizer):
-        """128GB server fits all 4 engines."""
+        """128GB server profile loads 3 engines and skips Grok-1."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.SERVER_128GB.value)
         assert plan.is_feasible()
+        assert len(plan.allocated_engines) == 3
+        assert EngineID.GROK not in plan.allocated_engines
+
+    def test_allocate_server_256gb(self, optimizer):
+        """256GB server profile can load the full 4-engine stack."""
+        plan = optimizer.allocate_for_hardware(HardwareProfile.SERVER_256GB.value)
+        assert plan.is_feasible()
         assert len(plan.allocated_engines) == 4
+        assert set(plan.allocated_engines) == {EngineID.PHI3, EngineID.GROK, EngineID.MISTRAL, EngineID.ALLAM}
 
     def test_validate_budget_fits(self, optimizer):
         """Validation passes for engines that fit."""
@@ -62,13 +72,14 @@ class TestModelOptimizer:
         assert budget.overage_gb == 0.0
 
     def test_validate_budget_exceeds(self, optimizer):
-        """Validation fails for budget overflow."""
+        """Validation fails for budget overflow against full 128.5GB stack."""
         budget = optimizer.validate_budget(
             list(EngineID),  # All 4 engines
             available_memory_gb=16.0,  # Only 16GB
         )
         assert not budget.fits
         assert budget.overage_gb > 0.0
+        assert budget.requested_memory_gb > 128.0
 
     def test_preload_plan_always_loaded(self, optimizer):
         """Phi-3 is always in startup_engines."""
@@ -78,7 +89,9 @@ class TestModelOptimizer:
 
     def test_preload_plan_opportunistic(self, optimizer):
         """Some engines marked opportunistic."""
-        plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_64GB.value)
+        plan = optimizer.allocate_for_hardware(
+            HardwareProfile.EDGE_64GB.value, primary_domain=TaskDomain.PLANNING
+        )
         preload = optimizer.plan_preload(plan)
         assert len(preload.opportunistic_engines) > 0
 
@@ -88,8 +101,8 @@ class TestModelOptimizer:
         assert profile == RuntimeProfile.EDGE_MINIMAL.value
 
     def test_runtime_profile_server_full(self, optimizer):
-        """128GB -> SERVER_FULL."""
-        profile = optimizer.recommend_runtime_profile(128.0)
+        """256GB -> SERVER_FULL."""
+        profile = optimizer.recommend_runtime_profile(256.0)
         assert profile == RuntimeProfile.SERVER_FULL.value
 
     def test_startup_time_estimation(self, optimizer):
@@ -105,12 +118,12 @@ class TestModelOptimizer:
         assert 0.0 <= plan.utilization_percent <= 1.0
 
     def test_consensus_available_on_server(self, optimizer):
-        """Consensus available on 64GB+ systems."""
-        plan_64gb = optimizer.allocate_for_hardware(HardwareProfile.EDGE_64GB.value)
-        assert plan_64gb.consensus_available
-
+        """Consensus available only on server-class profiles."""
         plan_128gb = optimizer.allocate_for_hardware(HardwareProfile.SERVER_128GB.value)
         assert plan_128gb.consensus_available
+
+        plan_256gb = optimizer.allocate_for_hardware(HardwareProfile.SERVER_256GB.value)
+        assert plan_256gb.consensus_available
 
     def test_consensus_unavailable_on_edge(self, optimizer):
         """Consensus unavailable on 16GB/32GB."""
@@ -123,7 +136,8 @@ class TestModelOptimizer:
     def test_load_plan_has_all_categories(self, optimizer):
         """Load plan marks unallocated engines as NEVER_LOADED."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_16GB.value)
-        assert plan.load_plan[EngineID.PHI3] == LoadCategory.ALWAYS_LOADED
+        assert plan.load_plan[EngineID.ALLAM] == LoadCategory.UNLOAD_FIRST
+        assert plan.load_plan[EngineID.PHI3] == LoadCategory.NEVER_LOADED
         assert any(cat == LoadCategory.NEVER_LOADED for cat in plan.load_plan.values())
 
 

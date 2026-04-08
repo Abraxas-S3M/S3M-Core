@@ -10,6 +10,7 @@ from enum import Enum
 
 class EngineID(Enum):
     PHI3 = "phi3-mini"
+    PHI3_MEDIUM = "phi3-mini"
     GROK = "grok-8b"
     MISTRAL = "mistral-7b"
     ALLAM = "allam-7b"
@@ -91,9 +92,9 @@ class EngineConfig:
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
     EngineID.PHI3: EngineConfig(
         engine_id=EngineID.PHI3,
-        name="Phi-3 Mini",
+        name="Phi-3 Medium",
         provider="Microsoft",
-        params="3.8B",
+        params="14B",
         model_filename="phi-3-mini-4k-instruct-q4_k_m.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
@@ -106,7 +107,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         latency_tier="fast",
         inference_latency_ms=28.0,
         throughput_tok_s=36.0,
-        memory_footprint_gb=2.5,
+        memory_footprint_gb=10.0,
         warm_state=False,
         confidence_prior=0.85,
         adapter_tuning_allowed=True,
@@ -123,7 +124,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
     ),
     EngineID.GROK: EngineConfig(
         engine_id=EngineID.GROK,
-        name="Grok",
+        name="Grok-1",
         provider="xAI",
         params="8B",
         model_filename="grok-8b-q4_k_m.gguf",
@@ -138,7 +139,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         latency_tier="medium",
         inference_latency_ms=40.0,
         throughput_tok_s=25.0,
-        memory_footprint_gb=5.5,
+        memory_footprint_gb=85.0,
         warm_state=False,
         confidence_prior=0.82,
         adapter_tuning_allowed=True,
@@ -155,7 +156,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
     ),
     EngineID.MISTRAL: EngineConfig(
         engine_id=EngineID.MISTRAL,
-        name="Mistral 7B",
+        name="Mixtral 8x7B",
         provider="Mistral AI",
         params="7B",
         model_filename="mistral-7b-instruct-v0.3-q4_k_m.gguf",
@@ -170,7 +171,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         latency_tier="medium",
         inference_latency_ms=35.0,
         throughput_tok_s=29.0,
-        memory_footprint_gb=5.2,
+        memory_footprint_gb=28.0,
         warm_state=False,
         confidence_prior=0.84,
         adapter_tuning_allowed=True,
@@ -202,7 +203,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         latency_tier="medium",
         inference_latency_ms=38.0,
         throughput_tok_s=28.0,
-        memory_footprint_gb=5.0,
+        memory_footprint_gb=5.5,
         warm_state=False,
         confidence_prior=0.83,
         adapter_tuning_allowed=True,

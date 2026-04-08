@@ -24,7 +24,7 @@ def test_get_engines_by_tier():
     """Ensure low-latency engines can be selected for urgent decisions."""
     registry = EngineRegistry()
     fast_engines = registry.get_engines_by_tier("fast")
-    assert any(cfg.engine_id == EngineID.PHI3 for cfg in fast_engines)
+    assert any(cfg.engine_id == EngineID.PHI3_MEDIUM for cfg in fast_engines)
 
 
 def test_get_capability_score():
@@ -39,7 +39,7 @@ def test_get_total_memory_required():
     registry = EngineRegistry()
     all_engines = list(EngineID)
     total = registry.get_total_memory_required(all_engines)
-    assert 18 < total < 20
+    assert 128 < total < 130
 
 
 def test_engine_training_metadata_targets():
