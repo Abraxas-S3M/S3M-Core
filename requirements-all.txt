@@ -8,16 +8,18 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 requests>=2.31.0
 llama-cpp-python>=0.2.0
+opa-python-client
 
 # Threat Detection (Phase 5)
 # ultralytics>=8.0.0  # Optional: install separately for YOLO
 scikit-learn>=1.3.0
 numpy>=1.24.0
+faiss-cpu>=1.7.4  # Use faiss-gpu on CUDA build nodes when available.
 
 # Autonomy (Phase 6)
 # ray[rllib]>=2.9.0  # Optional: heavy dependency
 # stable-baselines3>=2.2.0  # Optional
-# gymnasium>=0.29.0  # Optional
+gymnasium>=0.29.0
 # py-trees>=2.2.0  # Optional
 
 # Simulation (Phase 7)
@@ -27,12 +29,16 @@ numpy>=1.24.0
 # Navigation (Phase 8)
 # onnxruntime-gpu>=1.16.0  # Optional: edge inference
 # tensorrt  # Optional: install via JetPack SDK
+networkx>=3.2
 
 # Dashboard (Phase 9)
 websockets>=12.0
+military-symbol>=2.0.2
 
 # Security (Phase 10)
 cryptography>=41.0.0
+adversarial-robustness-toolbox>=1.17
+garak>=0.9
 
 # Domain Apps (Phase 11)
 # pymavlink>=2.4.0  # Optional: autopilot bridge

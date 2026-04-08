@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from typing import Any
 
-TRAINING_DATA_DIR = Path("data/training/gui_interactions")
-TRAINING_DATA_DIR.mkdir(parents=True, exist_ok=True)
+from src.training.data_lake import DataLake
+
+TRAINING_DATA_DIR = Path("/mnt/s3m-weights/datasets")
+
+
+def _get_data_lake() -> DataLake:
+    return DataLake(base_dir=TRAINING_DATA_DIR, source="gui_bridge")
 
 
 def _normalize_payload(payload: Any) -> Any:
@@ -36,17 +40,12 @@ def emit_training_record(
 ) -> None:
     try:
         safe_domain = "".join(ch for ch in str(domain) if ch.isalnum() or ch in ("_", "-")).strip() or "unknown"
-        record = {
-            "domain": safe_domain,
-            "input": json.dumps(_normalize_payload(input_context)),
-            "output": json.dumps(_normalize_payload(output_data)),
-            "language": str(language),
-            "source": "gui_bridge",
-            "timestamp": time.time(),
-        }
-        filepath = TRAINING_DATA_DIR / f"{safe_domain}.jsonl"
-        with filepath.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record) + "\n")
+        _get_data_lake().write(
+            safe_domain,
+            json.dumps(_normalize_payload(input_context)),
+            json.dumps(_normalize_payload(output_data)),
+            language=str(language),
+        )
     except Exception:
         # Training capture must never interrupt tactical GUI workflows.
         return

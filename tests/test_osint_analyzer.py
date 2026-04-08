@@ -63,3 +63,14 @@ def test_cross_reference_matching_entities_different_sources() -> None:
     refs = analyzer.cross_reference([item1, item2])
     assert refs
     assert any("patriot" in row["entity"] or "strait of hormuz" in row["entity"] for row in refs)
+
+
+def test_semantic_cross_reference_links_related_items() -> None:
+    analyzer = OSINTAnalyzer()
+    item1 = _item("src-a", "Hormuz patrol", "Patriot convoy repositioned near Strait of Hormuz.")
+    item2 = _item("src-b", "Maritime alert", "Strait of Hormuz reports Patriot convoy movement.")
+    item3 = _item("src-c", "Cyber bulletin", "Credential phishing campaign targeted mail gateways.")
+    linked = analyzer.semantic_cross_reference([item1, item2, item3], top_k=3)
+    assert linked
+    pairs = {(row["item_a"], row["item_b"]) for row in linked}
+    assert any(item1.item_id in pair and item2.item_id in pair for pair in pairs)

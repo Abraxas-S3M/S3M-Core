@@ -6,7 +6,7 @@ Internal dependencies:
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUICommsData,
@@ -99,38 +99,60 @@ class CommsAdapter:
             return {"status": "error", "detail": str(e), "updatedAt": _now_iso()}
 
     def get_bearer_health(self) -> dict:
+        bearers = self._default_bearers()
+        mesh_status = self._default_mesh_status()
         try:
             from services.comms.bearer_bridge import BearerBridge
-
-            bridge = BearerBridge()
-            bearers = bridge.get_status() if hasattr(bridge, "get_status") else []
-            return {"bearers": bearers, "updatedAt": _now_iso()}
         except Exception:
-            return {
-                "bearers": [
-                    {
-                        "type": "SATCOM",
-                        "status": "operational",
-                        "signal": 85,
-                        "latency": 120,
-                    },
-                    {"type": "HF", "status": "degraded", "signal": 45, "latency": 800},
-                    {"type": "VHF", "status": "operational", "signal": 92, "latency": 15},
-                    {"type": "LTE", "status": "offline", "signal": 0, "latency": 0},
-                ],
-                "updatedAt": _now_iso(),
-            }
+            BearerBridge = None
+
+        try:
+            from services.comms.mesh_monitor import MeshNetworkMonitor
+        except Exception:
+            MeshNetworkMonitor = None
+
+        try:
+            if BearerBridge is not None:
+                bridge = BearerBridge()
+                status = bridge.get_status() if hasattr(bridge, "get_status") else []
+                if isinstance(status, list):
+                    bearers = status
+        except Exception:
+            pass
+
+        try:
+            if MeshNetworkMonitor is not None:
+                monitor = MeshNetworkMonitor(node_manager=self._resolve_node_manager())
+                status = monitor.get_mesh_status()
+                if isinstance(status, dict):
+                    mesh_status = status
+        except Exception:
+            pass
+
+        return {"bearers": bearers, "mesh": mesh_status, "updatedAt": _now_iso()}
 
     def get_degradation_advice(self, bearer_status: dict = None) -> dict:
         """Route to Phi-3 Medium tactical engine for comms fallback recommendations."""
+        mesh_context = self._default_degradation_context()
+        try:
+            from services.comms.mesh_monitor import MeshNetworkMonitor
+
+            monitor = MeshNetworkMonitor(node_manager=self._resolve_node_manager())
+            context = monitor.estimate_degradation()
+            if isinstance(context, dict):
+                mesh_context = context
+        except Exception:
+            pass
+
         try:
             from src.llm_core.orchestrator import Orchestrator, QueryRequest
             from src.llm_core.engine_registry import TaskDomain
 
             orch = Orchestrator()
             prompt = (
-                f"Given bearer status: {bearer_status}. "
-                "Recommend comms fallback procedures."
+                f"Given bearer status: {bearer_status or {}}. "
+                f"Mesh degradation context: {mesh_context}. "
+                "Recommend comms fallback procedures for this tactical network."
             )
             result = orch.query(
                 QueryRequest(
@@ -174,3 +196,36 @@ class CommsAdapter:
                 "timestamp": _now_iso(),
             },
         ]
+
+    @staticmethod
+    def _default_bearers() -> list[dict[str, Any]]:
+        return [
+            {
+                "type": "SATCOM",
+                "status": "operational",
+                "signal": 85,
+                "latency": 120,
+            },
+            {"type": "HF", "status": "degraded", "signal": 45, "latency": 800},
+            {"type": "VHF", "status": "operational", "signal": 92, "latency": 15},
+            {"type": "LTE", "status": "offline", "signal": 0, "latency": 0},
+        ]
+
+    @staticmethod
+    def _default_mesh_status() -> dict[str, Any]:
+        return {"nodes": [], "links": [], "topology": "mesh"}
+
+    @staticmethod
+    def _default_degradation_context() -> dict[str, Any]:
+        return {"degraded_links": [], "recommendations": []}
+
+    def _resolve_node_manager(self) -> Optional[Any]:
+        node_manager = getattr(self._comms, "node_manager", None)
+        if node_manager is not None:
+            return node_manager
+        try:
+            from src.api.comms_routes import _manager
+
+            return getattr(_manager, "node_manager", None)
+        except Exception:
+            return None

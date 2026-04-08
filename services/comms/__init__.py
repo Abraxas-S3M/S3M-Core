@@ -32,6 +32,7 @@ from services.comms.models import (
     RelayStatus,
 )
 from services.comms.nlp import ArabicNLPEngine
+from services.comms.mesh_monitor import MeshNetworkMonitor
 from services.comms.node_manager import CommsNodeManager
 from services.comms.relays import (
     MatrixAdapter,
@@ -68,4 +69,5 @@ __all__ = [
     "MessageIntelExtractor",
     "CommsSecurityManager",
     "CommsNodeManager",
+    "MeshNetworkMonitor",
 ]

@@ -67,6 +67,33 @@ def test_semantic_graph_traversal():
     assert "c" in related_ids
 
 
+def test_semantic_search_similar_hook():
+    semantic = SemanticMemory()
+    semantic.add_concept(
+        Concept(
+            concept_id="veh-1",
+            name="T-72 Tank",
+            category="vehicle",
+            description="Tracked armored platform for frontline maneuver.",
+            keywords=["tank", "armor", "tracked"],
+            confidence=0.9,
+        )
+    )
+    semantic.add_concept(
+        Concept(
+            concept_id="sig-1",
+            name="Signal Intercept",
+            category="intel",
+            description="Radio traffic collection for targeting support.",
+            keywords=["signal", "intercept", "radio"],
+            confidence=0.7,
+        )
+    )
+    results = semantic.search_similar("tracked armored tank in maneuver corridor", top_k=2)
+    assert results
+    assert results[0]["concept_id"] == "veh-1"
+
+
 def test_decision_journal_record_and_query():
     journal = DecisionJournal(capacity=1000)
     entry = JournalEntry(
