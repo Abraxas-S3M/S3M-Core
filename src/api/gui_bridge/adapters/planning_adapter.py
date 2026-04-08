@@ -8,6 +8,7 @@ Internal dependencies:
 """
 
 from datetime import datetime, timezone
+from typing import Any
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUICOA,
@@ -95,14 +96,105 @@ class PlanningAdapter:
         return self._default_coas()
 
     def get_replan_triggers(self) -> dict:
+        triggers = []
         try:
             from src.replanning.plan_repair_engine import PlanRepairEngine
 
             engine = PlanRepairEngine()
             triggers = engine.get_active_triggers() if hasattr(engine, "get_active_triggers") else []
-            return {"triggers": triggers, "updatedAt": _now_iso()}
         except Exception:
-            return {"triggers": [], "updatedAt": _now_iso()}
+            triggers = []
+
+        return {
+            "triggers": triggers,
+            "replanOptions": self._build_replan_options(triggers),
+            "updatedAt": _now_iso(),
+        }
+
+    def _build_replan_options(self, triggers: list[Any]) -> list[dict]:
+        try:
+            from src.planning.route_graph import TacticalRouteGraph
+        except Exception:
+            return []
+
+        grid_size = self._extract_grid_size(triggers)
+        start = self._extract_waypoint(triggers, key="start", default=(0, 0))
+        end = self._extract_waypoint(triggers, key="end", default=(grid_size[0] - 1, grid_size[1] - 1))
+        obstacles = self._extract_collection(triggers, singular_key="obstacle", plural_key="obstacles")
+        threats = self._extract_collection(triggers, singular_key="threat", plural_key="threats")
+
+        try:
+            route_graph = TacticalRouteGraph().build_from_terrain(grid_size=grid_size, obstacles=obstacles)
+            route_graph.add_threat_overlay(threats)
+            alternate_routes = route_graph.find_alternate_routes(start=start, end=end, k=3)
+        except Exception:
+            return []
+
+        options = []
+        for index, route in enumerate(alternate_routes, start=1):
+            # Tactical context: each option represents a distinct maneuver
+            # corridor that operators can select during rapid replanning.
+            options.append(
+                {
+                    "optionId": f"ALT-{index}",
+                    "waypoints": [{"x": waypoint[0], "y": waypoint[1]} for waypoint in route],
+                }
+            )
+        return options
+
+    @staticmethod
+    def _extract_grid_size(triggers: list[Any]) -> tuple[int, int]:
+        default_size = (12, 12)
+        for trigger in triggers:
+            if not isinstance(trigger, dict):
+                continue
+            grid_size = trigger.get("grid_size")
+            if isinstance(grid_size, (list, tuple)) and len(grid_size) == 2:
+                try:
+                    width = max(2, int(grid_size[0]))
+                    height = max(2, int(grid_size[1]))
+                    return width, height
+                except (TypeError, ValueError):
+                    continue
+        return default_size
+
+    @staticmethod
+    def _extract_waypoint(triggers: list[Any], *, key: str, default: tuple[int, int]) -> tuple[int, int]:
+        for trigger in triggers:
+            if not isinstance(trigger, dict):
+                continue
+            candidate = trigger.get(key)
+            if isinstance(candidate, dict) and "x" in candidate and "y" in candidate:
+                try:
+                    return int(candidate["x"]), int(candidate["y"])
+                except (TypeError, ValueError):
+                    continue
+            if isinstance(candidate, (list, tuple)) and len(candidate) >= 2:
+                try:
+                    return int(candidate[0]), int(candidate[1])
+                except (TypeError, ValueError):
+                    continue
+        return default
+
+    @staticmethod
+    def _extract_collection(
+        triggers: list[Any], *, singular_key: str, plural_key: str
+    ) -> list[dict | tuple[int, int]]:
+        entries: list[dict | tuple[int, int]] = []
+        for trigger in triggers:
+            if not isinstance(trigger, dict):
+                continue
+
+            singular = trigger.get(singular_key)
+            if singular is not None:
+                entries.append(singular)
+
+            plural = trigger.get(plural_key)
+            if isinstance(plural, list):
+                entries.extend(plural)
+            elif plural is not None:
+                entries.append(plural)
+        return entries
 
     def get_suggestions(self, plan_context: str = "") -> dict:
         try:

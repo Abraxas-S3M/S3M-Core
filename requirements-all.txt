@@ -27,6 +27,7 @@ numpy>=1.24.0
 # Navigation (Phase 8)
 # onnxruntime-gpu>=1.16.0  # Optional: edge inference
 # tensorrt  # Optional: install via JetPack SDK
+networkx>=3.2
 
 # Dashboard (Phase 9)
 websockets>=12.0
