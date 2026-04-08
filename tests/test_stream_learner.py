@@ -8,6 +8,7 @@ import pytest
 
 from src.training.cpu_adaptation import StreamLearner
 from src.training.cpu_adaptation.stream_learner import (
+    log_embedding_training_sample,
     log_fleet_maintenance_training_sample,
 )
 
@@ -61,5 +62,38 @@ def test_log_fleet_maintenance_training_sample_validates_inputs(tmp_path) -> Non
     with pytest.raises(ValueError):
         log_fleet_maintenance_training_sample(
             maintenance_outcomes="bad",  # type: ignore[arg-type]
+            output_path=output,
+        )
+
+
+def test_log_embedding_training_sample_writes_jsonl(tmp_path) -> None:
+    output = tmp_path / "embedding_stream.jsonl"
+    payload = log_embedding_training_sample(
+        sample_id="concept-alpha",
+        embedding=[0.1, 0.2, 0.3],
+        metadata={"source": "semantic_memory", "priority": "high"},
+        output_path=output,
+    )
+    assert output.exists()
+    rows = output.read_text(encoding="utf-8").splitlines()
+    assert len(rows) == 1
+    stored = json.loads(rows[0])
+    assert stored["sampleId"] == "concept-alpha"
+    assert stored["metadata"]["source"] == "semantic_memory"
+    assert payload["embedding"][2] == 0.3
+
+
+def test_log_embedding_training_sample_validates_inputs(tmp_path) -> None:
+    output = tmp_path / "embedding_stream.jsonl"
+    with pytest.raises(ValueError):
+        log_embedding_training_sample(
+            sample_id="",
+            embedding=[0.1, 0.2],
+            output_path=output,
+        )
+    with pytest.raises(ValueError):
+        log_embedding_training_sample(
+            sample_id="ok",
+            embedding=[],
             output_path=output,
         )
