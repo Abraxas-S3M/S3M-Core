@@ -164,6 +164,10 @@ class TrackFuser:
             raise ValueError("track_id must be a non-empty string")
         return self._tracks.get(track_id)
 
+    def get_confirmed_tracks(self) -> List[Track]:
+        """Return only confirmed tracks used for tactical COP enrichment."""
+        return self.get_tracks(state=TrackState.CONFIRMED)
+
     def get_stats(self) -> Dict[str, int]:
         tracks = list(self._tracks.values())
         return {

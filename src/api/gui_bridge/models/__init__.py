@@ -7,6 +7,8 @@ from .gui_schemas import (
     GUIRiskDomain,
     GUIRiskDriver,
     GUIRiskForecast,
+    GUIThreatTrack,
+    GUITracksData,
     SeverityLevel,
     TrendDirection,
 )
@@ -18,6 +20,8 @@ __all__ = [
     "GUIRiskDomain",
     "GUIRiskDriver",
     "GUIRiskForecast",
+    "GUIThreatTrack",
+    "GUITracksData",
     "SeverityLevel",
     "TrendDirection",
 ]

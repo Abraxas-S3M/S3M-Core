@@ -181,6 +181,15 @@ class GUIThreatTrack(GUIBaseModel):
     correlatedTrackIds: List[str] = Field(default_factory=list)
     summary: str
     lastSeen: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    altitude: Optional[float] = None
+    speed: Optional[float] = None
+    heading: Optional[float] = None
+    identityProbabilities: Optional[Dict[str, float]] = None
+    sourceAttribution: Optional[List[str]] = None
+    trackHistory: Optional[List[Dict[str, Any]]] = None
+    recommendedAction: Optional[str] = None
 
 
 class GUITracksData(GUIBaseModel):

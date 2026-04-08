@@ -16,6 +16,7 @@ CHECKS = [
     ("GET",  "/workspaces/command/timeline-events",     ["events"]),
     ("GET",  "/workspaces/cop/tracks",                  ["tracks"]),
     ("GET",  "/workspaces/cop/threat-tracks",           ["tracks"]),
+    ("GET",  "/workspaces/cop/enriched-tracks",         ["tracks"]),
     ("GET",  "/workspaces/decisions/queue",             ["decisions", "queueCounts"]),
     ("GET",  "/workspaces/risk/metrics",                ["composite", "domains", "forecast", "drivers"]),
     ("GET",  "/workspaces/readiness/summary",           ["personnel", "equipment", "unitStatus"]),
