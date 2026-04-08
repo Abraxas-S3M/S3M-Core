@@ -64,13 +64,63 @@ class PlanningAdapter:
 
     def _build_coas(self):
         try:
-            from src.apps.battle_planning import planner
+            from src.apps.battle_planning.battle_planner import BattlePlanner
 
-            if hasattr(planner, "get_coas") or hasattr(planner, "compare_coa"):
-                return self._default_coas()
+            bp = BattlePlanner()
+            result = bp.plan_with_comparison("Current operational mission", num_coas=3)
+            comparison = result.get("comparison", {})
+            coa_results = comparison.get("coa_results", [])
+            if coa_results:
+                gui_coas = []
+                for cr in coa_results:
+                    aar = cr.get("aar", {})
+                    profile = cr.get("profile", {})
+                    # Tactical context: convert simulated friendly losses into
+                    # a bounded operator-facing mission risk score.
+                    gui_coas.append(
+                        GUICOA(
+                            id=f"COA-{profile.get('coa_id', 0)}",
+                            name=profile.get("name", "Unknown"),
+                            description=profile.get("approach", ""),
+                            riskScore=min(100, max(0, int(aar.get("friendly_losses", 0) * 20))),
+                            successProbability=1.0 if aar.get("outcome") == "victory" else 0.5,
+                            selected=(cr == coa_results[0]),  # top-ranked
+                            strengths=profile.get("strengths", []),
+                            weaknesses=profile.get("weaknesses", []),
+                        )
+                    )
+                return gui_coas
         except Exception:
             pass
         return self._default_coas()
+
+    def get_replan_triggers(self) -> dict:
+        try:
+            from src.replanning.plan_repair_engine import PlanRepairEngine
+
+            engine = PlanRepairEngine()
+            triggers = engine.get_active_triggers() if hasattr(engine, "get_active_triggers") else []
+            return {"triggers": triggers, "updatedAt": _now_iso()}
+        except Exception:
+            return {"triggers": [], "updatedAt": _now_iso()}
+
+    def get_suggestions(self, plan_context: str = "") -> dict:
+        try:
+            from src.llm_core.orchestrator import Orchestrator, QueryRequest
+            from src.llm_core.engine_registry import TaskDomain
+
+            orch = Orchestrator()
+            prompt = f"Given current plan context: {plan_context}. Suggest 3 plan modifications."
+            try:
+                request = QueryRequest(prompt=prompt, domain=TaskDomain.PLANNING, max_tokens=512)
+            except TypeError:
+                request = QueryRequest(prompt=prompt, domain=TaskDomain.PLANNING)
+
+            result = orch.query(request) if hasattr(orch, "query") else orch.process(request)
+            text = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
+            return {"suggestions": text, "engine": "mixtral", "updatedAt": _now_iso()}
+        except Exception:
+            return {"suggestions": "LLM unavailable", "updatedAt": _now_iso()}
 
     @staticmethod
     def _default_phases():

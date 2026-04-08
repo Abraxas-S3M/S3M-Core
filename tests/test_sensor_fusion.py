@@ -69,6 +69,15 @@ def test_track_state_transitions_tentative_confirmed_lost_deleted():
     assert fuser.get_track(track_id) is None
 
 
+def test_track_fuser_get_confirmed_tracks_only_returns_confirmed():
+    fuser = TrackFuser(association_threshold=50.0, max_tracks=100)
+    for _ in range(3):
+        fuser.update([_reading("r1", 5.0, 5.0)])
+    confirmed = fuser.get_confirmed_tracks()
+    assert len(confirmed) == 1
+    assert confirmed[0].state == TrackState.CONFIRMED
+
+
 def test_sensor_manager_register_ingest_process():
     manager = SensorManager()
     manager.register_sensor("eo-1", SensorType.EO_CAMERA, {"fov": 90})

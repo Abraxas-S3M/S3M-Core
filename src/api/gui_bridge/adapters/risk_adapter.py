@@ -121,8 +121,24 @@ class RiskAdapter:
             ]
         return drivers
 
-    @staticmethod
-    def _build_forecast(composite: int) -> List[GUIRiskForecast]:
+    def _build_forecast(self, composite: int) -> List[GUIRiskForecast]:
+        try:
+            from src.prediction.short_horizon_predictor import ShortHorizonPredictor
+
+            predictor = ShortHorizonPredictor()
+            predictions = predictor.predict(current_value=composite, horizon_steps=4)
+            if predictions:
+                now = datetime.now(timezone.utc)
+                return [
+                    GUIRiskForecast(
+                        timestamp=(now + timedelta(minutes=15 * (i + 1))).isoformat(),
+                        score=min(100, max(0, int(p))),
+                    )
+                    for i, p in enumerate(predictions)
+                ]
+        except Exception:
+            pass
+
         now = datetime.now(timezone.utc)
         return [
             GUIRiskForecast(
@@ -131,3 +147,14 @@ class RiskAdapter:
             )
             for i in range(4)
         ]
+
+    def get_what_if(self, scenario: dict) -> dict:
+        """What-if risk analysis using Bayesian network."""
+        try:
+            from services.risk_assessment.bayesian_network import BayesianNetwork
+
+            bn = BayesianNetwork()
+            result = bn.evaluate(scenario) if hasattr(bn, "evaluate") else {}
+            return {"scenario": scenario, "result": result, "updatedAt": _now_iso()}
+        except Exception:
+            return {"scenario": scenario, "result": {}, "updatedAt": _now_iso()}
