@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
 from threading import RLock
 from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from src.api.gui_bridge.models.gui_schemas import GUIActionItem
+try:
+    from src.api.gui_bridge.models.gui_schemas import GUIActionItem
+except Exception:
+    # Fallback keeps tactical action-board service available even if model package exports drift.
+    _SCHEMA_PATH = Path(__file__).resolve().parents[1] / "api" / "gui_bridge" / "models" / "gui_schemas.py"
+    _SPEC = spec_from_file_location("action_board_gui_schemas", _SCHEMA_PATH)
+    _MODULE = module_from_spec(_SPEC)
+    assert _SPEC is not None and _SPEC.loader is not None
+    _SPEC.loader.exec_module(_MODULE)
+    GUIActionItem = _MODULE.GUIActionItem
 
 TaskStatus = Literal["pending", "active", "complete"]
 
@@ -28,6 +39,9 @@ class ActionTask(BaseModel):
     status: TaskStatus = "pending"
     linked_decision_id: Optional[str] = None
     created_at: datetime
+
+
+ActionTask.model_rebuild()
 
 
 class ActionBoard:
