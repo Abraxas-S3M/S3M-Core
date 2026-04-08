@@ -6,7 +6,7 @@ where Python reserved words conflict (e.g. 'from').
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -268,6 +268,18 @@ class GUIScenario(GUIBaseModel):
 class GUISimulationData(GUIBaseModel):
     scenarios: List[GUIScenario]
     updatedAt: str
+
+
+class GUIAARReport(GUIBaseModel):
+    scenarioId: str
+    outcome: str
+    friendlyLosses: int = 0
+    enemyLosses: int = 0
+    objectivesMet: List[str] = Field(default_factory=list)
+    keyDecisionPoints: List[Dict[str, Any]] = Field(default_factory=list)
+    missedDetections: int = 0
+    avgTimeToDecision: Optional[float] = None
+    narrative: Optional[str] = None
 
 
 # -- Cyber -----------------------------------------------------

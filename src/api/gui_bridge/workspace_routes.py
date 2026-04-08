@@ -4,7 +4,7 @@ Each route instantiates an adapter singleton and delegates to it.
 Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from pydantic import BaseModel
 
@@ -126,6 +126,27 @@ async def get_cyber_resilience():
 @workspace_router.get("/simulation/scenarios")
 async def get_simulation_scenarios():
     return _simulation.get_scenarios()
+
+
+@workspace_router.get("/simulation/catalog")
+async def get_simulation_catalog():
+    return _simulation.get_scenario_catalog()
+
+
+@workspace_router.get("/simulation/aar/{scenario_id}")
+async def get_simulation_aar(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.get_aar(sid)
+
+
+@workspace_router.post("/simulation/compare/{scenario_id}")
+async def compare_simulation_modes(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.run_comparison(sid)
 
 
 # ── Sustainment ─────────────────────────────────────────────
