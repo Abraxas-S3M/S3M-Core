@@ -14,6 +14,7 @@ from .prediction_models import (
     UncertaintyEstimate,
 )
 from .short_horizon_predictor import ShortHorizonPredictor
+from .risk_forecaster import RiskForecaster
 
 __all__ = [
     "EntitySnapshot",
@@ -22,6 +23,7 @@ __all__ = [
     "ForecastWindow",
     "PredictedEntityState",
     "PredictionHypothesis",
+    "RiskForecaster",
     "ShortHorizonPredictor",
     "ThreatPosture",
     "UncertaintyEstimate",
