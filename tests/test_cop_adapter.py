@@ -23,6 +23,15 @@ def _install_gui_schema_stubs(monkeypatch):
         correlatedTrackIds: list[str]
         summary: str
         lastSeen: str
+        latitude: float | None = None
+        longitude: float | None = None
+        altitude: float | None = None
+        speed: float | None = None
+        heading: float | None = None
+        identityProbabilities: dict[str, float] | None = None
+        sourceAttribution: list[str] | None = None
+        trackHistory: list[dict[str, Any]] | None = None
+        recommendedAction: str | None = None
 
     @dataclass
     class GUITracksData:
@@ -188,6 +197,48 @@ def _install_mission_planner_stub(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "src.planning.mission_planner", mission_mod)
 
 
+def _install_operational_picture_stub(monkeypatch) -> None:
+    ops_mod = types.ModuleType("src.runtime.operational_picture_service")
+
+    class OperationalPictureService:
+        def get_picture(self) -> dict[str, Any]:
+            return {
+                "generated_at": "2026-04-04T03:00:00+00:00",
+                "entities": [
+                    {
+                        "entity_id": "TH-42",
+                        "entity_type": "ENEMY_UAV",
+                        "confidence": 0.9,
+                        "threat_level": "high",
+                        "position": [120.0, 300.0, 80.0],
+                    }
+                ],
+            }
+
+    ops_mod.OperationalPictureService = OperationalPictureService
+    monkeypatch.setitem(sys.modules, "src.runtime.operational_picture_service", ops_mod)
+
+
+def _install_stonesoup_bridge_stub(monkeypatch):
+    bridge_mod = types.ModuleType("src.sensor_fusion.stone_soup_bridge")
+
+    class StoneSoupBridge:
+        requested_track_ids: list[str] = []
+
+        def set_track_context(self, track_id: str, **_kwargs: Any) -> None:
+            self.requested_track_ids.append(str(track_id))
+
+        def get_identity_probabilities(self, _track_id: str) -> dict[str, float]:
+            return {"friendly": 0.1, "hostile": 0.8, "unknown": 0.1}
+
+        def get_association_confidence(self, _track_id: str) -> float:
+            return 0.8
+
+    bridge_mod.StoneSoupBridge = StoneSoupBridge
+    monkeypatch.setitem(sys.modules, "src.sensor_fusion.stone_soup_bridge", bridge_mod)
+    return StoneSoupBridge
+
+
 def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
     _install_cop_provider_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
@@ -250,3 +301,23 @@ def test_cop_adapter_get_mission_overlay(monkeypatch):
     assert len(overlay["waypoints"]) == 2
     assert len(overlay["phaseLines"]) == 1
     assert overlay["objectives"][0]["id"] == "OBJ-A"
+
+
+def test_cop_adapter_enriched_tracks_populate_identity_probabilities(monkeypatch):
+    _install_cop_provider_stub(monkeypatch)
+    _install_operational_picture_stub(monkeypatch)
+    bridge_cls = _install_stonesoup_bridge_stub(monkeypatch)
+    adapter_module = _reload_cop_adapter()
+    adapter = adapter_module.COPAdapter()
+    adapter._get_confirmed_fused_tracks = lambda: []
+
+    enriched = adapter.get_enriched_tracks()
+
+    assert len(enriched.tracks) == 1
+    assert enriched.tracks[0].id == "TH-42"
+    assert enriched.tracks[0].identityProbabilities == {
+        "friendly": 0.1,
+        "hostile": 0.8,
+        "unknown": 0.1,
+    }
+    assert "TH-42" in bridge_cls.requested_track_ids

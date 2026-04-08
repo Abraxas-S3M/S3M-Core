@@ -17,6 +17,7 @@ from .doctrine_models import (
     ReportingPolicy,
 )
 from .doctrine_profile_manager import DoctrineProfileManager, DoctrineAuditEntry
+from .opa_evaluator import OPAEvaluator
 from .policy_bias_engine import PolicyBiasEngine, BiasResult, PolicyAdjustment, FormattedReport
 
 __all__ = [
@@ -32,6 +33,7 @@ __all__ = [
     "DomainPriority",
     "DoctrineProfileManager",
     "DoctrineAuditEntry",
+    "OPAEvaluator",
     "PolicyBiasEngine",
     "BiasResult",
     "PolicyAdjustment",
