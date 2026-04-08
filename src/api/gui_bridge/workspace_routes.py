@@ -5,8 +5,8 @@ Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
-from pydantic import BaseModel
+from typing import Literal, Optional
+from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
 from src.api.gui_bridge.adapters.agent_adapter import AgentAdapter
@@ -21,6 +21,7 @@ from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
 from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
 from src.api.gui_bridge.models.gui_schemas import GUIAgentProgramRequest
+from src.command.action_board import ActionBoard
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
@@ -37,11 +38,34 @@ _sustainment = SustainmentAdapter()
 _comms = CommsAdapter()
 _simulation = SimulationAdapter()
 _planning = PlanningAdapter()
+_action_board = ActionBoard()
 
 
 # ── Request/Response helpers ────────────────────────────────
 class DecisionActionRequest(BaseModel):
     comment: str = ""
+
+
+class ActionBoardCreateRequest(BaseModel):
+    title: str
+    urgency: int = Field(ge=1, le=5)
+    impact: int = Field(ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Literal["pending", "active", "complete"] = "pending"
+    linkedDecisionId: Optional[str] = None
+
+
+class ActionBoardUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    urgency: Optional[int] = Field(default=None, ge=1, le=5)
+    impact: Optional[int] = Field(default=None, ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Optional[Literal["pending", "active", "complete"]] = None
+    linkedDecisionId: Optional[str] = None
+
+
+class PlanningSuggestionsRequest(BaseModel):
+    plan_context: str = ""
 
 
 # ── Command Overview ────────────────────────────────────────
@@ -90,6 +114,40 @@ async def program_agent(agent_id: str, payload: GUIAgentProgramRequest):
         raise HTTPException(status_code=404, detail="Agent not found") from exc
 
 
+@workspace_router.get("/command/action-board")
+async def get_action_board():
+    return _command.get_action_board()
+
+
+@workspace_router.post("/command/action-board")
+async def create_action_board_task(payload: ActionBoardCreateRequest):
+    task = _action_board.add_task(
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    return task.model_dump()
+
+
+@workspace_router.patch("/command/action-board/{task_id}")
+async def update_action_board_task(task_id: str, payload: ActionBoardUpdateRequest):
+    task = _action_board.update_task(
+        task_id=task_id,
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Action task '{task_id}' not found")
+    return task.model_dump()
+
+
 # ── COP ─────────────────────────────────────────────────────
 @workspace_router.get("/cop/tracks")
 async def get_cop_tracks():
@@ -129,10 +187,35 @@ async def get_readiness_summary():
     return _readiness.get_summary().model_dump()
 
 
+@workspace_router.get("/readiness/enriched")
+async def get_readiness_enriched():
+    return _readiness.get_enriched_summary()
+
+
 # ── Surveillance / ISR ──────────────────────────────────────
 @workspace_router.get("/surveillance/assets")
 async def get_surveillance_assets():
     return _surveillance.get_assets()
+
+
+@workspace_router.get("/surveillance/collection")
+async def get_surveillance_collection():
+    return _surveillance.get_collection_status()
+
+
+@workspace_router.get("/surveillance/source-reliability")
+async def get_surveillance_source_reliability():
+    return _surveillance.get_source_reliability()
+
+
+@workspace_router.get("/surveillance/fusion-brief")
+async def get_surveillance_fusion_brief(region: str = Query("all")):
+    return _surveillance.get_fusion_brief(region=region)
+
+
+@workspace_router.get("/surveillance/watchlists")
+async def get_surveillance_watchlists():
+    return _surveillance.get_watchlists()
 
 
 # ── Communications ──────────────────────────────────────────
@@ -163,6 +246,27 @@ async def get_simulation_scenarios():
     return _simulation.get_scenarios()
 
 
+@workspace_router.get("/simulation/catalog")
+async def get_simulation_catalog():
+    return _simulation.get_scenario_catalog()
+
+
+@workspace_router.get("/simulation/aar/{scenario_id}")
+async def get_simulation_aar(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.get_aar(sid)
+
+
+@workspace_router.post("/simulation/compare/{scenario_id}")
+async def compare_simulation_modes(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.run_comparison(sid)
+
+
 # ── Sustainment ─────────────────────────────────────────────
 @workspace_router.get("/sustainment/fleet")
 async def get_fleet_status():
@@ -183,3 +287,13 @@ async def get_planning_phases():
 @workspace_router.get("/planning/coas")
 async def get_courses_of_action():
     return _planning.get_coas()
+
+
+@workspace_router.get("/planning/replan-triggers")
+async def get_replan_triggers():
+    return _planning.get_replan_triggers()
+
+
+@workspace_router.post("/planning/suggestions")
+async def get_planning_suggestions(payload: PlanningSuggestionsRequest = PlanningSuggestionsRequest()):
+    return _planning.get_suggestions(plan_context=payload.plan_context)

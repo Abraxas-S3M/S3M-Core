@@ -160,6 +160,32 @@ class TestReadinessWorkspace:
         p = data["personnel"]
         assert all(k in p for k in ("available", "deployed", "onLeave"))
 
+    def test_enriched_shape(self):
+        r = client.get(f"{BASE}/workspaces/readiness/enriched")
+        assert r.status_code == 200
+        data = r.json()
+        assert "personnel" in data
+        assert "equipment" in data
+        assert "unitStatus" in data
+        assert "certifications" in data
+        assert "qualificationMatrix" in data
+        assert "readinessForecast" in data
+        assert "updatedAt" in data
+        if data["certifications"]:
+            cert = data["certifications"][0]
+            assert all(
+                k in cert
+                for k in (
+                    "certType",
+                    "nameEn",
+                    "nameAr",
+                    "total",
+                    "current",
+                    "expiringSoon",
+                    "expired",
+                )
+            )
+
 
 class TestSurveillanceWorkspace:
     def test_assets_shape(self):
@@ -169,6 +195,40 @@ class TestSurveillanceWorkspace:
         assert "assets" in data
         assert "taskingQueue" in data
         assert "targetBoard" in data
+
+    def test_collection_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/collection")
+        assert r.status_code == 200
+        data = r.json()
+        assert "collection" in data
+        assert "updatedAt" in data
+
+    def test_source_reliability_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/source-reliability")
+        assert r.status_code == 200
+        data = r.json()
+        assert "sources" in data
+        assert "updatedAt" in data
+        assert isinstance(data["sources"], list)
+
+    def test_fusion_brief_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/fusion-brief")
+        assert r.status_code == 200
+        data = r.json()
+        assert "brief" in data
+        assert "updatedAt" in data
+
+    def test_watchlists_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/watchlists")
+        assert r.status_code == 200
+        data = r.json()
+        assert "watchlists" in data
+        assert "updatedAt" in data
+        watchlists = data["watchlists"]
+        assert all(
+            key in watchlists
+            for key in ("persons", "organizations", "vessels", "vehicles", "sites")
+        )
 
 
 class TestCommsWorkspace:
@@ -203,6 +263,28 @@ class TestSimulationWorkspace:
         data = r.json()
         assert "scenarios" in data
 
+    def test_catalog_shape(self):
+        r = client.get(f"{BASE}/workspaces/simulation/catalog")
+        assert r.status_code == 200
+        data = r.json()
+        assert "scenarios" in data
+        assert "updatedAt" in data
+
+    def test_aar_shape(self):
+        r = client.get(f"{BASE}/workspaces/simulation/aar/SCN-001")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["scenarioId"] == "SCN-001"
+        assert "aar" in data
+        assert "updatedAt" in data
+
+    def test_compare_shape(self):
+        r = client.post(f"{BASE}/workspaces/simulation/compare/SCN-001")
+        assert r.status_code == 200
+        data = r.json()
+        assert "comparison" in data
+        assert "updatedAt" in data
+
 
 class TestSustainmentWorkspace:
     def test_fleet_shape(self):
@@ -230,6 +312,23 @@ class TestPlanningWorkspace:
         assert r.status_code == 200
         data = r.json()
         assert "coursesOfAction" in data
+
+    def test_replan_triggers_shape(self):
+        r = client.get(f"{BASE}/workspaces/planning/replan-triggers")
+        assert r.status_code == 200
+        data = r.json()
+        assert "triggers" in data
+        assert "updatedAt" in data
+
+    def test_suggestions_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/planning/suggestions",
+            json={"plan_context": "Enemy armored column observed near crossing sector."},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "suggestions" in data
+        assert "updatedAt" in data
 
 
 class TestAuth:

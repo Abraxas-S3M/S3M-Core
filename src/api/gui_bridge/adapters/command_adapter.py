@@ -8,11 +8,13 @@ Internal dependencies:
 - src.api.gui_bridge.timeline_service.timeline_service (query)
 """
 
+import json
 from datetime import datetime, timezone
 from typing import List, Dict, Any
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUIOperationalContextData,
+    GUIOverviewMetrics,
     GUIThreatItem,
     GUIDecision,
     GUIDirectiveItem,
@@ -55,12 +57,41 @@ class CommandAdapter:
             threats=threats,
             decisions=decisions,
             directives=directives,
+            metrics=self._build_metrics(),
             updatedAt=overview.get("timestamp", _now_iso()),
+        )
+
+    def _build_metrics(self) -> dict:
+        """Aggregate KPI metrics from existing dashboard providers."""
+        overview = self._dashboard.get_overview()
+        # Pull from existing providers that are already initialized in DashboardAggregator
+        readiness = overview.get("readiness_score", 72)
+        missions = overview.get("active_missions", 0)
+        availability = overview.get("asset_availability", 85)
+        risks = len(self._dashboard.threat_provider.get_threat_feed(limit=100))
+        from src.api.gui_bridge.timeline_service import timeline_service
+        timeline_service.emit(
+            title="Metrics snapshot",
+            category="training_data",
+            severity="LOW",
+            details=json.dumps({"readiness": readiness, "missions": missions}),
+        )
+        return GUIOverviewMetrics(
+            readinessScore=int(readiness * 100) if readiness <= 1.0 else int(readiness),
+            activeMissions=missions,
+            assetAvailability=int(availability * 100) if availability <= 1.0 else int(availability),
+            openRisks=risks,
         )
 
     def get_timeline_events(self, category: str = None, limit: int = 50) -> GUITimelineEventData:
         events = timeline_service.query(category=category, limit=limit)
         return GUITimelineEventData(events=events, updatedAt=_now_iso())
+
+    def get_action_board(self) -> List[dict]:
+        from src.command.action_board import ActionBoard
+
+        board = ActionBoard()
+        return [item.model_dump() for item in board.get_prioritized()]
 
     def _build_threats(self) -> List[GUIThreatItem]:
         feed = self._dashboard.threat_provider.get_threat_feed(limit=20)
