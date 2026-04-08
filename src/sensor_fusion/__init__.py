@@ -9,6 +9,7 @@ from src.sensor_fusion.ekf_filter import EKFFilter
 from src.sensor_fusion.models import SensorReading, SensorType, Track, TrackState
 from src.sensor_fusion.multi_hypothesis_tracker import MultiHypothesisTracker
 from src.sensor_fusion.sensor_manager import SensorManager
+from src.sensor_fusion.stone_soup_bridge import StoneSoupBridge
 from src.sensor_fusion.track_fuser import TrackFuser
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "EKFFilter",
     "TrackFuser",
     "MultiHypothesisTracker",
+    "StoneSoupBridge",
     "SensorManager",
 ]
