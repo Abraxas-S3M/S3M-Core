@@ -37,6 +37,8 @@ military-symbol>=2.0.2
 
 # Security (Phase 10)
 cryptography>=41.0.0
+adversarial-robustness-toolbox>=1.17
+garak>=0.9
 
 # Domain Apps (Phase 11)
 # pymavlink>=2.4.0  # Optional: autopilot bridge
