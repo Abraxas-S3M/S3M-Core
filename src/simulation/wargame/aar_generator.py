@@ -7,7 +7,6 @@ from statistics import mean
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from src.llm_core import Orchestrator, QueryRequest, TaskDomain
 from src.simulation.models import AARReport, ReplayArtifact, ScenarioDefinition, SimulationState
 
 
@@ -15,7 +14,7 @@ class AARGenerator:
     """Generate military exercise AARs with optional LLM narrative analysis."""
 
     def __init__(self) -> None:
-        self._orchestrator: Optional[Orchestrator] = None
+        self._orchestrator: Optional[Any] = None
 
     def _friendly_losses(self, scenario: ScenarioDefinition, final_state: SimulationState) -> int:
         initial = sum(
@@ -74,6 +73,8 @@ class AARGenerator:
 
     def _query_llm(self, prompt: str) -> Optional[str]:
         try:
+            from src.llm_core import Orchestrator, QueryRequest, TaskDomain
+
             if self._orchestrator is None:
                 self._orchestrator = Orchestrator()
             request = QueryRequest(prompt=prompt, domain=TaskDomain.PLANNING, require_consensus=False)
