@@ -21,6 +21,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     DecisionStatus,
 )
 from src.api.gui_bridge.timeline_service import timeline_service
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -51,16 +52,24 @@ class CommandAdapter:
         threats = self._build_threats()
         decisions = self._build_decisions()
         directives = self._build_directives()
-        return GUIOperationalContextData(
+        result = GUIOperationalContextData(
             threats=threats,
             decisions=decisions,
             directives=directives,
             updatedAt=overview.get("timestamp", _now_iso()),
         )
+        emit_training_record("command", {"query": "operational_context"}, result)
+        return result
 
     def get_timeline_events(self, category: str = None, limit: int = 50) -> GUITimelineEventData:
         events = timeline_service.query(category=category, limit=limit)
-        return GUITimelineEventData(events=events, updatedAt=_now_iso())
+        result = GUITimelineEventData(events=events, updatedAt=_now_iso())
+        emit_training_record(
+            "command",
+            {"query": "timeline_events", "category": category, "limit": limit},
+            result,
+        )
+        return result
 
     def _build_threats(self) -> List[GUIThreatItem]:
         feed = self._dashboard.threat_provider.get_threat_feed(limit=20)

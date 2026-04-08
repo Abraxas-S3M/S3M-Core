@@ -14,6 +14,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIRelayStatus,
     MessagePriority,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -58,13 +59,17 @@ class CommsAdapter:
                         "timestamp": md.get("timestamp", _now_iso()),
                     }
                 )
-            return {
+            result = {
                 "inbox": inbox if inbox else self._default_inbox(),
                 "relayQueue": [],
                 "updatedAt": _now_iso(),
             }
+            emit_training_record("comms", {"query": "messages"}, result)
+            return result
         except Exception:
-            return {"inbox": self._default_inbox(), "relayQueue": [], "updatedAt": _now_iso()}
+            result = {"inbox": self._default_inbox(), "relayQueue": [], "updatedAt": _now_iso()}
+            emit_training_record("comms", {"query": "messages"}, result)
+            return result
 
     async def send_message(self, payload: Dict[str, Any]) -> dict:
         try:

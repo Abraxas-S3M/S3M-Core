@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from src.api.gui_bridge.models.gui_schemas import GUIDecision, DecisionStatus, SeverityLevel
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -90,11 +91,13 @@ class DecisionAdapter:
                 ).model_dump()
             )
 
-        return {
+        result = {
             "decisions": gui_decisions,
             "queueCounts": counts,
             "updatedAt": _now_iso(),
         }
+        emit_training_record("decision", {"query": "queue"}, result)
+        return result
 
     async def approve(self, decision_id: str, comment: str = "") -> Dict[str, Any]:
         result = self._autonomy.apply_review_decision(decision_id, approved=True, reason=comment)

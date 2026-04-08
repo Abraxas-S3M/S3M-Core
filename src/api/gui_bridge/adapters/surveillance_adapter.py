@@ -14,6 +14,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUITaskingItem,
     TaskingStatus,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -30,12 +31,14 @@ class SurveillanceAdapter:
         assets = self._build_assets()
         tasking = self._build_tasking()
         targets = self._build_targets()
-        return GUISurveillanceData(
+        result = GUISurveillanceData(
             assets=assets,
             taskingQueue=tasking,
             targetBoard=targets,
             updatedAt=_now_iso(),
         ).model_dump()
+        emit_training_record("surveillance", {"query": "assets"}, result)
+        return result
 
     def _build_assets(self):
         agents = self._cop.get_agents()

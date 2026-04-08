@@ -15,6 +15,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIUnitStatus,
     UnitReadinessStatus,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -37,12 +38,14 @@ class ReadinessAdapter:
         equipment_data = self._get_equipment()
         units = self._get_units()
 
-        return GUIReadinessData(
+        result = GUIReadinessData(
             personnel=GUIPersonnelSummary(**personnel_data),
             equipment=GUIEquipmentSummary(**equipment_data),
             unitStatus=units,
             updatedAt=_now_iso(),
         )
+        emit_training_record("readiness", {"query": "summary"}, result)
+        return result
 
     def _get_personnel(self) -> Dict[str, int]:
         try:
