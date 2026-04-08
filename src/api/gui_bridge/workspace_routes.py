@@ -124,6 +124,11 @@ async def get_decision_queue():
     return _decisions.get_queue()
 
 
+@workspace_router.get("/decisions/queue/{decision_id}/explain")
+async def get_decision_explanation(decision_id: str):
+    return _decisions.get_explanation(decision_id)
+
+
 @workspace_router.post("/decisions/queue/{decision_id}/approve")
 async def approve_decision(decision_id: str, body: DecisionActionRequest = DecisionActionRequest()):
     return await _decisions.approve(decision_id, comment=body.comment)

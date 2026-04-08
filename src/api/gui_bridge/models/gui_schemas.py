@@ -96,16 +96,35 @@ class GUIDecision(GUIBaseModel):
     updatedAt: Optional[str] = None
 
 
-class GUIActionItem(GUIBaseModel):
-    id: str
-    title: str
-    urgency: int = Field(ge=1, le=5)
-    impact: int = Field(ge=1, le=5)
-    urgencyScore: float
-    assignee: Optional[str] = None
-    status: str
-    linkedDecisionId: Optional[str] = None
-    createdAt: str
+class GUIEvidenceItem(GUIBaseModel):
+    source: str
+    summary: str
+    confidence: float
+    tags: List[str] = Field(default_factory=list)
+
+
+class GUIDissentingView(GUIBaseModel):
+    engineId: str
+    alternativeAction: str
+    reasoning: str
+    confidence: float
+
+
+class GUIDoctrineCheck(GUIBaseModel):
+    policyName: str
+    compliant: bool
+    details: str
+
+
+class GUIDecisionExplanation(GUIBaseModel):
+    decisionId: str
+    evidence: List[GUIEvidenceItem]
+    confidenceBreakdown: Dict[str, float]
+    dissentingViews: List[GUIDissentingView]
+    doctrineChecks: List[GUIDoctrineCheck]
+    expectedUpside: List[str]
+    expectedDownside: List[str]
+    updatedAt: str
 
 
 class GUIOperationalContextData(GUIBaseModel):
