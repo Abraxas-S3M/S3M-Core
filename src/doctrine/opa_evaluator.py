@@ -142,7 +142,7 @@ class OPAEvaluator:
                 return None
             body = response.json() if hasattr(response, "json") else {}
             return self._normalize_opa_result(self._extract_opa_value(body))
-        except (requests.RequestException, ValueError, TypeError):
+        except (requests.RequestException, ValueError, TypeError, Exception):
             return None
 
     def _evaluate_with_policy_bias_engine(
