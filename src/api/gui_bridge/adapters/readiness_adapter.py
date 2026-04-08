@@ -5,8 +5,8 @@ Internal dependencies:
 - src.dashboard.providers.runtime_store (fallback state)
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUICertStatus,
@@ -18,6 +18,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     UnitReadinessStatus,
 )
 from src.api.gui_bridge.training_emitter import emit_training_record
+from src.readiness.fatigue_model import DawsonReidFatigueModel
 
 
 def _now_iso() -> str:
@@ -27,6 +28,7 @@ def _now_iso() -> str:
 class ReadinessAdapter:
     def __init__(self):
         self._overview_func = None
+        self._fatigue_model = DawsonReidFatigueModel()
         try:
             from src.api.readiness_routes import _readiness_store
 
@@ -197,9 +199,125 @@ class ReadinessAdapter:
                         expired=expired,
                     )
                 )
+            fatigue_status = self._build_shift_rotation_fatigue_status()
+            if fatigue_status is not None:
+                results.append(fatigue_status)
             return results
         except Exception:
             return []
+
+    def _build_shift_rotation_fatigue_status(self) -> Optional[GUICertStatus]:
+        try:
+            from src.api.readiness_routes import _readiness
+
+            members = list(_readiness.personnel_registry.get_members())
+            now = datetime.now(timezone.utc)
+            scores: List[float] = []
+            for member in members:
+                history = self._get_member_sleep_history(member, now)
+                scores.append(self._fatigue_model.compute_fatigue_score(history, now))
+
+            return GUICertStatus(
+                certType="SHIFT_ROTATION_FATIGUE",
+                nameEn="Shift/Rotation Fatigue",
+                nameAr="إجهاد المناوبات والتناوب",
+                total=len(scores),
+                current=sum(1 for score in scores if score >= 75.0),
+                expiringSoon=sum(1 for score in scores if 50.0 <= score < 75.0),
+                expired=sum(1 for score in scores if score < 50.0),
+            )
+        except Exception:
+            return GUICertStatus(
+                certType="SHIFT_ROTATION_FATIGUE",
+                nameEn="Shift/Rotation Fatigue",
+                nameAr="إجهاد المناوبات والتناوب",
+                total=0,
+                current=0,
+                expiringSoon=0,
+                expired=0,
+            )
+
+    def _get_member_sleep_history(
+        self,
+        member: Any,
+        current_time: datetime,
+    ) -> List[Tuple[datetime, datetime]]:
+        explicit = self._normalize_sleep_history(getattr(member, "sleep_history", None))
+        if explicit:
+            return explicit
+        return self._build_status_sleep_history(member, current_time)
+
+    @staticmethod
+    def _coerce_datetime(value: Any) -> Optional[datetime]:
+        if isinstance(value, datetime):
+            return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
+        if isinstance(value, str):
+            raw = value.strip()
+            if not raw:
+                return None
+            if raw.endswith("Z"):
+                raw = f"{raw[:-1]}+00:00"
+            parsed = datetime.fromisoformat(raw)
+            return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=timezone.utc)
+        return None
+
+    def _normalize_sleep_history(self, raw_history: Any) -> List[Tuple[datetime, datetime]]:
+        if not isinstance(raw_history, list):
+            return []
+        windows: List[Tuple[datetime, datetime]] = []
+        for item in raw_history:
+            if not isinstance(item, (list, tuple)) or len(item) != 2:
+                continue
+            sleep_start = self._coerce_datetime(item[0])
+            sleep_end = self._coerce_datetime(item[1])
+            if sleep_start is None or sleep_end is None or sleep_end <= sleep_start:
+                continue
+            windows.append((sleep_start, sleep_end))
+        windows.sort(key=lambda row: row[0])
+        return windows
+
+    def _build_status_sleep_history(
+        self,
+        member: Any,
+        current_time: datetime,
+    ) -> List[Tuple[datetime, datetime]]:
+        status_value = getattr(getattr(member, "status", None), "value", None) or str(
+            getattr(member, "status", "ACTIVE_DUTY")
+        )
+        status_key = status_value.upper()
+        plan = {
+            "ACTIVE_DUTY": (22.0, 7.0),
+            "TRAINING": (23.0, 6.0),
+            "DEPLOYED": (0.0, 5.0),
+            "MEDICAL_LEAVE": (21.0, 8.5),
+            "ADMINISTRATIVE_LEAVE": (21.5, 8.0),
+            "RESERVE": (22.0, 8.0),
+        }
+        start_hour, sleep_hours = plan.get(status_key, (22.0, 7.0))
+
+        training_score = getattr(member, "training_score", None)
+        if isinstance(training_score, (int, float)):
+            if training_score < 70:
+                sleep_hours = max(4.0, sleep_hours - 0.5)
+            elif training_score > 90:
+                sleep_hours = min(9.5, sleep_hours + 0.5)
+
+        anchor = current_time.astimezone(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        windows: List[Tuple[datetime, datetime]] = []
+        for days_back in (3, 2, 1):
+            sleep_start = anchor - timedelta(days=days_back) + timedelta(hours=start_hour)
+            sleep_end = sleep_start + timedelta(hours=sleep_hours)
+            if sleep_end <= current_time:
+                windows.append((sleep_start, sleep_end))
+
+        if windows:
+            return windows
+
+        fallback_end = current_time - timedelta(hours=1)
+        fallback_start = fallback_end - timedelta(hours=max(4.0, sleep_hours))
+        return [(fallback_start, fallback_end)]
 
     def _get_qualification_matrix(self) -> Dict[str, Any]:
         try:
