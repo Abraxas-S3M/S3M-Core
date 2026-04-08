@@ -43,6 +43,12 @@ class EngineConfig:
     inference_latency_ms: float = 0.0
     throughput_tok_s: float = 0.0
     memory_footprint_gb: float = 0.0
+    is_moe: bool = False
+    moe_experts: int = 0
+    active_experts: int = 0
+    fp16_size_gb: float = 0.0
+    q4_size_gb: float = 0.0
+    training_tier: str = "gpu_required"  # gpu_required | cpu_capable | multi_gpu
     warm_state: bool = False
     confidence_prior: float = 0.75
     capabilities: Optional[Dict[Union[TaskDomain, str], float]] = field(default=None)
@@ -116,9 +122,9 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         cpu_inference_ram_mb=8500,
         capabilities={
             TaskDomain.TACTICAL: 0.95,
-            TaskDomain.REASONING: 0.60,
-            TaskDomain.PLANNING: 0.65,
-            TaskDomain.ARABIC_NLP: 0.40,
+            TaskDomain.REASONING: 0.80,
+            TaskDomain.PLANNING: 0.78,
+            TaskDomain.ARABIC_NLP: 0.45,
         },
     ),
     EngineID.GROK1: EngineConfig(
@@ -147,10 +153,10 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         cpu_inference_tok_s_target=1.0,
         cpu_inference_ram_mb=80000,
         capabilities={
-            TaskDomain.TACTICAL: 0.60,
-            TaskDomain.REASONING: 0.95,
-            TaskDomain.PLANNING: 0.70,
-            TaskDomain.ARABIC_NLP: 0.45,
+            TaskDomain.TACTICAL: 0.70,
+            TaskDomain.REASONING: 0.97,
+            TaskDomain.PLANNING: 0.85,
+            TaskDomain.ARABIC_NLP: 0.50,
         },
     ),
     EngineID.MIXTRAL: EngineConfig(
@@ -179,10 +185,10 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         cpu_inference_tok_s_target=3.0,
         cpu_inference_ram_mb=26000,
         capabilities={
-            TaskDomain.TACTICAL: 0.72,
+            TaskDomain.TACTICAL: 0.65,
             TaskDomain.REASONING: 0.78,
             TaskDomain.PLANNING: 0.95,
-            TaskDomain.ARABIC_NLP: 0.48,
+            TaskDomain.ARABIC_NLP: 0.55,
         },
     ),
     EngineID.ALLAM: EngineConfig(
@@ -253,6 +259,18 @@ class EngineRegistry:
     def get_engines_by_tier(self, tier: str) -> List[EngineConfig]:
         """Return engines matching a latency tier for mission-time constraints."""
         return [cfg for cfg in self.configs.values() if cfg.latency_tier == tier]
+
+    def get_moe_engines(self) -> List[EngineConfig]:
+        """Return MoE engines for higher-depth mission reasoning workflows."""
+        return [cfg for cfg in self.configs.values() if cfg.is_moe]
+
+    def get_total_storage_required(self, precision: str = "q4") -> float:
+        """Sum mission package size by precision for offline deployment planning."""
+        normalized_precision = precision.lower()
+        if normalized_precision not in {"q4", "fp16"}:
+            raise ValueError("precision must be 'q4' or 'fp16'")
+        size_field = "q4_size_gb" if normalized_precision == "q4" else "fp16_size_gb"
+        return sum(getattr(cfg, size_field) for cfg in self.configs.values())
 
     def get_capability_score(self, engine_id: EngineID, domain: TaskDomain) -> float:
         """Return domain confidence to support tactical engine arbitration."""
