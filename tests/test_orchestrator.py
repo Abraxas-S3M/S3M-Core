@@ -20,7 +20,7 @@ def test_single_query():
     orch = Orchestrator()
     request = QueryRequest(prompt="report enemy contact at sector 7")
     response = orch.execute_single(request)
-    assert response.engine_id.value == "phi3-mini"
+    assert response.engine_id.value == "phi3-medium"
     print("PASS: Single query routing works")
 
 

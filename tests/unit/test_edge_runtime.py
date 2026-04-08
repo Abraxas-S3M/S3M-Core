@@ -170,7 +170,7 @@ class TestModelPlanner:
     def test_plan_phi3_on_cpu_austere(self, cpu_austere_profile: NodeProfile) -> None:
         controller = DegradationController(cpu_austere_profile)
         planner = ModelExecutionPlanner(cpu_austere_profile, controller)
-        plan = planner.plan("phi3-mini")
+        plan = planner.plan("phi3-medium")
         assert plan.decision == ExecutionDecision.RUN_LOCAL
         assert plan.variant is not None
         assert plan.variant.requires_gpu is False
@@ -186,14 +186,14 @@ class TestModelPlanner:
         controller = DegradationController(cpu_austere_profile)
         controller.force_mode(OperatingMode.MODE_D_OFFLINE_SURVIVAL, "test")
         planner = ModelExecutionPlanner(cpu_austere_profile, controller)
-        plan = planner.plan("phi3-mini", requested_tokens=2048)
+        plan = planner.plan("phi3-medium", requested_tokens=2048)
         assert plan.max_tokens <= 256
         assert plan.max_context <= 2048
 
     def test_plan_to_dict(self, cpu_austere_profile: NodeProfile) -> None:
         controller = DegradationController(cpu_austere_profile)
         planner = ModelExecutionPlanner(cpu_austere_profile, controller)
-        payload = planner.plan("phi3-mini").to_dict()
+        payload = planner.plan("phi3-medium").to_dict()
         assert "decision" in payload
         assert "precision" in payload
         assert "model_id" in payload

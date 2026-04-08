@@ -9,11 +9,13 @@ Formalize S3M model hub and inference integration for model discovery, cache gov
 
 ## S3M Model Registry
 S3M tracks 9 required models:
-- `phi-3-mini-4k`, `phi-3-medium`, `mistral-7b` (LLM core)
+- `phi-3-medium`, `mixtral-8x7b`, `grok-1` (LLM core)
 - `arabert`, `mt5-arabic`, `camelbert` (Arabic NLP)
 - `yolov8n` (threat detection)
 - `whisper-base` (command agent voice)
 - `sar-ship-detect` (sensor analytics)
+
+Grok-1 note: model payload is 300+ GB (fp16 class) and practical acquisition typically uses torrent/magnet workflow in addition to standard hub methods.
 
 ## Pre-deployment Download Strategy
 1. Download all 9 registry models to `models/`.

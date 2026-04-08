@@ -6,25 +6,38 @@ version: "0.2.0"
 architecture: "quad-engine-orchestrated"
 
 engines:
-  - id: phi3
+  - id: phi3_medium
     role: "Tactical Edge Inference"
-    strength: "Fastest response, smallest footprint"
-    use_case: "Field queries, sitreps, quick decisions"
+    model: "Microsoft Phi-3 Medium (14B)"
+    strength: "Strong reasoning and math, edge-deployable with quantization"
+    use_case: "Field queries, sitreps, quick decisions, tactical math"
+    fp16_size_gb: 28
+    q4_size_gb: 8.5
 
-  - id: grok
+  - id: grok1
     role: "Complex Reasoning Engine"
-    strength: "Deep analysis, multi-step reasoning"
-    use_case: "Threat assessment, strategic analysis"
+    model: "xAI Grok-1 (314B MoE)"
+    strength: "Massive MoE with deep multi-step reasoning"
+    use_case: "Threat assessment, strategic analysis, wargaming"
+    fp16_size_gb: 300
+    q4_size_gb: 80
+    notes: "Requires multi-GPU or dedicated server. Cannot run on edge hardware."
 
-  - id: mistral
+  - id: mixtral
     role: "Operations Planning Engine"
-    strength: "Code generation, structured planning"
-    use_case: "Route planning, logistics, ops orders"
+    model: "Mistral AI Mixtral 8x7B (46.7B MoE)"
+    strength: "Efficient MoE, multilingual, strong instruction following"
+    use_case: "Route planning, logistics, ops orders, code generation"
+    fp16_size_gb: 93
+    q4_size_gb: 26
 
   - id: allam
     role: "Arabic Language Intelligence"
-    strength: "Native Arabic NLP, MENA context"
+    model: "SDAIA ALLaM-7B (7B)"
+    strength: "Native Arabic NLP, MENA cultural context"
     use_case: "Arabic SIGINT, translation, cultural intel"
+    fp16_size_gb: 14
+    q4_size_gb: 4
 
 data_flow:
   input: "User query or system trigger"

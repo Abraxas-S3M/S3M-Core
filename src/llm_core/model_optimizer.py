@@ -36,6 +36,7 @@ class HardwareProfile(Enum):
     EDGE_32GB = "edge_32gb"
     EDGE_64GB = "edge_64gb"
     SERVER_128GB = "server_128gb"
+    SERVER_256GB = "server_256gb"
 
 
 class RuntimeProfile(Enum):
@@ -54,31 +55,39 @@ HARDWARE_PROFILES: Dict[str, Dict[str, object]] = {
         "recommended_engines": 1,
         "consensus_available": False,
         "tier": "minimal",
-        "use_cases": ["tactical_only", "single_engine"],
+        "use_cases": ["arabic_nlp", "single_engine"],
     },
     HardwareProfile.EDGE_32GB.value: {
         "name": "Edge Device (32GB VRAM)",
         "available_gb": 32.0,
-        "recommended_engines": 2,
+        "recommended_engines": 1,
         "consensus_available": False,
         "tier": "moderate",
-        "use_cases": ["tactical", "planning"],
+        "use_cases": ["tactical_only", "arabic_nlp"],
     },
     HardwareProfile.EDGE_64GB.value: {
         "name": "Edge Device (64GB VRAM)",
         "available_gb": 64.0,
-        "recommended_engines": 3,
-        "consensus_available": True,
+        "recommended_engines": 2,
+        "consensus_available": False,
         "tier": "advanced",
-        "use_cases": ["tactical", "reasoning", "planning"],
+        "use_cases": ["tactical", "planning", "arabic_nlp"],
     },
     HardwareProfile.SERVER_128GB.value: {
         "name": "Server (128GB+ VRAM)",
         "available_gb": 128.0,
+        "recommended_engines": 3,
+        "consensus_available": True,
+        "tier": "consensus_triple",
+        "use_cases": ["all_domains_except_grok1", "consensus_voting"],
+    },
+    HardwareProfile.SERVER_256GB.value: {
+        "name": "Server (256GB+ VRAM)",
+        "available_gb": 256.0,
         "recommended_engines": 4,
         "consensus_available": True,
         "tier": "full_quad",
-        "use_cases": ["all_domains", "consensus_voting"],
+        "use_cases": ["all_domains", "consensus_voting", "grok1_reasoning"],
     },
 }
 
@@ -86,7 +95,7 @@ HARDWARE_PROFILES: Dict[str, Dict[str, object]] = {
 RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     RuntimeProfile.EDGE_MINIMAL.value: {
         "name": "Edge Minimal",
-        "engines": [EngineID.PHI3.value],
+        "engines": [EngineID.PHI3.value, EngineID.ALLAM.value],
         "strategy": "SINGLE_ENGINE",
         "consensus_enabled": False,
         "expected_latency_ms": 50,
@@ -95,28 +104,28 @@ RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     },
     RuntimeProfile.EDGE_DUAL.value: {
         "name": "Edge Dual Engine",
-        "engines": [EngineID.PHI3.value, EngineID.MISTRAL.value],
+        "engines": [EngineID.PHI3.value, EngineID.ALLAM.value],
         "strategy": "HIERARCHICAL",
         "consensus_enabled": False,
         "expected_latency_ms": 85,
-        "capability_level": "tactical_planning",
+        "capability_level": "tactical_arabic",
         "expected_success_rate": 0.95,
     },
     RuntimeProfile.EDGE_TRIPLE.value: {
         "name": "Edge Triple Engine",
-        "engines": [EngineID.PHI3.value, EngineID.GROK.value, EngineID.MISTRAL.value],
+        "engines": [EngineID.PHI3.value, EngineID.MISTRAL.value, EngineID.ALLAM.value],
         "strategy": "HIERARCHICAL",
         "consensus_enabled": False,
         "expected_latency_ms": 120,
-        "capability_level": "all_domains",
+        "capability_level": "all_domains_except_grok1",
         "expected_success_rate": 0.96,
     },
     RuntimeProfile.SERVER_FULL.value: {
         "name": "Server Full Quad",
         "engines": [
-            EngineID.PHI3.value,
-            EngineID.GROK.value,
-            EngineID.MISTRAL.value,
+            EngineID.PHI3_MEDIUM.value,
+            EngineID.GROK1.value,
+            EngineID.MIXTRAL.value,
             EngineID.ALLAM.value,
         ],
         "strategy": "CONSENSUS",
@@ -270,8 +279,6 @@ class ModelOptimizer:
 
         hw = HARDWARE_PROFILES[hardware_profile]
         available_gb = float(hw["available_gb"])
-        recommended_engines = int(hw["recommended_engines"])
-
         required = self._normalize_engine_ids(required_engines or [])
         required_memory = self.estimate_total_memory(required)
         if required_memory > available_gb:
@@ -279,12 +286,11 @@ class ModelOptimizer:
                 f"Required engines need {required_memory:.1f}GB but only {available_gb:.1f}GB available"
             )
 
-        max_engines = max(recommended_engines, len(required))
-        allocated = self._greedy_allocate(
-            available_gb=available_gb,
+        allocated = self._allocate_by_policy(
+            hardware_profile=hardware_profile,
             primary_domain=primary_domain,
             required_engines=required,
-            max_engines=max_engines,
+            available_gb=available_gb,
         )
 
         load_plan = self._create_load_plan(allocated_engines=allocated, available_gb=available_gb)
@@ -325,11 +331,11 @@ class ModelOptimizer:
         if available_memory_gb < 16.0:
             raise ValueError("Minimum 16GB required")
 
-        if available_memory_gb < 25.0:
+        if available_memory_gb < 32.0:
             return RuntimeProfile.EDGE_MINIMAL.value
-        if available_memory_gb < 40.0:
+        if available_memory_gb < 64.0:
             return RuntimeProfile.EDGE_DUAL.value
-        if available_memory_gb < 70.0:
+        if available_memory_gb < 256.0:
             return RuntimeProfile.EDGE_TRIPLE.value
         if mission_critical:
             return RuntimeProfile.SERVER_FULL.value
@@ -351,6 +357,7 @@ class ModelOptimizer:
         overage = max(0.0, requested - available_memory_gb)
         fits = overage == 0.0
 
+        full_stack_memory = self.estimate_total_memory(list(EngineID))
         if fits:
             recommendation = (
                 f"[OK] Fits in budget ({requested:.1f}GB / {available_memory_gb:.1f}GB)."
@@ -360,6 +367,8 @@ class ModelOptimizer:
                 f"[OVER] Exceeds budget by {overage:.1f}GB. "
                 "Reduce loaded engines or increase available memory."
             )
+            if requested >= full_stack_memory - 0.001:
+                recommendation += f" Full quad stack requires {full_stack_memory:.1f}GB."
 
         return MemoryBudget(
             requested_memory_gb=requested,
@@ -432,6 +441,56 @@ class ModelOptimizer:
         raise ValueError(f"Unknown profile: {profile_name}")
 
     # ===================== Internal Methods =====================
+    def _allocate_by_policy(
+        self,
+        hardware_profile: str,
+        primary_domain: TaskDomain,
+        required_engines: List[EngineID],
+        available_gb: float,
+    ) -> List[EngineID]:
+        """
+        Allocate engines according to mission hardware policy.
+
+        This policy intentionally avoids Grok-1 on <=128GB systems because the
+        85GB footprint starves tactical concurrency and resilience headroom.
+        """
+        profile_allocations: Dict[str, List[EngineID]] = {
+            HardwareProfile.EDGE_16GB.value: [EngineID.ALLAM],
+            HardwareProfile.EDGE_64GB.value: [EngineID.PHI3, EngineID.ALLAM],
+            HardwareProfile.SERVER_128GB.value: [EngineID.PHI3, EngineID.MISTRAL, EngineID.ALLAM],
+            HardwareProfile.SERVER_256GB.value: [
+                EngineID.PHI3,
+                EngineID.GROK,
+                EngineID.MISTRAL,
+                EngineID.ALLAM,
+            ],
+        }
+        if hardware_profile == HardwareProfile.EDGE_32GB.value:
+            preferred = (
+                EngineID.ALLAM if primary_domain == TaskDomain.ARABIC_NLP else EngineID.PHI3
+            )
+            selected = [preferred]
+        else:
+            selected = list(profile_allocations[hardware_profile])
+
+        if (
+            hardware_profile == HardwareProfile.EDGE_64GB.value
+            and primary_domain == TaskDomain.PLANNING
+            and EngineID.MISTRAL not in selected
+        ):
+            selected.append(EngineID.MISTRAL)
+
+        for engine_id in required_engines:
+            if engine_id not in selected:
+                selected.append(engine_id)
+
+        total = self.estimate_total_memory(selected)
+        if total > available_gb:
+            raise ValueError(
+                f"Policy allocation needs {total:.1f}GB but only {available_gb:.1f}GB available"
+            )
+        return sorted(self._normalize_engine_ids(selected), key=lambda engine: engine.value)
+
     def _load_profiles(self) -> Dict[EngineID, ModelProfile]:
         """Load per-engine profiles from EngineRegistry metadata."""
         profiles: Dict[EngineID, ModelProfile] = {}
@@ -505,10 +564,10 @@ class ModelOptimizer:
             engine_id: LoadCategory.NEVER_LOADED for engine_id in EngineID
         }
 
-        if EngineID.PHI3 in allocated_engines:
-            plan[EngineID.PHI3] = LoadCategory.ALWAYS_LOADED
+        if EngineID.PHI3_MEDIUM in allocated_engines:
+            plan[EngineID.PHI3_MEDIUM] = LoadCategory.ALWAYS_LOADED
 
-        for engine_id in (EngineID.MISTRAL, EngineID.GROK):
+        for engine_id in (EngineID.MIXTRAL, EngineID.GROK1):
             if engine_id in allocated_engines and plan[engine_id] == LoadCategory.NEVER_LOADED:
                 plan[engine_id] = LoadCategory.OPPORTUNISTIC
 
@@ -554,7 +613,7 @@ class ModelOptimizer:
             RuntimeProfile.EDGE_MINIMAL.value: HardwareProfile.EDGE_16GB.value,
             RuntimeProfile.EDGE_DUAL.value: HardwareProfile.EDGE_32GB.value,
             RuntimeProfile.EDGE_TRIPLE.value: HardwareProfile.EDGE_64GB.value,
-            RuntimeProfile.SERVER_FULL.value: HardwareProfile.SERVER_128GB.value,
+            RuntimeProfile.SERVER_FULL.value: HardwareProfile.SERVER_256GB.value,
         }
         return mapping[runtime_profile_name]
 

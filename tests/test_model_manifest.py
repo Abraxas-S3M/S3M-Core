@@ -51,7 +51,7 @@ def test_load_all_includes_default_model_manifests() -> None:
     loader = ModelManifest(manifest_dir=_workspace_manifest_dir())
     manifests = loader.load_all()
 
-    assert {"phi3-mini", "mistral-7b", "grok-8b", "allam-7b"}.issubset(set(manifests.keys()))
+    assert {"phi3-medium", "mixtral-8x7b", "grok1-314b", "allam-7b"}.issubset(set(manifests.keys()))
     assert manifests["allam-7b"]["arabic_support"] is True
     assert manifests["allam-7b"]["bilingual_ar_en"] is True
     assert manifests["allam-7b"]["primary_domain"] == "arabic_nlp"
@@ -62,7 +62,7 @@ def test_missing_manifest_dir_is_handled_gracefully(tmp_path: Path) -> None:
     loader = ModelManifest(manifest_dir=str(missing_dir))
 
     assert loader.load_all() == {}
-    assert loader.get_manifest("phi3-mini") == {}
+    assert loader.get_manifest("phi3-medium") == {}
 
 
 def test_invalid_manifest_file_is_skipped(tmp_path: Path) -> None:
@@ -81,8 +81,8 @@ def test_invalid_manifest_file_is_skipped(tmp_path: Path) -> None:
 def test_get_best_cpu_variant_respects_ram_budget() -> None:
     loader = ModelManifest(manifest_dir=_workspace_manifest_dir())
 
-    constrained = loader.get_best_cpu_variant("phi3-mini", available_ram_mb=3200)
-    roomy = loader.get_best_cpu_variant("phi3-mini", available_ram_mb=4096)
+    constrained = loader.get_best_cpu_variant("phi3-medium", available_ram_mb=3200)
+    roomy = loader.get_best_cpu_variant("phi3-medium", available_ram_mb=4096)
 
     assert constrained is not None
     assert constrained["tag"] == "q4_k_m"
@@ -94,13 +94,13 @@ def test_validate_thresholds_returns_pass_fail_breakdown() -> None:
     loader = ModelManifest(manifest_dir=_workspace_manifest_dir())
 
     pass_result = loader.validate_thresholds(
-        "phi3-mini",
+        "phi3-medium",
         latency_ms=1000.0,
         memory_mb=3000.0,
         accuracy_pct=80.0,
     )
     fail_result = loader.validate_thresholds(
-        "phi3-mini",
+        "phi3-medium",
         latency_ms=9000.0,
         memory_mb=7000.0,
         accuracy_pct=60.0,

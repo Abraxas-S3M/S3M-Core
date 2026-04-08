@@ -46,7 +46,7 @@ def test_bandwidth_router_tier_switching() -> None:
     router = BandwidthRouter()
     state = router.update_bandwidth(15.0)
     assert state.tier == BandwidthTier.FULL
-    assert router.get_current_model() == "mistral-7b-q4"
+    assert router.get_current_model() == "mixtral-8x7b-q4"
 
     state = router.update_bandwidth(0.5)
     assert state.tier == BandwidthTier.LOW

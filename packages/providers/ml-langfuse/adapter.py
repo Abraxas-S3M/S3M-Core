@@ -100,7 +100,7 @@ class LangfuseAdapter(ProviderAdapter):
 
     def get_cost_summary(self, days: int = 30) -> dict[str, Any]:
         traces = [trace for trace in self._traces() if datetime.now(tz=UTC) - self._parse_ts(str(trace.get("timestamp"))) <= timedelta(days=days)]
-        prices = {"phi-3": 0.05, "grok-1": 0.4, "mistral-7b": 0.08, "allam": 0.07}
+        prices = {"phi-3": 0.05, "grok-1": 0.4, "mixtral-8x7b": 0.08, "allam": 0.07}
         by_model: dict[str, dict[str, Any]] = {}
         for trace in traces:
             model = str(trace.get("model", "unknown")).lower()
@@ -121,13 +121,13 @@ class LangfuseAdapter(ProviderAdapter):
 
     def get_llm_health(self) -> dict[str, Any]:
         traces = self._traces()
-        engines = {"phi-3": [], "grok-1": [], "mistral-7b": [], "allam": []}
+        engines = {"phi-3": [], "grok-1": [], "mixtral-8x7b": [], "allam": []}
         for trace in traces:
             model = str(trace.get("model", "")).lower()
             if model in engines:
                 engines[model].append(trace)
         payload: dict[str, dict[str, Any]] = {}
-        display = {"phi-3": "Phi-3", "grok-1": "Grok", "mistral-7b": "Mistral", "allam": "ALLaM"}
+        display = {"phi-3": "Phi-3", "grok-1": "Grok", "mixtral-8x7b": "Mistral", "allam": "ALLaM"}
         failing = 0
         for model_name, rows in engines.items():
             pretty_name = display[model_name]

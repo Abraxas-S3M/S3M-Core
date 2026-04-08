@@ -69,14 +69,14 @@ def profile() -> NodeProfile:
 def test_manifest_and_planner_runtime_backend(tmp_path: Path, profile: NodeProfile) -> None:
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir(parents=True, exist_ok=True)
-    _write_manifest(manifest_dir, "phi3-mini", adapter_allowed=True)
+    _write_manifest(manifest_dir, "phi3-medium", adapter_allowed=True)
 
-    manifest = ModelManifest.load("phi3-mini", manifest_dir=str(manifest_dir))
-    assert manifest.model_id == "phi3-mini"
+    manifest = ModelManifest.load("phi3-medium", manifest_dir=str(manifest_dir))
+    assert manifest.model_id == "phi3-medium"
 
     controller = DegradationController(profile)
     planner = ModelExecutionPlanner(profile, controller)
-    plan = planner.plan("phi3-mini", manifest=manifest)
+    plan = planner.plan("phi3-medium", manifest=manifest)
     assert plan.decision == ExecutionDecision.RUN_LOCAL
     assert plan.runtime_format == "gguf"
     assert plan.backend == "llama_cpp"
@@ -85,9 +85,9 @@ def test_manifest_and_planner_runtime_backend(tmp_path: Path, profile: NodeProfi
 def test_inference_engine_from_manifest_sets_backend(tmp_path: Path) -> None:
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir(parents=True, exist_ok=True)
-    _write_manifest(manifest_dir, "phi3-mini")
+    _write_manifest(manifest_dir, "phi3-medium")
 
-    engine = InferenceEngine.from_manifest("phi3-mini", manifest_dir=str(manifest_dir))
+    engine = InferenceEngine.from_manifest("phi3-medium", manifest_dir=str(manifest_dir))
     assert engine.backend is not None
     assert engine.backend.backend_name == "llama_cpp"
 
@@ -95,23 +95,23 @@ def test_inference_engine_from_manifest_sets_backend(tmp_path: Path) -> None:
 def test_cpu_orchestrator_train_and_status(tmp_path: Path, profile: NodeProfile) -> None:
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir(parents=True, exist_ok=True)
-    _write_manifest(manifest_dir, "phi3-mini", adapter_allowed=True)
+    _write_manifest(manifest_dir, "phi3-medium", adapter_allowed=True)
 
     orchestrator = CPUOrchestrator(profile=profile, manifest_dir=str(manifest_dir))
     assert orchestrator.initialize() is True
 
     status = orchestrator.status()
     assert status["initialized"] is True
-    assert "phi3-mini" in status["known_models"]
+    assert "phi3-medium" in status["known_models"]
 
-    training = orchestrator.train_adapter("phi3-mini", [{"prompt": "a", "response": "b"}])
+    training = orchestrator.train_adapter("phi3-medium", [{"prompt": "a", "response": "b"}])
     assert training.success is True
 
 
 def test_cpu_orchestrator_evaluate_uses_harness(tmp_path: Path, profile: NodeProfile) -> None:
     manifest_dir = tmp_path / "manifests"
     manifest_dir.mkdir(parents=True, exist_ok=True)
-    _write_manifest(manifest_dir, "phi3-mini", adapter_allowed=True)
+    _write_manifest(manifest_dir, "phi3-medium", adapter_allowed=True)
 
     orchestrator = CPUOrchestrator(profile=profile, manifest_dir=str(manifest_dir))
     assert orchestrator.initialize() is True
@@ -119,7 +119,7 @@ def test_cpu_orchestrator_evaluate_uses_harness(tmp_path: Path, profile: NodePro
     def fake_infer(model_id: str, prompt: str, **kwargs: object) -> InferenceResult:
         del kwargs
         return InferenceResult(
-            engine_id=EngineID.PHI3,
+            engine_id=EngineID.PHI3_MEDIUM,
             prompt=prompt,
             response=f"ok:{model_id}",
             tokens_generated=8,
@@ -130,6 +130,6 @@ def test_cpu_orchestrator_evaluate_uses_harness(tmp_path: Path, profile: NodePro
         )
 
     orchestrator.infer = fake_infer  # type: ignore[assignment]
-    report = orchestrator.evaluate("phi3-mini", ["brief one", "brief two"])
+    report = orchestrator.evaluate("phi3-medium", ["brief one", "brief two"])
     assert report.passed is True
     assert report.total_cases == 2

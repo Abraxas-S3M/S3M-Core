@@ -26,19 +26,19 @@ class TestPredictivePreloader:
 
     def test_record_single_request(self, preloader: PredictivePreloader):
         """Single request should be retained in bounded history."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         assert len(preloader.history) == 1
 
     def test_record_multiple_requests(self, preloader: PredictivePreloader):
         """Multiple requests should preserve insertion order."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.REASONING, EngineID.GROK)
-        preloader.record_request(TaskDomain.PLANNING, EngineID.MISTRAL)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.REASONING, EngineID.GROK1)
+        preloader.record_request(TaskDomain.PLANNING, EngineID.MIXTRAL)
         history = list(preloader.history.values())
         assert len(history) == 3
-        assert history[0].engine_id == EngineID.PHI3
-        assert history[1].engine_id == EngineID.GROK
-        assert history[2].engine_id == EngineID.MISTRAL
+        assert history[0].engine_id == EngineID.PHI3_MEDIUM
+        assert history[1].engine_id == EngineID.GROK1
+        assert history[2].engine_id == EngineID.MIXTRAL
 
     def test_cold_start_prediction(self, preloader: PredictivePreloader):
         """Cold start should still return ranked engines with bounded confidence."""
@@ -51,57 +51,57 @@ class TestPredictivePreloader:
     def test_repeated_domain_pattern(self, preloader: PredictivePreloader):
         """Repeated tactical usage should strongly favor Phi-3."""
         for _ in range(3):
-            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         prediction = preloader.predict_next_engines()
-        assert prediction.predicted_engines[0] == EngineID.PHI3
+        assert prediction.predicted_engines[0] == EngineID.PHI3_MEDIUM
         assert prediction.confidence > 0.6
 
     def test_domain_hint_overrides_history(self, preloader: PredictivePreloader):
         """Domain hint should steer prediction toward domain specialist."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         prediction = preloader.predict_next_engines(domain_hint=TaskDomain.REASONING)
         assert prediction.domain_hint == TaskDomain.REASONING
-        assert EngineID.GROK in prediction.predicted_engines
+        assert EngineID.GROK1 in prediction.predicted_engines
 
     def test_recency_decay(self, preloader: PredictivePreloader):
         """Recent engine activity should outrank stale historical use."""
         old_record = RequestRecord(
             timestamp=datetime.utcnow() - timedelta(seconds=RECENCY_WINDOW_SECONDS + 60),
             domain=TaskDomain.TACTICAL,
-            engine_id=EngineID.PHI3,
+            engine_id=EngineID.PHI3_MEDIUM,
             success=True,
             latency_ms=10.0,
         )
         preloader.history["000000"] = old_record
         preloader._history_counter = 1
         for _ in range(3):
-            preloader.record_request(TaskDomain.PLANNING, EngineID.MISTRAL)
+            preloader.record_request(TaskDomain.PLANNING, EngineID.MIXTRAL)
         prediction = preloader.predict_next_engines()
-        assert prediction.predicted_engines[0] == EngineID.MISTRAL
+        assert prediction.predicted_engines[0] == EngineID.MIXTRAL
 
     def test_frequency_score(self, preloader: PredictivePreloader):
         """Higher usage frequency should raise final rank."""
         for _ in range(5):
-            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.REASONING, EngineID.GROK)
+            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.REASONING, EngineID.GROK1)
         prediction = preloader.predict_next_engines(limit=2)
-        assert prediction.predicted_engines[0] == EngineID.PHI3
+        assert prediction.predicted_engines[0] == EngineID.PHI3_MEDIUM
 
     def test_alternating_domain_pattern(self, preloader: PredictivePreloader):
         """Alternating tactical/reasoning should keep both engines near top."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.REASONING, EngineID.GROK)
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.REASONING, EngineID.GROK)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.REASONING, EngineID.GROK1)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.REASONING, EngineID.GROK1)
         prediction = preloader.predict_next_engines(limit=2)
-        assert EngineID.PHI3 in prediction.predicted_engines[:2]
-        assert EngineID.GROK in prediction.predicted_engines[:2]
+        assert EngineID.PHI3_MEDIUM in prediction.predicted_engines[:2]
+        assert EngineID.GROK1 in prediction.predicted_engines[:2]
 
     def test_preload_plan_generation(self, preloader: PredictivePreloader):
         """Preload plan should include always and opportunistic partitions."""
         for _ in range(3):
-            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+            preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         prediction = preloader.predict_next_engines(limit=3)
         plan = preloader.build_preload_plan(prediction, always_load_count=1)
         assert len(plan.always_preload) == 1
@@ -111,7 +111,7 @@ class TestPredictivePreloader:
 
     def test_preload_plan_memory_budget(self, preloader: PredictivePreloader):
         """Memory budget should trim opportunistic preloads first."""
-        preloader.record_request(TaskDomain.PLANNING, EngineID.MISTRAL)
+        preloader.record_request(TaskDomain.PLANNING, EngineID.MIXTRAL)
         prediction = preloader.predict_next_engines(limit=3)
         plan = preloader.build_preload_plan(
             prediction=prediction,
@@ -130,8 +130,8 @@ class TestPredictivePreloader:
 
     def test_stats_calculation(self, preloader: PredictivePreloader):
         """Stats should report engine and domain cardinality correctly."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.PLANNING, EngineID.MISTRAL)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.PLANNING, EngineID.MIXTRAL)
         stats = preloader.get_stats()
         assert stats["total_requests"] == 2
         assert len(stats["engines_used"]) == 2
@@ -140,7 +140,7 @@ class TestPredictivePreloader:
 
     def test_manual_prediction_only(self, preloader: PredictivePreloader):
         """Prediction API should return artifacts without loading side effects."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         prediction = preloader.predict_next_engines()
         recommendation = prediction.recommendation.lower()
         assert prediction is not None
@@ -148,8 +148,8 @@ class TestPredictivePreloader:
 
     def test_get_history(self, preloader: PredictivePreloader):
         """History export should preserve domain labels."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
-        preloader.record_request(TaskDomain.REASONING, EngineID.GROK)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
+        preloader.record_request(TaskDomain.REASONING, EngineID.GROK1)
         history = preloader.get_history(limit=10)
         assert len(history) == 2
         assert history[0]["domain"] == "tactical"
@@ -157,7 +157,7 @@ class TestPredictivePreloader:
 
     def test_clear_history(self, preloader: PredictivePreloader):
         """Clear should remove all records."""
-        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3)
+        preloader.record_request(TaskDomain.TACTICAL, EngineID.PHI3_MEDIUM)
         preloader.clear_history()
         assert len(preloader.history) == 0
 
@@ -167,7 +167,7 @@ class TestPredictivePreloader:
         record = RequestRecord(
             timestamp=now - timedelta(seconds=12),
             domain=TaskDomain.TACTICAL,
-            engine_id=EngineID.PHI3,
+            engine_id=EngineID.PHI3_MEDIUM,
             success=True,
             latency_ms=5.0,
         )

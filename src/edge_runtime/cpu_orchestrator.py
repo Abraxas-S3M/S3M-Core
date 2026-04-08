@@ -87,7 +87,7 @@ class CPUOrchestrator:
         try:
             return EngineID(model_id)
         except Exception:
-            return EngineID.PHI3
+            return EngineID.PHI3_MEDIUM
 
     def _error_inference(self, model_id: str, prompt: str, message: str) -> InferenceResult:
         return InferenceResult(
