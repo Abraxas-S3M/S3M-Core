@@ -4,7 +4,7 @@ Each route instantiates an adapter singleton and delegates to it.
 Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from pydantic import BaseModel
 
@@ -99,10 +99,35 @@ async def get_readiness_summary():
     return _readiness.get_summary().model_dump()
 
 
+@workspace_router.get("/readiness/enriched")
+async def get_readiness_enriched():
+    return _readiness.get_enriched_summary()
+
+
 # ── Surveillance / ISR ──────────────────────────────────────
 @workspace_router.get("/surveillance/assets")
 async def get_surveillance_assets():
     return _surveillance.get_assets()
+
+
+@workspace_router.get("/surveillance/collection")
+async def get_surveillance_collection():
+    return _surveillance.get_collection_status()
+
+
+@workspace_router.get("/surveillance/source-reliability")
+async def get_surveillance_source_reliability():
+    return _surveillance.get_source_reliability()
+
+
+@workspace_router.get("/surveillance/fusion-brief")
+async def get_surveillance_fusion_brief(region: str = Query("all")):
+    return _surveillance.get_fusion_brief(region=region)
+
+
+@workspace_router.get("/surveillance/watchlists")
+async def get_surveillance_watchlists():
+    return _surveillance.get_watchlists()
 
 
 # ── Communications ──────────────────────────────────────────
@@ -131,6 +156,27 @@ async def get_cyber_resilience():
 @workspace_router.get("/simulation/scenarios")
 async def get_simulation_scenarios():
     return _simulation.get_scenarios()
+
+
+@workspace_router.get("/simulation/catalog")
+async def get_simulation_catalog():
+    return _simulation.get_scenario_catalog()
+
+
+@workspace_router.get("/simulation/aar/{scenario_id}")
+async def get_simulation_aar(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.get_aar(sid)
+
+
+@workspace_router.post("/simulation/compare/{scenario_id}")
+async def compare_simulation_modes(scenario_id: str):
+    sid = str(scenario_id).strip()
+    if not sid:
+        raise HTTPException(status_code=400, detail="scenario_id is required")
+    return _simulation.run_comparison(sid)
 
 
 # ── Sustainment ─────────────────────────────────────────────

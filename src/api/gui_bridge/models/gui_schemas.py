@@ -6,7 +6,7 @@ where Python reserved words conflict (e.g. 'from').
 """
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -131,7 +131,15 @@ class GUIOperationalContextData(GUIBaseModel):
     threats: List[GUIThreatItem]
     decisions: List[GUIDecision]
     directives: List[GUIDirectiveItem]
+    metrics: Optional["GUIOverviewMetrics"] = None
     updatedAt: str
+
+
+class GUIOverviewMetrics(GUIBaseModel):
+    readinessScore: int = Field(ge=0, le=100)
+    activeMissions: int = Field(ge=0)
+    assetAvailability: int = Field(ge=0, le=100)
+    openRisks: int = Field(ge=0)
 
 
 # -- Risk (RiskData) ------------------------------------------
@@ -205,6 +213,26 @@ class GUIReadinessData(GUIBaseModel):
     personnel: GUIPersonnelSummary
     equipment: GUIEquipmentSummary
     unitStatus: List[GUIUnitStatus]
+    updatedAt: str
+
+
+class GUICertStatus(GUIBaseModel):
+    certType: str
+    nameEn: str
+    nameAr: str
+    total: int
+    current: int
+    expiringSoon: int
+    expired: int
+
+
+class GUIReadinessEnriched(GUIBaseModel):
+    personnel: GUIPersonnelSummary
+    equipment: GUIEquipmentSummary
+    unitStatus: List[GUIUnitStatus]
+    certifications: List[GUICertStatus] = Field(default_factory=list)
+    qualificationMatrix: Dict[str, Any] = Field(default_factory=dict)
+    readinessForecast: List[Dict[str, Any]] = Field(default_factory=list)
     updatedAt: str
 
 
@@ -299,6 +327,18 @@ class GUIScenario(GUIBaseModel):
 class GUISimulationData(GUIBaseModel):
     scenarios: List[GUIScenario]
     updatedAt: str
+
+
+class GUIAARReport(GUIBaseModel):
+    scenarioId: str
+    outcome: str
+    friendlyLosses: int = 0
+    enemyLosses: int = 0
+    objectivesMet: List[str] = Field(default_factory=list)
+    keyDecisionPoints: List[Dict[str, Any]] = Field(default_factory=list)
+    missedDetections: int = 0
+    avgTimeToDecision: Optional[float] = None
+    narrative: Optional[str] = None
 
 
 # -- Cyber -----------------------------------------------------
