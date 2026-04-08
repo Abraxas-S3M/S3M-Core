@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     import stix2
 
 
-def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class STIXProcessor:
@@ -75,7 +75,7 @@ class STIXProcessor:
             pattern=normalized_pattern,
             pattern_type="stix",
             labels=normalized_labels,
-            valid_from=_utc_now_iso(),
+            valid_from=_utc_now(),
             allow_custom=True,
         )
 
@@ -144,7 +144,7 @@ class STIXProcessor:
                     pattern=pattern,
                     pattern_type="stix",
                     labels=labels,
-                    valid_from=_utc_now_iso(),
+                    valid_from=_utc_now(),
                     allow_custom=True,
                     x_mil_country=country,
                     x_mil_watchlist_category=category,
