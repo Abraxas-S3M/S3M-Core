@@ -213,6 +213,16 @@ async def send_message(payload: dict):
     return await _comms.send_message(payload)
 
 
+@workspace_router.get("/communication/bearer-health")
+async def get_bearer_health():
+    return _comms.get_bearer_health()
+
+
+@workspace_router.post("/communication/degradation-advice")
+async def get_degradation_advice(payload: Optional[dict] = None):
+    return _comms.get_degradation_advice(payload)
+
+
 # ── Cyber ───────────────────────────────────────────────────
 @workspace_router.get("/cyber/incidents")
 async def get_cyber_incidents():

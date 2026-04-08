@@ -22,6 +22,8 @@ CHECKS = [
     ("GET",  "/workspaces/readiness/summary",           ["personnel", "equipment", "unitStatus"]),
     ("GET",  "/workspaces/surveillance/assets",         ["assets", "taskingQueue", "targetBoard"]),
     ("GET",  "/workspaces/communication/messages",      ["inbox"]),
+    ("GET",  "/workspaces/communication/bearer-health", ["bearers"]),
+    ("POST", "/workspaces/communication/degradation-advice", ["advice"]),
     ("GET",  "/workspaces/cyber/incidents",             ["incidents"]),
     ("GET",  "/workspaces/cyber/resilience",            ["resilience"]),
     ("GET",  "/workspaces/cyber/model-security",        ["modelSecurity", "updatedAt"]),
