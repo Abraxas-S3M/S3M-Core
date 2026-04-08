@@ -96,6 +96,18 @@ class GUIDecision(GUIBaseModel):
     updatedAt: Optional[str] = None
 
 
+class GUIActionItem(GUIBaseModel):
+    id: str
+    title: str
+    urgency: int = Field(ge=1, le=5)
+    impact: int = Field(ge=1, le=5)
+    urgencyScore: float
+    assignee: Optional[str] = None
+    status: str
+    linkedDecisionId: Optional[str] = None
+    createdAt: str
+
+
 class GUIOperationalContextData(GUIBaseModel):
     threats: List[GUIThreatItem]
     decisions: List[GUIDecision]

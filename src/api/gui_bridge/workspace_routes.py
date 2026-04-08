@@ -21,6 +21,7 @@ from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
 from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
 from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
+from src.command.action_board import ActionBoard
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
@@ -36,6 +37,7 @@ _sustainment = SustainmentAdapter()
 _comms = CommsAdapter()
 _simulation = SimulationAdapter()
 _planning = PlanningAdapter()
+_action_board = ActionBoard()
 
 
 # ── Request/Response helpers ────────────────────────────────
@@ -71,6 +73,40 @@ async def get_timeline_events(
     return _command.get_timeline_events(category=category, limit=limit).model_dump()
 
 
+@workspace_router.get("/command/action-board")
+async def get_action_board():
+    return _command.get_action_board()
+
+
+@workspace_router.post("/command/action-board")
+async def create_action_board_task(payload: ActionBoardCreateRequest):
+    task = _action_board.add_task(
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    return task.model_dump()
+
+
+@workspace_router.patch("/command/action-board/{task_id}")
+async def update_action_board_task(task_id: str, payload: ActionBoardUpdateRequest):
+    task = _action_board.update_task(
+        task_id=task_id,
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Action task '{task_id}' not found")
+    return task.model_dump()
+
+
 # ── COP ─────────────────────────────────────────────────────
 @workspace_router.get("/cop/tracks")
 async def get_cop_tracks():
@@ -102,6 +138,11 @@ async def reject_decision(decision_id: str, body: DecisionActionRequest = Decisi
 @workspace_router.get("/risk/metrics")
 async def get_risk_metrics():
     return _risk.get_metrics().model_dump()
+
+
+@workspace_router.post("/risk/what-if")
+async def risk_what_if(scenario: dict):
+    return _risk.get_what_if(scenario)
 
 
 # ── Readiness ───────────────────────────────────────────────
