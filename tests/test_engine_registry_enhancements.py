@@ -39,7 +39,7 @@ def test_get_total_memory_required():
     registry = EngineRegistry()
     all_engines = list(EngineID)
     total = registry.get_total_memory_required(all_engines)
-    assert 128 <= total <= 130
+    assert 128 < total < 130
 
 
 def test_engine_training_metadata_targets():

@@ -9,9 +9,10 @@ from enum import Enum
 
 
 class EngineID(Enum):
-    PHI3_MEDIUM = "phi3-medium"
-    GROK1 = "grok1-314b"
-    MIXTRAL = "mixtral-8x7b"
+    PHI3 = "phi3-mini"
+    PHI3_MEDIUM = "phi3-mini"
+    GROK = "grok-8b"
+    MISTRAL = "mistral-7b"
     ALLAM = "allam-7b"
 
 
@@ -95,12 +96,12 @@ class EngineConfig:
 
 
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
-    EngineID.PHI3_MEDIUM: EngineConfig(
-        engine_id=EngineID.PHI3_MEDIUM,
+    EngineID.PHI3: EngineConfig(
+        engine_id=EngineID.PHI3,
         name="Phi-3 Medium",
         provider="Microsoft",
         params="14B",
-        model_filename="phi-3-medium-4k-instruct.Q4_K_M.gguf",
+        model_filename="phi-3-mini-4k-instruct-q4_k_m.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
         hf_repo="microsoft/Phi-3-medium-4k-instruct",
@@ -110,8 +111,8 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         context_window=4096,
         primary_domain=TaskDomain.TACTICAL,
         latency_tier="fast",
-        inference_latency_ms=45.0,
-        throughput_tok_s=10.0,
+        inference_latency_ms=28.0,
+        throughput_tok_s=36.0,
         memory_footprint_gb=10.0,
         warm_state=False,
         confidence_prior=0.85,
@@ -127,8 +128,8 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
             TaskDomain.ARABIC_NLP: 0.45,
         },
     ),
-    EngineID.GROK1: EngineConfig(
-        engine_id=EngineID.GROK1,
+    EngineID.GROK: EngineConfig(
+        engine_id=EngineID.GROK,
         name="Grok-1",
         provider="xAI",
         params="314B (MoE)",
@@ -141,9 +142,9 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         max_tokens=1024,
         context_window=8192,
         primary_domain=TaskDomain.REASONING,
-        latency_tier="slow",
-        inference_latency_ms=130.0,
-        throughput_tok_s=1.0,
+        latency_tier="medium",
+        inference_latency_ms=40.0,
+        throughput_tok_s=25.0,
         memory_footprint_gb=85.0,
         warm_state=False,
         confidence_prior=0.82,
@@ -159,8 +160,8 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
             TaskDomain.ARABIC_NLP: 0.50,
         },
     ),
-    EngineID.MIXTRAL: EngineConfig(
-        engine_id=EngineID.MIXTRAL,
+    EngineID.MISTRAL: EngineConfig(
+        engine_id=EngineID.MISTRAL,
         name="Mixtral 8x7B",
         provider="Mistral AI",
         params="46.7B (MoE)",
@@ -174,8 +175,8 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         context_window=4096,
         primary_domain=TaskDomain.PLANNING,
         latency_tier="medium",
-        inference_latency_ms=95.0,
-        throughput_tok_s=3.0,
+        inference_latency_ms=35.0,
+        throughput_tok_s=29.0,
         memory_footprint_gb=28.0,
         warm_state=False,
         confidence_prior=0.84,
@@ -206,9 +207,9 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         context_window=4096,
         primary_domain=TaskDomain.ARABIC_NLP,
         latency_tier="medium",
-        inference_latency_ms=50.0,
-        throughput_tok_s=7.0,
-        memory_footprint_gb=5.0,
+        inference_latency_ms=38.0,
+        throughput_tok_s=28.0,
+        memory_footprint_gb=5.5,
         warm_state=False,
         confidence_prior=0.83,
         adapter_tuning_allowed=True,
