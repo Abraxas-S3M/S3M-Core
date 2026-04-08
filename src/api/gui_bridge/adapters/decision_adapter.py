@@ -14,18 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from src.api.gui_bridge.models.gui_schemas import (
-    GUIDecision,
-    GUIDecisionExplanation,
-    GUIDissentingView,
-    GUIDoctrineCheck,
-    GUIEvidenceItem,
-    DecisionStatus,
-    SeverityLevel,
-)
-
-REPO_ROOT = Path(__file__).resolve().parents[4]
-DECISION_EXPLANATION_LOG_PATH = REPO_ROOT / "data" / "training" / "decision_explanations.jsonl"
+from src.api.gui_bridge.models.gui_schemas import GUIDecision, DecisionStatus, SeverityLevel
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -117,11 +107,13 @@ class DecisionAdapter:
                 ).model_dump()
             )
 
-        return {
+        result = {
             "decisions": gui_decisions,
             "queueCounts": counts,
             "updatedAt": _now_iso(),
         }
+        emit_training_record("decision", {"query": "queue"}, result)
+        return result
 
     def get_explanation(self, decision_id: str) -> Dict[str, Any]:
         safe_decision_id = str(decision_id).strip() or "unknown"

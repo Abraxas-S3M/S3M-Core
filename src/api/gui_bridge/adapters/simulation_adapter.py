@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from src.api.gui_bridge.models.gui_schemas import GUIScenario, GUISimulationData
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -32,13 +33,17 @@ class SimulationAdapter:
                         updatedAt=sd.get("updated_at", _now_iso()),
                     ).model_dump()
                 )
-            return GUISimulationData(
+            result = GUISimulationData(
                 scenarios=scenarios or self._defaults(), updatedAt=_now_iso()
             ).model_dump()
+            emit_training_record("simulation", {"query": "scenarios"}, result)
+            return result
         except Exception:
-            return GUISimulationData(
+            result = GUISimulationData(
                 scenarios=self._defaults(), updatedAt=_now_iso()
             ).model_dump()
+            emit_training_record("simulation", {"query": "scenarios"}, result)
+            return result
 
     @staticmethod
     def _defaults():

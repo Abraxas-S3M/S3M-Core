@@ -15,6 +15,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIMissionPhase,
     GUIPlanningPhasesData,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -24,11 +25,15 @@ def _now_iso() -> str:
 class PlanningAdapter:
     def get_phases(self) -> dict:
         phases = self._build_phases()
-        return GUIPlanningPhasesData(phases=phases, updatedAt=_now_iso()).model_dump()
+        result = GUIPlanningPhasesData(phases=phases, updatedAt=_now_iso()).model_dump()
+        emit_training_record("planning", {"query": "phases"}, result)
+        return result
 
     def get_coas(self) -> dict:
         coas = self._build_coas()
-        return GUICOAData(coursesOfAction=coas, updatedAt=_now_iso()).model_dump()
+        result = GUICOAData(coursesOfAction=coas, updatedAt=_now_iso()).model_dump()
+        emit_training_record("planning", {"query": "coas"}, result)
+        return result
 
     def _build_phases(self):
         try:

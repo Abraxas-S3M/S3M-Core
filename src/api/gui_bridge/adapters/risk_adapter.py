@@ -24,6 +24,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIRiskForecast,
     TrendDirection,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -52,13 +53,15 @@ class RiskAdapter:
         drivers = self._build_drivers(threat_stats)
         forecast = self._build_forecast(composite)
 
-        return GUIRiskData(
+        result = GUIRiskData(
             composite=composite,
             domains=domains,
             forecast=forecast,
             drivers=drivers,
             updatedAt=_now_iso(),
         )
+        emit_training_record("risk", {"query": "metrics"}, result)
+        return result
 
     def _get_threat_stats(self) -> Dict[str, Any]:
         try:

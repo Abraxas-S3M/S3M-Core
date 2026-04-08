@@ -14,6 +14,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUICyberResilienceMetric,
     SeverityLevel,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -32,11 +33,15 @@ class CyberAdapter:
 
     def get_incidents(self) -> List[dict]:
         incidents = self._fetch_incidents()
-        return {"incidents": incidents, "updatedAt": _now_iso()}
+        result = {"incidents": incidents, "updatedAt": _now_iso()}
+        emit_training_record("cyber", {"query": "incidents"}, result)
+        return result
 
     def get_resilience(self) -> dict:
         metrics = self._fetch_resilience()
-        return {"resilience": metrics, "updatedAt": _now_iso()}
+        result = {"resilience": metrics, "updatedAt": _now_iso()}
+        emit_training_record("cyber", {"query": "resilience"}, result)
+        return result
 
     def get_model_security(self) -> dict:
         try:

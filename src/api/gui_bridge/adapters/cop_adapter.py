@@ -13,6 +13,7 @@ from math import atan2, cos, degrees, radians, sqrt
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.api.gui_bridge.models.gui_schemas import GUIThreatTrack, GUITracksData
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -37,7 +38,9 @@ class COPAdapter:
                 summary=t.get("classification", t.get("type", "Unknown track")),
                 lastSeen=t.get("last_update", _now_iso()),
             ))
-        return GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        emit_training_record("cop", {"query": "tracks"}, result)
+        return result
 
     def get_threat_tracks(self) -> GUITracksData:
         """Threat-specific tracks from the threat dashboard provider."""
@@ -55,7 +58,9 @@ class COPAdapter:
                 summary=t.get("description", t.get("title", "")),
                 lastSeen=t.get("timestamp", _now_iso()),
             ))
-        return GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
+        emit_training_record("cop", {"query": "threat_tracks"}, result)
+        return result
 
     def get_enriched_tracks(self) -> GUITracksData:
         """Pull from OperationalPictureService for full track enrichment."""

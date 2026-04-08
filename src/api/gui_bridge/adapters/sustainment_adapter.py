@@ -17,6 +17,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUISupplyCategory,
     GUISupplyData,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
 
 
 def _now_iso() -> str:
@@ -26,13 +27,15 @@ def _now_iso() -> str:
 class SustainmentAdapter:
     def get_fleet(self) -> dict:
         units = self._build_fleet_units()
-        payload = GUIFleetData(units=units, updatedAt=_now_iso()).model_dump()
-        self._log_training_sample(fleet_health=payload)
-        return payload
+        result = GUIFleetData(units=units, updatedAt=_now_iso()).model_dump()
+        emit_training_record("sustainment", {"query": "fleet"}, result)
+        return result
 
     def get_supply(self) -> dict:
         categories = self._build_supply()
-        return GUISupplyData(categories=categories, updatedAt=_now_iso()).model_dump()
+        result = GUISupplyData(categories=categories, updatedAt=_now_iso()).model_dump()
+        emit_training_record("sustainment", {"query": "supply"}, result)
+        return result
 
     def get_predictions(self) -> dict:
         """Predictive maintenance from existing service."""
