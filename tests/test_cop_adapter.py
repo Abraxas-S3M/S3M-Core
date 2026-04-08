@@ -18,6 +18,7 @@ def _install_gui_schema_stubs(monkeypatch):
     class GUIThreatTrack:
         id: str
         domain: str
+        sidc: str | None
         confidence: int
         severity: int
         correlatedTrackIds: list[str]
@@ -188,6 +189,26 @@ def _install_mission_planner_stub(monkeypatch) -> None:
     monkeypatch.setitem(sys.modules, "src.planning.mission_planner", mission_mod)
 
 
+def _install_military_symbol_stub(monkeypatch) -> None:
+    military_symbol_mod = types.ModuleType("military_symbol")
+
+    class _Symbol:
+        def get_sidc(self) -> str:
+            return "10066000000000000000"
+
+    def get_symbol_svg_string_from_name(name: str):
+        assert isinstance(name, str)
+        return "<svg></svg>"
+
+    def get_symbol_class_from_name(name: str):
+        assert isinstance(name, str)
+        return _Symbol()
+
+    military_symbol_mod.get_symbol_svg_string_from_name = get_symbol_svg_string_from_name
+    military_symbol_mod.get_symbol_class_from_name = get_symbol_class_from_name
+    monkeypatch.setitem(sys.modules, "military_symbol", military_symbol_mod)
+
+
 def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
     _install_cop_provider_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
@@ -198,6 +219,9 @@ def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
     assert tracks.tracks[0].domain == "kinetic"
     assert tracks.tracks[0].confidence == 91
     assert tracks.tracks[0].severity == 86
+    assert tracks.tracks[0].sidc is not None
+    assert tracks.tracks[0].sidc.isdigit()
+    assert len(tracks.tracks[0].sidc) == 20
     assert tracks.tracks[1].domain == "cyber"
     assert tracks.tracks[1].severity == 100
 
@@ -206,6 +230,19 @@ def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
     assert threat_tracks.tracks[0].domain == "cyber"
     assert threat_tracks.tracks[0].confidence == 52
     assert threat_tracks.tracks[0].severity == 75
+    assert threat_tracks.tracks[0].sidc is not None
+    assert len(threat_tracks.tracks[0].sidc) == 20
+
+
+def test_cop_adapter_uses_military_symbol_when_available(monkeypatch):
+    _install_cop_provider_stub(monkeypatch)
+    _install_military_symbol_stub(monkeypatch)
+    adapter_module = _reload_cop_adapter()
+    adapter = adapter_module.COPAdapter()
+
+    tracks = adapter.get_tracks()
+
+    assert tracks.tracks[0].sidc == "10066000000000000000"
 
 
 def test_cop_adapter_percent_and_domain_helpers(monkeypatch):
@@ -235,6 +272,7 @@ def test_cop_adapter_get_replay_filters_window(monkeypatch):
     assert len(frames[0]["tracks"]) == 1
     assert frames[0]["tracks"][0].id == "EN-1"
     assert frames[0]["tracks"][0].confidence == 72
+    assert frames[0]["tracks"][0].sidc is not None
 
 
 def test_cop_adapter_get_mission_overlay(monkeypatch):

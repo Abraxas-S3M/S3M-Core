@@ -9,7 +9,8 @@ Internal dependencies:
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from math import atan2, cos, degrees, radians, sqrt
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUIMissionLayer,
@@ -17,6 +18,13 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUIThreatTrack,
     GUITracksData,
 )
+from src.api.gui_bridge.training_emitter import emit_training_record
+from src.sensor_fusion.sidc_generator import generate_sidc
+
+try:
+    import military_symbol
+except Exception:  # pragma: no cover - optional dependency
+    military_symbol = None
 
 
 def _now_iso() -> str:
@@ -32,9 +40,16 @@ class COPAdapter:
         raw_tracks = self._cop.get_tracks()
         gui_tracks = []
         for t in raw_tracks:
+            domain = self._infer_domain(t)
+            affiliation = self._infer_affiliation(t)
             gui_tracks.append(GUIThreatTrack(
                 id=t.get("id", "UNKNOWN"),
-                domain=self._infer_domain(t),
+                domain=domain,
+                sidc=self._resolve_sidc(
+                    affiliation=affiliation,
+                    domain=domain,
+                    entity_type=t.get("type"),
+                ),
                 confidence=self._to_percent(t.get("confidence", 0)),
                 severity=self._to_percent(t.get("threat_score", t.get("confidence", 0))),
                 correlatedTrackIds=list(t.get("correlated", [])),
@@ -52,9 +67,16 @@ class COPAdapter:
         for t in raw_threats:
             level = t.get("level", "MEDIUM")
             severity_map = {"CRITICAL": 95, "HIGH": 75, "MEDIUM": 50, "LOW": 25, "INFO": 10}
+            domain = str(t.get("category", "kinetic")).lower()
+            affiliation = self._infer_affiliation(t)
             gui_tracks.append(GUIThreatTrack(
                 id=t.get("id", "UNKNOWN"),
-                domain=t.get("category", "kinetic").lower(),
+                domain=domain,
+                sidc=self._resolve_sidc(
+                    affiliation=affiliation,
+                    domain=domain,
+                    entity_type=t.get("type", t.get("title", t.get("description", ""))),
+                ),
                 confidence=self._to_percent(t.get("confidence", 0.5)),
                 severity=severity_map.get(level, 50),
                 correlatedTrackIds=[],
@@ -204,10 +226,16 @@ class COPAdapter:
             metadata = raw_entity.get("metadata", {})
             if not isinstance(metadata, dict):
                 metadata = {}
+            domain = cls._infer_domain({"type": entity_type})
             tracks.append(
                 GUIThreatTrack(
                     id=str(raw_entity.get("entity_id", "UNKNOWN")),
-                    domain=cls._infer_domain({"type": entity_type}),
+                    domain=domain,
+                    sidc=cls._resolve_sidc(
+                        affiliation="hostile",
+                        domain=domain,
+                        entity_type=entity_type,
+                    ),
                     confidence=confidence,
                     severity=confidence,
                     correlatedTrackIds=list(metadata.get("correlatedTrackIds", [])),
@@ -378,10 +406,16 @@ class COPAdapter:
         source_attr = self._safe_str_list(entity.get("sourceAttribution", entity.get("sensor_sources", [])))
         history = self._history_to_geo(entity.get("history", []))
         action = self._recommended_action(domain, entity.get("threat_level", "unknown"), confidence)
+        affiliation = self._infer_affiliation(entity)
 
         return GUIThreatTrack(
             id=track_id,
             domain=domain,
+            sidc=self._resolve_sidc(
+                affiliation=affiliation,
+                domain=domain,
+                entity_type=entity.get("entity_type", entity.get("type")),
+            ),
             confidence=confidence,
             severity=severity,
             correlatedTrackIds=correlated,
@@ -419,10 +453,16 @@ class COPAdapter:
         sources = self._safe_str_list(track_data.get("sensor_sources", []))
         history = self._history_to_geo(track_data.get("history", []))
         action = self._recommended_action(domain, track_data.get("threat_level", "medium"), confidence)
+        affiliation = self._infer_affiliation(track_data)
 
         return GUIThreatTrack(
             id=track_id,
             domain=domain,
+            sidc=self._resolve_sidc(
+                affiliation=affiliation,
+                domain=domain,
+                entity_type=classification,
+            ),
             confidence=confidence,
             severity=severity,
             correlatedTrackIds=[],
@@ -480,6 +520,9 @@ class COPAdapter:
             merged_correlated = set(base.correlatedTrackIds or [])
             merged_correlated.update(enriched.correlatedTrackIds)
             base.correlatedTrackIds = sorted(merged_correlated)
+
+        if not base.sidc and enriched.sidc:
+            base.sidc = enriched.sidc
 
         base.confidence = max(base.confidence, enriched.confidence)
         base.severity = max(base.severity, enriched.severity)
@@ -591,6 +634,83 @@ class COPAdapter:
             "hostile": round(max(0.0, hostile) / total, 3),
             "unknown": round(max(0.0, unknown) / total, 3),
         }
+
+    @staticmethod
+    def _infer_affiliation(payload: Dict[str, Any]) -> str:
+        if not isinstance(payload, dict):
+            return "unknown"
+        for key in ("affiliation", "allegiance", "identity", "side"):
+            value = str(payload.get(key, "")).strip().lower()
+            if value in {"friendly", "friend", "blue", "own", "ally", "allied"}:
+                return "friendly"
+            if value in {"hostile", "enemy", "adversary", "red"}:
+                return "hostile"
+        summary = str(payload.get("classification", payload.get("type", ""))).lower()
+        if "friendly" in summary or "ally" in summary:
+            return "friendly"
+        if "hostile" in summary or "enemy" in summary:
+            return "hostile"
+        return "unknown"
+
+    @classmethod
+    def _resolve_sidc(cls, affiliation: Any, domain: Any, entity_type: Any) -> str:
+        fallback_sidc = generate_sidc(
+            affiliation=str(affiliation) if affiliation is not None else None,
+            domain=str(domain) if domain is not None else None,
+            entity_type=str(entity_type) if entity_type is not None else None,
+        )
+        if military_symbol is None:
+            return fallback_sidc
+
+        symbol_name = cls._domain_to_symbol_name(affiliation=affiliation, domain=domain, entity_type=entity_type)
+        if not symbol_name:
+            return fallback_sidc
+
+        try:
+            # Tactical context: using local symbol generation keeps COP symbology
+            # deterministic even when operators are fully disconnected.
+            military_symbol.get_symbol_svg_string_from_name(symbol_name)
+            symbol_obj_getter = getattr(military_symbol, "get_symbol_class_from_name", None)
+            if callable(symbol_obj_getter):
+                symbol_obj = symbol_obj_getter(name=symbol_name)
+                sidc_getter = getattr(symbol_obj, "get_sidc", None)
+                if callable(sidc_getter):
+                    sidc_candidate = str(sidc_getter()).strip()
+                    if sidc_candidate.isdigit() and len(sidc_candidate) == 20:
+                        return sidc_candidate
+        except Exception:
+            return fallback_sidc
+
+        return fallback_sidc
+
+    @classmethod
+    def _domain_to_symbol_name(cls, affiliation: Any, domain: Any, entity_type: Any) -> str:
+        affiliation_token = cls._infer_affiliation({"affiliation": affiliation})
+        affiliation_name = {
+            "friendly": "friendly",
+            "hostile": "enemy",
+            "unknown": "unknown",
+        }.get(affiliation_token, "unknown")
+
+        domain_value = str(domain or "").strip().lower()
+        domain_to_entity_name = {
+            "air": "aircraft",
+            "kinetic": "armored vehicle",
+            "land": "armored vehicle",
+            "ground": "armored vehicle",
+            "cyber": "cyber warfare",
+            "intel": "reconnaissance unit",
+            "maritime": "surface vessel",
+            "sea": "surface vessel",
+            "subsurface": "submarine",
+            "space": "satellite",
+            "electronic": "electronic warfare unit",
+        }
+        entity_name = domain_to_entity_name.get(domain_value, "")
+        if not entity_name:
+            inferred_domain = cls._infer_domain({"type": entity_type})
+            entity_name = domain_to_entity_name.get(inferred_domain, "unit")
+        return f"{affiliation_name} {entity_name}".strip()
 
     @staticmethod
     def _recommended_action(domain: str, threat_level: Any, severity: int) -> str:
