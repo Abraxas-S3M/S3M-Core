@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import services.risk_assessment.bayesian_network as bayesian_module
-import src.prediction.short_horizon_predictor as predictor_module
+import src.prediction.risk_forecaster as risk_forecaster_module
 
 from src.api.gui_bridge.adapters.risk_adapter import RiskAdapter
 
@@ -51,31 +51,35 @@ def test_compute_composite_defaults_when_no_domains() -> None:
     assert RiskAdapter._compute_composite([]) == 50
 
 
-def test_build_forecast_uses_short_horizon_predictor_when_available(monkeypatch) -> None:
-    class _FakePredictor:
-        def predict(self, current_value: int, horizon_steps: int):
-            assert current_value == 40
-            assert horizon_steps == 4
+def test_build_forecast_uses_risk_forecaster_when_available(monkeypatch) -> None:
+    captured = {}
+
+    class _FakeForecaster:
+        def forecast(self, historical_scores, horizon_hours: int = 24):
+            captured["history"] = historical_scores
+            captured["horizon"] = horizon_hours
             return [41.9, -4.0, 130.4, 55.2]
 
-    monkeypatch.setattr(predictor_module, "ShortHorizonPredictor", _FakePredictor)
+    monkeypatch.setattr(risk_forecaster_module, "RiskForecaster", _FakeForecaster)
     adapter = RiskAdapter()
 
     forecast = adapter._build_forecast(40)
-    assert [point.score for point in forecast] == [41, 0, 100, 55]
+    assert captured["horizon"] == 4
+    assert captured["history"][-1][1] == 40.0
+    assert [point.score for point in forecast] == [42, 0, 100, 55]
     assert len(forecast) == 4
 
 
-def test_build_forecast_falls_back_when_predictor_fails(monkeypatch) -> None:
-    class _BrokenPredictor:
-        def predict(self, current_value: int, horizon_steps: int):
-            raise RuntimeError("predictor unavailable")
+def test_build_forecast_falls_back_when_forecaster_fails(monkeypatch) -> None:
+    class _BrokenForecaster:
+        def forecast(self, historical_scores, horizon_hours: int = 24):
+            raise RuntimeError("forecaster unavailable")
 
-    monkeypatch.setattr(predictor_module, "ShortHorizonPredictor", _BrokenPredictor)
+    monkeypatch.setattr(risk_forecaster_module, "RiskForecaster", _BrokenForecaster)
     adapter = RiskAdapter()
 
     forecast = adapter._build_forecast(50)
-    assert [point.score for point in forecast] == [52, 46, 56, 42]
+    assert [point.score for point in forecast] == [50, 50, 50, 50]
     assert len(forecast) == 4
 
 

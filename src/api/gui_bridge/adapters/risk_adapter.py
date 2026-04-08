@@ -15,7 +15,7 @@ Internal dependencies:
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUIRiskData,
@@ -36,6 +36,9 @@ class RiskAdapter:
         from src.dashboard.providers.threat_dash_provider import ThreatDashProvider
 
         self._threat = ThreatDashProvider()
+        self._risk_history: List[Tuple[datetime, float]] = []
+        self._risk_history_limit = 512
+        self._risk_forecaster = None
 
         # Optional: risk engine
         self._risk_engine = None
@@ -121,29 +124,57 @@ class RiskAdapter:
             ]
         return drivers
 
-    def _build_forecast(self, composite: int) -> List[GUIRiskForecast]:
-        try:
-            from src.prediction.short_horizon_predictor import ShortHorizonPredictor
+    def _record_risk_point(self, score: int) -> None:
+        now = datetime.now(timezone.utc)
+        bounded = float(min(100, max(0, int(score))))
+        self._risk_history.append((now, bounded))
+        if len(self._risk_history) > self._risk_history_limit:
+            self._risk_history = self._risk_history[-self._risk_history_limit :]
 
-            predictor = ShortHorizonPredictor()
-            predictions = predictor.predict(current_value=composite, horizon_steps=4)
+    def _linear_forecast_fallback(self, horizon: int = 4) -> List[int]:
+        if not self._risk_history:
+            return [50 for _ in range(horizon)]
+        if len(self._risk_history) == 1:
+            baseline = int(round(self._risk_history[-1][1]))
+            return [min(100, max(0, baseline)) for _ in range(horizon)]
+
+        _, prev_score = self._risk_history[-2]
+        _, last_score = self._risk_history[-1]
+        slope = last_score - prev_score
+        return [
+            min(100, max(0, int(round(last_score + slope * float(step + 1)))))
+            for step in range(horizon)
+        ]
+
+    def _build_forecast(self, composite: int) -> List[GUIRiskForecast]:
+        self._record_risk_point(composite)
+        now = datetime.now(timezone.utc)
+        try:
+            from src.prediction.risk_forecaster import RiskForecaster
+
+            if self._risk_forecaster is None:
+                self._risk_forecaster = RiskForecaster()
+            # Tactical UI uses a 1-hour lookahead at 15-minute display checkpoints.
+            predictions = self._risk_forecaster.forecast(
+                historical_scores=list(self._risk_history),
+                horizon_hours=4,
+            )
             if predictions:
-                now = datetime.now(timezone.utc)
                 return [
                     GUIRiskForecast(
                         timestamp=(now + timedelta(minutes=15 * (i + 1))).isoformat(),
-                        score=min(100, max(0, int(p))),
+                        score=min(100, max(0, int(round(p)))),
                     )
-                    for i, p in enumerate(predictions)
+                    for i, p in enumerate(predictions[:4])
                 ]
         except Exception:
             pass
 
-        now = datetime.now(timezone.utc)
+        fallback = self._linear_forecast_fallback(horizon=4)
         return [
             GUIRiskForecast(
                 timestamp=(now + timedelta(minutes=15 * (i + 1))).isoformat(),
-                score=min(100, max(0, composite + ((-1) ** i) * (2 * (i + 1)))),
+                score=fallback[i],
             )
             for i in range(4)
         ]
