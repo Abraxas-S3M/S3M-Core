@@ -23,5 +23,5 @@ gui_bridge_router.include_router(system_router)
 # Workspace endpoints: /api/v1/workspaces/*
 gui_bridge_router.include_router(workspace_router)
 
-# Note: ws_router is mounted separately at root level in server.py because
+# ws_router is mounted separately at root level in server.py because
 # WebSocket routes cannot have path prefixes in FastAPI.
