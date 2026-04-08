@@ -51,6 +51,14 @@ class TestCommandWorkspace:
         assert "events" in data
         assert "updatedAt" in data
 
+    def test_force_structure_shape(self):
+        r = client.get(f"{BASE}/workspaces/command/force-structure")
+        assert r.status_code == 200
+        data = r.json()
+        assert "units" in data
+        assert "updatedAt" in data
+        assert isinstance(data["units"], list)
+
     def test_agents_shape(self):
         r = client.get(f"{BASE}/workspaces/command/agents")
         assert r.status_code == 200
