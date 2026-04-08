@@ -2,12 +2,12 @@
 # UNCLASSIFIED - FOUO
 
 routing:
-  cyber: "grok"        # Complex reasoning for cyber threats
-  kinetic: "phi3"      # Tactical response for kinetic threats
-  electronic_warfare: "grok"  # Implications analysis
+  cyber: "grok1"        # Complex reasoning for cyber threats
+  kinetic: "phi3_medium"      # Tactical response for kinetic threats
+  electronic_warfare: "grok1"  # Implications analysis
   hybrid: "consensus"  # All 4 engines for complex hybrid threats
-  surveillance: "mistral"     # Planning engine for response planning
-  unknown: "phi3"      # Default to tactical engine
+  surveillance: "mixtral"     # Planning engine for response planning
+  unknown: "phi3_medium"      # Default to tactical engine
 
 prompts:
   cyber: "Analyze this cybersecurity threat event and provide: 1) Threat severity assessment 2) Attack vector analysis 3) Recommended countermeasures 4) Impact on operations. Classification: UNCLASSIFIED."
