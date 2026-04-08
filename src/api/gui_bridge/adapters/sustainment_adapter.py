@@ -9,6 +9,7 @@ Internal dependencies:
 """
 
 from datetime import datetime, timezone
+from typing import Any
 
 from src.api.gui_bridge.models.gui_schemas import (
     GUIFleetData,
@@ -25,11 +26,37 @@ def _now_iso() -> str:
 class SustainmentAdapter:
     def get_fleet(self) -> dict:
         units = self._build_fleet_units()
-        return GUIFleetData(units=units, updatedAt=_now_iso()).model_dump()
+        payload = GUIFleetData(units=units, updatedAt=_now_iso()).model_dump()
+        self._log_training_sample(fleet_health=payload)
+        return payload
 
     def get_supply(self) -> dict:
         categories = self._build_supply()
         return GUISupplyData(categories=categories, updatedAt=_now_iso()).model_dump()
+
+    def get_predictions(self) -> dict:
+        """Predictive maintenance from existing service."""
+        try:
+            from services.maintenance.predictive import PredictiveMaintenanceEngine
+
+            engine = PredictiveMaintenanceEngine()
+            raw_predictions = engine.get_predictions() if hasattr(engine, "get_predictions") else []
+            predictions = self._normalize_rows(raw_predictions)
+            self._log_training_sample(maintenance_outcomes=predictions)
+            return {"predictions": predictions, "updatedAt": _now_iso()}
+        except Exception:
+            return {"predictions": [], "updatedAt": _now_iso()}
+
+    def get_supply_twin(self) -> dict:
+        """Digital twin supply chain status."""
+        try:
+            from src.logistics.supply_chain_twin import SupplyChainTwin
+
+            twin = SupplyChainTwin()
+            status = twin.get_status() if hasattr(twin, "get_status") else {}
+            return {"supplyChain": status, "updatedAt": _now_iso()}
+        except Exception:
+            return self.get_supply()
 
     def _build_fleet_units(self):
         try:
@@ -154,3 +181,36 @@ class SustainmentAdapter:
                 status="amber",
             ),
         ]
+
+    @staticmethod
+    def _normalize_rows(rows: Any) -> list[dict]:
+        if not isinstance(rows, list):
+            return []
+        normalized: list[dict] = []
+        for row in rows:
+            if isinstance(row, dict):
+                normalized.append(dict(row))
+            elif hasattr(row, "to_dict"):
+                normalized.append(row.to_dict())
+            elif hasattr(row, "model_dump"):
+                normalized.append(row.model_dump())
+        return normalized
+
+    @staticmethod
+    def _log_training_sample(
+        fleet_health: dict | None = None,
+        maintenance_outcomes: list[dict] | None = None,
+    ) -> None:
+        try:
+            from src.training.cpu_adaptation.stream_learner import (
+                log_fleet_maintenance_training_sample,
+            )
+
+            log_fleet_maintenance_training_sample(
+                fleet_health=fleet_health,
+                maintenance_outcomes=maintenance_outcomes,
+            )
+        except Exception:
+            # GUI routes must continue serving sustainment state even if
+            # local training-data persistence is temporarily unavailable.
+            return

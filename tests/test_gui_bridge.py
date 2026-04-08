@@ -328,6 +328,20 @@ class TestSustainmentWorkspace:
         data = r.json()
         assert "categories" in data
 
+    def test_maintenance_predictions_shape(self):
+        r = client.get(f"{BASE}/workspaces/sustainment/maintenance/predictions")
+        assert r.status_code == 200
+        data = r.json()
+        assert "predictions" in data
+        assert "updatedAt" in data
+
+    def test_supply_twin_shape(self):
+        r = client.get(f"{BASE}/workspaces/sustainment/supply-twin")
+        assert r.status_code == 200
+        data = r.json()
+        assert "supplyChain" in data
+        assert "updatedAt" in data
+
 
 class TestPlanningWorkspace:
     def test_phases_shape(self):

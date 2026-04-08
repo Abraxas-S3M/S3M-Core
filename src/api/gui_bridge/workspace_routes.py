@@ -299,6 +299,16 @@ async def get_supply_status():
     return _sustainment.get_supply()
 
 
+@workspace_router.get("/sustainment/maintenance/predictions")
+async def get_maintenance_predictions():
+    return _sustainment.get_predictions()
+
+
+@workspace_router.get("/sustainment/supply-twin")
+async def get_supply_twin_status():
+    return _sustainment.get_supply_twin()
+
+
 # ── Planning ────────────────────────────────────────────────
 @workspace_router.get("/planning/phases")
 async def get_planning_phases():

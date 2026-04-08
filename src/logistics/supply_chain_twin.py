@@ -273,6 +273,16 @@ class SupplyChainTwin:
             "alerts": self.generate_alerts(),
         }
 
+    def get_status(self) -> Dict[str, Any]:
+        """
+        Return current supply twin status for GUI adapters.
+
+        Tactical context: exposing a stable status method keeps sustainment
+        workspaces operational even when upstream interfaces vary by deployment.
+        """
+
+        return self.full_status()
+
     def predict_disruptions(self, supply_records: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Compatibility API for portal-level sustainment prediction.
