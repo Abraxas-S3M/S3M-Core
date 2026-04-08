@@ -118,9 +118,19 @@ async def get_threat_tracks():
     return _cop.get_threat_tracks().model_dump()
 
 
-@workspace_router.get("/cop/enriched-tracks")
-async def get_enriched_tracks():
-    return _cop.get_enriched_tracks().model_dump()
+@workspace_router.get("/cop/replay")
+async def get_cop_replay(
+    start_time: str = Query(..., description="ISO-8601 replay window start"),
+    end_time: str = Query(..., description="ISO-8601 replay window end"),
+):
+    return _cop.get_replay(start_time=start_time, end_time=end_time)
+
+
+@workspace_router.get("/cop/mission-layer")
+async def get_cop_mission_layer(
+    mission_id: Optional[str] = Query(None, description="Optional mission identifier"),
+):
+    return _cop.get_mission_overlay(mission_id=mission_id)
 
 
 # ── Decisions ───────────────────────────────────────────────

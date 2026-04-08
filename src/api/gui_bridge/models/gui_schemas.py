@@ -197,6 +197,18 @@ class GUITracksData(GUIBaseModel):
     updatedAt: str
 
 
+class GUIReplayFrame(GUIBaseModel):
+    timestamp: str
+    tracks: List[GUIThreatTrack]
+
+
+class GUIMissionLayer(GUIBaseModel):
+    missionId: str
+    waypoints: List[Dict[str, Any]]
+    phaseLines: List[Dict[str, Any]]
+    objectives: List[Dict[str, Any]]
+
+
 # -- Readiness (ReadinessData) --------------------------------
 
 

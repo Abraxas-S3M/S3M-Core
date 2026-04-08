@@ -5,7 +5,48 @@ from __future__ import annotations
 import importlib.util
 import sys
 import types
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
+
+
+def _install_gui_schema_stubs(monkeypatch):
+    schema_mod = types.ModuleType("src.api.gui_bridge.models.gui_schemas")
+
+    @dataclass
+    class GUIThreatTrack:
+        id: str
+        domain: str
+        confidence: int
+        severity: int
+        correlatedTrackIds: list[str]
+        summary: str
+        lastSeen: str
+
+    @dataclass
+    class GUITracksData:
+        tracks: list[GUIThreatTrack]
+        updatedAt: str
+
+    @dataclass
+    class GUIReplayFrame:
+        timestamp: str
+        tracks: list[GUIThreatTrack]
+
+    @dataclass
+    class GUIMissionLayer:
+        missionId: str
+        waypoints: list[dict[str, Any]]
+        phaseLines: list[dict[str, Any]]
+        objectives: list[dict[str, Any]]
+
+    schema_mod.GUIThreatTrack = GUIThreatTrack
+    schema_mod.GUITracksData = GUITracksData
+    schema_mod.GUIReplayFrame = GUIReplayFrame
+    schema_mod.GUIMissionLayer = GUIMissionLayer
+    monkeypatch.setitem(sys.modules, "src.api.gui_bridge.models.gui_schemas", schema_mod)
+    return schema_mod
 
 
 def _install_cop_provider_stub(monkeypatch) -> None:
@@ -51,17 +92,100 @@ def _install_cop_provider_stub(monkeypatch) -> None:
 
 
 def _reload_cop_adapter():
-    module_name = "src.api.gui_bridge.adapters.cop_adapter"
+    module_name = "cop_adapter_under_test"
     sys.modules.pop(module_name, None)
-    spec = importlib.util.spec_from_file_location(
-        module_name,
-        "/workspace/src/api/gui_bridge/adapters/cop_adapter.py",
-    )
-    assert spec is not None and spec.loader is not None
+    adapter_path = Path(__file__).resolve().parents[1] / "src/api/gui_bridge/adapters/cop_adapter.py"
+    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("failed to load cop adapter test module")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def _install_replay_stub(monkeypatch) -> None:
+    replay_harness_mod = types.ModuleType("src.validation.replay_harness")
+
+    class ReplayHarness:
+        pass
+
+    replay_harness_mod.ReplayHarness = ReplayHarness
+    monkeypatch.setitem(sys.modules, "src.validation.replay_harness", replay_harness_mod)
+
+    replay_recorder_mod = types.ModuleType("src.simulation.adapters.replay_recorder")
+
+    @dataclass
+    class ReplayArtifact:
+        replay_id: str
+        created_at: datetime
+
+    class SimulationState:
+        def __init__(self, ts: datetime, entities: list[dict[str, Any]]):
+            self.timestamp = ts
+            self._entities = entities
+
+        def to_dict(self) -> dict[str, Any]:
+            return {
+                "timestamp": self.timestamp.isoformat(),
+                "entities": self._entities,
+            }
+
+    class ReplayRecorder:
+        def list_replays(self) -> list[ReplayArtifact]:
+            return [
+                ReplayArtifact(
+                    replay_id="r-1",
+                    created_at=datetime(2026, 4, 4, 2, 0, tzinfo=timezone.utc),
+                )
+            ]
+
+        def load_replay(self, replay_id: str):
+            assert replay_id == "r-1"
+            return [
+                SimulationState(
+                    datetime(2026, 4, 4, 2, 5, tzinfo=timezone.utc),
+                    [
+                        {
+                            "entity_id": "EN-1",
+                            "entity_type": "ENEMY_UGV",
+                            "health": 0.72,
+                            "metadata": {"correlatedTrackIds": ["EN-2"]},
+                        },
+                        {
+                            "entity_id": "FR-1",
+                            "entity_type": "FRIENDLY_UGV",
+                            "health": 0.91,
+                        },
+                    ],
+                )
+            ]
+
+    replay_recorder_mod.ReplayRecorder = ReplayRecorder
+    monkeypatch.setitem(
+        sys.modules,
+        "src.simulation.adapters.replay_recorder",
+        replay_recorder_mod,
+    )
+
+
+def _install_mission_planner_stub(monkeypatch) -> None:
+    mission_mod = types.ModuleType("src.planning.mission_planner")
+
+    class MissionPlanner:
+        def get_missions(self) -> list[dict[str, Any]]:
+            return [
+                {
+                    "mission_id": "mission-123",
+                    "mission_type": "RECON",
+                    "status": "planned",
+                    "waypoints": [(0.0, 0.0, 10.0), (100.0, 50.0, 20.0)],
+                    "objectives": [{"id": "OBJ-A", "label": "observe target", "status": "planned"}],
+                }
+            ]
+
+    mission_mod.MissionPlanner = MissionPlanner
+    monkeypatch.setitem(sys.modules, "src.planning.mission_planner", mission_mod)
 
 
 def test_cop_adapter_maps_tracks_and_threat_tracks(monkeypatch):
@@ -94,74 +218,35 @@ def test_cop_adapter_percent_and_domain_helpers(monkeypatch):
     assert adapter_module.COPAdapter._infer_domain({"type": "sigint relay"}) == "intel"
 
 
-def test_cop_adapter_get_enriched_tracks_merges_operational_and_fused(monkeypatch):
+def test_cop_adapter_get_replay_filters_window(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
     _install_cop_provider_stub(monkeypatch)
+    _install_replay_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
     adapter = adapter_module.COPAdapter()
 
-    class _FakeOperationalPictureService:
-        def get_picture(self):
-            return {
-                "generated_at": "2026-04-08T08:00:00+00:00",
-                "entities": [
-                    {
-                        "entity_id": "TRK-ENR-1",
-                        "entity_type": "aircraft",
-                        "classification": "Hostile aircraft",
-                        "threat_level": "high",
-                        "doctrine_adjusted_confidence": 0.82,
-                        "position": [1200.0, 1800.0, 300.0],
-                        "velocity": [90.0, 10.0, 0.0],
-                        "sensor_sources": ["RADAR-01"],
-                        "history": [
-                            {"pos": [1100.0, 1700.0, 290.0], "ts": "2026-04-08T07:59:00+00:00"}
-                        ],
-                    }
-                ],
-            }
+    frames = adapter.get_replay(
+        start_time="2026-04-04T01:59:00+00:00",
+        end_time="2026-04-04T02:06:00+00:00",
+    )
 
-    class _FakeFusedTrack:
-        def to_dict(self):
-            return {
-                "track_id": "TRK-ENR-1",
-                "classification": "Hostile aircraft",
-                "confidence": 0.9,
-                "position": [1250.0, 1820.0, 320.0],
-                "velocity": [95.0, 12.0, 0.0],
-                "last_update": "2026-04-08T08:00:10+00:00",
-                "sensor_sources": ["AIS"],
-                "history": [{"pos": [1150.0, 1720.0, 300.0], "ts": "2026-04-08T07:59:30+00:00"}],
-            }
-
-    ops_module = types.ModuleType("src.runtime.operational_picture_service")
-    ops_module.OperationalPictureService = _FakeOperationalPictureService
-    monkeypatch.setitem(sys.modules, "src.runtime.operational_picture_service", ops_module)
-    monkeypatch.setattr(adapter, "_get_confirmed_fused_tracks", lambda: [_FakeFusedTrack()])
-
-    enriched = adapter.get_enriched_tracks()
-    assert len(enriched.tracks) == 1
-    track = enriched.tracks[0]
-    assert track.id == "TRK-ENR-1"
-    assert track.latitude is not None and track.longitude is not None
-    assert track.speed is not None and track.heading is not None
-    assert track.sourceAttribution is not None
-    assert set(track.sourceAttribution) == {"AIS", "RADAR-01"}
-    assert track.trackHistory is not None
-    assert isinstance(track.recommendedAction, str) and track.recommendedAction
+    assert len(frames) == 1
+    assert frames[0]["timestamp"] == "2026-04-04T02:05:00+00:00"
+    assert len(frames[0]["tracks"]) == 1
+    assert frames[0]["tracks"][0].id == "EN-1"
+    assert frames[0]["tracks"][0].confidence == 72
 
 
-def test_cop_adapter_get_enriched_tracks_falls_back_to_tracks(monkeypatch):
+def test_cop_adapter_get_mission_overlay(monkeypatch):
+    _install_gui_schema_stubs(monkeypatch)
     _install_cop_provider_stub(monkeypatch)
+    _install_mission_planner_stub(monkeypatch)
     adapter_module = _reload_cop_adapter()
     adapter = adapter_module.COPAdapter()
 
-    class _BrokenOperationalPictureService:
-        def __init__(self):
-            raise RuntimeError("service unavailable")
+    overlay = adapter.get_mission_overlay(mission_id="mission-123")
 
-    ops_module = types.ModuleType("src.runtime.operational_picture_service")
-    ops_module.OperationalPictureService = _BrokenOperationalPictureService
-    monkeypatch.setitem(sys.modules, "src.runtime.operational_picture_service", ops_module)
-
-    fallback = adapter.get_enriched_tracks()
-    assert len(fallback.tracks) == 2
+    assert overlay["missionId"] == "mission-123"
+    assert len(overlay["waypoints"]) == 2
+    assert len(overlay["phaseLines"]) == 1
+    assert overlay["objectives"][0]["id"] == "OBJ-A"
