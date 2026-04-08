@@ -6,6 +6,7 @@ the S3M-GUI frontend expects. Run with: pytest tests/test_gui_bridge.py -v
 
 import pytest
 from fastapi.testclient import TestClient
+from datetime import datetime
 
 from src.api.server import app
 
@@ -357,6 +358,22 @@ class TestPlanningWorkspace:
         data = r.json()
         assert "suggestions" in data
         assert "updatedAt" in data
+
+
+class TestSystemStatus:
+    def test_system_status_shape(self):
+        r = client.get(f"{BASE}/system/status")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["status"] == "operational"
+        assert "engines" in data
+        assert isinstance(data["engines"], dict)
+        assert "uptime" in data
+        assert isinstance(data["uptime"], int)
+        assert data["uptime"] >= 0
+        assert data["version"] == "0.2.0"
+        assert "updatedAt" in data
+        datetime.fromisoformat(data["updatedAt"])
 
 
 class TestAuth:
