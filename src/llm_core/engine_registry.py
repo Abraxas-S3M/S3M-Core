@@ -9,9 +9,9 @@ from enum import Enum
 
 
 class EngineID(Enum):
-    PHI3 = "phi3-mini"
-    GROK = "grok-8b"
-    MISTRAL = "mistral-7b"
+    PHI3_MEDIUM = "phi3-medium"
+    GROK1 = "grok1-314b"
+    MIXTRAL = "mixtral-8x7b"
     ALLAM = "allam-7b"
 
 
@@ -43,6 +43,12 @@ class EngineConfig:
     inference_latency_ms: float = 0.0
     throughput_tok_s: float = 0.0
     memory_footprint_gb: float = 0.0
+    is_moe: bool = False
+    moe_experts: int = 0
+    active_experts: int = 0
+    fp16_size_gb: float = 0.0
+    q4_size_gb: float = 0.0
+    training_tier: str = "gpu_required"  # gpu_required | cpu_capable | multi_gpu
     warm_state: bool = False
     confidence_prior: float = 0.75
     capabilities: Optional[Dict[Union[TaskDomain, str], float]] = field(default=None)
@@ -89,100 +95,98 @@ class EngineConfig:
 
 
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
-    EngineID.PHI3: EngineConfig(
-        engine_id=EngineID.PHI3,
-        name="Phi-3 Mini",
+    EngineID.PHI3_MEDIUM: EngineConfig(
+        engine_id=EngineID.PHI3_MEDIUM,
+        name="Phi-3 Medium",
         provider="Microsoft",
-        params="3.8B",
-        model_filename="phi-3-mini-4k-instruct-q4_k_m.gguf",
+        params="14B",
+        model_filename="phi-3-medium-4k-instruct.Q4_K_M.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
-        hf_repo="microsoft/Phi-3-mini-4k-instruct-gguf",
-        gcs_path="gs://s3m-weight-vault/phi3/phi-3-mini-4k-instruct-q4_k_m.gguf",
-        local_path="models/phi3/phi-3-mini-4k-instruct-q4_k_m.gguf",
-        max_tokens=512,
+        hf_repo="microsoft/Phi-3-medium-4k-instruct",
+        gcs_path="gs://s3m-weight-vault/phi3-medium/phi-3-medium-4k-instruct.Q4_K_M.gguf",
+        local_path="models/phi3-medium/phi-3-medium-4k-instruct.Q4_K_M.gguf",
+        max_tokens=1024,
         context_window=4096,
         primary_domain=TaskDomain.TACTICAL,
         latency_tier="fast",
-        inference_latency_ms=28.0,
-        throughput_tok_s=36.0,
-        memory_footprint_gb=2.5,
-        warm_state=False,
-        confidence_prior=0.85,
-        adapter_tuning_allowed=True,
-        adapter_tuning_min_ram_gb=4.0,
-        preferred_student_model=None,
-        cpu_inference_tok_s_target=40.0,
-        cpu_inference_ram_mb=2500,
+        inference_latency_ms=45.0,
+        throughput_tok_s=22.0,
+        memory_footprint_gb=10.0,
+        is_moe=False,
+        fp16_size_gb=28.0,
+        q4_size_gb=8.5,
+        confidence_prior=0.88,
+        training_tier="gpu_required",
         capabilities={
             TaskDomain.TACTICAL: 0.95,
-            TaskDomain.REASONING: 0.60,
-            TaskDomain.PLANNING: 0.65,
-            TaskDomain.ARABIC_NLP: 0.40,
-        },
-    ),
-    EngineID.GROK: EngineConfig(
-        engine_id=EngineID.GROK,
-        name="Grok",
-        provider="xAI",
-        params="8B",
-        model_filename="grok-8b-q4_k_m.gguf",
-        quantization="Q4_K_M",
-        runtime="llama.cpp",
-        hf_repo="xai-org/grok-1",
-        gcs_path="gs://s3m-weight-vault/grok/grok-8b-q4_k_m.gguf",
-        local_path="models/grok/grok-8b-q4_k_m.gguf",
-        max_tokens=1024,
-        context_window=8192,
-        primary_domain=TaskDomain.REASONING,
-        latency_tier="medium",
-        inference_latency_ms=40.0,
-        throughput_tok_s=25.0,
-        memory_footprint_gb=5.5,
-        warm_state=False,
-        confidence_prior=0.82,
-        adapter_tuning_allowed=True,
-        adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
-        cpu_inference_tok_s_target=15.0,
-        cpu_inference_ram_mb=5000,
-        capabilities={
-            TaskDomain.TACTICAL: 0.60,
-            TaskDomain.REASONING: 0.95,
-            TaskDomain.PLANNING: 0.70,
+            TaskDomain.REASONING: 0.80,
+            TaskDomain.PLANNING: 0.78,
             TaskDomain.ARABIC_NLP: 0.45,
         },
     ),
-    EngineID.MISTRAL: EngineConfig(
-        engine_id=EngineID.MISTRAL,
-        name="Mistral 7B",
-        provider="Mistral AI",
-        params="7B",
-        model_filename="mistral-7b-instruct-v0.3-q4_k_m.gguf",
+    EngineID.GROK1: EngineConfig(
+        engine_id=EngineID.GROK1,
+        name="Grok-1",
+        provider="xAI",
+        params="314B (MoE)",
+        model_filename="grok-1.Q4_K_M.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
-        hf_repo="mistralai/Mistral-7B-Instruct-v0.3",
-        gcs_path="gs://s3m-weight-vault/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf",
-        local_path="models/mistral/mistral-7b-instruct-v0.3-q4_k_m.gguf",
-        max_tokens=1024,
+        hf_repo="xai-org/grok-1",
+        gcs_path="gs://s3m-weight-vault/grok1/grok-1.Q4_K_M.gguf",
+        local_path="models/grok1/grok-1.Q4_K_M.gguf",
+        max_tokens=2048,
+        context_window=8192,
+        primary_domain=TaskDomain.REASONING,
+        latency_tier="slow",
+        inference_latency_ms=180.0,
+        throughput_tok_s=8.0,
+        memory_footprint_gb=85.0,
+        is_moe=True,
+        moe_experts=8,
+        active_experts=2,
+        fp16_size_gb=300.0,
+        q4_size_gb=80.0,
+        confidence_prior=0.92,
+        training_tier="multi_gpu",
+        capabilities={
+            TaskDomain.TACTICAL: 0.70,
+            TaskDomain.REASONING: 0.97,
+            TaskDomain.PLANNING: 0.85,
+            TaskDomain.ARABIC_NLP: 0.50,
+        },
+    ),
+    EngineID.MIXTRAL: EngineConfig(
+        engine_id=EngineID.MIXTRAL,
+        name="Mixtral 8x7B",
+        provider="Mistral AI",
+        params="46.7B (MoE)",
+        model_filename="mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+        quantization="Q4_K_M",
+        runtime="llama.cpp",
+        hf_repo="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        gcs_path="gs://s3m-weight-vault/mixtral/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+        local_path="models/mixtral/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+        max_tokens=2048,
         context_window=32768,
         primary_domain=TaskDomain.PLANNING,
         latency_tier="medium",
-        inference_latency_ms=35.0,
-        throughput_tok_s=29.0,
-        memory_footprint_gb=5.2,
-        warm_state=False,
-        confidence_prior=0.84,
-        adapter_tuning_allowed=True,
-        adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
-        cpu_inference_tok_s_target=20.0,
-        cpu_inference_ram_mb=4500,
+        inference_latency_ms=75.0,
+        throughput_tok_s=18.0,
+        memory_footprint_gb=28.0,
+        is_moe=True,
+        moe_experts=8,
+        active_experts=2,
+        fp16_size_gb=93.0,
+        q4_size_gb=26.0,
+        confidence_prior=0.87,
+        training_tier="gpu_required",
         capabilities={
-            TaskDomain.TACTICAL: 0.72,
+            TaskDomain.TACTICAL: 0.65,
             TaskDomain.REASONING: 0.78,
             TaskDomain.PLANNING: 0.95,
-            TaskDomain.ARABIC_NLP: 0.48,
+            TaskDomain.ARABIC_NLP: 0.55,
         },
     ),
     EngineID.ALLAM: EngineConfig(
@@ -190,27 +194,24 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         name="ALLaM-7B",
         provider="SDAIA",
         params="7B",
-        model_filename="allam-7b-q4_k_m.gguf",
+        model_filename="allam-7b-instruct.Q4_K_M.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
-        hf_repo="sdaia/allam-7b",
-        gcs_path="gs://s3m-weight-vault/allam/allam-7b-q4_k_m.gguf",
-        local_path="models/allam/allam-7b-q4_k_m.gguf",
+        hf_repo="humain-ai/ALLaM-7B-Instruct-preview",
+        gcs_path="gs://s3m-weight-vault/allam/allam-7b-instruct.Q4_K_M.gguf",
+        local_path="models/allam/allam-7b-instruct.Q4_K_M.gguf",
         max_tokens=1024,
         context_window=4096,
         primary_domain=TaskDomain.ARABIC_NLP,
-        latency_tier="medium",
-        inference_latency_ms=38.0,
+        latency_tier="fast",
+        inference_latency_ms=35.0,
         throughput_tok_s=28.0,
-        memory_footprint_gb=5.0,
-        warm_state=False,
+        memory_footprint_gb=5.5,
+        is_moe=False,
+        fp16_size_gb=14.0,
+        q4_size_gb=4.0,
         confidence_prior=0.83,
-        adapter_tuning_allowed=True,
-        adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
-        cpu_training_precision_default="bf16_mixed",
-        cpu_inference_tok_s_target=18.0,
-        cpu_inference_ram_mb=4500,
+        training_tier="gpu_required",
         capabilities={
             TaskDomain.TACTICAL: 0.58,
             TaskDomain.REASONING: 0.62,
@@ -222,9 +223,9 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
 
 
 DOMAIN_ROUTING = {
-    TaskDomain.TACTICAL: EngineID.PHI3,
-    TaskDomain.REASONING: EngineID.GROK,
-    TaskDomain.PLANNING: EngineID.MISTRAL,
+    TaskDomain.TACTICAL: EngineID.PHI3_MEDIUM,
+    TaskDomain.REASONING: EngineID.GROK1,
+    TaskDomain.PLANNING: EngineID.MIXTRAL,
     TaskDomain.ARABIC_NLP: EngineID.ALLAM,
 }
 
@@ -253,6 +254,18 @@ class EngineRegistry:
     def get_engines_by_tier(self, tier: str) -> List[EngineConfig]:
         """Return engines matching a latency tier for mission-time constraints."""
         return [cfg for cfg in self.configs.values() if cfg.latency_tier == tier]
+
+    def get_moe_engines(self) -> List[EngineConfig]:
+        """Return MoE engines for higher-depth mission reasoning workflows."""
+        return [cfg for cfg in self.configs.values() if cfg.is_moe]
+
+    def get_total_storage_required(self, precision: str = "q4") -> float:
+        """Sum mission package size by precision for offline deployment planning."""
+        normalized_precision = precision.lower()
+        if normalized_precision not in {"q4", "fp16"}:
+            raise ValueError("precision must be 'q4' or 'fp16'")
+        size_field = "q4_size_gb" if normalized_precision == "q4" else "fp16_size_gb"
+        return sum(getattr(cfg, size_field) for cfg in self.configs.values())
 
     def get_capability_score(self, engine_id: EngineID, domain: TaskDomain) -> float:
         """Return domain confidence to support tactical engine arbitration."""
