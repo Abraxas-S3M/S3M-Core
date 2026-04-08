@@ -237,6 +237,33 @@ async def get_surveillance_watchlists():
     return _surveillance.get_watchlists()
 
 
+@workspace_router.get("/surveillance/watchlists/{category}")
+async def get_surveillance_watchlist_category(category: str):
+    try:
+        return _surveillance.get_watchlist_category(category)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@workspace_router.post("/surveillance/watchlists/{category}")
+async def create_surveillance_watchlist_entity(category: str, payload: dict):
+    try:
+        return _surveillance.upsert_watchlist_entity(category, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@workspace_router.delete("/surveillance/watchlists/{category}/{entity_id}")
+async def delete_surveillance_watchlist_entity(category: str, entity_id: str):
+    try:
+        result = _surveillance.delete_watchlist_entity(category, entity_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    if not result.get("deleted"):
+        raise HTTPException(status_code=404, detail="watchlist entity not found")
+    return result
+
+
 # ── Communications ──────────────────────────────────────────
 @workspace_router.get("/communication/messages")
 async def get_messages():

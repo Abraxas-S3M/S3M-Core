@@ -7,6 +7,7 @@ the S3M-GUI frontend expects. Run with: pytest tests/test_gui_bridge.py -v
 import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime
+from uuid import uuid4
 
 from src.api.server import app
 
@@ -283,6 +284,33 @@ class TestSurveillanceWorkspace:
             key in watchlists
             for key in ("persons", "organizations", "vessels", "vehicles", "sites")
         )
+
+    def test_watchlist_category_crud_routes(self):
+        entity_id = f"wl-{uuid4().hex[:10]}"
+        create = client.post(
+            f"{BASE}/workspaces/surveillance/watchlists/persons",
+            json={
+                "id": entity_id,
+                "name": "Route Test Person",
+                "aliases": ["RTP"],
+                "country": "SA",
+            },
+        )
+        assert create.status_code == 200
+        create_data = create.json()
+        assert create_data["category"] == "persons"
+        assert create_data["entity"]["id"] == entity_id
+
+        read = client.get(f"{BASE}/workspaces/surveillance/watchlists/persons")
+        assert read.status_code == 200
+        read_data = read.json()
+        assert read_data["category"] == "persons"
+        assert any(item["id"] == entity_id for item in read_data["entities"])
+
+        delete = client.delete(f"{BASE}/workspaces/surveillance/watchlists/persons/{entity_id}")
+        assert delete.status_code == 200
+        delete_data = delete.json()
+        assert delete_data["deleted"] is True
 
 
 class TestCommsWorkspace:
