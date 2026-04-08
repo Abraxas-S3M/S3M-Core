@@ -729,7 +729,7 @@ class TestRegisterS3MEngines:
 
     def test_phi3_registered_with_correct_domain(self, registry: ModelTrustRegistry):
         result = register_s3m_engines(registry)
-        phi3 = registry.get_registration(result["phi3"].model_id)
+        phi3 = registry.get_registration(result["phi3_medium"].model_id)
         assert phi3 is not None
         assert phi3.signed_metadata.identity.domain == ModelDomain.TACTICAL
 

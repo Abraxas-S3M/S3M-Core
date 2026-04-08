@@ -175,16 +175,16 @@ class MissionState:
     """
 
     DEFAULT_ENGINE_TRUST: Dict[str, float] = {
-        "phi3-mini": 0.84,
-        "grok-8b": 0.90,
-        "mistral-7b": 0.87,
+        "phi3-medium": 0.84,
+        "grok1-314b": 0.90,
+        "mixtral-8x7b": 0.87,
         "allam-7b": 0.86,
     }
 
     DEFAULT_DOMAIN_SPECIALISTS: Dict[str, str] = {
-        "threat": "grok-8b",
-        "actions": "mistral-7b",
-        "tactical": "phi3-mini",
+        "threat": "grok1-314b",
+        "actions": "mixtral-8x7b",
+        "tactical": "phi3-medium",
         "arabic_nlp": "allam-7b",
     }
 

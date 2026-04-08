@@ -9,7 +9,7 @@ Formalize S3M model hub and inference integration for model discovery, cache gov
 
 ## S3M Model Registry
 S3M tracks 9 required models:
-- `phi-3-mini-4k`, `phi-3-medium`, `mistral-7b` (LLM core)
+- `phi-3-medium`, `grok-1`, `mixtral-8x7b` (LLM core)
 - `arabert`, `mt5-arabic`, `camelbert` (Arabic NLP)
 - `yolov8n` (threat detection)
 - `whisper-base` (command agent voice)

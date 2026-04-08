@@ -93,7 +93,7 @@ class PerformanceBenchmark:
             from src.llm_core.engine_registry import TaskDomain
 
             orchestrator = Orchestrator()
-            engines = ["phi3", "grok", "mistral", "allam"]
+            engines = ["phi3_medium", "grok1", "mixtral", "allam"]
             report: Dict[str, dict] = {}
             for engine in engines:
                 latencies = []

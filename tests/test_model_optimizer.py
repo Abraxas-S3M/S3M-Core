@@ -85,7 +85,7 @@ class TestModelOptimizer:
         """Phi-3 is always in startup_engines."""
         plan = optimizer.allocate_for_hardware(HardwareProfile.EDGE_64GB.value)
         preload = optimizer.plan_preload(plan)
-        assert EngineID.PHI3 in preload.startup_engines
+        assert EngineID.PHI3_MEDIUM in preload.startup_engines
 
     def test_preload_plan_opportunistic(self, optimizer):
         """Some engines marked opportunistic."""

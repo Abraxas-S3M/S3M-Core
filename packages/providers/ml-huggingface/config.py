@@ -6,20 +6,14 @@ from dataclasses import dataclass, field
 
 
 S3M_MODEL_REGISTRY: dict[str, dict[str, object]] = {
-    "phi-3-mini-4k": {
-        "repo": "microsoft/Phi-3-mini-4k-instruct",
-        "pipeline": "text-generation",
-        "layer": "llm_core",
-        "quantized": True,
-    },
     "phi-3-medium": {
         "repo": "microsoft/Phi-3-medium-4k-instruct",
         "pipeline": "text-generation",
         "layer": "llm_core",
         "quantized": True,
     },
-    "mistral-7b": {
-        "repo": "mistralai/Mistral-7B-Instruct-v0.2",
+    "mixtral-8x7b": {
+        "repo": "mistralai/Mixtral-8x7B-Instruct-v0.1",
         "pipeline": "text-generation",
         "layer": "llm_core",
         "quantized": True,
