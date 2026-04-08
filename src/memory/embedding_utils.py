@@ -6,13 +6,10 @@ from __future__ import annotations
 
 import re
 from threading import Lock
-from typing import List, Optional, Sequence
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-from src.llm_core.engine_registry import TaskDomain
-from src.llm_core.orchestrator import Orchestrator, QueryRequest
 
 
 _LLM_LOCK = Lock()
@@ -51,11 +48,23 @@ def generate_embeddings(
 
 
 def _augment_with_llm_core(texts: Sequence[str], model: str) -> Optional[List[str]]:
+    try:
+        from src.llm_core.engine_registry import TaskDomain
+        from src.llm_core.orchestrator import Orchestrator, QueryRequest
+    except Exception:
+        return None
+
     orchestrator = Orchestrator()
     augmented: List[str] = []
     any_success = False
     for text in texts:
-        keywords = _extract_tactical_keywords(orchestrator=orchestrator, text=text, model=model)
+        keywords = _extract_tactical_keywords(
+            orchestrator=orchestrator,
+            query_request_cls=QueryRequest,
+            task_domain=TaskDomain,
+            text=text,
+            model=model,
+        )
         if keywords:
             any_success = True
             augmented.append(f"{text}\n{' '.join(keywords)}")
@@ -66,14 +75,22 @@ def _augment_with_llm_core(texts: Sequence[str], model: str) -> Optional[List[st
     return augmented
 
 
-def _extract_tactical_keywords(orchestrator: Orchestrator, text: str, model: str) -> List[str]:
+def _extract_tactical_keywords(
+    orchestrator: Any,
+    query_request_cls: Any,
+    task_domain: Any,
+    text: str,
+    model: str,
+) -> List[str]:
     prompt = (
         f"Model hint: {model}. Extract up to 24 tactical semantic tags from the text. "
         "Return only comma-separated lowercase tokens without explanation.\n"
         f"Text:\n{text[:2000]}"
     )
     with _LLM_LOCK:
-        response = orchestrator.process(QueryRequest(prompt=prompt, domain=TaskDomain.REASONING))
+        response = orchestrator.process(
+            query_request_cls(prompt=prompt, domain=task_domain.REASONING)
+        )
     raw = str(getattr(response, "text", "") or "").strip()
     lowered = raw.lower()
     if not raw or "pending" in lowered or "not yet loaded" in lowered or "[error]" in lowered:

@@ -310,18 +310,29 @@ class ThreatGenomeStore:
             rows: List[Dict[str, Any]] = []
             for actor_id, genome in self._genomes.items():
                 for signature in genome.signatures.values():
+                    def _json_safe(value: Any) -> Any:
+                        if isinstance(value, set):
+                            return sorted(value)
+                        if isinstance(value, dict):
+                            return {str(key): _json_safe(item) for key, item in value.items()}
+                        if isinstance(value, list):
+                            return [_json_safe(item) for item in value]
+                        if isinstance(value, tuple):
+                            return [_json_safe(item) for item in value]
+                        return value
+
                     signature_blob = {
                         "name": signature.name,
                         "signature_type": signature.signature_type.value,
-                        "pattern_parameters": signature.pattern_parameters,
-                        "temporal": signature.temporal_patterns,
-                        "movement": signature.movement_patterns,
-                        "communication": signature.communication_patterns,
-                        "targeting": signature.targeting_patterns,
-                        "evasion": signature.evasion_patterns,
-                        "escalation": signature.escalation_patterns,
-                        "logistics": signature.logistics_patterns,
-                        "formation": signature.formation_patterns,
+                        "pattern_parameters": _json_safe(signature.pattern_parameters),
+                        "temporal": _json_safe(signature.temporal_patterns),
+                        "movement": _json_safe(signature.movement_patterns),
+                        "communication": _json_safe(signature.communication_patterns),
+                        "targeting": _json_safe(signature.targeting_patterns),
+                        "evasion": _json_safe(signature.evasion_patterns),
+                        "escalation": _json_safe(signature.escalation_patterns),
+                        "logistics": _json_safe(signature.logistics_patterns),
+                        "formation": _json_safe(signature.formation_patterns),
                     }
                     rows.append(
                         {

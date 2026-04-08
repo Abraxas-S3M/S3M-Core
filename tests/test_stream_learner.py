@@ -80,7 +80,7 @@ def test_log_embedding_training_sample_writes_jsonl(tmp_path) -> None:
     stored = json.loads(rows[0])
     assert stored["sampleId"] == "concept-alpha"
     assert stored["metadata"]["source"] == "semantic_memory"
-    assert payload["embedding"][2] == 0.3
+    assert abs(payload["embedding"][2] - 0.3) < 1e-6
 
 
 def test_log_embedding_training_sample_validates_inputs(tmp_path) -> None:
