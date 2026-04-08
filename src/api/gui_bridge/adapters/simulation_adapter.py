@@ -12,6 +12,17 @@ def _now_iso() -> str:
 
 
 class SimulationAdapter:
+    def __init__(self):
+        self._store = None
+        self._use_store_scenarios = False
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_scenarios = self._store.has_data("scenarios")
+        except Exception:
+            pass
+
     def get_scenarios(self) -> dict:
         try:
             from src.api.simulation_routes import _scenario_store
@@ -33,14 +44,17 @@ class SimulationAdapter:
                         updatedAt=sd.get("updated_at", _now_iso()),
                     ).model_dump()
                 )
+            if scenarios:
+                self._persist_rows("scenarios", scenarios)
             result = GUISimulationData(
-                scenarios=scenarios or self._defaults(), updatedAt=_now_iso()
+                scenarios=scenarios or self._get_stored_or_default_scenarios(),
+                updatedAt=_now_iso(),
             ).model_dump()
             emit_training_record("simulation", {"query": "scenarios"}, result)
             return result
         except Exception:
             result = GUISimulationData(
-                scenarios=self._defaults(), updatedAt=_now_iso()
+                scenarios=self._get_stored_or_default_scenarios(), updatedAt=_now_iso()
             ).model_dump()
             emit_training_record("simulation", {"query": "scenarios"}, result)
             return result
@@ -93,8 +107,10 @@ class SimulationAdapter:
                 ).model_dump()
                 for entry in self._map_catalog(catalog)
             ]
+            if scenarios:
+                self._persist_rows("scenarios", scenarios)
             return GUISimulationData(
-                scenarios=scenarios or self._defaults(),
+                scenarios=scenarios or self._get_stored_or_default_scenarios(),
                 updatedAt=_now_iso(),
             ).model_dump()
         except Exception:
@@ -290,3 +306,21 @@ class SimulationAdapter:
                 }
             )
         return mapped
+
+    def _persist_rows(self, table: str, rows: list[dict]) -> None:
+        if self._store is None:
+            return
+        for row in rows:
+            if isinstance(row, dict):
+                self._store.upsert(table, row)
+        if table == "scenarios":
+            self._use_store_scenarios = True
+
+    def _get_stored_or_default_scenarios(self) -> list[dict]:
+        if self._store is not None and self._use_store_scenarios:
+            stored = self._store.get_all("scenarios")
+            if stored:
+                return stored
+        defaults = self._defaults()
+        self._persist_rows("scenarios", defaults)
+        return defaults

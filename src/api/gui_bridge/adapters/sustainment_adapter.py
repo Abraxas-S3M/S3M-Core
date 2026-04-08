@@ -25,6 +25,19 @@ def _now_iso() -> str:
 
 
 class SustainmentAdapter:
+    def __init__(self):
+        self._store = None
+        self._use_store_fleet = False
+        self._use_store_supply = False
+        try:
+            from src.persistence.store_seeder import seed_store_if_empty
+
+            self._store = seed_store_if_empty()
+            self._use_store_fleet = self._store.has_data("fleet_assets")
+            self._use_store_supply = self._store.has_data("supply_items")
+        except Exception:
+            pass
+
     def get_fleet(self) -> dict:
         units = self._build_fleet_units()
         result = GUIFleetData(units=units, updatedAt=_now_iso()).model_dump()
@@ -121,9 +134,12 @@ class SustainmentAdapter:
                         readinessPercent=readiness,
                     )
                 )
-            return results if results else self._default_fleet()
+            if results:
+                self._persist_rows("fleet_assets", results)
+                return results
+            return self._get_stored_or_default_fleet()
         except Exception:
-            return self._default_fleet()
+            return self._get_stored_or_default_fleet()
 
     def _build_supply(self):
         try:
@@ -132,9 +148,9 @@ class SustainmentAdapter:
             if _logistics_manager and hasattr(_logistics_manager, "get_inventory"):
                 inv = _logistics_manager.get_inventory()
                 # reshape if available
-            return self._default_supply()
+            return self._get_stored_or_default_supply()
         except Exception:
-            return self._default_supply()
+            return self._get_stored_or_default_supply()
 
     @staticmethod
     def _default_fleet():
@@ -257,3 +273,37 @@ class SustainmentAdapter:
             # GUI routes must continue serving sustainment state even if
             # local training-data persistence is temporarily unavailable.
             return
+
+    def _persist_rows(self, table: str, rows: list[Any]) -> None:
+        if self._store is None:
+            return
+        for row in rows:
+            payload = row.model_dump() if hasattr(row, "model_dump") else row
+            if isinstance(payload, dict):
+                self._store.upsert(table, payload)
+        if table == "fleet_assets":
+            self._use_store_fleet = True
+        if table == "supply_items":
+            self._use_store_supply = True
+
+    def _get_stored_or_default_fleet(self):
+        if self._store is not None and self._use_store_fleet:
+            records = self._store.get_all("fleet_assets")
+            units = [GUIFleetUnit(**record) for record in records if isinstance(record, dict)]
+            if units:
+                return units
+        defaults = self._default_fleet()
+        self._persist_rows("fleet_assets", defaults)
+        return defaults
+
+    def _get_stored_or_default_supply(self):
+        if self._store is not None and self._use_store_supply:
+            records = self._store.get_all("supply_items")
+            categories = [
+                GUISupplyCategory(**record) for record in records if isinstance(record, dict)
+            ]
+            if categories:
+                return categories
+        defaults = self._default_supply()
+        self._persist_rows("supply_items", defaults)
+        return defaults
