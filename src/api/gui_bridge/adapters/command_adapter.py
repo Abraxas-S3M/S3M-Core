@@ -62,6 +62,12 @@ class CommandAdapter:
         events = timeline_service.query(category=category, limit=limit)
         return GUITimelineEventData(events=events, updatedAt=_now_iso())
 
+    def get_action_board(self) -> List[dict]:
+        from src.command.action_board import ActionBoard
+
+        board = ActionBoard()
+        return [item.model_dump() for item in board.get_prioritized()]
+
     def _build_threats(self) -> List[GUIThreatItem]:
         feed = self._dashboard.threat_provider.get_threat_feed(limit=20)
         result = []
