@@ -24,6 +24,7 @@ CommsAdapter = _comms_module.CommsAdapter
 
 def test_get_bearer_health_uses_bridge_status(monkeypatch):
     bridge_module = ModuleType("services.comms.bearer_bridge")
+    mesh_module = ModuleType("services.comms.mesh_monitor")
 
     class FakeBridge:
         def get_status(self):
@@ -36,27 +37,49 @@ def test_get_bearer_health_uses_bridge_status(monkeypatch):
                 }
             ]
 
+    class FakeMonitor:
+        def __init__(self, node_manager=None):
+            self.node_manager = node_manager
+
+        def get_mesh_status(self):
+            return {"nodes": [{"node_id": "mesh-1"}], "links": [], "topology": "mesh"}
+
     bridge_module.BearerBridge = FakeBridge
+    mesh_module.MeshNetworkMonitor = FakeMonitor
     monkeypatch.setitem(sys.modules, "services.comms.bearer_bridge", bridge_module)
+    monkeypatch.setitem(sys.modules, "services.comms.mesh_monitor", mesh_module)
 
     data = CommsAdapter().get_bearer_health()
     assert data["bearers"][0]["type"] == "SATCOM"
+    assert data["mesh"]["topology"] == "mesh"
+    assert data["mesh"]["nodes"][0]["node_id"] == "mesh-1"
     assert "updatedAt" in data
 
 
 def test_get_bearer_health_returns_fallback_on_failure(monkeypatch):
     bridge_module = ModuleType("services.comms.bearer_bridge")
+    mesh_module = ModuleType("services.comms.mesh_monitor")
 
     class BadBridge:
         def __init__(self):
             raise RuntimeError("bridge unavailable")
 
+    class FakeMonitor:
+        def __init__(self, node_manager=None):
+            self.node_manager = node_manager
+
+        def get_mesh_status(self):
+            return {"nodes": [{"node_id": "mesh-2"}], "links": [], "topology": "mesh"}
+
     bridge_module.BearerBridge = BadBridge
+    mesh_module.MeshNetworkMonitor = FakeMonitor
     monkeypatch.setitem(sys.modules, "services.comms.bearer_bridge", bridge_module)
+    monkeypatch.setitem(sys.modules, "services.comms.mesh_monitor", mesh_module)
 
     data = CommsAdapter().get_bearer_health()
     assert len(data["bearers"]) == 4
     assert data["bearers"][0]["type"] == "SATCOM"
+    assert data["mesh"]["nodes"][0]["node_id"] == "mesh-2"
     assert "updatedAt" in data
 
 
@@ -65,6 +88,7 @@ def test_get_degradation_advice_uses_tactical_orchestrator(monkeypatch):
 
     orchestrator_module = ModuleType("src.llm_core.orchestrator")
     engine_registry_module = ModuleType("src.llm_core.engine_registry")
+    mesh_module = ModuleType("services.comms.mesh_monitor")
 
     class QueryRequest:
         def __init__(self, prompt, domain, max_tokens):
@@ -82,20 +106,34 @@ def test_get_degradation_advice_uses_tactical_orchestrator(monkeypatch):
     class TaskDomain:
         TACTICAL = "TACTICAL"
 
+    class FakeMonitor:
+        def __init__(self, node_manager=None):
+            self.node_manager = node_manager
+
+        def estimate_degradation(self):
+            return {
+                "degraded_links": [{"from": "a", "to": "b", "latency": 420}],
+                "recommendations": ["queue non-critical telemetry"],
+            }
+
     orchestrator_module.QueryRequest = QueryRequest
     orchestrator_module.Orchestrator = Orchestrator
     engine_registry_module.TaskDomain = TaskDomain
+    mesh_module.MeshNetworkMonitor = FakeMonitor
 
     monkeypatch.setitem(sys.modules, "src.llm_core.orchestrator", orchestrator_module)
     monkeypatch.setitem(
         sys.modules, "src.llm_core.engine_registry", engine_registry_module
     )
+    monkeypatch.setitem(sys.modules, "services.comms.mesh_monitor", mesh_module)
 
     data = CommsAdapter().get_degradation_advice({"HF": {"status": "degraded"}})
     assert data["advice"] == "Shift non-critical traffic to delayed queue."
     assert data["engine"] == "phi3-medium"
     assert "updatedAt" in data
     assert "Given bearer status:" in captured["prompt"]
+    assert "Mesh degradation context:" in captured["prompt"]
+    assert "degraded_links" in captured["prompt"]
     assert captured["domain"] == "TACTICAL"
     assert captured["max_tokens"] == 256
 
