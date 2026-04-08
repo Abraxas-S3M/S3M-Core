@@ -1,5 +1,5 @@
 engines:
-  phi3_medium:
+  phi3:
     name: "Phi-3 Medium"
     provider: "Microsoft"
     parameters: "14B"
@@ -34,7 +34,7 @@ engines:
     active_experts_per_token: 2
     pull_instructions: "huggingface-cli download xai-org/grok-1 --repo-type model --include ckpt-0/* --local-dir checkpoints"
 
-  mixtral:
+  mistral:
     name: "Mixtral 8x7B"
     provider: "Mistral AI"
     parameters: "46.7B effective (MoE, 8x7B)"

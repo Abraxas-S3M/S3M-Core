@@ -18,7 +18,7 @@ def test_engine_initialization():
 def test_health_check():
     engine = InferenceEngine(EngineID.GROK1)
     health = engine.health_check()
-    assert health["engine"] == "grok1-314b"
+    assert health["engine"] == "grok1"
     assert health["loaded"] == False
     assert "model_file_exists" in health
     assert "llama_cpp_available" in health

@@ -138,7 +138,7 @@ def test_raw_text_parser() -> None:
         "Enemy drone observed near sector 7. confidence: 82%. "
         "Recommend hold and monitor. intel report confirms movement."
     )
-    structured = parse_raw_text_to_structured(text, engine_id="grok1-314b", task_id="task-2")
+    structured = parse_raw_text_to_structured(text, engine_id="grok1", task_id="task-2")
     assert structured.health == EngineHealth.HEALTHY
     assert structured.confidence >= 0.8
     assert any(item.label == "enemy" or item.label == "drone" for item in structured.threats)
@@ -150,7 +150,7 @@ def test_shared_mission_state() -> None:
     state = MissionState()
     state.set_context(MissionContext(mission_id="m1", mission_type="tactical"))
     one = _make_structured(engine="phi3-medium", threat="enemy", action="hold", confidence=0.7)
-    two = _make_structured(engine="grok1-314b", threat="enemy", action="hold", confidence=0.8)
+    two = _make_structured(engine="grok1", threat="enemy", action="hold", confidence=0.8)
     state.ingest_engine_output(one)
     state.ingest_engine_output(two)
 
@@ -169,8 +169,8 @@ def test_reconciliation_threat_conflict() -> None:
         "phi3-medium": _make_structured(
             engine="phi3-medium", threat="drone", action="hold", confidence=0.82
         ),
-        "grok1-314b": _make_structured(
-            engine="grok1-314b", threat="missile", action="hold", confidence=0.76
+        "grok1": _make_structured(
+            engine="grok1", threat="missile", action="hold", confidence=0.76
         ),
     }
     decision = recon.reconcile(outputs, state)
@@ -276,8 +276,8 @@ def test_reconciliation_agreement_bonus() -> None:
         "phi3-medium": _make_structured(
             engine="phi3-medium", threat="enemy", action="hold", confidence=0.6
         ),
-        "grok1-314b": _make_structured(
-            engine="grok1-314b", threat="enemy", action="hold", confidence=0.6
+        "grok1": _make_structured(
+            engine="grok1", threat="enemy", action="hold", confidence=0.6
         ),
     }
     decision = recon.reconcile(outputs, state)

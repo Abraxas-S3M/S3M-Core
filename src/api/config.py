@@ -149,10 +149,10 @@ class APIConfig:
 
     # Engine model paths
     model_paths: Dict[str, str] = field(default_factory=lambda: {
-        "phi3_medium": "models/phi3-medium/phi-3-medium-4k-instruct.Q4_K_M.gguf",
-        "grok1": "models/grok1/grok-1.Q4_K_M.gguf",
-        "mixtral": "models/mixtral/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
-        "allam": "models/allam/allam-7b-instruct.Q4_K_M.gguf",
+        "phi3": "models/phi-3-mini-4k-instruct.Q4_K_M.gguf",
+        "grok": "models/grok1.Q4_K_M.gguf",
+        "mistral": "models/mistral-7b-instruct-v0.3.Q4_K_M.gguf",
+        "allam": "models/allam-7b-instruct.Q4_K_M.gguf",
     })
 
     # Engine GPU layers

@@ -44,14 +44,14 @@ class ModelVariant:
 
 
 DEFAULT_VARIANTS: List[ModelVariant] = [
-    ModelVariant("phi3-medium", "q4_k_m", Precision.INT4, "models/phi3-medium-q4_k_m.gguf", 8500.0, 10.0, False, 4096, 10.0, 30.0),
-    ModelVariant("mixtral-8x7b", "q4_k_m", Precision.INT4, "models/mixtral-8x7b-q4_k_m.gguf", 26000.0, 28.0, True, 4096, 3.0, 18.0),
-    ModelVariant("grok1-314b", "q4_k_m", Precision.INT4, "models/grok1-314b-q4_k_m.gguf", 80000.0, 85.0, True, 4096, 1.0, 8.0),
+    ModelVariant("phi3-medium", "q4_k_m", Precision.INT4, "models/phi3-medium-q4_k_m.gguf", 2200.0, 3.0, False, 4096, 16.0, 45.0),
+    ModelVariant("mistral-7b", "q4_k_m", Precision.INT4, "models/mistral-7b-q4_k_m.gguf", 4100.0, 5.0, False, 4096, 8.0, 28.0),
+    ModelVariant("grok1", "q4_k_m", Precision.INT4, "models/grok1-q4_k_m.gguf", 4600.0, 6.0, False, 4096, 6.0, 22.0),
     ModelVariant("allam-7b", "q4_k_m", Precision.INT4, "models/allam-7b-q4_k_m.gguf", 4100.0, 5.0, False, 4096, 7.0, 26.0),
-    ModelVariant("phi3-medium", "q8_0", Precision.INT8, "models/phi3-medium-q8_0.gguf", 14000.0, 16.0, False, 4096, 7.0, 25.0),
-    ModelVariant("allam-7b", "q8_0", Precision.INT8, "models/allam-7b-q8_0.gguf", 6200.0, 8.0, False, 4096, 5.0, 20.0),
-    ModelVariant("phi3-medium", "fp16", Precision.FP16, "models/phi3-medium-fp16.gguf", 28000.0, 30.0, True, 4096, 2.0, 35.0),
-    ModelVariant("allam-7b", "fp16", Precision.FP16, "models/allam-7b-fp16.gguf", 14000.0, 16.0, True, 4096, 1.2, 30.0),
+    ModelVariant("phi3-medium", "q8_0", Precision.INT8, "models/phi3-medium-q8_0.gguf", 3200.0, 4.0, False, 4096, 11.0, 38.0),
+    ModelVariant("mistral-7b", "q8_0", Precision.INT8, "models/mistral-7b-q8_0.gguf", 6200.0, 8.0, False, 4096, 5.0, 20.0),
+    ModelVariant("phi3-medium", "fp16", Precision.FP16, "models/phi3-medium-fp16.gguf", 4200.0, 6.0, True, 8192, 3.0, 52.0),
+    ModelVariant("mistral-7b", "fp16", Precision.FP16, "models/mistral-7b-fp16.gguf", 12800.0, 16.0, True, 8192, 1.2, 30.0),
 ]
 
 

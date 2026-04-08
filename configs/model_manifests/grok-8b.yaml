@@ -1,4 +1,4 @@
-model_id: grok1-314b
+model_id: grok1
 model_name: Grok 8B
 runtime_backend: llama_cpp
 training:
@@ -10,7 +10,7 @@ variants:
   - variant_tag: q4_k_m
     runtime_format: gguf
     precision: int4
-    file_path: models/grok/grok1-314b-q4_k_m.gguf
+    file_path: models/grok/grok1-q4_k_m.gguf
     size_mb: 4600
     min_ram_gb: 6.0
     requires_gpu: false

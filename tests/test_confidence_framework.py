@@ -35,12 +35,12 @@ class TestConfidenceFrameworkCore:
                 "This is a complete response."
             ),
             "routing_certainty": 0.85,
-            "engine_health": {"phi3-medium": "HEALTHY", "grok1-314b": "HEALTHY"},
+            "engine_health": {"phi3-medium": "HEALTHY", "grok1": "HEALTHY"},
             "engine_responses": {
                 "phi3-medium": "42 based reasoning",
-                "grok1-314b": "42 based reasoning",
+                "grok1": "42 based reasoning",
             },
-            "selected_engines": ["phi3-medium", "grok1-314b"],
+            "selected_engines": ["phi3-medium", "grok1"],
             "failover_used": False,
             "model_drift_detected": False,
         }
@@ -55,8 +55,8 @@ class TestConfidenceFrameworkCore:
     def test_medium_confidence_review(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
         inputs["routing_certainty"] = 0.70
-        inputs["engine_health"] = {"phi3-medium": "HEALTHY", "grok1-314b": "DEGRADED"}
-        inputs["engine_responses"] = {"phi3-medium": "Answer A", "grok1-314b": "Answer B"}
+        inputs["engine_health"] = {"phi3-medium": "HEALTHY", "grok1": "DEGRADED"}
+        inputs["engine_responses"] = {"phi3-medium": "Answer A", "grok1": "Answer B"}
         score = framework.score_decision(**inputs)
         assert REVIEW_THRESHOLD <= score.confidence_score < ACCEPT_THRESHOLD
         assert score.review_status == ReviewStatus.REVIEW.value
@@ -64,8 +64,8 @@ class TestConfidenceFrameworkCore:
     def test_low_confidence_reject(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
         inputs["routing_certainty"] = 0.40
-        inputs["engine_health"] = {"phi3-medium": "DEGRADED", "grok1-314b": "UNAVAILABLE"}
-        inputs["engine_responses"] = {"phi3-medium": "unclear", "grok1-314b": ""}
+        inputs["engine_health"] = {"phi3-medium": "DEGRADED", "grok1": "UNAVAILABLE"}
+        inputs["engine_responses"] = {"phi3-medium": "unclear", "grok1": ""}
         inputs["failover_used"] = True
         inputs["model_drift_detected"] = True
         score = framework.score_decision(**inputs)
@@ -98,7 +98,7 @@ class TestConfidenceFrameworkCore:
 
     def test_low_health_penalty(self, framework, baseline_inputs):
         inputs = dict(baseline_inputs)
-        inputs["engine_health"] = {"phi3-medium": "UNAVAILABLE", "grok1-314b": "DEGRADED"}
+        inputs["engine_health"] = {"phi3-medium": "UNAVAILABLE", "grok1": "DEGRADED"}
         score = framework.score_decision(**inputs)
         assert score.factors.engine_health < 0.7
         assert any("health" in penalty.lower() for penalty in score.penalties_applied)
@@ -107,7 +107,7 @@ class TestConfidenceFrameworkCore:
         inputs = dict(baseline_inputs)
         inputs["engine_responses"] = {
             "phi3-medium": "Answer is definitely A for these reasons",
-            "grok1-314b": "Answer is definitely B for different reasons",
+            "grok1": "Answer is definitely B for different reasons",
         }
         score = framework.score_decision(**inputs)
         if score.factors.agreement_strength < 0.6:
@@ -142,15 +142,15 @@ class TestConfidenceFrameworkCore:
             routing_certainty=0.85,
             engine_health={
                 "phi3-medium": "HEALTHY",
-                "grok1-314b": "HEALTHY",
-                "mixtral-8x7b": "HEALTHY",
+                "grok1": "HEALTHY",
+                "mistral-7b": "HEALTHY",
             },
             engine_responses={
                 "phi3-medium": "The answer is 42.",
-                "grok1-314b": "The answer is 42.",
-                "mixtral-8x7b": "The answer is 42.",
+                "grok1": "The answer is 42.",
+                "mistral-7b": "The answer is 42.",
             },
-            selected_engines=["phi3-medium", "grok1-314b", "mixtral-8x7b"],
+            selected_engines=["phi3-medium", "grok1", "mistral-7b"],
         )
         assert score.factors.agreement_strength > 0.85
 
@@ -158,9 +158,9 @@ class TestConfidenceFrameworkCore:
         score = framework.score_decision(
             response_text="Good response.",
             routing_certainty=0.85,
-            engine_health={"phi3-medium": "HEALTHY", "grok1-314b": "DEGRADED"},
-            engine_responses={"phi3-medium": "response", "grok1-314b": "response"},
-            selected_engines=["phi3-medium", "grok1-314b"],
+            engine_health={"phi3-medium": "HEALTHY", "grok1": "DEGRADED"},
+            engine_responses={"phi3-medium": "response", "grok1": "response"},
+            selected_engines=["phi3-medium", "grok1"],
         )
         assert 0.7 <= score.factors.engine_health <= 1.0
 

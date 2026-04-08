@@ -9,9 +9,8 @@ from enum import Enum
 
 
 class EngineID(Enum):
-    PHI3 = "phi3-mini"
-    PHI3_MEDIUM = "phi3-mini"
-    GROK = "grok-8b"
+    PHI3 = "phi3-medium"
+    GROK = "grok1"
     MISTRAL = "mistral-7b"
     ALLAM = "allam-7b"
 
@@ -132,13 +131,13 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         engine_id=EngineID.GROK,
         name="Grok-1",
         provider="xAI",
-        params="314B (MoE)",
-        model_filename="grok-1.Q4_K_M.gguf",
+        params="8B",
+        model_filename="grok1-q4_k_m.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
         hf_repo="xai-org/grok-1",
-        gcs_path="gs://s3m-weight-vault/grok1/grok-1.Q4_K_M.gguf",
-        local_path="models/grok1/grok-1.Q4_K_M.gguf",
+        gcs_path="gs://s3m-weight-vault/grok/grok1-q4_k_m.gguf",
+        local_path="models/grok/grok1-q4_k_m.gguf",
         max_tokens=1024,
         context_window=8192,
         primary_domain=TaskDomain.REASONING,
@@ -148,11 +147,11 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=85.0,
         warm_state=False,
         confidence_prior=0.82,
-        adapter_tuning_allowed=False,
-        adapter_tuning_min_ram_gb=85.0,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=8.0,
         preferred_student_model="phi3-medium",
-        cpu_inference_tok_s_target=1.0,
-        cpu_inference_ram_mb=80000,
+        cpu_inference_tok_s_target=15.0,
+        cpu_inference_ram_mb=5000,
         capabilities={
             TaskDomain.TACTICAL: 0.70,
             TaskDomain.REASONING: 0.97,
@@ -180,11 +179,11 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         memory_footprint_gb=28.0,
         warm_state=False,
         confidence_prior=0.84,
-        adapter_tuning_allowed=False,
-        adapter_tuning_min_ram_gb=28.0,
+        adapter_tuning_allowed=True,
+        adapter_tuning_min_ram_gb=8.0,
         preferred_student_model="phi3-medium",
-        cpu_inference_tok_s_target=3.0,
-        cpu_inference_ram_mb=26000,
+        cpu_inference_tok_s_target=20.0,
+        cpu_inference_ram_mb=4500,
         capabilities={
             TaskDomain.TACTICAL: 0.65,
             TaskDomain.REASONING: 0.78,
@@ -213,7 +212,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         warm_state=False,
         confidence_prior=0.83,
         adapter_tuning_allowed=True,
-        adapter_tuning_min_ram_gb=5.0,
+        adapter_tuning_min_ram_gb=8.0,
         preferred_student_model="phi3-medium",
         cpu_training_precision_default="bf16_mixed",
         cpu_inference_tok_s_target=7.0,

@@ -48,26 +48,26 @@ def test_engine_training_metadata_targets():
     assert phi3.adapter_tuning_allowed is True
     assert phi3.adapter_tuning_min_ram_gb == 10.0
     assert phi3.preferred_student_model is None
-    assert phi3.cpu_inference_tok_s_target == 10.0
-    assert phi3.cpu_inference_ram_mb == 8500
+    assert phi3.cpu_inference_tok_s_target == 40.0
+    assert phi3.cpu_inference_ram_mb == 2500
 
-    grok = ENGINE_CONFIGS[EngineID.GROK1]
-    assert grok.adapter_tuning_allowed is False
-    assert grok.adapter_tuning_min_ram_gb == 85.0
+    grok = ENGINE_CONFIGS[EngineID.GROK]
+    assert grok.adapter_tuning_allowed is True
+    assert grok.adapter_tuning_min_ram_gb == 8.0
     assert grok.preferred_student_model == "phi3-medium"
-    assert grok.cpu_inference_tok_s_target == 1.0
-    assert grok.cpu_inference_ram_mb == 80000
+    assert grok.cpu_inference_tok_s_target == 15.0
+    assert grok.cpu_inference_ram_mb == 5000
 
-    mistral = ENGINE_CONFIGS[EngineID.MIXTRAL]
-    assert mistral.adapter_tuning_allowed is False
-    assert mistral.adapter_tuning_min_ram_gb == 28.0
+    mistral = ENGINE_CONFIGS[EngineID.MISTRAL]
+    assert mistral.adapter_tuning_allowed is True
+    assert mistral.adapter_tuning_min_ram_gb == 8.0
     assert mistral.preferred_student_model == "phi3-medium"
-    assert mistral.cpu_inference_tok_s_target == 3.0
-    assert mistral.cpu_inference_ram_mb == 26000
+    assert mistral.cpu_inference_tok_s_target == 20.0
+    assert mistral.cpu_inference_ram_mb == 4500
 
     allam = ENGINE_CONFIGS[EngineID.ALLAM]
     assert allam.adapter_tuning_allowed is True
-    assert allam.adapter_tuning_min_ram_gb == 5.0
+    assert allam.adapter_tuning_min_ram_gb == 8.0
     assert allam.preferred_student_model == "phi3-medium"
     assert allam.cpu_training_precision_default == "bf16_mixed"
     assert allam.cpu_inference_tok_s_target == 7.0

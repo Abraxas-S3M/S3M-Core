@@ -750,9 +750,9 @@ def register_s3m_engines(
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
         hf_repo="xai-org/grok-1",
-        local_path="models/grok1/grok-1.Q4_K_M.gguf",
+        local_path="models/grok/grok1-q4_k_m.gguf",
     )
-    mixtral = ModelIdentity(
+    mistral = ModelIdentity(
         name="Mixtral 8x7B",
         provider="Mistral AI",
         version="v0.1",

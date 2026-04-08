@@ -51,7 +51,7 @@ def test_load_all_includes_default_model_manifests() -> None:
     loader = ModelManifest(manifest_dir=_workspace_manifest_dir())
     manifests = loader.load_all()
 
-    assert {"phi3-medium", "mixtral-8x7b", "grok1-314b", "allam-7b"}.issubset(set(manifests.keys()))
+    assert {"phi3-medium", "mistral-7b", "grok1", "allam-7b"}.issubset(set(manifests.keys()))
     assert manifests["allam-7b"]["arabic_support"] is True
     assert manifests["allam-7b"]["bilingual_ar_en"] is True
     assert manifests["allam-7b"]["primary_domain"] == "arabic_nlp"

@@ -17,7 +17,7 @@ def test_engine_names():
     registry = EngineRegistry()
     names = [e.name for e in registry.get_all_engines()]
     assert "Phi-3 Medium" in names
-    assert "Grok-1" in names
+    assert "Grok" in names
     assert "Mixtral 8x7B" in names
     assert "ALLaM-7B" in names
     print("PASS: All engine names correct")

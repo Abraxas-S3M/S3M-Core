@@ -55,7 +55,7 @@ models:
       min_rouge_l_vs_fp16: 0.75
       min_cosine_sim_vs_fp16: 0.88
 
-  grok1-314b:
+  grok1:
     latency:
       p50_ms: 5000
       p95_ms: 12000

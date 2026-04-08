@@ -65,7 +65,7 @@ def test_defers_to_peer_when_no_local_variant_and_peer_allowed() -> None:
         gpu_detected=False,
     )
 
-    plan = planner.plan("grok1-314b", requested_tokens=700)
+    plan = planner.plan("grok1", requested_tokens=700)
 
     assert plan.decision == ExecutionDecision.DEFER_TO_PEER
     assert plan.variant is None
@@ -81,7 +81,7 @@ def test_summarizes_when_no_local_variant_and_no_peer_allowed() -> None:
         gpu_detected=False,
     )
 
-    plan = planner.plan("grok1-314b", requested_tokens=700)
+    plan = planner.plan("grok1", requested_tokens=700)
 
     assert plan.decision == ExecutionDecision.SUMMARIZE_INSTEAD
     assert plan.variant is None

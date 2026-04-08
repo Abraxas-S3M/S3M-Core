@@ -1,4 +1,4 @@
-model_id: mixtral-8x7b
+model_id: mistral-7b
 model_name: Mixtral 8x7B
 runtime_backend: llama_cpp
 training:
