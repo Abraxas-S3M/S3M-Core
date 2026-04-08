@@ -22,6 +22,11 @@ def _install_gui_schema_stubs(monkeypatch) -> types.ModuleType:
     class DecisionStatus(str, Enum):
         PENDING = "PENDING"
 
+    class TrendDirection(str, Enum):
+        UP = "up"
+        DOWN = "down"
+        STEADY = "steady"
+
     @dataclass
     class GUIThreatItem:
         id: str
@@ -71,14 +76,44 @@ def _install_gui_schema_stubs(monkeypatch) -> types.ModuleType:
         updatedAt: str
         metrics: Optional[GUIOverviewMetrics] = None
 
+    @dataclass
+    class GUIRiskDomain:
+        domain: str
+        score: int
+        trend: TrendDirection
+
+    @dataclass
+    class GUIRiskForecast:
+        timestamp: str
+        score: int
+
+    @dataclass
+    class GUIRiskDriver:
+        name: str
+        impact: float
+        direction: str
+
+    @dataclass
+    class GUIRiskData:
+        composite: int
+        domains: list[GUIRiskDomain]
+        forecast: list[GUIRiskForecast]
+        drivers: list[GUIRiskDriver]
+        updatedAt: str
+
     schema_mod.SeverityLevel = SeverityLevel
     schema_mod.DecisionStatus = DecisionStatus
+    schema_mod.TrendDirection = TrendDirection
     schema_mod.GUIThreatItem = GUIThreatItem
     schema_mod.GUIDecision = GUIDecision
     schema_mod.GUIDirectiveItem = GUIDirectiveItem
     schema_mod.GUITimelineEventData = GUITimelineEventData
     schema_mod.GUIOverviewMetrics = GUIOverviewMetrics
     schema_mod.GUIOperationalContextData = GUIOperationalContextData
+    schema_mod.GUIRiskDomain = GUIRiskDomain
+    schema_mod.GUIRiskForecast = GUIRiskForecast
+    schema_mod.GUIRiskDriver = GUIRiskDriver
+    schema_mod.GUIRiskData = GUIRiskData
     monkeypatch.setitem(sys.modules, "src.api.gui_bridge.models.gui_schemas", schema_mod)
     return schema_mod
 
