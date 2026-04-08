@@ -6,17 +6,17 @@ version: "0.2.0"
 architecture: "quad-engine-orchestrated"
 
 engines:
-  - id: phi3
+  - id: phi3_medium
     role: "Tactical Edge Inference"
     strength: "Fastest response, smallest footprint"
     use_case: "Field queries, sitreps, quick decisions"
 
-  - id: grok
+  - id: grok1
     role: "Complex Reasoning Engine"
     strength: "Deep analysis, multi-step reasoning"
     use_case: "Threat assessment, strategic analysis"
 
-  - id: mistral
+  - id: mixtral
     role: "Operations Planning Engine"
     strength: "Code generation, structured planning"
     use_case: "Route planning, logistics, ops orders"

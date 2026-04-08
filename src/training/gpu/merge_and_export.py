@@ -50,7 +50,7 @@ ENGINE_GGUF_MAP = {
     },
     "mistral": {
         "hf_repo": "mistralai/Mistral-7B-Instruct-v0.3",
-        "gguf_name": "mistral-7b-instruct-v0.3-s3m.Q4_K_M.gguf",
+        "gguf_name": "mixtral-8x7b-instruct-v0.3-s3m.Q4_K_M.gguf",
         "quant": "Q4_K_M",
     },
     "grok": {

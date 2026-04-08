@@ -1,6 +1,6 @@
 """
 S3M LLM Inference Module
-Runs Phi-3 Mini (3.8B) via llama.cpp on Jetson AGX Orin
+Runs Phi-3 Medium (3.8B) via llama.cpp on Jetson AGX Orin
 Air-gapped: No external API calls permitted
 """
 

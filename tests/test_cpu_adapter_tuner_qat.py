@@ -57,7 +57,7 @@ def test_legacy_train_adapter_interface() -> None:
         base_model_path="dummy",
         config=AdapterConfig(max_steps=1, gradient_accumulation_steps=1, max_memory_mb=8192),
     )
-    result = tuner.train_adapter("phi3-mini", [{"prompt": "brief", "response": "ok"}], epochs=1)
+    result = tuner.train_adapter("phi3-medium", [{"prompt": "brief", "response": "ok"}], epochs=1)
     assert result.success is True
-    assert result.model_id == "phi3-mini"
+    assert result.model_id == "phi3-medium"
     assert result.epochs == 1

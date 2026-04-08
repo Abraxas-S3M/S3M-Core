@@ -149,27 +149,27 @@ class APIConfig:
 
     # Engine model paths
     model_paths: Dict[str, str] = field(default_factory=lambda: {
-        "phi3": "models/phi-3-mini-4k-instruct.Q4_K_M.gguf",
-        "grok": "models/grok-8b.Q4_K_M.gguf",
-        "mistral": "models/mistral-7b-instruct-v0.3.Q4_K_M.gguf",
-        "allam": "models/allam-7b-instruct.Q4_K_M.gguf",
+        "phi3_medium": "models/phi3-medium/phi-3-medium-4k-instruct.Q4_K_M.gguf",
+        "grok1": "models/grok1/grok-1.Q4_K_M.gguf",
+        "mixtral": "models/mixtral/mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+        "allam": "models/allam/allam-7b-instruct.Q4_K_M.gguf",
     })
 
     # Engine GPU layers
     gpu_layers: Dict[str, int] = field(default_factory=lambda: {
-        "phi3": 35,
-        "grok": 33,
-        "mistral": 35,
+        "phi3_medium": 35,
+        "grok1": 33,
+        "mixtral": 35,
         "allam": 35,
     })
 
     # Domain routing defaults
     domain_routing: Dict[str, str] = field(default_factory=lambda: {
-        "tactical": "phi3",
-        "intelligence": "grok",
-        "logistics": "mistral",
+        "tactical": "phi3_medium",
+        "intelligence": "grok1",
+        "logistics": "mixtral",
         "arabic": "allam",
-        "general": "phi3",
+        "general": "phi3_medium",
     })
 
     def is_cpu_mode(self) -> bool:

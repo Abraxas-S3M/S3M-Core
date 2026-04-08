@@ -1,7 +1,7 @@
 """
 S3M LLM Core - Quad-Engine Sovereign AI System
 Phase 3: Live inference via llama-cpp-python
-Engines: Phi-3 (Microsoft), Grok (xAI), Mistral (Mistral AI), ALLaM (SDAIA)
+Engines: Phi-3 Medium (Microsoft), Grok-1 (xAI), Mixtral 8x7B (Mistral AI), ALLaM (SDAIA)
 """
 
 from .engine_registry import EngineRegistry, EngineID, TaskDomain, EngineConfig

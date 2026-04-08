@@ -4,7 +4,7 @@ Air-gapped, reproducible, version-controlled model rollout.
 Uses: DVC (data versioning), MLflow (experiment tracking),
       manifest-based signed bundles, delta-update support.
 
-Run:  python scripts/model_pipeline/offline_model_ci.py --engine mistral --action package
+Run:  python scripts/model_pipeline/offline_model_ci.py --engine mixtral --action package
 """
 
 from __future__ import annotations
@@ -112,24 +112,24 @@ class ModelManifest:
 # ─── Quantization Step ────────────────────────────────────────────────────────
 
 ENGINE_CONFIGS = {
-    "mistral": {
-        "hf_repo": "mistralai/Mistral-7B-Instruct-v0.3",
-        "gguf_out": "mistral-7b-instruct-v0.3.Q4_K_M.gguf",
+    "phi3_medium": {
+        "hf_repo": "microsoft/Phi-3-medium-4k-instruct",
+        "gguf_out": "phi-3-medium-4k-instruct.Q4_K_M.gguf",
         "quant": "Q4_K_M",
     },
-    "phi3": {
-        "hf_repo": "microsoft/Phi-3-mini-4k-instruct",
-        "gguf_out": "phi-3-mini-4k-instruct.Q4_K_M.gguf",
-        "quant": "Q4_K_M",
-    },
-    "grok": {
+    "grok1": {
         "hf_repo": "xai-org/grok-1",
         "gguf_out": "grok-1.Q4_K_M.gguf",
         "quant": "Q4_K_M",
     },
+    "mixtral": {
+        "hf_repo": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        "gguf_out": "mixtral-8x7b-instruct-v0.1.Q4_K_M.gguf",
+        "quant": "Q4_K_M",
+    },
     "allam": {
-        "hf_repo": "SDAIA/allam-1-7b-instruct",
-        "gguf_out": "allam-1-7b-instruct.Q4_K_M.gguf",
+        "hf_repo": "humain-ai/ALLaM-7B-Instruct-preview",
+        "gguf_out": "allam-7b-instruct.Q4_K_M.gguf",
         "quant": "Q4_K_M",
     },
 }

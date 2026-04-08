@@ -86,7 +86,7 @@ HARDWARE_PROFILES: Dict[str, Dict[str, object]] = {
 RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     RuntimeProfile.EDGE_MINIMAL.value: {
         "name": "Edge Minimal",
-        "engines": [EngineID.PHI3.value],
+        "engines": [EngineID.PHI3_MEDIUM.value],
         "strategy": "SINGLE_ENGINE",
         "consensus_enabled": False,
         "expected_latency_ms": 50,
@@ -95,7 +95,7 @@ RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     },
     RuntimeProfile.EDGE_DUAL.value: {
         "name": "Edge Dual Engine",
-        "engines": [EngineID.PHI3.value, EngineID.MISTRAL.value],
+        "engines": [EngineID.PHI3_MEDIUM.value, EngineID.MIXTRAL.value],
         "strategy": "HIERARCHICAL",
         "consensus_enabled": False,
         "expected_latency_ms": 85,
@@ -104,7 +104,7 @@ RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     },
     RuntimeProfile.EDGE_TRIPLE.value: {
         "name": "Edge Triple Engine",
-        "engines": [EngineID.PHI3.value, EngineID.GROK.value, EngineID.MISTRAL.value],
+        "engines": [EngineID.PHI3_MEDIUM.value, EngineID.GROK1.value, EngineID.MIXTRAL.value],
         "strategy": "HIERARCHICAL",
         "consensus_enabled": False,
         "expected_latency_ms": 120,
@@ -114,9 +114,9 @@ RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     RuntimeProfile.SERVER_FULL.value: {
         "name": "Server Full Quad",
         "engines": [
-            EngineID.PHI3.value,
-            EngineID.GROK.value,
-            EngineID.MISTRAL.value,
+            EngineID.PHI3_MEDIUM.value,
+            EngineID.GROK1.value,
+            EngineID.MIXTRAL.value,
             EngineID.ALLAM.value,
         ],
         "strategy": "CONSENSUS",
@@ -505,10 +505,10 @@ class ModelOptimizer:
             engine_id: LoadCategory.NEVER_LOADED for engine_id in EngineID
         }
 
-        if EngineID.PHI3 in allocated_engines:
-            plan[EngineID.PHI3] = LoadCategory.ALWAYS_LOADED
+        if EngineID.PHI3_MEDIUM in allocated_engines:
+            plan[EngineID.PHI3_MEDIUM] = LoadCategory.ALWAYS_LOADED
 
-        for engine_id in (EngineID.MISTRAL, EngineID.GROK):
+        for engine_id in (EngineID.MIXTRAL, EngineID.GROK1):
             if engine_id in allocated_engines and plan[engine_id] == LoadCategory.NEVER_LOADED:
                 plan[engine_id] = LoadCategory.OPPORTUNISTIC
 

@@ -38,7 +38,7 @@ def test_time_constraint_selects_fast():
     request = QueryRequest(prompt="status update", max_latency_ms=250.0)
     response = orch.route_and_decide(request)
     assert response.normalized_strategy == RoutingStrategy.SINGLE_ENGINE
-    assert response.engine_trace == [EngineID.PHI3]
+    assert response.engine_trace == [EngineID.PHI3_MEDIUM]
 
 
 def test_arabic_routing():
@@ -66,7 +66,7 @@ def test_backward_compatibility():
 
     # Legacy behavior remains unchanged.
     legacy = orch.process(QueryRequest(prompt="enemy position grid 7"))
-    assert legacy.engine_id == EngineID.PHI3
+    assert legacy.engine_id == EngineID.PHI3_MEDIUM
 
     # Advanced path provides richer routing envelope.
     advanced = orch.route_advanced(QueryRequest(prompt="analyze implications of supply route"))

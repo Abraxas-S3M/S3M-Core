@@ -276,7 +276,7 @@ def main() -> None:
                 "status": "loaded",
             },
             {
-                "name": "phi3-mini-q4",
+                "name": "phi3-medium-q4",
                 "precision": "Q4_K_M",
                 "latency_ms": 58.2,
                 "memory_mb": 4200.0,

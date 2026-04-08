@@ -47,15 +47,15 @@ class PlatformPackager:
 
         cpu_label = compute.cpu_model.lower()
         if "orin nx" in cpu_label:
-            selected_models.extend(["yolov8-nano.onnx", "phi3-mini-int4.gguf"])
+            selected_models.extend(["yolov8-nano.onnx", "phi3-medium-int4.gguf"])
             size_mb += 4800.0
             memory_required_mb += 2600.0
         elif "xavier nx" in cpu_label:
-            selected_models.extend(["yolov8-medium.onnx", "phi3-mini-int4.gguf"])
+            selected_models.extend(["yolov8-medium.onnx", "phi3-medium-int4.gguf"])
             size_mb += 6200.0
             memory_required_mb += 3200.0
         elif "orin nano" in cpu_label:
-            selected_models.extend(["yolov8-nano.onnx", "phi3-mini-int4.gguf"])
+            selected_models.extend(["yolov8-nano.onnx", "phi3-medium-int4.gguf"])
             size_mb += 4300.0
             memory_required_mb += 2400.0
         elif "raspberry pi 5" in cpu_label:

@@ -332,7 +332,7 @@ class LLMMonitorProvider:
 
     @staticmethod
     def _unknown_stub(index: int) -> Dict[str, Any]:
-        names = ["Phi-3 Mini", "Grok", "Mistral 7B", "ALLaM-7B"]
+        names = ["Phi-3 Medium", "Grok", "Mixtral 8x7B", "ALLaM-7B"]
         providers = ["Microsoft", "xAI", "Mistral AI", "SDAIA"]
         domains = ["tactical", "reasoning", "planning", "arabic_nlp"]
         params = ["3.8B", "8B", "7B", "7B"]

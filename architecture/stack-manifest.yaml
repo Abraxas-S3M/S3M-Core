@@ -8,7 +8,7 @@ layers:
   - name: LLM Core
     id: layer-01
     tools:
-      - name: Phi-3 Mini
+      - name: Phi-3 Medium
         role: Primary tactical LLM
         params: 3.8B
         quantization: GGUF Q4_K_M
