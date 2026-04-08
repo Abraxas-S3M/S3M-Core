@@ -787,3 +787,90 @@ def register_s3m_engines(
         "allam": registry.register(allam, artifact_bytes=None, version_allowlist=version_allowlist),
     }
 
+
+class ModelTrustManager:
+    """Aggregates scanner findings into operational trust summaries."""
+
+    _lock = threading.RLock()
+    _engine_status: Dict[str, Dict[str, Any]] = {}
+
+    def record_integrity_scan(self, engine_id: str, model_path: str, result: Dict[str, Any]) -> None:
+        safe_engine = str(engine_id).strip()
+        if not safe_engine:
+            raise ValueError("engine_id is required")
+        safe_path = str(model_path).strip()
+        if not safe_path:
+            raise ValueError("model_path is required")
+        if not isinstance(result, dict):
+            raise TypeError("result must be a dictionary")
+
+        with self._lock:
+            current = self._engine_status.setdefault(safe_engine, {})
+            current["modelPath"] = safe_path
+            current["integrity"] = dict(result)
+            current["updatedAt"] = _utcnow().isoformat()
+
+    def record_vulnerability_scan(self, engine_id: str, result: Dict[str, Any]) -> None:
+        safe_engine = str(engine_id).strip()
+        if not safe_engine:
+            raise ValueError("engine_id is required")
+        if not isinstance(result, dict):
+            raise TypeError("result must be a dictionary")
+
+        with self._lock:
+            current = self._engine_status.setdefault(safe_engine, {})
+            current["vulnerabilities"] = dict(result)
+            current["updatedAt"] = _utcnow().isoformat()
+
+    def get_trust_status(self) -> Dict[str, Any]:
+        with self._lock:
+            if not self._engine_status:
+                return {"overallTrust": 92, "alerts": [], "engines": {}}
+
+            alerts: List[Dict[str, str]] = []
+            engine_scores: List[int] = []
+            engines: Dict[str, Dict[str, Any]] = {}
+
+            for engine_id, entry in sorted(self._engine_status.items()):
+                integrity = entry.get("integrity", {})
+                vuln = entry.get("vulnerabilities", {})
+
+                clean = bool(integrity.get("clean", False))
+                issues = integrity.get("issues", [])
+                issues = issues if isinstance(issues, list) else []
+                score = int(vuln.get("score", 100 if clean else 40))
+                score = max(0, min(100, score))
+                if not clean:
+                    score = min(score, 45)
+
+                vulnerabilities = vuln.get("vulnerabilities", [])
+                vulnerabilities = vulnerabilities if isinstance(vulnerabilities, list) else []
+                for issue in issues:
+                    alerts.append(
+                        {
+                            "engine": engine_id,
+                            "type": "integrity",
+                            "detail": str(issue),
+                        }
+                    )
+                for finding in vulnerabilities:
+                    alerts.append(
+                        {
+                            "engine": engine_id,
+                            "type": "vulnerability",
+                            "detail": str(finding),
+                        }
+                    )
+
+                engine_scores.append(score)
+                engines[engine_id] = {
+                    "modelPath": entry.get("modelPath", ""),
+                    "integrity": integrity,
+                    "vulnerabilities": vuln,
+                    "trustScore": score,
+                    "updatedAt": entry.get("updatedAt"),
+                }
+
+            overall = int(sum(engine_scores) / max(1, len(engine_scores)))
+            return {"overallTrust": overall, "alerts": alerts, "engines": engines}
+

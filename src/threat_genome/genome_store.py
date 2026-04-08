@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
+import json
 from threading import RLock
 from typing import Any, DefaultDict, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
@@ -291,6 +292,114 @@ class ThreatGenomeStore:
                 scored.append((actor_id, score))
             scored.sort(key=lambda item: item[1], reverse=True)
             return scored[:top_k]
+
+    def find_similar_patterns(self, pattern: Any, top_k: int = 5) -> List[Dict[str, Any]]:
+        """Semantic signature-pattern retrieval hook for analyst investigations."""
+        if not isinstance(top_k, int) or top_k <= 0:
+            raise ValueError("top_k must be a positive integer")
+        if isinstance(pattern, str):
+            pattern_text = pattern.strip()
+        elif isinstance(pattern, dict):
+            pattern_text = json.dumps(pattern, sort_keys=True, ensure_ascii=True)
+        else:
+            raise ValueError("pattern must be a string or dictionary")
+        if not pattern_text:
+            raise ValueError("pattern must be non-empty")
+
+        with self._lock:
+            rows: List[Dict[str, Any]] = []
+            for actor_id, genome in self._genomes.items():
+                for signature in genome.signatures.values():
+                    def _json_safe(value: Any) -> Any:
+                        if isinstance(value, set):
+                            return sorted(value)
+                        if isinstance(value, dict):
+                            return {str(key): _json_safe(item) for key, item in value.items()}
+                        if isinstance(value, list):
+                            return [_json_safe(item) for item in value]
+                        if isinstance(value, tuple):
+                            return [_json_safe(item) for item in value]
+                        return value
+
+                    signature_blob = {
+                        "name": signature.name,
+                        "signature_type": signature.signature_type.value,
+                        "pattern_parameters": _json_safe(signature.pattern_parameters),
+                        "temporal": _json_safe(signature.temporal_patterns),
+                        "movement": _json_safe(signature.movement_patterns),
+                        "communication": _json_safe(signature.communication_patterns),
+                        "targeting": _json_safe(signature.targeting_patterns),
+                        "evasion": _json_safe(signature.evasion_patterns),
+                        "escalation": _json_safe(signature.escalation_patterns),
+                        "logistics": _json_safe(signature.logistics_patterns),
+                        "formation": _json_safe(signature.formation_patterns),
+                    }
+                    rows.append(
+                        {
+                            "actor_id": actor_id,
+                            "actor_name": genome.actor_name,
+                            "signature_id": signature.signature_id,
+                            "signature_name": signature.name,
+                            "text": json.dumps(signature_blob, sort_keys=True, ensure_ascii=True),
+                        }
+                    )
+        if not rows:
+            return []
+
+        try:
+            from src.memory.embedding_utils import generate_embeddings
+            from src.memory.vector_store import FaissVectorStore
+
+            corpus = [pattern_text, *[row["text"] for row in rows]]
+            embeddings = generate_embeddings(corpus)
+            store = FaissVectorStore(dimension=int(embeddings.shape[1]))
+
+            by_key: Dict[str, Dict[str, Any]] = {}
+            for index, row in enumerate(rows, start=1):
+                key = f'{row["actor_id"]}::{row["signature_id"]}'
+                by_key[key] = row
+                store.add(key, embeddings[index])
+
+            results: List[Dict[str, Any]] = []
+            for hit in store.search(embeddings[0], top_k=top_k):
+                row = by_key.get(str(hit.get("id", "")))
+                if row is None:
+                    continue
+                results.append(
+                    {
+                        "actor_id": row["actor_id"],
+                        "actor_name": row["actor_name"],
+                        "signature_id": row["signature_id"],
+                        "signature_name": row["signature_name"],
+                        "score": float(hit.get("score", 0.0)),
+                    }
+                )
+            return results
+        except Exception:
+            # Tactical continuity: preserve pattern lookup with lexical overlap fallback.
+            cleaned_query = "".join(ch if ch.isalnum() else " " for ch in pattern_text.lower())
+            query_tokens = {token for token in cleaned_query.split() if token}
+            ranked: List[Tuple[float, Dict[str, Any]]] = []
+            for row in rows:
+                cleaned_row = "".join(ch if ch.isalnum() else " " for ch in row["text"].lower())
+                row_tokens = {token for token in cleaned_row.split() if token}
+                if not query_tokens:
+                    score = 0.0
+                else:
+                    score = len(query_tokens & row_tokens) / len(query_tokens)
+                ranked.append((float(score), row))
+            ranked.sort(key=lambda item: item[0], reverse=True)
+            return [
+                {
+                    "actor_id": row["actor_id"],
+                    "actor_name": row["actor_name"],
+                    "signature_id": row["signature_id"],
+                    "signature_name": row["signature_name"],
+                    "score": score,
+                }
+                for score, row in ranked[:top_k]
+                if score > 0.0
+            ]
 
     def attribute_observations(
         self,

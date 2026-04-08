@@ -1,6 +1,6 @@
 # S3M - Sovereign Military AI
-## Foundational open-source core for the Sovereign Military A.i. Model
-### Built for air-gapped, edge-deployed tactical AI on NVIDIA Jetson AGX Orin
+## Foundational core for the Sovereign Military A.i. Model
+### Built for air-gapped, edge-deployed tactical AI in GPU & CPU Environments
 ---
 **Classification:** UNCLASSIFIED - FOUO
 **Architecture:** 14-layer modular stack

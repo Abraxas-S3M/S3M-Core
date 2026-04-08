@@ -51,6 +51,14 @@ class TestCommandWorkspace:
         assert "events" in data
         assert "updatedAt" in data
 
+    def test_force_structure_shape(self):
+        r = client.get(f"{BASE}/workspaces/command/force-structure")
+        assert r.status_code == 200
+        data = r.json()
+        assert "units" in data
+        assert "updatedAt" in data
+        assert isinstance(data["units"], list)
+
     def test_agents_shape(self):
         r = client.get(f"{BASE}/workspaces/command/agents")
         assert r.status_code == 200
@@ -354,12 +362,43 @@ class TestCyberWorkspace:
     def test_attack_plan_shape(self):
         r = client.post(
             f"{BASE}/workspaces/cyber/attack/plan",
-            json={"playbookId": "", "objective": "Test", "parameters": {}},
+            json={
+                "adversaryId": "sim-red-team-phishing",
+                "targets": ["edge-node-1"],
+                "approvalToken": "approved-by-ops",
+                "objective": "Test",
+                "parameters": {},
+            },
         )
         assert r.status_code == 200
         data = r.json()
         assert "status" in data
+        assert "operationId" in data
         assert "plan" in data
+        assert "updatedAt" in data
+
+    def test_attack_status_shape(self):
+        planned = client.post(
+            f"{BASE}/workspaces/cyber/attack/plan",
+            json={
+                "adversaryId": "sim-red-team-lateral",
+                "targets": ["edge-node-2"],
+                "approvalToken": "approved-by-ops",
+                "objective": "Status test",
+                "parameters": {},
+            },
+        )
+        assert planned.status_code == 200
+        operation_id = planned.json().get("operationId")
+        assert operation_id
+
+        r = client.get(f"{BASE}/workspaces/cyber/attack/{operation_id}/status")
+        assert r.status_code == 200
+        data = r.json()
+        assert "operationId" in data
+        assert "status" in data
+        assert "steps_completed" in data["status"]
+        assert "techniques_used" in data["status"]
         assert "updatedAt" in data
 
     def test_attack_execute_shape(self):
