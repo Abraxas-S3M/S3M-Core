@@ -19,25 +19,39 @@ Data Flow:
   Phase 11 geopolitical risk -> Phase 19 deepens into full intel center
 """
 
-from src.apps.intel.briefings import BriefingGenerator
-from src.apps.intel.intel_dashboard import IntelDashboardProvider
-from src.apps.intel.intel_manager import IntelManager
-from src.apps.intel.models import (
-    CrisisEvent,
-    CrisisSeverity,
-    DailyBrief,
-    IntelReport,
-    IntelSource,
-    OSINTItem,
-    ReportClassification,
-    ReportType,
-    SourceReliability,
-    SourceType,
-    WarningIndicator,
-    WeeklyEstimate,
+def _safe_import(module_name: str, names: list[str]) -> None:
+    """Avoid hard import failures when optional intel dependencies are unavailable."""
+    try:
+        module = __import__(module_name, fromlist=names)
+        for name in names:
+            globals()[name] = getattr(module, name)
+    except Exception:  # pragma: no cover - defensive import behavior
+        for name in names:
+            globals()[name] = None
+
+
+_safe_import("src.apps.intel.briefings", ["BriefingGenerator"])
+_safe_import("src.apps.intel.intel_dashboard", ["IntelDashboardProvider"])
+_safe_import("src.apps.intel.intel_manager", ["IntelManager"])
+_safe_import(
+    "src.apps.intel.models",
+    [
+        "CrisisEvent",
+        "CrisisSeverity",
+        "DailyBrief",
+        "IntelReport",
+        "IntelSource",
+        "OSINTItem",
+        "ReportClassification",
+        "ReportType",
+        "SourceReliability",
+        "SourceType",
+        "WarningIndicator",
+        "WeeklyEstimate",
+    ],
 )
-from src.apps.intel.monitoring import EarlyWarningSystem, GeopoliticalMonitor
-from src.apps.intel.osint import OSINTCollector
+_safe_import("src.apps.intel.monitoring", ["EarlyWarningSystem", "GeopoliticalMonitor"])
+_safe_import("src.apps.intel.osint", ["OSINTCollector"])
 
 __all__ = [
     "IntelManager",
