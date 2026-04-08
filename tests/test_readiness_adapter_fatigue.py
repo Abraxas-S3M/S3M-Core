@@ -1,9 +1,9 @@
 """Tests for readiness adapter fatigue-panel integration."""
 
+import sys
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-from src.api import readiness_routes
 from src.api.gui_bridge.adapters.readiness_adapter import ReadinessAdapter
 
 
@@ -33,7 +33,11 @@ def test_get_certifications_includes_shift_rotation_fatigue_row(monkeypatch) -> 
 
     fake_registry = SimpleNamespace(get_members=lambda: members)
     fake_readiness = SimpleNamespace(personnel_registry=fake_registry)
-    monkeypatch.setattr(readiness_routes, "_readiness", fake_readiness, raising=False)
+    monkeypatch.setitem(
+        sys.modules,
+        "src.api.readiness_routes",
+        SimpleNamespace(_readiness=fake_readiness),
+    )
 
     adapter = ReadinessAdapter()
     rows = adapter._get_certifications()
