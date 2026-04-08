@@ -79,6 +79,24 @@ class TestDecisionsWorkspace:
             for k in ("pending", "autoApproved", "humanApproved", "vetoed", "stale")
         )
 
+    def test_explanation_shape(self):
+        r = client.get(f"{BASE}/workspaces/decisions/queue/R001/explain")
+        assert r.status_code == 200
+        data = r.json()
+        assert all(
+            key in data
+            for key in (
+                "decisionId",
+                "evidence",
+                "confidenceBreakdown",
+                "dissentingViews",
+                "doctrineChecks",
+                "expectedUpside",
+                "expectedDownside",
+                "updatedAt",
+            )
+        )
+
     def test_approve_returns_200(self):
         r = client.post(
             f"{BASE}/workspaces/decisions/queue/R001/approve", json={"comment": "test"}

@@ -6,7 +6,7 @@ where Python reserved words conflict (e.g. 'from').
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -94,6 +94,37 @@ class GUIDecision(GUIBaseModel):
     status: DecisionStatus
     severity: SeverityLevel
     updatedAt: Optional[str] = None
+
+
+class GUIEvidenceItem(GUIBaseModel):
+    source: str
+    summary: str
+    confidence: float
+    tags: List[str] = Field(default_factory=list)
+
+
+class GUIDissentingView(GUIBaseModel):
+    engineId: str
+    alternativeAction: str
+    reasoning: str
+    confidence: float
+
+
+class GUIDoctrineCheck(GUIBaseModel):
+    policyName: str
+    compliant: bool
+    details: str
+
+
+class GUIDecisionExplanation(GUIBaseModel):
+    decisionId: str
+    evidence: List[GUIEvidenceItem]
+    confidenceBreakdown: Dict[str, float]
+    dissentingViews: List[GUIDissentingView]
+    doctrineChecks: List[GUIDoctrineCheck]
+    expectedUpside: List[str]
+    expectedDownside: List[str]
+    updatedAt: str
 
 
 class GUIOperationalContextData(GUIBaseModel):

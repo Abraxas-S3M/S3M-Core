@@ -9,10 +9,23 @@ Internal dependencies:
 - src.api.gui_bridge.timeline_service.timeline_service (for event logging)
 """
 
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict
 
-from src.api.gui_bridge.models.gui_schemas import GUIDecision, DecisionStatus, SeverityLevel
+from src.api.gui_bridge.models.gui_schemas import (
+    GUIDecision,
+    GUIDecisionExplanation,
+    GUIDissentingView,
+    GUIDoctrineCheck,
+    GUIEvidenceItem,
+    DecisionStatus,
+    SeverityLevel,
+)
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DECISION_EXPLANATION_LOG_PATH = REPO_ROOT / "data" / "training" / "decision_explanations.jsonl"
 
 
 def _now_iso() -> str:
@@ -40,6 +53,20 @@ def _score_to_severity(score: float) -> SeverityLevel:
     if s >= 40:
         return SeverityLevel.MEDIUM
     return SeverityLevel.LOW
+
+
+def _append_explanation_training_record(decision_id: str, response: Dict[str, Any]) -> None:
+    record = {
+        "requestedAt": _now_iso(),
+        "decisionId": decision_id,
+        "response": response,
+    }
+    try:
+        DECISION_EXPLANATION_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with DECISION_EXPLANATION_LOG_PATH.open("a", encoding="utf-8") as log_file:
+            log_file.write(json.dumps(record, ensure_ascii=True) + "\n")
+    except Exception:
+        pass
 
 
 class DecisionAdapter:
@@ -95,6 +122,66 @@ class DecisionAdapter:
             "queueCounts": counts,
             "updatedAt": _now_iso(),
         }
+
+    def get_explanation(self, decision_id: str) -> Dict[str, Any]:
+        safe_decision_id = str(decision_id).strip() or "unknown"
+        explanation = {
+            "decisionId": safe_decision_id,
+            "evidence": [],
+            "confidenceBreakdown": {},
+            "dissentingViews": [],
+            "doctrineChecks": [],
+            "expectedUpside": [],
+            "expectedDownside": [],
+            "updatedAt": _now_iso(),
+        }
+
+        try:
+            from src.autonomy.xai import get_explanation_for_decision
+
+            xai_result = get_explanation_for_decision(safe_decision_id)
+            explanation["evidence"] = [
+                GUIEvidenceItem(**item).model_dump() for item in xai_result.get("evidence", [])
+            ]
+            explanation["confidenceBreakdown"] = {
+                str(k): float(v) for k, v in xai_result.get("confidenceBreakdown", {}).items()
+            }
+            explanation["expectedUpside"] = [
+                str(item) for item in xai_result.get("expectedUpside", [])
+            ]
+            explanation["expectedDownside"] = [
+                str(item) for item in xai_result.get("expectedDownside", [])
+            ]
+        except Exception:
+            pass
+
+        try:
+            from src.cognitive.multi_objective_resolver import MultiObjectiveResolver
+
+            resolver = MultiObjectiveResolver()
+            alternatives = (
+                resolver.get_pareto_alternatives(safe_decision_id)
+                if hasattr(resolver, "get_pareto_alternatives")
+                else []
+            )
+            explanation["dissentingViews"] = [
+                GUIDissentingView(**item).model_dump() for item in alternatives
+            ]
+        except Exception:
+            pass
+
+        try:
+            from src.doctrine.policy_bias_engine import PolicyBiasEngine
+
+            pbe = PolicyBiasEngine()
+            checks = pbe.check_decision(safe_decision_id) if hasattr(pbe, "check_decision") else []
+            explanation["doctrineChecks"] = [GUIDoctrineCheck(**item).model_dump() for item in checks]
+        except Exception:
+            pass
+
+        response = GUIDecisionExplanation(**explanation).model_dump()
+        _append_explanation_training_record(safe_decision_id, response)
+        return response
 
     async def approve(self, decision_id: str, comment: str = "") -> Dict[str, Any]:
         result = self._autonomy.apply_review_decision(decision_id, approved=True, reason=comment)
