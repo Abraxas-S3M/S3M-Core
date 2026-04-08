@@ -3,25 +3,25 @@
 from .gui_schemas import (
     DecisionStatus,
     GUIDecision,
-    GUIEnvelope,
     GUIRiskData,
     GUIRiskDomain,
     GUIRiskDriver,
     GUIRiskForecast,
+    GUIThreatTrack,
+    GUITracksData,
     SeverityLevel,
     TrendDirection,
-    WorkspaceLink,
 )
 
 __all__ = [
     "DecisionStatus",
     "GUIDecision",
-    "GUIEnvelope",
     "GUIRiskData",
     "GUIRiskDomain",
     "GUIRiskDriver",
     "GUIRiskForecast",
+    "GUIThreatTrack",
+    "GUITracksData",
     "SeverityLevel",
     "TrendDirection",
-    "WorkspaceLink",
 ]

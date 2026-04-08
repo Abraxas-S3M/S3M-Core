@@ -6,7 +6,7 @@ where Python reserved words conflict (e.g. 'from').
 """
 
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -142,6 +142,15 @@ class GUIThreatTrack(GUIBaseModel):
     correlatedTrackIds: List[str] = Field(default_factory=list)
     summary: str
     lastSeen: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    altitude: Optional[float] = None
+    speed: Optional[float] = None
+    heading: Optional[float] = None
+    identityProbabilities: Optional[Dict[str, float]] = None
+    sourceAttribution: Optional[List[str]] = None
+    trackHistory: Optional[List[Dict[str, Any]]] = None
+    recommendedAction: Optional[str] = None
 
 
 class GUITracksData(GUIBaseModel):

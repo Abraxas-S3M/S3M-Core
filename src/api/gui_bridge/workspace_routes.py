@@ -66,6 +66,11 @@ async def get_threat_tracks():
     return _cop.get_threat_tracks().model_dump()
 
 
+@workspace_router.get("/cop/enriched-tracks")
+async def get_enriched_tracks():
+    return _cop.get_enriched_tracks().model_dump()
+
+
 # ── Decisions ───────────────────────────────────────────────
 @workspace_router.get("/decisions/queue")
 async def get_decision_queue():

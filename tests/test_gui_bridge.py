@@ -65,6 +65,12 @@ class TestCOPWorkspace:
         data = r.json()
         assert "tracks" in data
 
+    def test_enriched_tracks_shape(self):
+        r = client.get(f"{BASE}/workspaces/cop/enriched-tracks")
+        assert r.status_code == 200
+        data = r.json()
+        assert "tracks" in data
+
 
 class TestDecisionsWorkspace:
     def test_queue_shape(self):
