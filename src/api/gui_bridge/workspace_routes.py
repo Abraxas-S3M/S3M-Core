@@ -105,6 +105,26 @@ async def get_surveillance_assets():
     return _surveillance.get_assets()
 
 
+@workspace_router.get("/surveillance/collection")
+async def get_surveillance_collection():
+    return _surveillance.get_collection_status()
+
+
+@workspace_router.get("/surveillance/source-reliability")
+async def get_surveillance_source_reliability():
+    return _surveillance.get_source_reliability()
+
+
+@workspace_router.get("/surveillance/fusion-brief")
+async def get_surveillance_fusion_brief(region: str = Query("all")):
+    return _surveillance.get_fusion_brief(region=region)
+
+
+@workspace_router.get("/surveillance/watchlists")
+async def get_surveillance_watchlists():
+    return _surveillance.get_watchlists()
+
+
 # ── Communications ──────────────────────────────────────────
 @workspace_router.get("/communication/messages")
 async def get_messages():

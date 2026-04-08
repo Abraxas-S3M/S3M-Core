@@ -152,6 +152,40 @@ class TestSurveillanceWorkspace:
         assert "taskingQueue" in data
         assert "targetBoard" in data
 
+    def test_collection_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/collection")
+        assert r.status_code == 200
+        data = r.json()
+        assert "collection" in data
+        assert "updatedAt" in data
+
+    def test_source_reliability_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/source-reliability")
+        assert r.status_code == 200
+        data = r.json()
+        assert "sources" in data
+        assert "updatedAt" in data
+        assert isinstance(data["sources"], list)
+
+    def test_fusion_brief_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/fusion-brief")
+        assert r.status_code == 200
+        data = r.json()
+        assert "brief" in data
+        assert "updatedAt" in data
+
+    def test_watchlists_shape(self):
+        r = client.get(f"{BASE}/workspaces/surveillance/watchlists")
+        assert r.status_code == 200
+        data = r.json()
+        assert "watchlists" in data
+        assert "updatedAt" in data
+        watchlists = data["watchlists"]
+        assert all(
+            key in watchlists
+            for key in ("persons", "organizations", "vessels", "vehicles", "sites")
+        )
+
 
 class TestCommsWorkspace:
     def test_messages_shape(self):
