@@ -18,7 +18,7 @@ def test_emit_training_record_writes_jsonl(monkeypatch, tmp_path: Path) -> None:
         language="en",
     )
 
-    target = tmp_path / "command.jsonl"
+    target = tmp_path / "command" / "part-000001.jsonl"
     assert target.exists()
     row = json.loads(target.read_text(encoding="utf-8").strip())
     assert row["domain"] == "command"
@@ -40,7 +40,7 @@ def test_emit_training_record_sanitizes_domain_and_normalizes_payload(monkeypatc
         {"items": [_Payload("alpha"), _Payload("bravo")]},
     )
 
-    target = tmp_path / "risk.jsonl"
+    target = tmp_path / "risk" / "part-000001.jsonl"
     assert target.exists()
     row = json.loads(target.read_text(encoding="utf-8").strip())
     assert row["domain"] == "risk"
