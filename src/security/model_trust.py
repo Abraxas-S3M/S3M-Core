@@ -731,7 +731,7 @@ def register_s3m_engines(
 ) -> Dict[str, SignedMetadata]:
     """Register canonical S3M engines with identity metadata only."""
     phi3 = ModelIdentity(
-        name="Phi-3 Mini",
+        name="Phi-3 Medium",
         provider="Microsoft",
         version="4k-instruct",
         domain=ModelDomain.TACTICAL,
@@ -750,10 +750,10 @@ def register_s3m_engines(
         quantization=QuantizationType.Q4_K_M,
         runtime=RuntimeType.LLAMA_CPP,
         hf_repo="xai-org/grok-1",
-        local_path="models/grok/grok-8b-q4_k_m.gguf",
+        local_path="models/grok/grok1-q4_k_m.gguf",
     )
     mistral = ModelIdentity(
-        name="Mistral 7B",
+        name="Mixtral 8x7B",
         provider="Mistral AI",
         version="0.3",
         domain=ModelDomain.PLANNING,

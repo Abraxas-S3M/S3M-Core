@@ -47,7 +47,7 @@ def test_selects_smallest_feasible_variant_locally() -> None:
         gpu_detected=False,
     )
 
-    plan = planner.plan("phi3-mini", requested_tokens=1024)
+    plan = planner.plan("phi3-medium", requested_tokens=1024)
 
     assert plan.decision == ExecutionDecision.RUN_LOCAL
     assert plan.variant is not None
@@ -65,7 +65,7 @@ def test_defers_to_peer_when_no_local_variant_and_peer_allowed() -> None:
         gpu_detected=False,
     )
 
-    plan = planner.plan("grok-8b", requested_tokens=700)
+    plan = planner.plan("grok1", requested_tokens=700)
 
     assert plan.decision == ExecutionDecision.DEFER_TO_PEER
     assert plan.variant is None
@@ -81,7 +81,7 @@ def test_summarizes_when_no_local_variant_and_no_peer_allowed() -> None:
         gpu_detected=False,
     )
 
-    plan = planner.plan("grok-8b", requested_tokens=700)
+    plan = planner.plan("grok1", requested_tokens=700)
 
     assert plan.decision == ExecutionDecision.SUMMARIZE_INSTEAD
     assert plan.variant is None
@@ -130,11 +130,11 @@ def test_to_dict_contains_selected_variant_fields() -> None:
         gpu_detected=True,
     )
 
-    plan = planner.plan("phi3-mini", requested_tokens=256)
+    plan = planner.plan("phi3-medium", requested_tokens=256)
     serialized = plan.to_dict()
 
     assert serialized["decision"] == "run_local"
     assert serialized["variant"] == "q4_k_m"
-    assert serialized["model_id"] == "phi3-mini"
+    assert serialized["model_id"] == "phi3-medium"
     assert serialized["precision"] == "int4"
     assert serialized["max_tokens"] == 256

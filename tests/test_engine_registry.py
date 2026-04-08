@@ -16,9 +16,9 @@ def test_all_engines_registered():
 def test_engine_names():
     registry = EngineRegistry()
     names = [e.name for e in registry.get_all_engines()]
-    assert "Phi-3 Mini" in names
+    assert "Phi-3 Medium" in names
     assert "Grok" in names
-    assert "Mistral 7B" in names
+    assert "Mixtral 8x7B" in names
     assert "ALLaM-7B" in names
     print("PASS: All engine names correct")
 
@@ -37,7 +37,7 @@ def test_engine_status():
     assert all(v == False for v in status.values())
     registry.mark_loaded(EngineID.PHI3)
     status = registry.get_status()
-    assert status["phi3-mini"] == True
+    assert status["phi3-medium"] == True
     print("PASS: Engine status tracking works")
 
 

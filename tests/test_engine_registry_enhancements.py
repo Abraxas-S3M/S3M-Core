@@ -54,21 +54,21 @@ def test_engine_training_metadata_targets():
     grok = ENGINE_CONFIGS[EngineID.GROK]
     assert grok.adapter_tuning_allowed is True
     assert grok.adapter_tuning_min_ram_gb == 8.0
-    assert grok.preferred_student_model == "phi3-mini"
+    assert grok.preferred_student_model == "phi3-medium"
     assert grok.cpu_inference_tok_s_target == 15.0
     assert grok.cpu_inference_ram_mb == 5000
 
     mistral = ENGINE_CONFIGS[EngineID.MISTRAL]
     assert mistral.adapter_tuning_allowed is True
     assert mistral.adapter_tuning_min_ram_gb == 8.0
-    assert mistral.preferred_student_model == "phi3-mini"
+    assert mistral.preferred_student_model == "phi3-medium"
     assert mistral.cpu_inference_tok_s_target == 20.0
     assert mistral.cpu_inference_ram_mb == 4500
 
     allam = ENGINE_CONFIGS[EngineID.ALLAM]
     assert allam.adapter_tuning_allowed is True
     assert allam.adapter_tuning_min_ram_gb == 8.0
-    assert allam.preferred_student_model == "phi3-mini"
+    assert allam.preferred_student_model == "phi3-medium"
     assert allam.cpu_training_precision_default == "bf16_mixed"
     assert allam.cpu_inference_tok_s_target == 18.0
     assert allam.cpu_inference_ram_mb == 4500

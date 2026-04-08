@@ -43,7 +43,7 @@ class TestModelRegistry:
         """Artifact registration works."""
         artifact = temp_registry.register_artifact(EngineID.PHI3, temp_model_file)
 
-        assert artifact.engine_id == "phi3-mini"
+        assert artifact.engine_id == "phi3-medium"
         assert artifact.status == "CLEAN"
         assert artifact.version_tag == "v1.0.0"
         assert artifact.sha256_hash
@@ -88,7 +88,7 @@ class TestModelRegistry:
 
         old_time = (datetime.utcnow() - timedelta(days=35)).isoformat()
         artifact.last_verified_at = old_time
-        temp_registry.artifacts["phi3-mini"] = artifact
+        temp_registry.artifacts["phi3-medium"] = artifact
         temp_registry._save_registry()
 
         is_clean, status, reason = temp_registry.verify_artifact(EngineID.PHI3)

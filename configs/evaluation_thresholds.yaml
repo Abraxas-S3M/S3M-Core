@@ -4,7 +4,7 @@ global:
   report_format: "json"    # json | markdown
 
 models:
-  phi3-mini:
+  phi3-medium:
     latency:
       p50_ms: 2000
       p95_ms: 5000
@@ -55,7 +55,7 @@ models:
       min_rouge_l_vs_fp16: 0.75
       min_cosine_sim_vs_fp16: 0.88
 
-  grok-8b:
+  grok1:
     latency:
       p50_ms: 5000
       p95_ms: 12000

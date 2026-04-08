@@ -113,7 +113,7 @@ def _make_structured(
 
 def test_structured_engine_output_schema() -> None:
     output = StructuredEngineOutput(
-        engine_id="phi3-mini",
+        engine_id="phi3-medium",
         task_id="task-1",
         raw_text="enemy detected. hold position.",
         health=EngineHealth.HEALTHY,
@@ -126,7 +126,7 @@ def test_structured_engine_output_schema() -> None:
         tokens_generated=64,
     )
     payload = output.to_dict()
-    assert payload["engine_id"] == "phi3-mini"
+    assert payload["engine_id"] == "phi3-medium"
     assert payload["health"] == "HEALTHY"
     assert payload["threats"][0]["label"] == "enemy"
     assert payload["actions"][0]["action_type"] == "defensive"
@@ -138,7 +138,7 @@ def test_raw_text_parser() -> None:
         "Enemy drone observed near sector 7. confidence: 82%. "
         "Recommend hold and monitor. intel report confirms movement."
     )
-    structured = parse_raw_text_to_structured(text, engine_id="grok-8b", task_id="task-2")
+    structured = parse_raw_text_to_structured(text, engine_id="grok1", task_id="task-2")
     assert structured.health == EngineHealth.HEALTHY
     assert structured.confidence >= 0.8
     assert any(item.label == "enemy" or item.label == "drone" for item in structured.threats)
@@ -149,8 +149,8 @@ def test_raw_text_parser() -> None:
 def test_shared_mission_state() -> None:
     state = MissionState()
     state.set_context(MissionContext(mission_id="m1", mission_type="tactical"))
-    one = _make_structured(engine="phi3-mini", threat="enemy", action="hold", confidence=0.7)
-    two = _make_structured(engine="grok-8b", threat="enemy", action="hold", confidence=0.8)
+    one = _make_structured(engine="phi3-medium", threat="enemy", action="hold", confidence=0.7)
+    two = _make_structured(engine="grok1", threat="enemy", action="hold", confidence=0.8)
     state.ingest_engine_output(one)
     state.ingest_engine_output(two)
 
@@ -166,11 +166,11 @@ def test_reconciliation_threat_conflict() -> None:
     state.set_context(MissionContext(mission_id="m2", mission_type="tactical"))
     recon = ReconciliationEngine()
     outputs = {
-        "phi3-mini": _make_structured(
-            engine="phi3-mini", threat="drone", action="hold", confidence=0.82
+        "phi3-medium": _make_structured(
+            engine="phi3-medium", threat="drone", action="hold", confidence=0.82
         ),
-        "grok-8b": _make_structured(
-            engine="grok-8b", threat="missile", action="hold", confidence=0.76
+        "grok1": _make_structured(
+            engine="grok1", threat="missile", action="hold", confidence=0.76
         ),
     }
     decision = recon.reconcile(outputs, state)
@@ -189,8 +189,8 @@ def test_reconciliation_action_conflict() -> None:
     )
     recon = ReconciliationEngine()
     outputs = {
-        "phi3-mini": _make_structured(
-            engine="phi3-mini",
+        "phi3-medium": _make_structured(
+            engine="phi3-medium",
             threat="enemy",
             action="defend",
             action_type="defensive",
@@ -213,8 +213,8 @@ def test_degraded_engine_failover() -> None:
     state.set_context(MissionContext(mission_id="m4"))
     recon = ReconciliationEngine()
     outputs = {
-        "phi3-mini": _make_structured(
-            engine="phi3-mini", threat="enemy", action="hold", confidence=0.75
+        "phi3-medium": _make_structured(
+            engine="phi3-medium", threat="enemy", action="hold", confidence=0.75
         ),
         "allam-7b": StructuredEngineOutput(
             engine_id="allam-7b",
@@ -273,11 +273,11 @@ def test_reconciliation_agreement_bonus() -> None:
     state.set_context(MissionContext(mission_id="m5"))
     recon = ReconciliationEngine()
     outputs = {
-        "phi3-mini": _make_structured(
-            engine="phi3-mini", threat="enemy", action="hold", confidence=0.6
+        "phi3-medium": _make_structured(
+            engine="phi3-medium", threat="enemy", action="hold", confidence=0.6
         ),
-        "grok-8b": _make_structured(
-            engine="grok-8b", threat="enemy", action="hold", confidence=0.6
+        "grok1": _make_structured(
+            engine="grok1", threat="enemy", action="hold", confidence=0.6
         ),
     }
     decision = recon.reconcile(outputs, state)
@@ -288,7 +288,7 @@ def test_state_version_history() -> None:
     state = MissionState()
     state.set_context(MissionContext(mission_id="m6"))
     state.ingest_engine_output(
-        _make_structured(engine="phi3-mini", threat="enemy", action="hold", confidence=0.7)
+        _make_structured(engine="phi3-medium", threat="enemy", action="hold", confidence=0.7)
     )
     snap = state.snapshot()
     history = snap["version_history"]

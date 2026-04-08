@@ -28,7 +28,7 @@ class TacticalCLI(cmd.Cmd):
 ║                 S3M QUAD-ENGINE SYSTEM v4.0                  ║
 ║              Tactical Command Line Interface                 ║
 ║                                                              ║
-║  Engines: Phi-3 Mini | Grok-8B | Mistral-7B | ALLaM-7B     ║
+║  Engines: Phi-3 Medium | Grok-8B | Mistral-7B | ALLaM-7B     ║
 ║  Platform: NVIDIA Jetson AGX Orin 64GB                       ║
 ║  Status: AIR-GAPPED DEPLOYMENT                               ║
 ║                                                              ║

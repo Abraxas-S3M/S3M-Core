@@ -1,5 +1,5 @@
-model_id: phi3-mini
-model_name: Phi-3 Mini
+model_id: phi3-medium
+model_name: Phi-3 Medium
 runtime_backend: llama_cpp
 training:
   adapter_tuning_allowed: true

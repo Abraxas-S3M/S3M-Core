@@ -11,14 +11,14 @@ def test_engine_initialization():
     engine = InferenceEngine(EngineID.PHI3)
     assert engine.engine_id == EngineID.PHI3
     assert engine.loaded == False
-    assert engine.config.name == "Phi-3 Mini"
+    assert engine.config.name == "Phi-3 Medium"
     print("PASS: Engine initializes correctly")
 
 
 def test_health_check():
     engine = InferenceEngine(EngineID.GROK)
     health = engine.health_check()
-    assert health["engine"] == "grok-8b"
+    assert health["engine"] == "grok1"
     assert health["loaded"] == False
     assert "model_file_exists" in health
     assert "llama_cpp_available" in health
@@ -50,10 +50,10 @@ def test_result_to_dict():
         prompt_tokens=5,
         latency_ms=100.0,
         tokens_per_second=100.0,
-        model_name="Phi-3 Mini",
+        model_name="Phi-3 Medium",
     )
     d = result.to_dict()
-    assert d["engine"] == "phi3-mini"
+    assert d["engine"] == "phi3-medium"
     assert d["tokens_generated"] == 10
     print("PASS: InferenceResult serializes to dict")
 

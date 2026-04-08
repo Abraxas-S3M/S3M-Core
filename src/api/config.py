@@ -150,7 +150,7 @@ class APIConfig:
     # Engine model paths
     model_paths: Dict[str, str] = field(default_factory=lambda: {
         "phi3": "models/phi-3-mini-4k-instruct.Q4_K_M.gguf",
-        "grok": "models/grok-8b.Q4_K_M.gguf",
+        "grok": "models/grok1.Q4_K_M.gguf",
         "mistral": "models/mistral-7b-instruct-v0.3.Q4_K_M.gguf",
         "allam": "models/allam-7b-instruct.Q4_K_M.gguf",
     })

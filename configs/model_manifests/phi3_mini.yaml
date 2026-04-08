@@ -1,4 +1,4 @@
-model_id: "phi3-mini"
+model_id: "phi3-medium"
 provider: "Microsoft"
 family: "Phi-3"
 parameters: "3.8B"
@@ -6,7 +6,7 @@ parameters: "3.8B"
 variants:
   - tag: "q4_k_m"
     runtime_format: "gguf"
-    file: "models/phi3-mini-q4_k_m.gguf"
+    file: "models/phi3-medium-q4_k_m.gguf"
     size_mb: 2200
     max_ram_mb: 3072
     cpu_tokens_per_sec: 16.0
@@ -15,7 +15,7 @@ variants:
     max_context: 4096
   - tag: "q8_0"
     runtime_format: "gguf"
-    file: "models/phi3-mini-q8_0.gguf"
+    file: "models/phi3-medium-q8_0.gguf"
     size_mb: 3200
     max_ram_mb: 4096
     cpu_tokens_per_sec: 11.0
@@ -24,7 +24,7 @@ variants:
     max_context: 4096
   - tag: "onnx-int8"
     runtime_format: "onnx"
-    file: "models/phi3-mini-int8.onnx"
+    file: "models/phi3-medium-int8.onnx"
     size_mb: 3400
     max_ram_mb: 4096
     cpu_tokens_per_sec: 14.0
@@ -33,7 +33,7 @@ variants:
     max_context: 4096
   - tag: "openvino-int8"
     runtime_format: "openvino"
-    file: "models/phi3-mini-int8-ov/"
+    file: "models/phi3-medium-int8-ov/"
     size_mb: 3200
     max_ram_mb: 3584
     cpu_tokens_per_sec: 18.0
@@ -42,7 +42,7 @@ variants:
     max_context: 4096
   - tag: "fp16"
     runtime_format: "gguf"
-    file: "models/phi3-mini-fp16.gguf"
+    file: "models/phi3-medium-fp16.gguf"
     size_mb: 4200
     max_ram_mb: 6144
     cpu_tokens_per_sec: 3.0

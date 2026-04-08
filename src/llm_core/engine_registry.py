@@ -9,8 +9,8 @@ from enum import Enum
 
 
 class EngineID(Enum):
-    PHI3 = "phi3-mini"
-    GROK = "grok-8b"
+    PHI3 = "phi3-medium"
+    GROK = "grok1"
     MISTRAL = "mistral-7b"
     ALLAM = "allam-7b"
 
@@ -91,7 +91,7 @@ class EngineConfig:
 ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
     EngineID.PHI3: EngineConfig(
         engine_id=EngineID.PHI3,
-        name="Phi-3 Mini",
+        name="Phi-3 Medium",
         provider="Microsoft",
         params="3.8B",
         model_filename="phi-3-mini-4k-instruct-q4_k_m.gguf",
@@ -126,12 +126,12 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         name="Grok",
         provider="xAI",
         params="8B",
-        model_filename="grok-8b-q4_k_m.gguf",
+        model_filename="grok1-q4_k_m.gguf",
         quantization="Q4_K_M",
         runtime="llama.cpp",
         hf_repo="xai-org/grok-1",
-        gcs_path="gs://s3m-weight-vault/grok/grok-8b-q4_k_m.gguf",
-        local_path="models/grok/grok-8b-q4_k_m.gguf",
+        gcs_path="gs://s3m-weight-vault/grok/grok1-q4_k_m.gguf",
+        local_path="models/grok/grok1-q4_k_m.gguf",
         max_tokens=1024,
         context_window=8192,
         primary_domain=TaskDomain.REASONING,
@@ -143,7 +143,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         confidence_prior=0.82,
         adapter_tuning_allowed=True,
         adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
+        preferred_student_model="phi3-medium",
         cpu_inference_tok_s_target=15.0,
         cpu_inference_ram_mb=5000,
         capabilities={
@@ -155,7 +155,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
     ),
     EngineID.MISTRAL: EngineConfig(
         engine_id=EngineID.MISTRAL,
-        name="Mistral 7B",
+        name="Mixtral 8x7B",
         provider="Mistral AI",
         params="7B",
         model_filename="mistral-7b-instruct-v0.3-q4_k_m.gguf",
@@ -175,7 +175,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         confidence_prior=0.84,
         adapter_tuning_allowed=True,
         adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
+        preferred_student_model="phi3-medium",
         cpu_inference_tok_s_target=20.0,
         cpu_inference_ram_mb=4500,
         capabilities={
@@ -207,7 +207,7 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
         confidence_prior=0.83,
         adapter_tuning_allowed=True,
         adapter_tuning_min_ram_gb=8.0,
-        preferred_student_model="phi3-mini",
+        preferred_student_model="phi3-medium",
         cpu_training_precision_default="bf16_mixed",
         cpu_inference_tok_s_target=18.0,
         cpu_inference_ram_mb=4500,

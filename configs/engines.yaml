@@ -3,7 +3,7 @@
 
 engines:
   phi3:
-    name: "Phi-3 Mini"
+    name: "Phi-3 Medium"
     provider: "Microsoft"
     parameters: "3.8B"
     quantization: "Q4_K_M"
@@ -29,7 +29,7 @@ engines:
     max_tokens: 1024
 
   mistral:
-    name: "Mistral 7B"
+    name: "Mixtral 8x7B"
     provider: "Mistral AI"
     parameters: "7B"
     quantization: "Q4_K_M"
