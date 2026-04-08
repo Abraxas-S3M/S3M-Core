@@ -104,6 +104,16 @@ class TestRiskWorkspace:
         assert isinstance(data["composite"], int)
         assert 0 <= data["composite"] <= 100
 
+    def test_what_if_shape(self):
+        scenario = {"threat": "high", "readiness": "low"}
+        r = client.post(f"{BASE}/workspaces/risk/what-if", json=scenario)
+        assert r.status_code == 200
+        data = r.json()
+        assert "scenario" in data
+        assert "result" in data
+        assert "updatedAt" in data
+        assert data["scenario"] == scenario
+
 
 class TestReadinessWorkspace:
     def test_summary_shape(self):

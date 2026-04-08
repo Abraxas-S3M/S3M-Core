@@ -146,6 +146,11 @@ async def get_risk_metrics():
     return _risk.get_metrics().model_dump()
 
 
+@workspace_router.post("/risk/what-if")
+async def risk_what_if(scenario: dict):
+    return _risk.get_what_if(scenario)
+
+
 # ── Readiness ───────────────────────────────────────────────
 @workspace_router.get("/readiness/summary")
 async def get_readiness_summary():
