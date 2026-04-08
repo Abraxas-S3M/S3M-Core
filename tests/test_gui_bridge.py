@@ -269,6 +269,23 @@ class TestPlanningWorkspace:
         data = r.json()
         assert "coursesOfAction" in data
 
+    def test_replan_triggers_shape(self):
+        r = client.get(f"{BASE}/workspaces/planning/replan-triggers")
+        assert r.status_code == 200
+        data = r.json()
+        assert "triggers" in data
+        assert "updatedAt" in data
+
+    def test_suggestions_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/planning/suggestions",
+            json={"plan_context": "Enemy armored column observed near crossing sector."},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "suggestions" in data
+        assert "updatedAt" in data
+
 
 class TestAuth:
     def test_login_success(self):
