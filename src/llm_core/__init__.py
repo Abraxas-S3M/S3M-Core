@@ -1,7 +1,7 @@
 """
 S3M LLM Core - Quad-Engine Sovereign AI System
 Phase 3: Live inference via llama-cpp-python
-Engines: Phi-3 (Microsoft), Grok (xAI), Mistral (Mistral AI), ALLaM (SDAIA)
+Engines: Phi-3 Medium (Microsoft), Grok-1 (xAI), Mixtral 8x7B (Mistral AI), ALLaM-7B (Humain AI)
 """
 
 from .engine_registry import EngineRegistry, EngineID, TaskDomain, EngineConfig
@@ -59,6 +59,10 @@ from .engine_runtime import EngineRuntimeAdapter
 from .reconciliation_engine import ReconciliationEngine
 from .unified_runtime import UnifiedRuntime, MissionRequest, MissionResult
 from .weight_manager import WeightManager
+try:
+    from src.distributed.sync_manager import WeightSyncManager
+except ImportError:
+    WeightSyncManager = None
 from .inference_engine import InferenceEngine, InferenceResult
 from .engine_pool import EnginePool
 from .predictive_preload import (
@@ -100,7 +104,7 @@ __all__ = [
     "MemoryBudget", "LoadCategory", "HardwareProfile", "RuntimeProfile",
     "HARDWARE_PROFILES", "RUNTIME_PROFILES", "estimate_inference_time",
     "FailoverSystem", "HealthState", "FailoverMode", "DeterministicResponse",
-    "WeightManager",
+    "WeightManager", "WeightSyncManager",
     "InferenceEngine", "InferenceResult",
     "EnginePool",
     "PredictivePreloader", "RequestRecord", "EngineScore", "PreloadPrediction", "PreloadPlan",
