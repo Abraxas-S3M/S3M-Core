@@ -7,7 +7,7 @@ import sys
 import types
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 
 def _install_gui_schema_stubs(monkeypatch) -> types.ModuleType:
@@ -57,11 +57,19 @@ def _install_gui_schema_stubs(monkeypatch) -> types.ModuleType:
         updatedAt: str
 
     @dataclass
+    class GUIOverviewMetrics:
+        readinessScore: int
+        activeMissions: int
+        assetAvailability: int
+        openRisks: int
+
+    @dataclass
     class GUIOperationalContextData:
         threats: list[GUIThreatItem]
         decisions: list[GUIDecision]
         directives: list[GUIDirectiveItem]
         updatedAt: str
+        metrics: Optional[GUIOverviewMetrics] = None
 
     schema_mod.SeverityLevel = SeverityLevel
     schema_mod.DecisionStatus = DecisionStatus
@@ -69,6 +77,7 @@ def _install_gui_schema_stubs(monkeypatch) -> types.ModuleType:
     schema_mod.GUIDecision = GUIDecision
     schema_mod.GUIDirectiveItem = GUIDirectiveItem
     schema_mod.GUITimelineEventData = GUITimelineEventData
+    schema_mod.GUIOverviewMetrics = GUIOverviewMetrics
     schema_mod.GUIOperationalContextData = GUIOperationalContextData
     monkeypatch.setitem(sys.modules, "src.api.gui_bridge.models.gui_schemas", schema_mod)
     return schema_mod
@@ -78,8 +87,27 @@ def _install_timeline_stub(monkeypatch) -> types.ModuleType:
     timeline_mod = types.ModuleType("src.api.gui_bridge.timeline_service")
 
     class _TimelineService:
+        def __init__(self) -> None:
+            self.emitted: list[dict[str, Any]] = []
+
         def query(self, category: str = None, limit: int = 50) -> list[dict[str, Any]]:
             return [{"id": "EVT-1", "category": category or "all", "limit": limit}]
+
+        def emit(
+            self,
+            title: str,
+            category: str,
+            severity: str = "MEDIUM",
+            details: str = "",
+        ) -> None:
+            self.emitted.append(
+                {
+                    "title": title,
+                    "category": category,
+                    "severity": severity,
+                    "details": details,
+                }
+            )
 
     timeline_mod.timeline_service = _TimelineService()
     monkeypatch.setitem(sys.modules, "src.api.gui_bridge.timeline_service", timeline_mod)
@@ -103,7 +131,12 @@ def _install_dashboard_stub(monkeypatch, *, threats: list[dict[str, Any]], revie
             self.autonomy_provider = _AutonomyProvider()
 
         def get_overview(self) -> dict[str, Any]:
-            return {"timestamp": "2026-04-04T00:00:00+00:00"}
+            return {
+                "timestamp": "2026-04-04T00:00:00+00:00",
+                "readiness_score": 0.72,
+                "active_missions": 4,
+                "asset_availability": 0.85,
+            }
 
     dash_mod.DashboardAggregator = DashboardAggregator
     monkeypatch.setitem(sys.modules, "src.dashboard.aggregator", dash_mod)
@@ -116,7 +149,7 @@ def _reload_command_adapter():
 
 def test_command_adapter_maps_live_dashboard_data(monkeypatch):
     schemas = _install_gui_schema_stubs(monkeypatch)
-    _install_timeline_stub(monkeypatch)
+    timeline_mod = _install_timeline_stub(monkeypatch)
     _install_dashboard_stub(
         monkeypatch,
         threats=[
@@ -168,6 +201,12 @@ def test_command_adapter_maps_live_dashboard_data(monkeypatch):
     assert context.decisions[0].confidence == 88
     assert context.decisions[0].status == schemas.DecisionStatus.PENDING
     assert context.directives[0].title == "ROE ALPHA"
+    assert context.metrics is not None
+    assert context.metrics.readinessScore == 72
+    assert context.metrics.activeMissions == 4
+    assert context.metrics.assetAvailability == 85
+    assert context.metrics.openRisks == 1
+    assert timeline_mod.timeline_service.emitted[0]["title"] == "Metrics snapshot"
 
     timeline = adapter.get_timeline_events(category="threat", limit=3)
     assert timeline.events[0]["category"] == "threat"
@@ -197,3 +236,8 @@ def test_command_adapter_fallbacks_seed_operational_defaults(monkeypatch):
     assert len(context.decisions) == 3
     assert context.decisions[0].severity == schemas.SeverityLevel.CRITICAL
     assert context.directives[0].id == "DIR-1"
+    assert context.metrics is not None
+    assert context.metrics.readinessScore == 72
+    assert context.metrics.activeMissions == 4
+    assert context.metrics.assetAvailability == 85
+    assert context.metrics.openRisks == 0
