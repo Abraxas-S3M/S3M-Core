@@ -65,7 +65,7 @@ class TestModelOptimizer:
     def test_validate_budget_fits(self, optimizer):
         """Validation passes for engines that fit."""
         budget = optimizer.validate_budget(
-            [EngineID.PHI3, EngineID.MISTRAL],
+            [EngineID.PHI3, EngineID.ALLAM],
             available_memory_gb=32.0,
         )
         assert budget.fits
