@@ -81,7 +81,17 @@ def test_build_coas_falls_back_to_default_when_planner_fails(monkeypatch) -> Non
 def test_get_replan_triggers_returns_engine_output(monkeypatch) -> None:
     class _FakePlanRepairEngine:
         def get_active_triggers(self):
-            return [{"trigger": "HIGH_ENTROPY", "severity": "high"}]
+            return [
+                {
+                    "trigger": "HIGH_ENTROPY",
+                    "severity": "high",
+                    "start": (0, 0),
+                    "end": (5, 5),
+                    "grid_size": (6, 6),
+                    "threats": [{"x": 2, "y": 2, "radius": 2.0, "severity": 4.0}],
+                    "obstacles": [(3, 3)],
+                }
+            ]
 
     monkeypatch.setitem(
         sys.modules,
@@ -91,7 +101,13 @@ def test_get_replan_triggers_returns_engine_output(monkeypatch) -> None:
 
     adapter = PlanningAdapter()
     payload = adapter.get_replan_triggers()
-    assert payload["triggers"] == [{"trigger": "HIGH_ENTROPY", "severity": "high"}]
+    assert payload["triggers"][0]["trigger"] == "HIGH_ENTROPY"
+    assert payload["triggers"][0]["severity"] == "high"
+    assert "replanOptions" in payload
+    assert len(payload["replanOptions"]) >= 1
+    assert payload["replanOptions"][0]["optionId"] == "ALT-1"
+    assert payload["replanOptions"][0]["waypoints"][0] == {"x": 0, "y": 0}
+    assert payload["replanOptions"][0]["waypoints"][-1] == {"x": 5, "y": 5}
     assert "updatedAt" in payload
 
 

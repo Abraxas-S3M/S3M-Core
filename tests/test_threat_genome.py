@@ -338,6 +338,24 @@ def test_7_similarity_search_ranking():
     assert ranked[0][1] >= ranked[1][1]
 
 
+def test_7b_find_similar_patterns_hook():
+    store = ThreatGenomeStore()
+    alpha = _build_alpha_genome()
+    bravo = _build_bravo_different_genome()
+    store.add_genome(alpha)
+    store.add_genome(bravo)
+
+    pattern = {
+        "targeting": {"priority_targets": ["radar"]},
+        "movement": {"avg_speed_kmh": 30},
+        "communication": {"encrypted": True},
+    }
+    ranked = store.find_similar_patterns(pattern, top_k=2)
+    assert ranked
+    assert ranked[0]["actor_id"] == "alpha"
+    assert ranked[0]["score"] >= ranked[-1]["score"]
+
+
 def test_8_attribution_via_indicator_chains():
     store = ThreatGenomeStore()
     alpha = _build_alpha_genome()

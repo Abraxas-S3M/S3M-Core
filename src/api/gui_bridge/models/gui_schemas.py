@@ -193,6 +193,7 @@ class GUIRiskData(GUIBaseModel):
 class GUIThreatTrack(GUIBaseModel):
     id: str
     domain: str
+    sidc: Optional[str] = None  # NATO Symbol ID Code (20-digit)
     confidence: int = Field(ge=0, le=100)
     severity: int = Field(ge=0, le=100)
     correlatedTrackIds: List[str] = Field(default_factory=list)
