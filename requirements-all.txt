@@ -45,4 +45,4 @@ garak>=0.9
 ortools>=9.8
 mlflow>=2.14
 dvc>=3.50
-stonesoup>=1.2
+rns>=0.7
