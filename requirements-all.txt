@@ -19,7 +19,7 @@ faiss-cpu>=1.7.4  # Use faiss-gpu on CUDA build nodes when available.
 # Autonomy (Phase 6)
 # ray[rllib]>=2.9.0  # Optional: heavy dependency
 # stable-baselines3>=2.2.0  # Optional
-# gymnasium>=0.29.0  # Optional
+gymnasium>=0.29.0
 # py-trees>=2.2.0  # Optional
 
 # Simulation (Phase 7)
