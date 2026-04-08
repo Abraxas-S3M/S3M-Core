@@ -298,6 +298,18 @@ class GUISimulationData(GUIBaseModel):
     updatedAt: str
 
 
+class GUIAARReport(GUIBaseModel):
+    scenarioId: str
+    outcome: str
+    friendlyLosses: int = 0
+    enemyLosses: int = 0
+    objectivesMet: List[str] = Field(default_factory=list)
+    keyDecisionPoints: List[Dict[str, Any]] = Field(default_factory=list)
+    missedDetections: int = 0
+    avgTimeToDecision: Optional[float] = None
+    narrative: Optional[str] = None
+
+
 # -- Cyber -----------------------------------------------------
 
 

@@ -219,6 +219,28 @@ class TestSimulationWorkspace:
         data = r.json()
         assert "scenarios" in data
 
+    def test_catalog_shape(self):
+        r = client.get(f"{BASE}/workspaces/simulation/catalog")
+        assert r.status_code == 200
+        data = r.json()
+        assert "scenarios" in data
+        assert "updatedAt" in data
+
+    def test_aar_shape(self):
+        r = client.get(f"{BASE}/workspaces/simulation/aar/SCN-001")
+        assert r.status_code == 200
+        data = r.json()
+        assert data["scenarioId"] == "SCN-001"
+        assert "aar" in data
+        assert "updatedAt" in data
+
+    def test_compare_shape(self):
+        r = client.post(f"{BASE}/workspaces/simulation/compare/SCN-001")
+        assert r.status_code == 200
+        data = r.json()
+        assert "comparison" in data
+        assert "updatedAt" in data
+
 
 class TestSustainmentWorkspace:
     def test_fleet_shape(self):
