@@ -33,9 +33,18 @@ def _now_iso() -> str:
 
 class RiskAdapter:
     def __init__(self) -> None:
-        from src.dashboard.providers.threat_dash_provider import ThreatDashProvider
+        try:
+            from src.dashboard.providers.threat_dash_provider import ThreatDashProvider
 
-        self._threat = ThreatDashProvider()
+            self._threat = ThreatDashProvider()
+        except Exception:
+            # Tactical operations must keep rendering risk even if provider wiring fails.
+            class _FallbackThreatProvider:
+                @staticmethod
+                def get_threat_stats() -> Dict[str, Any]:
+                    return {"total_events": 0, "by_level": {}, "by_category": {}, "active_sensors": 0}
+
+            self._threat = _FallbackThreatProvider()
         self._risk_history: List[Tuple[datetime, float]] = []
         self._risk_history_limit = 512
         self._risk_forecaster = None

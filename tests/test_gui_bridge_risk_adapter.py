@@ -24,10 +24,8 @@ class _BrokenThreatProvider:
 
 
 def test_get_metrics_builds_domains_composite_and_forecast(monkeypatch) -> None:
-    import src.dashboard.providers.threat_dash_provider as provider_module
-
-    monkeypatch.setattr(provider_module, "ThreatDashProvider", _FakeThreatProvider)
     adapter = RiskAdapter()
+    adapter._threat = _FakeThreatProvider()
 
     metrics = adapter.get_metrics()
     assert 0 <= metrics.composite <= 100
@@ -39,10 +37,8 @@ def test_get_metrics_builds_domains_composite_and_forecast(monkeypatch) -> None:
 
 
 def test_get_threat_stats_falls_back_on_provider_error(monkeypatch) -> None:
-    import src.dashboard.providers.threat_dash_provider as provider_module
-
-    monkeypatch.setattr(provider_module, "ThreatDashProvider", _BrokenThreatProvider)
     adapter = RiskAdapter()
+    adapter._threat = _BrokenThreatProvider()
     fallback = adapter._get_threat_stats()
     assert fallback == {"total_events": 0, "by_level": {}, "by_category": {}, "active_sensors": 0}
 
