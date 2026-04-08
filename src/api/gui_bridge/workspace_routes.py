@@ -4,9 +4,11 @@ Each route instantiates an adapter singleton and delegates to it.
 Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 """
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
 from src.api.gui_bridge.adapters.decision_adapter import DecisionAdapter
@@ -19,6 +21,7 @@ from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
 from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
 from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
+from src.command.action_board import ActionBoard
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
@@ -34,11 +37,26 @@ _sustainment = SustainmentAdapter()
 _comms = CommsAdapter()
 _simulation = SimulationAdapter()
 _planning = PlanningAdapter()
+_action_board = ActionBoard()
 
 
 # ── Request/Response helpers ────────────────────────────────
 class DecisionActionRequest(BaseModel):
     comment: str = ""
+
+
+class CyberAttackRequest(BaseModel):
+    playbookId: Optional[str] = None
+    objective: str = ""
+    parameters: dict = Field(default_factory=dict)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+class PlanningSuggestionsRequest(BaseModel):
+    plan_context: str = ""
 
 
 # ── Command Overview ────────────────────────────────────────
@@ -53,6 +71,40 @@ async def get_timeline_events(
     limit: int = Query(50, ge=1, le=500),
 ):
     return _command.get_timeline_events(category=category, limit=limit).model_dump()
+
+
+@workspace_router.get("/command/action-board")
+async def get_action_board():
+    return _command.get_action_board()
+
+
+@workspace_router.post("/command/action-board")
+async def create_action_board_task(payload: ActionBoardCreateRequest):
+    task = _action_board.add_task(
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    return task.model_dump()
+
+
+@workspace_router.patch("/command/action-board/{task_id}")
+async def update_action_board_task(task_id: str, payload: ActionBoardUpdateRequest):
+    task = _action_board.update_task(
+        task_id=task_id,
+        title=payload.title,
+        urgency=payload.urgency,
+        impact=payload.impact,
+        assignee=payload.assignee,
+        status=payload.status,
+        linked_decision_id=payload.linkedDecisionId,
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Action task '{task_id}' not found")
+    return task.model_dump()
 
 
 # ── COP ─────────────────────────────────────────────────────
@@ -91,6 +143,11 @@ async def reject_decision(decision_id: str, body: DecisionActionRequest = Decisi
 @workspace_router.get("/risk/metrics")
 async def get_risk_metrics():
     return _risk.get_metrics().model_dump()
+
+
+@workspace_router.post("/risk/what-if")
+async def risk_what_if(scenario: dict):
+    return _risk.get_what_if(scenario)
 
 
 # ── Readiness ───────────────────────────────────────────────
@@ -152,6 +209,58 @@ async def get_cyber_resilience():
     return _cyber.get_resilience()
 
 
+@workspace_router.get("/cyber/model-security")
+async def get_model_security():
+    return _cyber.get_model_security()
+
+
+@workspace_router.get("/cyber/trust-fabric")
+async def get_trust_fabric():
+    return _cyber.get_trust_fabric()
+
+
+@workspace_router.get("/cyber/attack-capabilities")
+async def get_attack_capabilities():
+    return _cyber.get_attack_capabilities()
+
+
+@workspace_router.post("/cyber/attack/plan")
+async def plan_cyber_attack(body: CyberAttackRequest):
+    capabilities = _cyber.get_attack_capabilities().get("capabilities", [])
+    selected = None
+    if body.playbookId:
+        selected = next(
+            (
+                cap
+                for cap in capabilities
+                if str(cap.get("playbook_id", cap.get("id", ""))) == body.playbookId
+            ),
+            None,
+        )
+    return {
+        "status": "planned",
+        "plan": {
+            "playbook": selected,
+            "objective": body.objective,
+            "parameters": body.parameters,
+        },
+        "updatedAt": _now_iso(),
+    }
+
+
+@workspace_router.post("/cyber/attack/execute")
+async def execute_cyber_attack(body: CyberAttackRequest):
+    return {
+        "status": "queued",
+        "execution": {
+            "playbookId": body.playbookId,
+            "objective": body.objective,
+            "parameters": body.parameters,
+        },
+        "updatedAt": _now_iso(),
+    }
+
+
 # ── Simulation ──────────────────────────────────────────────
 @workspace_router.get("/simulation/scenarios")
 async def get_simulation_scenarios():
@@ -199,3 +308,13 @@ async def get_planning_phases():
 @workspace_router.get("/planning/coas")
 async def get_courses_of_action():
     return _planning.get_coas()
+
+
+@workspace_router.get("/planning/replan-triggers")
+async def get_replan_triggers():
+    return _planning.get_replan_triggers()
+
+
+@workspace_router.post("/planning/suggestions")
+async def get_planning_suggestions(payload: PlanningSuggestionsRequest = PlanningSuggestionsRequest()):
+    return _planning.get_suggestions(plan_context=payload.plan_context)

@@ -122,6 +122,16 @@ class TestRiskWorkspace:
         assert isinstance(data["composite"], int)
         assert 0 <= data["composite"] <= 100
 
+    def test_what_if_shape(self):
+        scenario = {"threat": "high", "readiness": "low"}
+        r = client.post(f"{BASE}/workspaces/risk/what-if", json=scenario)
+        assert r.status_code == 200
+        data = r.json()
+        assert "scenario" in data
+        assert "result" in data
+        assert "updatedAt" in data
+        assert data["scenario"] == scenario
+
 
 class TestReadinessWorkspace:
     def test_summary_shape(self):
@@ -229,6 +239,50 @@ class TestCyberWorkspace:
         data = r.json()
         assert "resilience" in data
 
+    def test_model_security_shape(self):
+        r = client.get(f"{BASE}/workspaces/cyber/model-security")
+        assert r.status_code == 200
+        data = r.json()
+        assert "modelSecurity" in data
+        assert "updatedAt" in data
+
+    def test_trust_fabric_shape(self):
+        r = client.get(f"{BASE}/workspaces/cyber/trust-fabric")
+        assert r.status_code == 200
+        data = r.json()
+        assert "crypto" in data
+        assert "zeroKnowledge" in data
+        assert "updatedAt" in data
+
+    def test_attack_capabilities_shape(self):
+        r = client.get(f"{BASE}/workspaces/cyber/attack-capabilities")
+        assert r.status_code == 200
+        data = r.json()
+        assert "capabilities" in data
+        assert "updatedAt" in data
+
+    def test_attack_plan_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/cyber/attack/plan",
+            json={"playbookId": "", "objective": "Test", "parameters": {}},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "status" in data
+        assert "plan" in data
+        assert "updatedAt" in data
+
+    def test_attack_execute_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/cyber/attack/execute",
+            json={"playbookId": "", "objective": "Test", "parameters": {}},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "status" in data
+        assert "execution" in data
+        assert "updatedAt" in data
+
 
 class TestSimulationWorkspace:
     def test_scenarios_shape(self):
@@ -286,6 +340,23 @@ class TestPlanningWorkspace:
         assert r.status_code == 200
         data = r.json()
         assert "coursesOfAction" in data
+
+    def test_replan_triggers_shape(self):
+        r = client.get(f"{BASE}/workspaces/planning/replan-triggers")
+        assert r.status_code == 200
+        data = r.json()
+        assert "triggers" in data
+        assert "updatedAt" in data
+
+    def test_suggestions_shape(self):
+        r = client.post(
+            f"{BASE}/workspaces/planning/suggestions",
+            json={"plan_context": "Enemy armored column observed near crossing sector."},
+        )
+        assert r.status_code == 200
+        data = r.json()
+        assert "suggestions" in data
+        assert "updatedAt" in data
 
 
 class TestAuth:
