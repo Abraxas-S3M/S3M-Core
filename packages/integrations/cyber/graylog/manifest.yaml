@@ -1,0 +1,5 @@
+name: "graylog"
+slug: "graylog"
+domain: "cyber"
+source_url: "https://github.com/Graylog2/graylog2-server"
+license: "Unknown"
