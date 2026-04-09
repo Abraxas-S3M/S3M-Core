@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "platform": "security-onion",
+  "operation": "hunt_overview",
+  "window": "last_15m",
+  "summary": {
+    "alerts_total": 126,
+    "alerts_high": 9,
+    "alerts_medium": 31,
+    "alerts_low": 86,
+    "new_hosts_monitored": 48
+  },
+  "top_alerts": [
+    {
+      "rule": "ET MALWARE C2 Beaconing Pattern",
+      "count": 4,
+      "severity": "high"
+    },
+    {
+      "rule": "Zeek SSL Suspicious JA3 Fingerprint",
+      "count": 7,
+      "severity": "high"
+    },
+    {
+      "rule": "ET POLICY DNS Query for Dynamic DNS",
+      "count": 15,
+      "severity": "medium"
+    }
+  ],
+  "tactical_assessment": "Prioritize C2 beacon triage to preserve command-and-control denial objectives."
+}
