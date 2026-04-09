@@ -1,0 +1,12 @@
+name: "SignalRange"
+slug: "signalrange"
+domain: "military"
+source_url: "https://github.com/thkruz/SignalRange"
+license: "MIT"
+description: "Ground station simulation integration for electronic warfare tactical training."
+integration_type: "adapter"
+capabilities:
+  - ew_training_simulation
+  - signal_environment_modeling
+  - mission_rehearsal
+airgapped_support: true
