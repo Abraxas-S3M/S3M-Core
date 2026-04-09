@@ -1,0 +1,12 @@
+name: "autonomous_drone_simulator"
+slug: "autonomous-drone-simulator"
+domain: "military"
+source_url: "https://github.com/jennamk14/autonomous_drone_simulator"
+license: "MIT"
+description: "UAV swarm simulator for autonomous mission rehearsal adaptable to military reconnaissance and escort scenarios."
+integration_type: "adapter"
+capabilities:
+  - "swarm-simulation"
+  - "mission-rehearsal"
+  - "uav-autonomy"
+airgapped_support: true

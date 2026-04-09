@@ -1,0 +1,21 @@
+{
+  "operation_id": "rtc-op-2026-04-09-001",
+  "mission_phase": "distributed-recon-rehearsal",
+  "orchestrator": {
+    "mode": "army-style-hierarchical",
+    "state": "stable",
+    "latency_ms": 41
+  },
+  "mesh": {
+    "active_nodes": 7,
+    "degraded_nodes": 0,
+    "consensus_state": "synchronized",
+    "last_sync_utc": "2026-04-09T11:26:00Z"
+  },
+  "tasking_summary": {
+    "task_packets_queued": 3,
+    "task_packets_completed": 12,
+    "priority_channel": "alpha-command-net"
+  },
+  "status": "ok"
+}

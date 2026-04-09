@@ -1,0 +1,21 @@
+{
+  "event_id": "trt-edge-llm-nav-2026-04-09-021",
+  "platform": "jetson-agx-orin-64gb",
+  "mission_profile": "urban-canyon-denied-comms",
+  "runtime": {
+    "engine": "llama3-8b-nav-int8.plan",
+    "precision": "int8",
+    "max_sequence_length": 4096,
+    "backend": "TensorRT-LLM"
+  },
+  "inference": {
+    "tokens_per_second": 143.7,
+    "first_token_latency_ms": 84.1,
+    "context_utilization": 0.72
+  },
+  "tactical_assessment": {
+    "recommended_action": "maintain_low_profile_route",
+    "confidence": 0.9,
+    "reasoning_summary": "Detected elevated ISR exposure probability on northern corridor."
+  }
+}

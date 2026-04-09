@@ -1,0 +1,5 @@
+name: "PX4-Autopilot"
+slug: "px4-autopilot"
+domain: "military"
+source_url: "https://github.com/PX4/PX4-Autopilot"
+license: "BSD-3-Clause"

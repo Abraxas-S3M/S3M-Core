@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "mission_id": "nav-rpg-mpc-2026-04-09-01",
+  "vehicle_id": "quad-alpha-3",
+  "trajectory_id": "perimeter-scan-leg-2",
+  "prediction_horizon_steps": 30,
+  "tracking_summary": {
+    "position_rmse_m": 0.21,
+    "yaw_rmse_deg": 1.8,
+    "constraint_violations": 0
+  },
+  "control_snapshot": {
+    "thrust": 10.8,
+    "body_rate_cmd": [0.03, -0.01, 0.02]
+  },
+  "perception_extension": {
+    "obstacle_margin_m": 2.4,
+    "active_constraints": 3
+  },
+  "tactical_assessment": {
+    "route_hold_quality": "high",
+    "sensor_line_of_sight": "maintained"
+  }
+}

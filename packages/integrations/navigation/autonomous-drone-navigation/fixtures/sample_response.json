@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "mission_id": "uav-indoor-sweep-echo-3",
+  "pipeline": "autonomous-drone-navigation",
+  "vehicle_state": {
+    "airframe": "px4_quadrotor",
+    "flight_mode": "offboard",
+    "battery_percent": 78
+  },
+  "fusion_health": {
+    "optical_flow": "tracking",
+    "imu": "nominal",
+    "lidar_altimeter": "nominal",
+    "position_uncertainty_m": 0.26
+  },
+  "mission_progress": {
+    "waypoints_total": 12,
+    "waypoints_completed": 9,
+    "obstacle_avoidance_events": 2
+  },
+  "tactical_assessment": {
+    "gps_denied_ready": true,
+    "confidence": 0.89,
+    "comment": "Indoor waypoint tracking maintained through occlusion and dust events."
+  }
+}

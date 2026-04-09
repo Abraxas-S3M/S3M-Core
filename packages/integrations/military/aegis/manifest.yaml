@@ -1,0 +1,12 @@
+name: "Aegis"
+slug: "aegis"
+domain: "military"
+source_url: "https://github.com/Vitalcheffe/Aegis"
+license: "Apache 2.0"
+description: "Autonomous kinetic interceptor swarm logic with sensor fusion for layered short-range air defense drills."
+integration_type: "adapter"
+capabilities:
+  - "swarm-intercept"
+  - "sensor-fusion"
+  - "air-defense-logic"
+airgapped_support: true

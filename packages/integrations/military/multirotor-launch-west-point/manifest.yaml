@@ -1,0 +1,14 @@
+name: "multirotor_launch (West Point)"
+slug: "multirotor-launch-west-point"
+domain: "military"
+source_url: "https://github.com/westpoint-robotics"
+license: "MIT"
+description: "ROS launch files for multirotor UAV control paired with GLAWS mission workflows."
+integration_type: "adapter"
+capabilities:
+  - "uav-launch-orchestration"
+  - "multirotor-mission-profiling"
+  - "airgapped-launch-rehearsal"
+system_dependencies:
+  - "roslaunch"
+airgapped_support: true

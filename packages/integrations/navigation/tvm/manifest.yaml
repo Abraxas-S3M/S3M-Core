@@ -1,0 +1,12 @@
+name: "tvm"
+slug: "tvm"
+domain: "navigation"
+source_url: "https://github.com/apache/tvm"
+license: "Apache 2.0"
+description: "End-to-end deep learning compiler for CPUs, GPUs, NPUs, and edge devices."
+integration_type: "adapter"
+capabilities:
+  - "model-compilation"
+  - "edge-optimization"
+  - "multi-backend-targeting"
+airgapped_support: true

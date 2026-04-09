@@ -1,0 +1,12 @@
+name: "Snipe-IT"
+slug: "snipe-it"
+domain: "military"
+source_url: "https://github.com/snipe/snipe-it"
+license: "AGPL-3.0"
+description: "IT asset management integration for sovereign military logistics accounting."
+integration_type: "adapter"
+capabilities:
+  - asset_inventory
+  - procurement_readiness
+  - maintenance_audit
+airgapped_support: true

@@ -1,0 +1,32 @@
+{
+  "operation": "ew_ground_station_drill",
+  "status": "success",
+  "exercise_id": "signalrange-ew-2026-0409-3308",
+  "terrain_profile": "mountainous-border-sector",
+  "emitter_tracks": [
+    {
+      "track_id": "EM-02",
+      "band": "X",
+      "bearing_deg": 71.4,
+      "range_km": 43.8,
+      "classification": "hostile_fire_control_radar"
+    },
+    {
+      "track_id": "EM-07",
+      "band": "L",
+      "bearing_deg": 129.1,
+      "range_km": 18.2,
+      "classification": "friendly_iff_beacon"
+    }
+  ],
+  "jamming_plan": {
+    "primary_channel": "X-9",
+    "window_seconds": 180,
+    "expected_degradation_percent": 62
+  },
+  "training_assessment": {
+    "crew_response_time_sec": 34,
+    "target_lock_breaks": 3,
+    "score": "A-"
+  }
+}

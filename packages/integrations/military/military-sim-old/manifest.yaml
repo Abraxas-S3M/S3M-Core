@@ -1,0 +1,12 @@
+name: "military-sim-old"
+slug: "military-sim-old"
+domain: "military"
+source_url: "https://github.com/ninest/military-sim-old"
+license: "MIT"
+description: "Text-based military simulation integration for tactical training scenarios."
+integration_type: "adapter"
+capabilities:
+  - scenario_rehearsal
+  - command_training
+  - rules_of_engagement_drills
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "Limited; adapt OpenMAINT"
+slug: "limited;-adapt-openmaint"
+domain: "military"
+source_url: "https://github.com/openmaint/openmaint"
+license: "AGPL-3.0"
+description: "Asset and maintenance management integration for military procurement/sustainment planning."
+integration_type: "adapter"
+capabilities:
+  - maintenance_planning
+  - procurement_tracking
+  - facility_asset_lifecycle
+airgapped_support: true

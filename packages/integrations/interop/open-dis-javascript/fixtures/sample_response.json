@@ -1,0 +1,29 @@
+{
+  "exercise_id": "pacific-shield-26",
+  "timestamp": "2026-04-09T14:22:00Z",
+  "network": {
+    "site": "fob-echo",
+    "protocol": "DIS",
+    "version": "7",
+    "multicast_group": "239.1.2.10"
+  },
+  "entity_state": {
+    "entity_id": "1-23-501",
+    "force_id": "friendly",
+    "latitude": 35.6895,
+    "longitude": 139.6917,
+    "altitude_m": 124.2,
+    "heading_deg": 87.3,
+    "speed_mps": 16.8
+  },
+  "converted_coordinates": {
+    "ecef_x_m": -3955072.89,
+    "ecef_y_m": 3353218.26,
+    "ecef_z_m": 3697474.74
+  },
+  "quality": {
+    "transform_status": "ok",
+    "latency_ms": 21,
+    "confidence": 0.98
+  }
+}

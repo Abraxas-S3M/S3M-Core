@@ -1,0 +1,31 @@
+{
+  "exercise_id": "air-c2-cop-eval-72",
+  "timestamp": "2026-04-09T14:46:00Z",
+  "cop_layer": {
+    "name": "airspace-control-order",
+    "region": "southern-corridor",
+    "active_tracks": 42,
+    "restricted_zones": 5
+  },
+  "map_products": [
+    {
+      "product_id": "aco-brief-01",
+      "type": "air_corridor",
+      "status": "published"
+    },
+    {
+      "product_id": "cop-threat-overlay",
+      "type": "threat_overlay",
+      "status": "published"
+    }
+  ],
+  "c2_sync": {
+    "last_sync_seconds": 18,
+    "conflicts_detected": 1,
+    "conflict_resolution": "deconfliction_pending"
+  },
+  "quality": {
+    "status": "degraded",
+    "confidence": 0.92
+  }
+}

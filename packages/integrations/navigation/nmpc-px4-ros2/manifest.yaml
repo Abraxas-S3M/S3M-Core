@@ -1,0 +1,12 @@
+name: nmpc_px4_ros2
+slug: nmpc-px4-ros2
+domain: navigation
+source_url: https://github.com/kousheekc/nmpc_px4_ros2
+license: MIT
+description: Nonlinear MPC trajectory tracking for PX4 aerial vehicles in ROS2.
+integration_type: adapter
+capabilities:
+- uav-trajectory-tracking
+- px4-offboard-control
+- ros2-mpc-handoff
+airgapped_support: true
