@@ -1,0 +1,13 @@
+name: "py_trees"
+slug: "py-trees"
+domain: "autonomy"
+source_url: "https://github.com/splintered-reality/py_trees"
+license: "BSD"
+description: "Python Behavior Tree library for robotics and autonomous agents."
+integration_type: "adapter"
+capabilities:
+  - "behavior_trees"
+  - "autonomy_control"
+pip_dependencies:
+  - "py_trees"
+airgapped_support: true
