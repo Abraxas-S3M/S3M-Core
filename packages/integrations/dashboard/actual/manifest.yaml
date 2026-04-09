@@ -1,0 +1,12 @@
+name: "Actual"
+slug: "actual"
+domain: "dashboard"
+source_url: "https://github.com/actualbudget/actual"
+license: "MIT"
+description: "Budget-tracking dashboard adapter for procurement visibility during sustained operations."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "budget_monitoring"
+  - "procurement_visualization"
+  - "cost_anomaly_detection"
