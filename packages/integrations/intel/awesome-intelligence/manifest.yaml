@@ -1,0 +1,12 @@
+name: "awesome-intelligence"
+slug: "awesome-intelligence"
+domain: "intel"
+source_url: "Related awesome lists (e.g., arpsyndicate)"
+license: "Unknown"
+description: "Curated intelligence and OSINT resources."
+integration_type: "adapter"
+capabilities:
+  - "resource_catalog"
+  - "osint_reference_lookup"
+  - "briefing_preparation"
+airgapped_support: true
