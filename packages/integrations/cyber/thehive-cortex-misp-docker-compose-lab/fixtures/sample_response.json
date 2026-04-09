@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "platform": "thehive-cortex-misp-docker-compose-lab",
+  "operation": "stack_readiness",
+  "services": {
+    "thehive": "healthy",
+    "cortex": "healthy",
+    "misp": "healthy",
+    "elasticsearch": "healthy"
+  },
+  "active_cases": 5,
+  "automated_analyzers_ready": 17,
+  "intel_feeds_synchronized": true,
+  "tactical_assessment": "Integrated case and intel workflows support rapid kill-chain disruption."
+}

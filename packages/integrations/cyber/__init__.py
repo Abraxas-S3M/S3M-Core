@@ -1,1 +1,1 @@
-"""Cyber domain integration wrappers for S3M."""
+"""Cyber Defense Operations domain integration wrappers for S3M."""

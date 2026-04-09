@@ -1,0 +1,12 @@
+name: Orbat-Mapper
+slug: orbat-mapper
+domain: dashboard
+source_url: https://github.com/orbat-mapper/orbat-mapper
+license: MIT
+description: ORBAT and unit plotting dashboard integration for situational awareness
+  of friendly and opposing formations.
+integration_type: adapter
+capabilities:
+- dashboard_observability
+- airgapped_fixture_execution
+airgapped_support: true

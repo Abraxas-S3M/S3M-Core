@@ -1,0 +1,11 @@
+name: "Soc-automation-with-automated-response-for-malware-and-malicious-IP-connect"
+slug: "soc-automation-with-automated-response-f"
+domain: "cyber"
+source_url: "https://github.com/Jaykitkukadiya/Soc-automation-with-automated-response-for-malware-and-malicious-IP-connect"
+license: "Unknown"
+description: "SOC automation pipeline integrating Wazuh, Suricata, Splunk, and SOAR workflows for tactical cyber defense operations."
+integration_type: "adapter"
+capabilities:
+  - cyber_defense
+  - incident_response
+airgapped_support: true

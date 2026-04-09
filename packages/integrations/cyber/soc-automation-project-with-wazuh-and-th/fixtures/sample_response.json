@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "platform": "soc-automation-project-with-wazuh-and-th",
+  "operation": "automation_pipeline_status",
+  "alerts_ingested_last_hour": 73,
+  "cases_created_last_hour": 18,
+  "playbooks_executed": [
+    {
+      "name": "malware_triage",
+      "success_rate": 0.94
+    },
+    {
+      "name": "credential_abuse_response",
+      "success_rate": 0.89
+    }
+  ],
+  "mean_alert_to_case_seconds": 41,
+  "tactical_assessment": "Automated alert-to-case conversion shortens defender OODA loops under attack."
+}

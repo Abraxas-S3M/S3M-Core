@@ -1,0 +1,13 @@
+name: "awesome-incident-response"
+slug: "awesome-incident-response"
+domain: "cyber"
+source_url: "https://github.com/meirwah/awesome-incident-response"
+license: "Unknown"
+description: "Curated list of tools and resources for security incident response."
+integration_type: "adapter"
+capabilities:
+  - "resource-catalog"
+  - "incident-response"
+  - "tool-selection"
+airgapped_support: true
+

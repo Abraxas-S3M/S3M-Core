@@ -1,0 +1,13 @@
+name: "gsvsoc_cirt-playbook-battle-cards"
+slug: "gsvsoc-cirt-playbook-battle-cards"
+domain: "cyber"
+source_url: "https://github.com/guardsight/gsvsoc_cirt-playbook-battle-cards"
+license: "Unknown"
+description: "Cyber Incident Response Playbook Battle Cards for quick countermeasures."
+integration_type: "adapter"
+capabilities:
+  - "rapid-countermeasure"
+  - "incident-response"
+  - "battle-card-reference"
+airgapped_support: true
+

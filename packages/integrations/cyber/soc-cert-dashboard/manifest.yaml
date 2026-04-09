@@ -1,0 +1,12 @@
+name: "soc-cert-dashboard"
+slug: "soc-cert-dashboard"
+domain: "cyber"
+source_url: "https://github.com/joupify/soc-cert-dashboard"
+license: "Unknown"
+description: "Professional SOC-CERT dashboard with AI-powered threat analysis."
+integration_type: "adapter"
+capabilities:
+  - "soc-cert-ops"
+  - "threat-analysis"
+  - "incident-correlation"
+airgapped_support: true

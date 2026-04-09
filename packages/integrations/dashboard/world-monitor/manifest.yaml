@@ -1,0 +1,12 @@
+name: "World Monitor"
+slug: "world-monitor"
+domain: "dashboard"
+source_url: "https://github.com/koala73/worldmonitor"
+license: "MIT"
+description: "Geopolitical dashboard for risks, conflicts, and forecasts."
+integration_type: "adapter"
+capabilities:
+  - "risk-monitoring"
+  - "conflict-forecasting"
+  - "geopolitical-situational-awareness"
+airgapped_support: true

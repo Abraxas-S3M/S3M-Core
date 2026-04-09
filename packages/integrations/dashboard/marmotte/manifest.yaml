@@ -1,0 +1,12 @@
+name: Marmotte
+slug: marmotte
+domain: dashboard
+source_url: https://github.com/marmotteio/marmotteio
+license: MIT
+description: IT asset management dashboard wrapper adaptable for military base infrastructure
+  and sustainment visibility.
+integration_type: adapter
+capabilities:
+- dashboard_observability
+- airgapped_fixture_execution
+airgapped_support: true

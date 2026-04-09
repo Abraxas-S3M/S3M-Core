@@ -1,0 +1,30 @@
+{
+  "operation_id": "osss-20260409-0105",
+  "stack": "Open-Source-SIEM_SOC-Stack",
+  "status": "operational",
+  "deployment": "containerized",
+  "services": {
+    "wazuh": "online",
+    "graylog": "online",
+    "grafana": "online",
+    "shuffle_soar": "degraded"
+  },
+  "pipeline_metrics": {
+    "events_per_minute": 1842,
+    "ingest_latency_ms_p95": 220,
+    "dropped_events": 7
+  },
+  "priority_findings": [
+    {
+      "id": "SOC-4412",
+      "severity": "high",
+      "summary": "Multiple failed privileged logins from unmanaged endpoint segment"
+    },
+    {
+      "id": "SOC-4413",
+      "severity": "medium",
+      "summary": "Suspicious DNS tunneling signature in perimeter sensor"
+    }
+  ],
+  "generated_at": "2026-04-09T00:00:00Z"
+}

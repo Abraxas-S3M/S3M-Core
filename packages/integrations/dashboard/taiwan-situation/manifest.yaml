@@ -1,0 +1,12 @@
+name: "TaiWan-Situation"
+slug: "taiwan-situation"
+domain: "dashboard"
+source_url: "https://github.com/Pluto114/TaiWan-situation"
+license: "MIT"
+description: "Tension index dashboard for geopolitical risks (adaptable)."
+integration_type: "adapter"
+capabilities:
+  - "geopolitical_dashboard"
+  - "tension_index"
+airgapped_support: true
+

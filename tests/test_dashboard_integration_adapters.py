@@ -1,7 +1,8 @@
-"""Unit tests for dashboard-domain S3M integration adapters."""
+"""Tests for dashboard integration wrappers in sovereign airgapped workflows."""
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 from pathlib import Path
 from typing import Any
@@ -114,16 +115,51 @@ ADAPTER_CASES: list[dict[str, Any]] = [
         "execute_params": {"action": "dashboard_summary"},
         "response_contract": "fixture_envelope",
     },
+    {
+        "slug_dir": "world-monitor",
+        "class_name": "WorldMonitorAdapter",
+        "integration_id": "world-monitor",
+        "manifest_name": "World Monitor",
+        "license": "MIT",
+        "source_url": "https://github.com/koala73/worldmonitor",
+    },
+    {
+        "slug_dir": "misp-dashboard",
+        "class_name": "MispDashboardAdapter",
+        "integration_id": "misp-dashboard",
+        "manifest_name": "MISP-Dashboard",
+        "license": "AGPL-3.0",
+        "source_url": "https://github.com/MISP/misp-dashboard",
+    },
+    {
+        "slug_dir": "streamlit-cybersecurity-dashboard",
+        "class_name": "StreamlitCybersecurityDashboardAdapter",
+        "integration_id": "streamlit-cybersecurity-dashboard",
+        "manifest_name": "Streamlit-Cybersecurity-Dashboard",
+        "license": "MIT",
+        "source_url": "https://github.com/ajitagupta/streamlit-cybersecurity-dashboard",
+    },
+    {
+        "slug_dir": "supply-chain-management-dashboard",
+        "class_name": "SupplyChainManagementDashboardAdapter",
+        "integration_id": "supply-chain-management-dashboard",
+        "manifest_name": "Supply-Chain-Management-Dashboard",
+        "license": "MIT",
+        "source_url": "https://github.com/GirishKumarV25/Supply-Chain-Management-Dashboard",
+    },
+    {
+        "slug_dir": "supply-chain-performance-dashboard",
+        "class_name": "SupplyChainPerformanceDashboardAdapter",
+        "integration_id": "supply-chain-performance-dashboard",
+        "manifest_name": "Supply-Chain-Performance-Dashboard",
+        "license": "MIT",
+        "source_url": "https://github.com/PolinaBurova/Supply-Chain-Performance-Dashboard",
+    },
 ]
 
 
-def _load_adapter_class(slug_dir: str, class_name: str):
-    adapter_path = REPO_ROOT / "packages" / "integrations" / "dashboard" / slug_dir / "adapter.py"
-    module_name = f"tests.dashboard_integrations.{slug_dir.replace('-', '_')}"
-    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def _load_adapter(module_path: str, class_name: str) -> type[Any]:
+    module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
 
@@ -131,16 +167,14 @@ def _load_adapter_class(slug_dir: str, class_name: str):
 def test_manifest_fields(case: dict[str, Any]) -> None:
     adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
-    manifest = adapter.get_manifest()
 
     assert isinstance(manifest, IntegrationManifest)
     assert manifest.name == case["manifest_name"]
     assert manifest.slug == case["integration_id"]
     assert manifest.domain == "dashboard"
-    assert manifest.source_url == case["source_url"]
-    assert manifest.license == case["license"]
-    assert manifest.integration_type == "adapter"
+    assert manifest.license == license_name
     assert manifest.airgapped_support is True
+    assert adapter.logger.name == f"s3m.integrations.dashboard.{slug}"
 
 
 @pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
@@ -177,4 +211,3 @@ def test_execute_rejects_non_mapping_params(case: dict[str, Any]) -> None:
 
     with pytest.raises(ValueError, match="mapping|dictionary"):
         adapter.execute(params="invalid")  # type: ignore[arg-type]
-

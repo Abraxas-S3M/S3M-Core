@@ -1,0 +1,12 @@
+name: "Assume"
+slug: "assume"
+domain: "dashboard"
+source_url: "https://github.com/assume-framework/assume"
+license: "MIT"
+description: "Agent-based sim dashboard for market/training scenarios."
+integration_type: "adapter"
+capabilities:
+  - "agent_simulation"
+  - "scenario_dashboard"
+airgapped_support: true
+

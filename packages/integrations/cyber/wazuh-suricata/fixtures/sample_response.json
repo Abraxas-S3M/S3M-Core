@@ -1,0 +1,32 @@
+{
+  "operation": "wazuh_suricata_correlation",
+  "status": "success",
+  "matched_events": 3,
+  "timeline": [
+    {
+      "timestamp": "2026-04-08T13:45:02Z",
+      "sensor": "suricata",
+      "signature": "ET MALWARE Possible C2 Traffic"
+    },
+    {
+      "timestamp": "2026-04-08T13:45:05Z",
+      "sensor": "wazuh",
+      "event": "Suspicious PowerShell execution"
+    },
+    {
+      "timestamp": "2026-04-08T13:45:07Z",
+      "sensor": "wazuh",
+      "event": "Unauthorized outbound connection"
+    }
+  ],
+  "correlated_host": {
+    "hostname": "alpha-node-17",
+    "asset_id": "bn-3421",
+    "classification": "mission-critical"
+  },
+  "recommended_response": [
+    "escalate_to_tier2",
+    "push_suricata_block_rule",
+    "start_forensic_collection"
+  ]
+}
