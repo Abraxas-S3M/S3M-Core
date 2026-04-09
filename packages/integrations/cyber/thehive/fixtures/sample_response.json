@@ -1,0 +1,29 @@
+{
+  "operation": "thehive_case_management",
+  "status": "created",
+  "case": {
+    "id": "CASE-44821",
+    "title": "Potential ransomware staging activity",
+    "severity": 3,
+    "tlp": 2,
+    "pap": 2,
+    "status": "InProgress"
+  },
+  "artifacts": [
+    {
+      "dataType": "ip",
+      "data": "203.0.113.76",
+      "ioc": true
+    },
+    {
+      "dataType": "domain",
+      "data": "update-check-secure.net",
+      "ioc": true
+    }
+  ],
+  "tasks_initialized": [
+    "containment_verification",
+    "host_triage",
+    "intel_enrichment"
+  ]
+}

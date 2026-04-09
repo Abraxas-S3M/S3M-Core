@@ -1,0 +1,40 @@
+{
+  "operation": "soc_automation_response",
+  "status": "contained",
+  "severity": "high",
+  "detected_by": [
+    "wazuh",
+    "suricata"
+  ],
+  "alert": {
+    "id": "soc-alert-9012",
+    "title": "Malware beacon to known C2 endpoint",
+    "source_ip": "10.44.21.9",
+    "destination_ip": "185.220.101.45",
+    "protocol": "tcp",
+    "destination_port": 443
+  },
+  "response_actions": [
+    {
+      "system": "wazuh",
+      "action": "isolate_host",
+      "result": "success"
+    },
+    {
+      "system": "suricata",
+      "action": "block_signature_push",
+      "result": "success"
+    },
+    {
+      "system": "splunk",
+      "action": "incident_ticket_update",
+      "result": "success"
+    }
+  ],
+  "confidence": 0.94,
+  "recommended_follow_on": [
+    "collect_memory_image",
+    "perform_hunt_across_subnet",
+    "brief_cyber_watch_officer"
+  ]
+}

@@ -1,0 +1,11 @@
+name: "MISP"
+slug: "misp"
+domain: "cyber"
+source_url: "https://github.com/MISP/MISP"
+license: "Unknown"
+description: "Threat intelligence exchange adapter for sovereign sharing and enrichment of hostile indicators."
+integration_type: "adapter"
+capabilities:
+  - cyber_defense
+  - incident_response
+airgapped_support: true

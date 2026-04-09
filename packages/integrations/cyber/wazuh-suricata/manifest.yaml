@@ -1,0 +1,11 @@
+name: "wazuh-suricata"
+slug: "wazuh-suricata"
+domain: "cyber"
+source_url: "https://github.com/ADORSYS-GIS/wazuh-suricata"
+license: "Unknown"
+description: "Dedicated Wazuh and Suricata integration for host-network correlation in tactical SOC monitoring."
+integration_type: "adapter"
+capabilities:
+  - cyber_defense
+  - incident_response
+airgapped_support: true
