@@ -1,0 +1,39 @@
+# S3M BackBlaze B2 deployment profile for cloud CPU nodes.
+# Tactical context: explicit allow/deny path controls ensure compact models are
+# synchronized to operational nodes while heavyweight Grok artifacts remain
+# blocked from constrained environments.
+
+backblaze:
+  # Values can be direct strings or environment placeholders (${ENV_NAME}).
+  endpoint: ${S3M_B2_ENDPOINT}
+  bucket_name: ${S3M_B2_BUCKET_NAME}
+  region_name: us-east-1
+  credentials:
+    key_id_env: S3M_B2_KEY_ID
+    app_key_env: S3M_B2_APP_KEY
+
+sync:
+  node_id: hetzner
+  interval_minutes: 30
+  tracks:
+    - saudi_mod
+    - ukraine_mod
+    - nato
+    - shared
+  quantized_pull_engines:
+    - phi3-medium
+    - mistral-7b
+  adapters_engine_ids:
+    - phi3-medium
+    - mistral-7b
+  engines_blocked_from_pull:
+    - grok
+    - grok-300b
+    - base-weights/grok-300b
+    - quantized/grok-300b
+  local:
+    training_root: /opt/s3m/state/training/cloud_cpu
+    models_root: /opt/s3m/models
+    adapters_root: /opt/s3m/adapters
+    metrics_root: /opt/s3m/state/training/cloud_cpu/metrics
+    gui_snapshots_root: /opt/s3m/gui-snapshots
