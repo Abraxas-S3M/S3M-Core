@@ -1,0 +1,34 @@
+{
+  "fixture_version": "1.0",
+  "integration": "eli5",
+  "operation": "explain_prediction",
+  "status": "ok",
+  "mission_profile": "autonomous_target_classification_audit",
+  "model_family": "xgboost",
+  "target_label": "hostile_fast_boat",
+  "predicted_probability": 0.84,
+  "top_contributing_features": [
+    {
+      "feature": "radar_cross_section_norm",
+      "weight": 0.36,
+      "direction": "increase_threat_score"
+    },
+    {
+      "feature": "transponder_absence_flag",
+      "weight": 0.31,
+      "direction": "increase_threat_score"
+    },
+    {
+      "feature": "course_change_rate_deg_min",
+      "weight": 0.19,
+      "direction": "increase_threat_score"
+    },
+    {
+      "feature": "range_to_restricted_zone_km",
+      "weight": -0.12,
+      "direction": "decrease_threat_score"
+    }
+  ],
+  "operator_note": "Use explanation output to justify escalation thresholds before live deployment.",
+  "source": "airgapped_fixture"
+}
