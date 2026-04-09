@@ -104,7 +104,16 @@ class GrokValidationOracle:
                 continue
             if not isinstance(payload, dict):
                 continue
+            if not self._is_verdict_request_payload(payload):
+                continue
             request = self._payload_to_request(payload, fallback_key=key)
+            if request.artifact_id in self._pending_manifest_keys:
+                logger.warning(
+                    "Duplicate pending request for artifact_id=%s encountered at %s; keeping first record",
+                    request.artifact_id,
+                    self._pending_manifest_keys[request.artifact_id],
+                )
+                continue
             self._pending_manifest_keys[request.artifact_id] = key
             self._request_payload_cache[request.artifact_id] = payload
             requests_found.append(request)
@@ -112,6 +121,14 @@ class GrokValidationOracle:
         requests_found.sort(key=lambda item: item.created_at)
         logger.info("Found %d pending Grok verdict requests", len(requests_found))
         return requests_found
+
+    def _is_verdict_request_payload(self, payload: dict[str, Any]) -> bool:
+        required = ("track", "artifact_type", "session_id")
+        if not all(str(payload.get(field, "")).strip() for field in required):
+            return False
+        # At least one identity field is required so random JSON artifacts are not parsed as requests.
+        identity_fields = ("artifact_id", "b2_key", "engine_id")
+        return any(str(payload.get(field, "")).strip() for field in identity_fields)
 
     def evaluate_artifact(self, request: VerdictRequest) -> Verdict:
         """Score a single training artifact.
