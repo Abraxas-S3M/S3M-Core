@@ -1,0 +1,12 @@
+name: "wazuh-soc-enterprise"
+slug: "wazuh-soc-enterprise"
+domain: "cyber"
+source_url: "https://github.com/brunoflausino/wazuh-soc-enterprise"
+license: "Unknown"
+description: "Enterprise-grade SOC with Wazuh and 20+ tools including Suricata, CALDERA, DFIR-IRIS, and Shuffle SOAR."
+integration_type: "adapter"
+capabilities:
+  - "enterprise_detection"
+  - "incident_triage"
+  - "soar_orchestration"
+airgapped_support: true

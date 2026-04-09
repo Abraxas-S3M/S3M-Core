@@ -1,0 +1,28 @@
+{
+  "operation_id": "esd-20260409-0099",
+  "stack": "Enterprise-SOC-Detection-and-Response-Wazuh",
+  "status": "operational",
+  "defense_posture": "heightened",
+  "detections": [
+    {
+      "alert_id": "WAZ-102998",
+      "technique": "T1047",
+      "tactic": "execution",
+      "severity": "high",
+      "summary": "WMI execution detected on tactical planning workstation"
+    },
+    {
+      "alert_id": "WAZ-103110",
+      "technique": "T1110",
+      "tactic": "credential-access",
+      "severity": "critical",
+      "summary": "Distributed authentication brute force from hostile netblock"
+    }
+  ],
+  "triage_queue": {
+    "pending": 14,
+    "assigned": 9,
+    "escalated": 2
+  },
+  "generated_at": "2026-04-09T00:00:00Z"
+}

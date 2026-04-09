@@ -1,0 +1,12 @@
+name: "soc-toolkit"
+slug: "soc-toolkit"
+domain: "cyber"
+source_url: "https://github.com/phrp720/soc-toolkit"
+license: "Unknown"
+description: "Full open-source SOC built with containerized security tools."
+integration_type: "adapter"
+capabilities:
+  - "container_security_monitoring"
+  - "incident_response_support"
+  - "threat_enrichment"
+airgapped_support: true
