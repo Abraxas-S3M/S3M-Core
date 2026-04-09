@@ -1,0 +1,30 @@
+{
+  "curation_id": "ati-2026-04-09-1880",
+  "snapshot_date": "2026-04-09",
+  "focus_area": "AJP-2.9 aligned OSINT preparation",
+  "recommended_collections": [
+    {
+      "category": "threat-intelligence-platforms",
+      "resource_count": 14,
+      "priority": "high",
+      "examples": ["MISP", "OpenCTI", "Yeti"]
+    },
+    {
+      "category": "malware-analysis",
+      "resource_count": 21,
+      "priority": "high",
+      "examples": ["CAPA", "Cuckoo Sandbox", "YARA"]
+    },
+    {
+      "category": "osint-search-automation",
+      "resource_count": 17,
+      "priority": "medium",
+      "examples": ["SpiderFoot", "Maltego CE", "theHarvester"]
+    }
+  ],
+  "summary": {
+    "total_categories_indexed": 12,
+    "high_priority_categories": 5,
+    "doctrine_alignment": "AJP-2.9-compatible"
+  }
+}

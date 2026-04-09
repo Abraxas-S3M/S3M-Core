@@ -1,0 +1,33 @@
+{
+  "sensor_id": "zeek-core-ndr-01",
+  "capture_window": "2026-04-09T12:00:00Z/2026-04-09T12:15:00Z",
+  "analysis_id": "zeek-2026-04-09-9014",
+  "conn_log": {
+    "flows_observed": 8842,
+    "encrypted_flows": 6721,
+    "suspicious_flows": 17
+  },
+  "detections": [
+    {
+      "uid": "CBo3wA2fK1L1KcbeN7",
+      "service": "ssl",
+      "id.orig_h": "10.77.4.19",
+      "id.resp_h": "203.0.113.44",
+      "notice_type": "SSL::Invalid_Server_Cert",
+      "severity": "high"
+    },
+    {
+      "uid": "C8uMFX4tA6e6RJ8Kf2",
+      "service": "dns",
+      "id.orig_h": "10.77.4.31",
+      "query": "a1f7f4d3.malicious-example.net",
+      "notice_type": "Intel::DOMAIN",
+      "severity": "medium"
+    }
+  ],
+  "summary": {
+    "high": 1,
+    "medium": 1,
+    "low": 3
+  }
+}

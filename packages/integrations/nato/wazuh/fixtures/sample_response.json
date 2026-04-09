@@ -1,0 +1,33 @@
+{
+  "cluster_id": "wazuh-nato-soc-02",
+  "analysis_id": "wazuh-2026-04-09-2208",
+  "active_agents": 412,
+  "alerts": [
+    {
+      "timestamp": "2026-04-09T11:04:19Z",
+      "rule_id": 5712,
+      "level": 12,
+      "agent_id": "002",
+      "agent_name": "hq-win-endpoint-27",
+      "description": "Multiple authentication failures followed by successful login",
+      "mitre_technique": "T1110",
+      "status": "escalated"
+    },
+    {
+      "timestamp": "2026-04-09T11:07:52Z",
+      "rule_id": 23504,
+      "level": 10,
+      "agent_id": "118",
+      "agent_name": "forward-deploy-linux-03",
+      "description": "Critical package vulnerability detected in exposed service",
+      "cve": "CVE-2026-1191",
+      "status": "triage"
+    }
+  ],
+  "summary": {
+    "critical": 1,
+    "high": 1,
+    "medium": 5,
+    "compliance_score": 0.93
+  }
+}

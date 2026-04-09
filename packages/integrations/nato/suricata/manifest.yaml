@@ -1,0 +1,12 @@
+name: "Suricata"
+slug: "suricata"
+domain: "nato"
+source_url: "https://github.com/OISF/suricata"
+license: "GPL-2.0"
+description: "High-performance IDS/IPS engine; supports real-time anomaly and threat detection."
+integration_type: "adapter"
+capabilities:
+  - "network_ids"
+  - "intrusion_prevention"
+  - "packet_inspection"
+airgapped_support: true

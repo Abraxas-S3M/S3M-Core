@@ -1,0 +1,12 @@
+name: "Zeek (formerly Bro)"
+slug: "zeek-formerly-bro"
+domain: "nato"
+source_url: "https://github.com/zeek/zeek"
+license: "BSD-3-Clause"
+description: "Protocol-aware network analysis for threat hunting and forensic visibility."
+integration_type: "adapter"
+capabilities:
+  - "protocol_analysis"
+  - "network_telemetry"
+  - "forensic_logging"
+airgapped_support: true

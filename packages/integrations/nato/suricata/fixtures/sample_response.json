@@ -1,0 +1,38 @@
+{
+  "sensor_id": "suricata-nato-blue-01",
+  "analysis_id": "suri-2026-04-09-1001",
+  "alerts": [
+    {
+      "timestamp": "2026-04-09T10:20:11Z",
+      "signature_id": 2100498,
+      "signature": "ET TROJAN C2 Beacon over TLS",
+      "severity": 1,
+      "src_ip": "10.40.12.77",
+      "src_port": 52344,
+      "dest_ip": "185.199.108.153",
+      "dest_port": 443,
+      "proto": "TCP",
+      "category": "A Network Trojan was detected",
+      "action": "blocked"
+    },
+    {
+      "timestamp": "2026-04-09T10:21:02Z",
+      "signature_id": 2029719,
+      "signature": "ET SCAN Nmap Scripting Engine User-Agent",
+      "severity": 2,
+      "src_ip": "10.40.7.25",
+      "src_port": 49712,
+      "dest_ip": "10.40.1.10",
+      "dest_port": 443,
+      "proto": "TCP",
+      "category": "Attempted Information Leak",
+      "action": "alerted"
+    }
+  ],
+  "summary": {
+    "critical": 1,
+    "high": 1,
+    "packets_processed": 1261043,
+    "drop_rate_percent": 0.12
+  }
+}

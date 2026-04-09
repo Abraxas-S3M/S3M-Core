@@ -1,0 +1,12 @@
+name: "Wazuh"
+slug: "wazuh"
+domain: "nato"
+source_url: "https://github.com/wazuh/wazuh"
+license: "GPL-2.0"
+description: "XDR/SIEM with HIDS and vulnerability detection for security operations monitoring."
+integration_type: "adapter"
+capabilities:
+  - "xdr_monitoring"
+  - "siem_correlation"
+  - "host_intrusion_detection"
+airgapped_support: true
