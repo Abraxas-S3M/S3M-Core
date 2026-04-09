@@ -1,0 +1,19 @@
+{
+  "reference_bundle": "c2sim-doctrine-baseline-2026.04",
+  "standard_version": "C2SIM v1.2",
+  "documents": [
+    "Overview_and_Conops.md",
+    "C2SIM_XML_Schema.xsd",
+    "Implementation_Guide.pdf"
+  ],
+  "validation_profiles": [
+    "land-c2sim-exchange",
+    "joint-fire-tasking",
+    "coalition-force-tracking"
+  ],
+  "readiness_assessment": {
+    "schema_integrity": "pass",
+    "example_messages_validated": 37,
+    "mission_context": "brigade-command-post-exercise"
+  }
+}

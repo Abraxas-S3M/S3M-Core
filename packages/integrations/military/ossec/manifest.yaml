@@ -1,0 +1,12 @@
+name: "OSSEC"
+slug: "ossec"
+domain: "military"
+source_url: "https://github.com/ossec/ossec-hids"
+license: "GPL-2.0"
+description: "Host-based intrusion detection for endpoint vulnerability and anomaly defense."
+integration_type: "adapter"
+capabilities:
+  - host_intrusion_detection
+  - file_integrity_monitoring
+  - endpoint_alerting
+airgapped_support: true

@@ -1,0 +1,5 @@
+name: "ardupilot"
+slug: "ardupilot"
+domain: "military"
+source_url: "https://github.com/ArduPilot/ardupilot"
+license: "GPL-3.0"

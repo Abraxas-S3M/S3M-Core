@@ -1,0 +1,33 @@
+{
+  "mission_id": "nato-isr-d2-2026-04-09-04",
+  "status": "processed",
+  "operation": "object_detection",
+  "sensor_frame": {
+    "frame_id": "uav-alpha-4412",
+    "timestamp_utc": "2026-04-09T14:12:28Z",
+    "resolution": "1920x1080"
+  },
+  "detections": [
+    {
+      "label": "armored_vehicle",
+      "confidence": 0.93,
+      "bbox_xyxy": [422, 318, 704, 566]
+    },
+    {
+      "label": "personnel_group",
+      "confidence": 0.88,
+      "bbox_xyxy": [815, 290, 1062, 604]
+    },
+    {
+      "label": "supply_truck",
+      "confidence": 0.86,
+      "bbox_xyxy": [1152, 344, 1460, 590]
+    }
+  ],
+  "post_processing": {
+    "non_max_suppression_iou": 0.5,
+    "threat_bucket": "medium",
+    "analyst_review_required": true
+  },
+  "mission_notes": "Offline ISR run produced stable class confidence for convoy-pattern surveillance."
+}

@@ -1,0 +1,12 @@
+name: "open-dis-java"
+slug: "open-dis-java"
+domain: "interop"
+source_url: "https://github.com/open-dis/open-dis-java"
+license: "Unknown"
+description: "Java implementation of DIS IEEE-1278 standard"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "ieee-1278-java-runtime"
+  - "dis-pdu-codecs"
+  - "joint-simulation-interoperability"

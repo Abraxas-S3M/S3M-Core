@@ -1,0 +1,14 @@
+name: "OpenVINS"
+slug: "openvins"
+domain: "navigation"
+source_url: "https://github.com/rpng/open_vins"
+license: "(BSD-style)"
+description: "Filter-based visual-inertial navigation platform with ROS2 support."
+integration_type: "adapter"
+capabilities:
+  - "visual_inertial_tracking"
+  - "filter_based_estimation"
+  - "ros2_support"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "coreDSUnreal (samples)"
+slug: "coredsunreal-samples"
+domain: "interop"
+source_url: "https://github.com/distributedsimulationtools/coreDSUnreal_Sample_AutomaticMode"
+license: "Unknown"
+description: "DIS integration samples for Unreal Engine simulations."
+integration_type: "adapter"
+capabilities:
+  - "dis_entity_sync"
+  - "simulation_playback"
+  - "protocol_interoperability"
+airgapped_support: true

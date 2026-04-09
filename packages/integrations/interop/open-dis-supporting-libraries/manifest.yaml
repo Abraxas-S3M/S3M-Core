@@ -1,0 +1,12 @@
+name: "open-dis supporting libraries"
+slug: "open-dis-supporting-libraries"
+domain: "interop"
+source_url: "Components within open-dis repos"
+license: "Unknown"
+description: "Coordinate conversion, PDU utilities, and helper libraries"
+integration_type: "adapter"
+capabilities:
+  - "coordinate-conversion"
+  - "pdu-validation"
+  - "dis-interoperability-support"
+airgapped_support: true

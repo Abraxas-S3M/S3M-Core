@@ -1,0 +1,13 @@
+name: ROS2-NMPC-ACADOS
+slug: ros2-nmpc-acados
+domain: navigation
+source_url: https://github.com/SokhengDin/ROS2-NMPC-ACADOS
+license: MIT
+description: Nonlinear MPC for differential-drive robots using acados and ROS2 control
+  loops.
+integration_type: adapter
+capabilities:
+- nonlinear-mpc
+- differential-drive-control
+- ros2-planner-handoff
+airgapped_support: true

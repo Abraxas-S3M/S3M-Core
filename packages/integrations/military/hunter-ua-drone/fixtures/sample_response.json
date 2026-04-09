@@ -1,0 +1,21 @@
+{
+  "sortie_id": "hud-counter-uas-2026-04-09-019",
+  "mission_type": "defensive-intercept-rehearsal",
+  "threat_track": {
+    "target_class": "quadrotor",
+    "bearing_degrees": 127,
+    "range_meters": 830,
+    "closing_speed_mps": 22
+  },
+  "intercept_solution": {
+    "waypoint_count": 5,
+    "estimated_intercept_time_seconds": 54,
+    "confidence": 0.86
+  },
+  "vehicle_state": {
+    "battery_percent": 78,
+    "navigation_link": "stable",
+    "payload_status": "simulated"
+  },
+  "status": "ok"
+}

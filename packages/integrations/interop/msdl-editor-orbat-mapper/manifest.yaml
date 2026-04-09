@@ -1,0 +1,12 @@
+name: "msdl-editor (orbat-mapper)"
+slug: "msdl-editor-orbat-mapper"
+domain: "interop"
+source_url: "Related orbat-mapper repos"
+license: "Unknown"
+description: "Editor references for Military Scenario Definition Language (MSDL)."
+integration_type: "adapter"
+capabilities:
+  - "msdl_editing_support"
+  - "orbat_mapping"
+  - "scenario_validation"
+airgapped_support: true

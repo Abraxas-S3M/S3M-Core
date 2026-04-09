@@ -1,0 +1,12 @@
+name: "Malcolm"
+slug: "malcolm"
+domain: "military"
+source_url: "https://github.com/cisagov/Malcolm"
+license: "AGPL-3.0"
+description: "Network traffic analysis for threat detection in military network monitoring."
+integration_type: "adapter"
+capabilities:
+  - "traffic_analysis"
+  - "threat_hunting"
+  - "network_forensics"
+airgapped_support: true

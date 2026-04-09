@@ -1,0 +1,16 @@
+{
+  "reference_id": "dis-tutorial-brief-771",
+  "topic": "Entity State PDU encoding",
+  "scenario_context": "brigade-simulation-rehearsal",
+  "key_points": [
+    "Use deterministic dead reckoning to reduce network load under contested RF conditions.",
+    "Validate timestamp synchronization before federate exchange during joint-force rehearsal.",
+    "Apply consistent coordinate reference conventions across red-blue simulation enclaves."
+  ],
+  "recommended_checklist": [
+    "confirm_ieee_1278_version",
+    "verify_pdu_length_and_padding",
+    "cross_check_enumerations_with_fom"
+  ],
+  "status": "ready_for_airgapped_training"
+}

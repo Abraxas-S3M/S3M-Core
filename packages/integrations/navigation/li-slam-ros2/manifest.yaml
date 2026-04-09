@@ -1,0 +1,16 @@
+name: "li_slam_ros2"
+slug: "li-slam-ros2"
+domain: "navigation"
+source_url: "https://github.com/rsasaki0109/li_slam_ros2"
+license: "(ROS2-style)"
+description: "Tightly-coupled LiDAR SLAM with LIO-SAM IMU integration in ROS2."
+integration_type: "adapter"
+capabilities:
+  - "tightly_coupled_lidar_slam"
+  - "imu_preintegration"
+  - "ros2_navigation_pose_output"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+  - "pcl"
+airgapped_support: true

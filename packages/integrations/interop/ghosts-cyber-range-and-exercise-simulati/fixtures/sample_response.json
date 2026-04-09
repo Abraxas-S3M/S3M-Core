@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "exercise_id": "ghosts-range-2026-04-09-006",
+  "range_cells": [
+    {
+      "cell_id": "blue-cell-1",
+      "hosts_active": 42,
+      "critical_services": 9,
+      "degradation": "low"
+    },
+    {
+      "cell_id": "red-cell-agg",
+      "hosts_active": 19,
+      "campaign_stage": "lateral-movement"
+    }
+  ],
+  "inject_timeline": [
+    {
+      "time_zulu": "06:10Z",
+      "inject": "phishing-wave",
+      "expected_blue_action": "mail-gateway quarantine"
+    },
+    {
+      "time_zulu": "06:35Z",
+      "inject": "credential-harvest beacon",
+      "expected_blue_action": "host isolation and token reset"
+    }
+  ],
+  "scoreboard": {
+    "blue_detected_events": 17,
+    "red_successful_objectives": 2,
+    "exercise_completion": 0.68
+  },
+  "tactical_assessment": "Range telemetry indicates defensive procedures are effective but privileged account hardening remains a mission risk."
+}

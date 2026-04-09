@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "dataset": "msdl-editor-orbat-mapper",
+  "snapshot_version": "2026.04",
+  "scenario_metadata": {
+    "scenario_id": "jtf-desert-shield-rehearsal",
+    "msdl_version": "1.0",
+    "orbat_revision": "rev-12"
+  },
+  "force_packages": [
+    {
+      "force_name": "Blue Brigade North",
+      "affiliation": "friendly",
+      "unit_count": 14
+    },
+    {
+      "force_name": "Red Mechanized Group",
+      "affiliation": "opposing",
+      "unit_count": 11
+    }
+  ],
+  "export_artifacts": [
+    "scenario.msdl.xml",
+    "orbat-overlay.geojson",
+    "c2sim-initialization-message.xml"
+  ],
+  "validation_summary": {
+    "schema_valid": true,
+    "missing_fields": [],
+    "warnings": [
+      "One logistics unit lacks fuel endurance metadata"
+    ]
+  },
+  "tactical_note": "Validated MSDL/ORBAT artifacts improve force synchronization during coalition simulation startup."
+}

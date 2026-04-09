@@ -1,0 +1,38 @@
+{
+  "status": "ok",
+  "dataset": "netn-references-in-openc2sim",
+  "snapshot_version": "2026.04",
+  "federation_agreements": [
+    {
+      "agreement_id": "NETN-FA-001",
+      "profile": "land_ops_brigade_sim",
+      "standards": [
+        "DIS",
+        "C2SIM"
+      ],
+      "status": "validated"
+    },
+    {
+      "agreement_id": "NETN-FA-007",
+      "profile": "joint_air_land_recon",
+      "standards": [
+        "DIS",
+        "C2SIM"
+      ],
+      "status": "pending_minor_extension_review"
+    }
+  ],
+  "extension_mappings": [
+    {
+      "extension": "logistics_resupply_event",
+      "base_message": "C2SIM_Report",
+      "compatibility": "high"
+    },
+    {
+      "extension": "blue_force_tracking_precision",
+      "base_message": "DIS_EntityStatePDU",
+      "compatibility": "medium"
+    }
+  ],
+  "tactical_note": "Align federation agreements before multi-nation exercise start to prevent semantic drift across simulators."
+}

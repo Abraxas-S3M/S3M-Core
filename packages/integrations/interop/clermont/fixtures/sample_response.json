@@ -1,0 +1,29 @@
+{
+  "exercise_id": "iron-watch-31",
+  "timestamp": "2026-04-09T14:40:00Z",
+  "display": {
+    "mode": "command-center",
+    "active_panels": [
+      "strategic-map",
+      "logistics-status",
+      "signals-overview",
+      "intel-brief"
+    ],
+    "operator_count": 5
+  },
+  "common_operating_picture": {
+    "friendly_tracks": 29,
+    "hostile_tracks": 6,
+    "uncertain_tracks": 4,
+    "priority_sector": "north-ridge"
+  },
+  "system_health": {
+    "render_latency_ms": 89,
+    "stream_sync": "locked",
+    "degraded_panels": []
+  },
+  "quality": {
+    "status": "nominal",
+    "confidence": 0.96
+  }
+}

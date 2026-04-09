@@ -1,0 +1,5 @@
+name: "ORB_SLAM3"
+slug: "orb-slam3"
+domain: "military"
+source_url: "https://github.com/UZ-SLAMLab/ORB_SLAM3"
+license: "(BSD-style)"
