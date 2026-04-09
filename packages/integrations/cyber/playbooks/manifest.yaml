@@ -1,0 +1,13 @@
+name: "Playbooks"
+slug: "playbooks"
+domain: "cyber"
+source_url: "https://github.com/socfortress/Playbooks"
+license: "Unknown"
+description: "Incident Response Playbooks and workflows for SOC analysts (NIST-aligned)."
+integration_type: "adapter"
+capabilities:
+  - "incident-response"
+  - "soc-workflow"
+  - "playbook-reference"
+airgapped_support: true
+

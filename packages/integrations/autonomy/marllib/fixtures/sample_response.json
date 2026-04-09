@@ -1,0 +1,15 @@
+{
+  "run_id": "marllib-escort-formation-022",
+  "env_family": "pettingzoo",
+  "scenario": "convoy-escort-denied-gps",
+  "algorithm": "HAPPO",
+  "num_agents": 8,
+  "episodes": 2200,
+  "performance": {
+    "convoy_survival_rate": 0.88,
+    "threat_neutralization_rate": 0.62,
+    "formation_integrity_score": 0.81
+  },
+  "checkpoint": "fixtures/checkpoints/marllib-escort-formation-022",
+  "status": "completed"
+}

@@ -1,0 +1,48 @@
+{
+  "status": "ok",
+  "integration": "awesome-incident-response",
+  "operation": "resource_catalog_query",
+  "source": "fixture",
+  "entries": [
+    {
+      "id": "air-001",
+      "title": "Velociraptor Endpoint DFIR",
+      "summary": "Endpoint hunting and artifact collection platform used to triage compromised hosts at scale.",
+      "category": "endpoint",
+      "priority": "high",
+      "tags": [
+        "dfir",
+        "endpoint-telemetry",
+        "threat-hunting"
+      ],
+      "recommended_use": "Deploy rapid collection pack to isolate command-and-control persistence indicators."
+    },
+    {
+      "id": "air-002",
+      "title": "TheHive Case Coordination",
+      "summary": "Case management platform for coordinated SOC workflows and analyst handoff.",
+      "category": "orchestration",
+      "priority": "medium",
+      "tags": [
+        "soar",
+        "case-management",
+        "analyst-collaboration"
+      ],
+      "recommended_use": "Track incident tasks and synchronize containment timelines across tactical teams."
+    },
+    {
+      "id": "air-003",
+      "title": "Sigma Detection Rules",
+      "summary": "Portable detection-rule format for rapid hunting and SIEM alignment.",
+      "category": "detection",
+      "priority": "high",
+      "tags": [
+        "detections",
+        "siem",
+        "threat-hunting"
+      ],
+      "recommended_use": "Translate high-confidence ATT&CK detections into sensor-specific queries for active hunts."
+    }
+  ]
+}
+

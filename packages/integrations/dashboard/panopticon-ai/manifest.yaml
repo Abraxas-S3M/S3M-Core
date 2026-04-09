@@ -1,0 +1,13 @@
+name: "Panopticon AI"
+slug: "panopticon-ai"
+domain: "dashboard"
+source_url: "https://github.com/Panopticon-AI-team/panopticon"
+license: "MIT"
+description: "Web-based military sim dashboard for wargaming and projections."
+integration_type: "adapter"
+capabilities:
+  - "wargame_projection"
+  - "force_posture_dashboard"
+  - "what_if_analysis"
+airgapped_support: true
+

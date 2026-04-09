@@ -1,0 +1,17 @@
+{
+  "plugin": "reactive_escort_controller",
+  "node_name": "s3m_bt_executor_alpha",
+  "mission_context": "high-value-asset-escort",
+  "lifecycle_state": "active",
+  "plugin_health": "healthy",
+  "last_tick_status": "SUCCESS",
+  "service_endpoints": {
+    "reload_tree": "/bt/reload_tree",
+    "halt_tree": "/bt/halt_tree"
+  },
+  "diagnostics": {
+    "tick_latency_ms": 6.1,
+    "blackboard_sync_ok": true,
+    "recovery_invocations": 0
+  }
+}
