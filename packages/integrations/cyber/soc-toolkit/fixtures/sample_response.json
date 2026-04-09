@@ -1,0 +1,32 @@
+{
+  "operation_id": "sct-20260409-0201",
+  "stack": "soc-toolkit",
+  "status": "operational",
+  "deployment_model": "containers",
+  "security_tools": {
+    "wazuh": "online",
+    "misp": "online",
+    "thehive": "online",
+    "cortex": "online"
+  },
+  "incidents": [
+    {
+      "ticket": "SOC-INC-9001",
+      "priority": "high",
+      "summary": "Suspicious data staging in restricted intelligence enclave",
+      "owner": "blue-team-2"
+    },
+    {
+      "ticket": "SOC-INC-9002",
+      "priority": "medium",
+      "summary": "Repeated endpoint malware detections after patch rollout",
+      "owner": "blue-team-1"
+    }
+  ],
+  "response_capacity": {
+    "analysts_available": 6,
+    "active_cases": 5,
+    "sla_breach_risk": "low"
+  },
+  "generated_at": "2026-04-09T00:00:00Z"
+}

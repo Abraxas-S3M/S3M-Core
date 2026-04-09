@@ -1,0 +1,14 @@
+name: "ELI5"
+slug: "eli5"
+domain: "autonomy"
+source_url: "https://github.com/TeamHG-Memex/eli5"
+license: "MIT"
+description: "Classifier and prediction explainability support for autonomy risk review."
+integration_type: "adapter"
+capabilities:
+  - "prediction_explanation"
+  - "feature_weight_inspection"
+  - "offline_audit_support"
+pip_dependencies:
+  - "eli5"
+airgapped_support: true

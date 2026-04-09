@@ -1,0 +1,40 @@
+{
+  "query_window": "last_15_minutes",
+  "search": "source:firewall AND level:>=4",
+  "total_matches": 128,
+  "streams": [
+    {
+      "stream_id": "soc-critical-events",
+      "name": "SOC critical events",
+      "message_count": 37,
+      "top_sources": [
+        "fw-edge-01",
+        "fw-edge-02",
+        "ids-node-3"
+      ]
+    },
+    {
+      "stream_id": "auth-anomalies",
+      "name": "Authentication anomalies",
+      "message_count": 24,
+      "top_sources": [
+        "ad-controller-a",
+        "vpn-gateway-2"
+      ]
+    }
+  ],
+  "notable_events": [
+    {
+      "event_id": "evt-43d2",
+      "severity": "high",
+      "summary": "Brute-force pattern detected against privileged accounts",
+      "mapped_playbook": "identity-containment-v2"
+    },
+    {
+      "event_id": "evt-879a",
+      "severity": "critical",
+      "summary": "Potential command-and-control beacon from isolated segment",
+      "mapped_playbook": "c2-disruption-v4"
+    }
+  ]
+}

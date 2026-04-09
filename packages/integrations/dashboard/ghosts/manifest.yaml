@@ -1,0 +1,12 @@
+name: "GHOSTS"
+slug: "ghosts"
+domain: "dashboard"
+source_url: "https://github.com/cmu-sei/GHOSTS"
+license: "Apache 2.0"
+description: "Cyber simulation dashboard adapter for red/blue exercise telemetry and Grafana-driven training metrics."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "cyber_exercise_simulation"
+  - "grafana_telemetry"
+  - "scenario_after_action_review"

@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "integration_id": "trustyai-explainability",
+  "domain": "autonomy",
+  "execution_mode": "airgapped",
+  "mission_id": "mission-fire-control-advisory-12",
+  "model_id": "target-classifier-jvm-v5",
+  "result": {
+    "prediction_id": "pred-8f2a1",
+    "predicted_class": "high_priority_target",
+    "confidence": 0.89,
+    "fairness_metrics": {
+      "demographic_parity_difference": 0.03,
+      "equalized_odds_difference": 0.05
+    },
+    "explanation": {
+      "method": "counterfactual",
+      "primary_feature": "sensor_fusion_score",
+      "counterfactual_delta": -0.14
+    }
+  },
+  "telemetry": {
+    "timestamp_utc": "2026-04-09T04:41:37Z",
+    "audit_node": "xai-gateway-02"
+  }
+}

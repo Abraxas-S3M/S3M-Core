@@ -1,0 +1,24 @@
+{
+  "tree_name": "perimeter-watchdog",
+  "mission_context": "forward-operating-base-security",
+  "tick_summary": {
+    "ticks_executed": 180,
+    "terminal_status": "SUCCESS",
+    "selector_fallbacks": 1,
+    "guard_failures": 0
+  },
+  "behaviors": [
+    {
+      "name": "sensor_health_check",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "threat_scan",
+      "status": "SUCCESS"
+    },
+    {
+      "name": "intercept_tasking",
+      "status": "RUNNING"
+    }
+  ]
+}

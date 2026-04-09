@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "integration_id": "spot-bt-ros",
+  "domain": "autonomy",
+  "execution_mode": "airgapped",
+  "mission_id": "mission-urban-recon-22",
+  "robot_id": "spot-unit-03",
+  "result": {
+    "tree_state": "SUCCESS",
+    "commands_issued": 19,
+    "waypoints_completed": 6,
+    "hazard_avoidance_events": 2,
+    "battery_remaining_pct": 71.4
+  },
+  "telemetry": {
+    "sector": "sector-bravo-2",
+    "timestamp_utc": "2026-04-09T04:25:10Z"
+  }
+}

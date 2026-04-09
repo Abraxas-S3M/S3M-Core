@@ -1,0 +1,32 @@
+{
+  "workspace": "airgapped-curated-index",
+  "catalog_version": "2026.04",
+  "dashboard_count": 42,
+  "categories": [
+    {
+      "name": "surface-mapping",
+      "entries": 16
+    },
+    {
+      "name": "attack-surface-monitoring",
+      "entries": 14
+    },
+    {
+      "name": "vulnerability-analytics",
+      "entries": 12
+    }
+  ],
+  "priority_dashboards": [
+    {
+      "title": "External Exposure Heatmap",
+      "focus": "Prioritize internet-facing military endpoints with weak controls.",
+      "risk_level": "high"
+    },
+    {
+      "title": "Certificate Drift Monitor",
+      "focus": "Detect expired or rogue certificates affecting mission services.",
+      "risk_level": "medium"
+    }
+  ],
+  "recommended_next_step": "Validate top risk assets against local CMDB before remediation tasking."
+}

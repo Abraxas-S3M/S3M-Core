@@ -1,0 +1,51 @@
+{
+  "status": "ok",
+  "integration": "playbooks",
+  "operation": "list_playbooks",
+  "source": "fixture",
+  "entries": [
+    {
+      "id": "pb-001",
+      "title": "Ransomware Containment and Recovery",
+      "summary": "Coordinate SOC, endpoint, and backup teams to isolate infected hosts, preserve evidence, and restore priority mission systems.",
+      "nist_phase": "Containment, Eradication, and Recovery",
+      "priority": "critical",
+      "tags": [
+        "ransomware",
+        "containment",
+        "backup-restoration"
+      ],
+      "mitre_techniques": [
+        "T1486",
+        "T1078"
+      ],
+      "recommended_actions": [
+        "Isolate affected network segments at the tactical edge.",
+        "Collect volatile memory and endpoint telemetry for forensics.",
+        "Restore mission-essential services from trusted offline backups."
+      ]
+    },
+    {
+      "id": "pb-002",
+      "title": "Credential Theft Investigation",
+      "summary": "Hunt for credential abuse indicators and rapidly revoke compromised accounts to prevent lateral movement.",
+      "nist_phase": "Detection and Analysis",
+      "priority": "high",
+      "tags": [
+        "credential-access",
+        "identity",
+        "lateral-movement"
+      ],
+      "mitre_techniques": [
+        "T1003",
+        "T1550"
+      ],
+      "recommended_actions": [
+        "Force password reset and token revocation for impacted identities.",
+        "Enable emergency MFA enforcement for privileged accounts.",
+        "Pivot hunt through authentication logs for anomalous geolocation and impossible-travel patterns."
+      ]
+    }
+  ]
+}
+

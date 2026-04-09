@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "integration_id": "panopticon-ai",
+  "domain": "dashboard",
+  "projection_id": "northern-front-forecast-21",
+  "generated_at": "2026-04-09T10:17:00Z",
+  "operation": "generate_wargame_projection",
+  "time_horizon_hours": 72,
+  "force_balance": {
+    "friendly_strength_index": 0.74,
+    "opfor_strength_index": 0.61,
+    "civilian_risk_index": 0.28
+  },
+  "projected_axes": [
+    {
+      "axis": "corridor-alpha",
+      "likelihood": 0.67,
+      "estimated_contact_time": "2026-04-10T02:00:00Z"
+    },
+    {
+      "axis": "corridor-bravo",
+      "likelihood": 0.48,
+      "estimated_contact_time": "2026-04-10T06:30:00Z"
+    }
+  ],
+  "recommended_actions": [
+    "Reinforce corridor-alpha ISR coverage before H+12.",
+    "Pre-stage medevac teams near sector BR-4."
+  ]
+}
+

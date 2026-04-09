@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "integration_id": "watcher",
+  "domain": "dashboard",
+  "operation": "threat_hunting_snapshot",
+  "generated_at": "2026-04-09T10:23:00Z",
+  "intel_window_hours": 24,
+  "anomalies": [
+    {
+      "anomaly_id": "anom-9084",
+      "confidence": 0.86,
+      "severity": "high",
+      "source": "dns_activity",
+      "description": "Beacon-like periodic DNS lookups from logistics subnet."
+    },
+    {
+      "anomaly_id": "anom-9112",
+      "confidence": 0.73,
+      "severity": "medium",
+      "source": "auth_events",
+      "description": "Repeated privilege escalation attempts on mission planning host."
+    }
+  ],
+  "recommended_hunts": [
+    "Pivot on anomaly anom-9084 and inspect outbound TLS sessions.",
+    "Correlate anom-9112 with endpoint process lineage telemetry."
+  ]
+}
+
