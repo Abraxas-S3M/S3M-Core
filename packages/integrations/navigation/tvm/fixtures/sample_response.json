@@ -1,0 +1,20 @@
+{
+  "event_id": "tvm-nav-2026-04-09-014",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "mountain-pass-resupply",
+  "compile_job": {
+    "model": "route_fusion_transformer.onnx",
+    "target": "cuda -arch=sm_87",
+    "tuning_profile": "edge-balanced"
+  },
+  "artifacts": {
+    "library": "route_fusion_transformer_tvm.so",
+    "graph": "route_fusion_transformer_tvm.json",
+    "params": "route_fusion_transformer_tvm.params"
+  },
+  "performance_estimate": {
+    "latency_ms_p95": 9.8,
+    "memory_mb": 612,
+    "status": "deployment-ready"
+  }
+}

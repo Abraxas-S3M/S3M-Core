@@ -1,0 +1,12 @@
+name: "onnxruntime"
+slug: "onnxruntime"
+domain: "navigation"
+source_url: "https://github.com/microsoft/onnxruntime"
+license: "MIT"
+description: "Cross-platform ML accelerator with TensorRT, CUDA, and edge providers."
+integration_type: "adapter"
+capabilities:
+  - "onnx-inference"
+  - "provider-selection"
+  - "edge-acceleration"
+airgapped_support: true
