@@ -1,0 +1,22 @@
+{
+  "run_id": "kr-af-mission-2026-04-09-044",
+  "status": "completed",
+  "vehicle_id": "quad-alpha-3",
+  "estimator": "ukf",
+  "mission_phase": "indoor_corridor_traverse",
+  "trajectory": {
+    "waypoints_completed": 11,
+    "waypoints_total": 12,
+    "mean_track_error_m": 0.27
+  },
+  "navigation_state": {
+    "position_m": {
+      "x": 208.2,
+      "y": -76.5,
+      "z": 9.4
+    },
+    "velocity_mps": 6.1,
+    "heading_deg": 33.7
+  },
+  "mission_note": "Airgapped replay of GPS-denied quadrotor autonomy sortie."
+}
