@@ -1,121 +1,100 @@
-"""Unit tests for cyber-domain integration wrappers.
+"""Tests for cyber integration wrappers under packages/integrations/cyber.
 
 Military/tactical context:
-These tests guarantee that incident-response wrappers remain deterministic in
-airgapped deployments where live internet access is unavailable.
+These tests ensure defensive SOC adapters remain deterministic in airgapped
+operations and reject malformed operator inputs before execution.
 """
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
+from pathlib import Path
+from typing import Any
 
 import pytest
 
-from packages.integrations.base import IntegrationManifest
 
+_ROOT = Path(__file__).resolve().parents[1]
 
-ADAPTER_CASES = [
-    (
-        "packages.integrations.cyber.playbooks.adapter",
-        "PlaybooksAdapter",
-        "playbooks",
-        "Playbooks",
-    ),
-    (
-        "packages.integrations.cyber.incident-playbook.adapter",
-        "IncidentPlaybookAdapter",
-        "incident-playbook",
-        "Incident-Playbook",
-    ),
-    (
-        "packages.integrations.cyber.awesome-incident-response.adapter",
-        "AwesomeIncidentResponseAdapter",
-        "awesome-incident-response",
-        "awesome-incident-response",
-    ),
-    (
-        "packages.integrations.cyber.gsvsoc-cirt-playbook-battle-cards.adapter",
-        "GsvsocCirtPlaybookBattleAdapter",
-        "gsvsoc-cirt-playbook-battle-cards",
-        "gsvsoc_cirt-playbook-battle-cards",
-    ),
-    (
-        "packages.integrations.cyber.soc-multitool.adapter",
-        "SocMultitoolAdapter",
-        "soc-multitool",
-        "SOC-Multitool",
-    ),
+_ADAPTER_CASES = [
+    {
+        "slug": "wazuh-soc-lab",
+        "class_name": "WazuhSocLabAdapter",
+        "manifest_name": "Wazuh-SOC-Lab",
+        "source_url": "https://github.com/marxgoo/Wazuh-SOC-Lab",
+    },
+    {
+        "slug": "wazuh-soc-enterprise",
+        "class_name": "WazuhSocEnterpriseAdapter",
+        "manifest_name": "wazuh-soc-enterprise",
+        "source_url": "https://github.com/brunoflausino/wazuh-soc-enterprise",
+    },
+    {
+        "slug": "enterprise-soc-detection-and-response-wa",
+        "class_name": "EnterpriseSocDetectionAndAdapter",
+        "manifest_name": "Enterprise-SOC-Detection-and-Response-Wazuh",
+        "source_url": "https://github.com/THeOLdMAn48/Enterprise-SOC-Detection-and-Response-Wazuh",
+    },
+    {
+        "slug": "open-source-siem-soc-stack",
+        "class_name": "OpenSourceSiemSocAdapter",
+        "manifest_name": "Open-Source-SIEM_SOC-Stack",
+        "source_url": "https://github.com/ArfanAbid/Open-Source-SIEM_SOC-Stack",
+    },
+    {
+        "slug": "soc-toolkit",
+        "class_name": "SocToolkitAdapter",
+        "manifest_name": "soc-toolkit",
+        "source_url": "https://github.com/phrp720/soc-toolkit",
+    },
 ]
 
 
-def _load_adapter(module_path: str, class_name: str):
-    module = importlib.import_module(module_path)
-    return getattr(module, class_name)
+def _load_adapter_module(slug: str):
+    module_path = _ROOT / "packages" / "integrations" / "cyber" / slug / "adapter.py"
+    spec = importlib.util.spec_from_file_location(f"test_module_{slug.replace('-', '_')}", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-@pytest.mark.parametrize(("module_path", "class_name", "slug", "expected_name"), ADAPTER_CASES)
-def test_manifest_loaded_from_yaml(module_path: str, class_name: str, slug: str, expected_name: str) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
+@pytest.mark.parametrize("case", _ADAPTER_CASES)
+def test_adapter_manifest_and_airgapped_fixture(case: dict[str, str]) -> None:
+    module = _load_adapter_module(case["slug"])
+    adapter_class = getattr(module, case["class_name"])
+    adapter = adapter_class(mode="airgapped")
+
     manifest = adapter.get_manifest()
-    assert isinstance(manifest, IntegrationManifest)
-    assert manifest.name == expected_name
-    assert manifest.slug == slug
+    assert manifest.name == case["manifest_name"]
+    assert manifest.slug == case["slug"]
     assert manifest.domain == "cyber"
-    assert manifest.source_url.startswith("https://github.com/")
+    assert manifest.source_url == case["source_url"]
     assert manifest.license == "Unknown"
 
-
-@pytest.mark.parametrize(("module_path", "class_name", "slug", "_expected_name"), ADAPTER_CASES)
-def test_logger_name_uses_required_namespace(
-    module_path: str, class_name: str, slug: str, _expected_name: str
-) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
-    assert adapter.logger.name == f"s3m.integrations.cyber.{slug}"
-
-
-@pytest.mark.parametrize(("module_path", "class_name", "_slug", "_expected_name"), ADAPTER_CASES)
-def test_validate_availability_succeeds_in_airgapped_mode(
-    module_path: str, class_name: str, _slug: str, _expected_name: str
-) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
     assert adapter.validate_availability() is True
+    result = adapter.execute({"action": "status"})
+    assert result["mode"] == "airgapped"
+    assert result["source"] == "fixture"
+    assert isinstance(result["data"], dict)
+    assert result["data"] != {}
 
 
-@pytest.mark.parametrize(("module_path", "class_name", "slug", "_expected_name"), ADAPTER_CASES)
-def test_execute_returns_fixture_entries_in_airgapped_mode(
-    module_path: str, class_name: str, slug: str, _expected_name: str
-) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
-    output = adapter.execute({"limit": 2})
-    assert output["mode"] == "airgapped"
-    assert output["integration_id"] == slug
-    assert output["returned"] <= 2
-    assert isinstance(output["entries"], list)
-    assert output["entries"]
+@pytest.mark.parametrize("case", _ADAPTER_CASES)
+def test_adapter_rejects_invalid_actions_in_online_mode(case: dict[str, str], monkeypatch: Any) -> None:
+    module = _load_adapter_module(case["slug"])
+    adapter_class = getattr(module, case["class_name"])
+    adapter = adapter_class(mode="online")
 
+    monkeypatch.delenv("WAZUH_HOME", raising=False)
+    monkeypatch.delenv("CALDERA_HOME", raising=False)
+    monkeypatch.delenv("DOCKER_HOST", raising=False)
+    monkeypatch.delenv("SOC_TOOLKIT_HOME", raising=False)
+    monkeypatch.setattr(module.shutil, "which", lambda _: None)
 
-@pytest.mark.parametrize(("module_path", "class_name", "_slug", "_expected_name"), ADAPTER_CASES)
-def test_execute_rejects_invalid_params_type(
-    module_path: str, class_name: str, _slug: str, _expected_name: str
-) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
-    output = adapter.execute("not-a-dict")  # type: ignore[arg-type]
-    assert output["status"] == "error"
-    assert output["error"] == "invalid_params"
+    response = adapter.execute({"action": "unsupported"})
+    assert response["ok"] is False
+    assert response["error"] == "invalid_action"
+    assert "allowed_actions" in response
 
-
-@pytest.mark.parametrize(("module_path", "class_name", "_slug", "_expected_name"), ADAPTER_CASES)
-def test_execute_rejects_invalid_limit_range(
-    module_path: str, class_name: str, _slug: str, _expected_name: str
-) -> None:
-    adapter_cls = _load_adapter(module_path, class_name)
-    adapter = adapter_cls(mode="airgapped")
-    output = adapter.execute({"limit": 0})
-    assert output["status"] == "error"
-    assert output["error"] == "invalid_limit_range"
-
+    assert adapter.validate_availability() is False
