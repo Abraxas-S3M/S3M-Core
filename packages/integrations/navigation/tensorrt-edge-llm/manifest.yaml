@@ -1,0 +1,12 @@
+name: "TensorRT-Edge-LLM"
+slug: "tensorrt-edge-llm"
+domain: "navigation"
+source_url: "https://github.com/NVIDIA/TensorRT-Edge-LLM"
+license: "(NVIDIA)"
+description: "High-performance C++ inference runtime for LLMs/VLMs on Jetson/embedded."
+integration_type: "adapter"
+capabilities:
+  - "llm-inference"
+  - "vlm-inference"
+  - "jetson-optimization"
+airgapped_support: true
