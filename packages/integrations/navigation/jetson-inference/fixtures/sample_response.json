@@ -1,0 +1,20 @@
+{
+  "event_id": "jetson-inf-nav-2026-04-09-032",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "convoy-screening-rural",
+  "pipeline": {
+    "model": "detectnet-mobility.etlt",
+    "task": "obstacle-and-threat-detection",
+    "input_stream": "front_uav_camera"
+  },
+  "inference": {
+    "fps": 58.4,
+    "latency_ms_p95": 16.7,
+    "detections": 7
+  },
+  "tactical_assessment": {
+    "recommended_action": "reroute_left_corridor",
+    "confidence": 0.88,
+    "priority": "high"
+  }
+}

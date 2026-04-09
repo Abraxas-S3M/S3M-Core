@@ -1,0 +1,20 @@
+{
+  "vio_run_id": "vins-run-2026-04-09-032",
+  "pipeline": "vins_fusion",
+  "sensor_profile": "stereo_plus_imu",
+  "state_estimation_status": "converged",
+  "position_covariance_trace": 0.018,
+  "velocity_covariance_trace": 0.011,
+  "keyframe_rate_hz": 9.5,
+  "estimated_drift_percent": 1.2,
+  "operational_context": "low_altitude_isr_pass",
+  "environment_flags": [
+    "dynamic_obstacles_present",
+    "periodic_lighting_variation"
+  ],
+  "recommended_actions": [
+    "Increase IMU preintegration update frequency during evasive maneuvers.",
+    "Retain rolling-window size at 10 for current scene dynamics.",
+    "Switch to conservative descent profile if drift exceeds 2.5 percent."
+  ]
+}

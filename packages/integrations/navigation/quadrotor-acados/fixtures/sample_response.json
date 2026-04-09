@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "mission_id": "nav-quad-acados-2026-04-09-01",
+  "formation": "wedge",
+  "leader_vehicle": "uav-lead-1",
+  "member_vehicles": ["uav-wing-2", "uav-wing-3"],
+  "trajectory_segment": "checkpoint-charlie-to-delta",
+  "solver_metrics": {
+    "iterations": 11,
+    "avg_step_time_ms": 8.4,
+    "convergence": "stable"
+  },
+  "formation_errors_m": {
+    "uav-wing-2": 0.32,
+    "uav-wing-3": 0.28
+  },
+  "control_commands": {
+    "uav-lead-1": [10.9, 0.01, -0.02, 0.03],
+    "uav-wing-2": [10.7, 0.02, -0.01, 0.02],
+    "uav-wing-3": [10.8, 0.00, -0.02, 0.01]
+  },
+  "tactical_assessment": {
+    "cohesion": "maintained",
+    "collision_risk": "low"
+  }
+}

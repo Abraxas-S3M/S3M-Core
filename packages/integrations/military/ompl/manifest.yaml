@@ -1,0 +1,5 @@
+name: "ompl"
+slug: "ompl"
+domain: "military"
+source_url: "https://github.com/ompl/ompl"
+license: "BSD"

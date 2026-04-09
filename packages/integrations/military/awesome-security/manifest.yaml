@@ -1,0 +1,12 @@
+name: "awesome-security"
+slug: "awesome-security"
+domain: "military"
+source_url: "https://github.com/sbilly/awesome-security"
+license: "MIT"
+description: "Curated security tools including Wazuh and Snort for vulnerability and threat detection."
+integration_type: "adapter"
+capabilities:
+  - "vulnerability_detection"
+  - "intrusion_detection"
+  - "security_tooling_reference"
+airgapped_support: true

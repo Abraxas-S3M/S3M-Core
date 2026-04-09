@@ -1,0 +1,30 @@
+{
+  "alert_batch_id": "snort-alerts-2026-0409-007",
+  "sensor": "brigade-edge-sensor-02",
+  "interface": "eth1",
+  "time_window": {
+    "start": "2026-04-09T14:00:00Z",
+    "end": "2026-04-09T14:15:00Z"
+  },
+  "alerts": [
+    {
+      "sid": 2100498,
+      "severity": 1,
+      "classification": "attempted-admin",
+      "src_ip": "172.22.1.55",
+      "dst_ip": "10.72.8.14",
+      "protocol": "TCP",
+      "message": "ET EXPLOIT CVE-2024-6387 OpenSSH regreSSHion attempt"
+    },
+    {
+      "sid": 2029102,
+      "severity": 2,
+      "classification": "trojan-activity",
+      "src_ip": "10.72.8.14",
+      "dst_ip": "198.18.50.33",
+      "protocol": "UDP",
+      "message": "ET TROJAN Suspicious encrypted beaconing pattern"
+    }
+  ],
+  "mission_impact": "Detected probable exploitation and command-and-control staging on perimeter segment bravo."
+}

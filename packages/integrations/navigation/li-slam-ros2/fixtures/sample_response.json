@@ -1,0 +1,20 @@
+{
+  "status": "ok",
+  "mission_id": "subterranean-corridor-07",
+  "pipeline": "li-slam-ros2",
+  "trajectory": {
+    "poses_processed": 962,
+    "distance_m": 1214.6,
+    "avg_velocity_mps": 3.4
+  },
+  "imu_alignment": {
+    "bias_stability": "stable",
+    "timing_jitter_ms": 1.2,
+    "preintegration_residual": 0.08
+  },
+  "tactical_assessment": {
+    "gps_denied_ready": true,
+    "confidence": 0.91,
+    "comment": "Stable fusion observed under rapid heading changes in enclosed routes."
+  }
+}

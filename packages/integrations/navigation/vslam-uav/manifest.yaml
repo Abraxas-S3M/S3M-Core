@@ -1,0 +1,16 @@
+name: "VSLAM-UAV"
+slug: "vslam-uav"
+domain: "navigation"
+source_url: "https://github.com/bandofpv/VSLAM-UAV"
+license: "MIT"
+description: "Visual SLAM + VIO pipeline for PX4 UAVs on Jetson Orin Nano (Isaac ROS)."
+integration_type: "adapter"
+capabilities:
+  - "jetson_orin_vslam"
+  - "px4_vio_navigation"
+  - "isaac_ros_pipeline_validation"
+system_dependencies:
+  - "ros2"
+  - "isaac_ros"
+  - "px4"
+airgapped_support: true

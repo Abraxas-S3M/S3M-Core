@@ -1,0 +1,24 @@
+{
+  "request_id": "mai-curated-2026-04-09-003",
+  "query": "army-llm-fine-tuning",
+  "resource_hits": [
+    {
+      "title": "Open-source LLMs for tactical planning",
+      "category": "llm",
+      "alignment": "mission-planning",
+      "readiness_level": "assessment"
+    },
+    {
+      "title": "Autonomous ISR decision-support repositories",
+      "category": "autonomy",
+      "alignment": "intelligence-support",
+      "readiness_level": "research"
+    }
+  ],
+  "curation": {
+    "last_updated_utc": "2026-04-08T22:10:00Z",
+    "source_count": 41,
+    "quality_gate": "human-reviewed"
+  },
+  "status": "ok"
+}

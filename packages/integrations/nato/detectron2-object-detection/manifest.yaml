@@ -1,0 +1,5 @@
+name: "Detectron2 (object detection)"
+slug: "detectron2-object-detection"
+domain: "nato"
+source_url: "https://github.com/facebookresearch/detectron2"
+license: "Apache-2.0"

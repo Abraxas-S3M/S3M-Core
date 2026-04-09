@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "dataset": "awesome-geospatial",
+  "snapshot_version": "2026.04",
+  "query_profile": {
+    "operation": "catalog_lookup",
+    "area_of_operations": "border_security_sector_alpha",
+    "interoperability_standards": [
+      "DIS",
+      "C2SIM"
+    ]
+  },
+  "recommended_tools": [
+    {
+      "name": "OpenMap",
+      "category": "geospatial_display",
+      "usage": "Shared tactical map overlays for coalition command posts",
+      "dis_c2sim_alignment": "high"
+    },
+    {
+      "name": "GeoServer",
+      "category": "map_service",
+      "usage": "Offline map tile and WMS delivery for simulation clients",
+      "dis_c2sim_alignment": "medium"
+    },
+    {
+      "name": "QGIS",
+      "category": "analysis",
+      "usage": "Terrain and route analysis for force maneuver planning",
+      "dis_c2sim_alignment": "medium"
+    }
+  ],
+  "tactical_note": "Use curated geospatial stack to maintain common operational picture in disconnected coalition exercises."
+}

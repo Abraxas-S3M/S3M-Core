@@ -1,0 +1,12 @@
+name: "PrimAITE"
+slug: "primaite"
+domain: "military"
+source_url: "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+license: "Apache 2.0"
+description: "Primary AI Training Environment for cyber-defensive military role training and evaluation."
+integration_type: "adapter"
+capabilities:
+  - "cyber_training_episode"
+  - "defender_policy_eval"
+  - "resilience_scenario_replay"
+airgapped_support: true
