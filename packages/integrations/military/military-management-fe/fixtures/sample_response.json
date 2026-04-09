@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "asset-cop-26-041",
+  "timestamp_utc": "2026-04-09T05:30:00Z",
+  "theater": "southern-buffer-zone",
+  "asset_summary": {
+    "tracked_assets": 48,
+    "mission_ready": 42,
+    "maintenance_hold": 6
+  },
+  "movement_orders": [
+    {
+      "order_id": "mov-2201",
+      "asset_id": "ifv-platoon-3",
+      "origin": "FOB-Bastion",
+      "destination": "checkpoint-echo",
+      "eta_minutes": 47,
+      "status": "enroute"
+    },
+    {
+      "order_id": "mov-2202",
+      "asset_id": "fuel-train-1",
+      "origin": "log-hub-charlie",
+      "destination": "FOB-Bastion",
+      "eta_minutes": 62,
+      "status": "queued"
+    }
+  ],
+  "logistics_warnings": [
+    "Ammunition stock at checkpoint-echo projected below threshold in 9 hours.",
+    "Fuel reserve for ifv-platoon-3 projected at 37% on arrival."
+  ],
+  "recommended_actions": [
+    "Prioritize refuel tasking for ifv-platoon-3 before next movement cycle.",
+    "Dispatch expedited ammo resupply from log-hub-charlie."
+  ]
+}

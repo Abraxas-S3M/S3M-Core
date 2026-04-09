@@ -1,0 +1,32 @@
+{
+  "brief_id": "osint-cyber-998",
+  "mission_tag": "critical-infrastructure-watch",
+  "collection_window_hours": 12,
+  "targets": [
+    "grid-control-network",
+    "forward-logistics-systems"
+  ],
+  "findings": [
+    {
+      "indicator_type": "domain",
+      "indicator_value": "telemetry-sync-node.net",
+      "threat_family": "spearphishing-loader",
+      "confidence": 0.81
+    },
+    {
+      "indicator_type": "hash",
+      "indicator_value": "9f8b3c799c5a3f2e74afbe1f13d4a0ce",
+      "threat_family": "credential-stealer",
+      "confidence": 0.74
+    }
+  ],
+  "cross_domain_correlation": {
+    "uav_telemetry_overlap": true,
+    "probable_campaign_link": "operation-sable-stream"
+  },
+  "recommended_countermeasures": [
+    "Block telemetry-sync-node.net at tactical gateway filters.",
+    "Initiate credential reset cycle for exposed engineering operators.",
+    "Increase anomaly detection sensitivity on logistics control segments."
+  ]
+}

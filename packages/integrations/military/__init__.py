@@ -1,1 +1,1 @@
-"""Military-domain integration wrappers for sovereign tactical workflows."""
+"""Military operations domain integration wrappers for S3M."""
