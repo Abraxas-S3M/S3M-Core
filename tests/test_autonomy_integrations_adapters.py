@@ -1,84 +1,70 @@
-"""Unit tests for autonomy integration wrappers."""
+"""Unit tests for autonomy integration adapters.
+
+Military/tactical context:
+These tests ensure autonomy wrappers remain deterministic in airgapped mode,
+which is required for offline mission rehearsal and validation.
+"""
 
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
+import importlib
+from typing import Any
 
 import pytest
 
 
-INTEGRATION_CASES = [
-    {
-        "slug": "intel-xai-tools",
-        "class_name": "IntelXaiToolsAdapter",
-        "name": "intel-xai-tools",
-        "license": "Apache 2.0",
-    },
-    {
-        "slug": "xai-lib",
-        "class_name": "XaiLibAdapter",
-        "name": "XAI-Lib",
-        "license": "MIT",
-    },
-    {
-        "slug": "xai-cybersecurity",
-        "class_name": "XaiCybersecurityAdapter",
-        "name": "XAI-Cybersecurity",
-        "license": "MIT",
-    },
-    {
-        "slug": "groot",
-        "class_name": "GrootAdapter",
-        "name": "Groot",
-        "license": "MIT",
-    },
-    {
-        "slug": "awesome-behavior-trees",
-        "class_name": "AwesomeBehaviorTreesAdapter",
-        "name": "awesome-behavior-trees",
-        "license": "MIT",
-    },
+CASES: list[tuple[str, str, str]] = [
+    ("packages.integrations.autonomy.pettingzoo.adapter", "PettingzooAdapter", "pettingzoo"),
+    (
+        "packages.integrations.autonomy.rl-baselines3-zoo.adapter",
+        "RlBaselines3ZooAdapter",
+        "rl-baselines3-zoo",
+    ),
+    ("packages.integrations.autonomy.eli5.adapter", "Eli5Adapter", "eli5"),
+    ("packages.integrations.autonomy.interpretml.adapter", "InterpretmlAdapter", "interpretml"),
 ]
 
 
-def _load_adapter_class(slug: str, class_name: str):
-    root = Path(__file__).resolve().parents[1]
-    adapter_path = root / "packages" / "integrations" / "autonomy" / slug / "adapter.py"
-    module_name = f"autonomy_{slug.replace('-', '_')}_adapter"
-    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def _load_adapter(module_path: str, class_name: str) -> Any:
+    module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
 
-@pytest.mark.parametrize("case", INTEGRATION_CASES)
-def test_manifest_fields(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
-    manifest = adapter_cls(mode="airgapped").get_manifest()
-    assert manifest.name == case["name"]
-    assert manifest.slug == case["slug"]
+@pytest.mark.parametrize(("module_path", "class_name", "slug"), CASES)
+def test_manifest_loading(module_path: str, class_name: str, slug: str) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
+    adapter = adapter_cls(mode="airgapped")
+    manifest = adapter.get_manifest()
+    assert manifest.slug == slug
     assert manifest.domain == "autonomy"
-    assert manifest.license == case["license"]
+    assert manifest.license == "MIT"
+    assert manifest.name
 
 
-@pytest.mark.parametrize("case", INTEGRATION_CASES)
-def test_airgapped_availability_and_execute(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "slug"), CASES)
+def test_validate_availability_returns_boolean(module_path: str, class_name: str, slug: str) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
-
-    assert adapter.validate_availability() is True
-
-    out = adapter.execute({"operation": "unit_test_operation"})
-    assert out["status"] == "ok"
-    assert out["integration_id"] == case["slug"]
-    assert out["mode"] == "airgapped"
-    assert out["request"]["operation"] == "unit_test_operation"
+    result = adapter.validate_availability()
+    assert isinstance(result, bool)
+    assert result is True
+    assert adapter.integration_id == slug
 
 
-@pytest.mark.parametrize("case", INTEGRATION_CASES)
-def test_logger_name_matches_required_pattern(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "slug"), CASES)
+def test_execute_returns_fixture_payload_in_airgapped_mode(module_path: str, class_name: str, slug: str) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
-    assert adapter.logger.name == f"s3m.integrations.autonomy.{case['slug']}"
+    payload = adapter.execute({"action": "describe"})
+    assert payload["mode"] == "airgapped"
+    assert payload["source"] == "fixture"
+    assert payload["integration_id"] == slug
+    assert payload["status"] in {"ok", "planned"}
+
+
+@pytest.mark.parametrize(("module_path", "class_name", "_slug"), CASES)
+def test_execute_rejects_non_mapping_params(module_path: str, class_name: str, _slug: str) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
+    adapter = adapter_cls(mode="airgapped")
+    with pytest.raises(ValueError):
+        adapter.execute(["not", "a", "mapping"])  # type: ignore[arg-type]

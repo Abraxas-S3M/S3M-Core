@@ -1,0 +1,12 @@
+name: "Enterprise-SOC-Detection-and-Response-Wazuh"
+slug: "enterprise-soc-detection-and-response-wa"
+domain: "cyber"
+source_url: "https://github.com/THeOLdMAn48/Enterprise-SOC-Detection-and-Response-Wazuh"
+license: "Unknown"
+description: "Enterprise SOC with Wazuh, MITRE ATT&CK detections, alert triage, and investigations."
+integration_type: "adapter"
+capabilities:
+  - "mitre_attack_detection"
+  - "alert_triage"
+  - "investigation_workflow"
+airgapped_support: true

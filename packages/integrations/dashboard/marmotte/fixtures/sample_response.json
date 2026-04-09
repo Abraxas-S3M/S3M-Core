@@ -1,0 +1,28 @@
+{
+  "inventory_snapshot": "2026-04-09T00:00:00Z",
+  "generated_for": "airgapped-training",
+  "asset_classes": [
+    {
+      "class": "compute",
+      "total": 412,
+      "operational": 389
+    },
+    {
+      "class": "network",
+      "total": 133,
+      "operational": 126
+    }
+  ],
+  "maintenance_backlog": [
+    {
+      "ticket": "MARM-2041",
+      "priority": "high",
+      "system": "edge-gateway-44"
+    },
+    {
+      "ticket": "MARM-2059",
+      "priority": "medium",
+      "system": "barracks-switch-12"
+    }
+  ]
+}

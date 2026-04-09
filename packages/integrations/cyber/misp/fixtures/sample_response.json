@@ -1,0 +1,25 @@
+{
+  "operation": "misp_event_search",
+  "status": "success",
+  "query": {
+    "threat_level": "high",
+    "last": "7d"
+  },
+  "events": [
+    {
+      "id": "112044",
+      "info": "APT credential harvesting campaign",
+      "threat_level_id": "1",
+      "published": true,
+      "attribute_count": 28
+    },
+    {
+      "id": "112061",
+      "info": "Military network spear-phishing wave",
+      "threat_level_id": "2",
+      "published": true,
+      "attribute_count": 17
+    }
+  ],
+  "sharing_group": "S3M Sovereign Defense Cell"
+}

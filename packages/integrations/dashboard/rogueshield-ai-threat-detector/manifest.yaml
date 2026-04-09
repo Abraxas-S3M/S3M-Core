@@ -1,0 +1,12 @@
+name: RogueShield AI Threat Detector
+slug: rogueshield-ai-threat-detector
+domain: dashboard
+source_url: https://github.com/mahaswetaroy1/rogueshield-ai-threat-detector
+license: MIT
+description: AI-driven threat dashboard wrapper with forecast confidence and explainability
+  signals for tactical defenders.
+integration_type: adapter
+capabilities:
+- dashboard_observability
+- airgapped_fixture_execution
+airgapped_support: true

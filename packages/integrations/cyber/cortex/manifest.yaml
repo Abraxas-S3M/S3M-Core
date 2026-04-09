@@ -1,0 +1,11 @@
+name: "Cortex"
+slug: "cortex"
+domain: "cyber"
+source_url: "https://github.com/TheHive-Project/Cortex"
+license: "Unknown"
+description: "Observable analysis and active response adapter for tactical cyber threat analysis workflows."
+integration_type: "adapter"
+capabilities:
+  - cyber_defense
+  - incident_response
+airgapped_support: true
