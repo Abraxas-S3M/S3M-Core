@@ -1,0 +1,14 @@
+name: "OmniXAI"
+slug: "omnixai"
+domain: "hmi"
+source_url: "https://github.com/salesforce/OmniXAI"
+license: "BSD-3-Clause"
+description: "Omni-way explainable AI library supporting multiple explanation types and modalities."
+integration_type: "adapter"
+capabilities:
+  - "multimodal_explanation"
+  - "feature_importance"
+  - "counterfactual_explanation"
+pip_dependencies:
+  - "omnixai"
+airgapped_support: true

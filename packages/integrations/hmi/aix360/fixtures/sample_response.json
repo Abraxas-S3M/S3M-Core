@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "analysis_id": "aix360-op-brief-014",
+  "task": "explain_target_classification",
+  "model": {
+    "name": "edge-threat-prioritizer",
+    "version": "3.2.1-quantized-int8"
+  },
+  "global_feature_importance": [
+    {"feature": "radar_cross_section", "importance": 0.31},
+    {"feature": "thermal_signature_index", "importance": 0.25},
+    {"feature": "trajectory_anomaly_score", "importance": 0.19}
+  ],
+  "local_explanation": {
+    "instance_id": "track-7721",
+    "predicted_label": "hostile_uav",
+    "confidence": 0.88,
+    "key_drivers": [
+      "abnormal approach vector toward defended perimeter",
+      "persistent RF beacon spoofing pattern"
+    ]
+  },
+  "operator_guidance": "Escalate to human analyst before kinetic response authorization."
+}

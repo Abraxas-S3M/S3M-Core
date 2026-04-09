@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "report_id": "omx-ai-brief-221",
+  "mission_context": "border_surveillance_anomaly_triage",
+  "modalities": {
+    "vision": {
+      "salient_regions": [
+        {"region": "north_gate_vehicle_cluster", "importance": 0.62},
+        {"region": "southern_perimeter_heat_signature", "importance": 0.21}
+      ],
+      "classification": "potential_infiltration_attempt"
+    },
+    "text": {
+      "key_phrases": [
+        "unexpected route deviation",
+        "comms blackout preceding maneuver"
+      ],
+      "support_score": 0.84
+    }
+  },
+  "counterfactual_note": "If thermal signature confidence drops below 0.35, threat class changes to uncertain.",
+  "operator_recommendation": "Cross-validate with SIGINT feed before issuing intercept directive."
+}

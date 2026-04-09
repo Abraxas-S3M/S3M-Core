@@ -1,0 +1,14 @@
+name: "alibi"
+slug: "alibi"
+domain: "hmi"
+source_url: "https://github.com/SeldonIO/alibi"
+license: "Apache 2.0"
+description: "Black-box model inspection, interpretation, and counterfactual explanations."
+integration_type: "adapter"
+capabilities:
+  - "counterfactual_explanations"
+  - "anchor_explanations"
+  - "model_inspection"
+pip_dependencies:
+  - "alibi"
+airgapped_support: true

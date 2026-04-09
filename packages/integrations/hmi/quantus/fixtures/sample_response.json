@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "evaluation_id": "quantus-metric-pass-033",
+  "model_id": "threat-net-int8",
+  "explanation_method": "integrated_gradients",
+  "metrics": {
+    "faithfulness_correlation": 0.79,
+    "sensitivity_n": 0.72,
+    "sparseness": 0.64,
+    "local_lipschitz_estimate": 0.18
+  },
+  "robustness_assessment": "stable_under_expected_sensor_noise",
+  "risk_flag": "low",
+  "operator_note": "Explanation quality is sufficient for analyst-assisted mission review."
+}

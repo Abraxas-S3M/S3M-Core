@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "inspection_id": "alibi-cf-119",
+  "model_target": "access_control_risk_classifier",
+  "query_instance": {
+    "unit_id": "checkpoint-12",
+    "current_risk_label": "high"
+  },
+  "counterfactuals": [
+    {
+      "change": "reduce anomalous credential attempts from 7 to 1",
+      "new_prediction": "medium"
+    },
+    {
+      "change": "restore trusted network route and valid operator token",
+      "new_prediction": "low"
+    }
+  ],
+  "anchor_summary": {
+    "precision": 0.86,
+    "coverage": 0.41
+  },
+  "analyst_guidance": "Use counterfactual path 2 for remediation drill in next shift briefing."
+}
