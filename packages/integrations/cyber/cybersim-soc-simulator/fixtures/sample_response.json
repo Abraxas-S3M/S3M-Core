@@ -1,0 +1,36 @@
+{
+  "simulation_id": "sim-ops-2417",
+  "scenario_name": "Forward Base SOC Ransomware Containment Drill",
+  "status": "in_progress",
+  "threat_level": "high",
+  "active_alerts": 18,
+  "mean_time_to_detect_seconds": 142,
+  "mean_time_to_contain_seconds": 489,
+  "red_team_activity": {
+    "campaign_id": "rt-campaign-77",
+    "techniques_observed": [
+      "T1566.001",
+      "T1059.001",
+      "T1486"
+    ],
+    "lateral_movement_detected": true
+  },
+  "blue_team_actions": [
+    {
+      "action": "isolate_host",
+      "asset_id": "workstation-31",
+      "result": "success",
+      "timestamp": "2026-04-09T08:11:00Z"
+    },
+    {
+      "action": "block_ioc",
+      "indicator": "198.51.100.94",
+      "result": "success",
+      "timestamp": "2026-04-09T08:12:35Z"
+    }
+  ],
+  "recommendations": [
+    "Increase triage staffing for peak alert windows.",
+    "Pre-stage containment scripts for endpoint clusters in sector C."
+  ]
+}

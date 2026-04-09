@@ -1,0 +1,12 @@
+name: "shuffle"
+slug: "shuffle"
+domain: "cyber"
+source_url: "https://github.com/shuffle (main repo)"
+license: "Unknown"
+description: "Open-source SOAR for security automation and playbook orchestration."
+integration_type: "adapter"
+capabilities:
+  - "soar-automation"
+  - "playbook-orchestration"
+  - "incident-enrichment"
+airgapped_support: true

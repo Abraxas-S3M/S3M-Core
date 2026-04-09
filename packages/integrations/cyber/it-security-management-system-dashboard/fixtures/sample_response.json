@@ -1,0 +1,32 @@
+{
+  "dashboard_id": "ismsd-sector-east",
+  "snapshot_time": "2026-04-09T08:20:00Z",
+  "operational_state": "degraded",
+  "critical_alerts": 6,
+  "high_alerts": 14,
+  "medium_alerts": 31,
+  "analyst_queue_depth": 27,
+  "key_metrics": {
+    "sla_breach_risk_percent": 18.5,
+    "false_positive_rate_percent": 9.3,
+    "mean_time_to_ack_seconds": 75
+  },
+  "priority_incidents": [
+    {
+      "incident_id": "inc-9901",
+      "title": "Suspicious credential replay against perimeter VPN",
+      "severity": "critical",
+      "status": "triage"
+    },
+    {
+      "incident_id": "inc-9904",
+      "title": "Endpoint telemetry gap in logistics subnet",
+      "severity": "high",
+      "status": "investigating"
+    }
+  ],
+  "recommended_actions": [
+    "Activate surge analyst rotation for next 2 hours.",
+    "Prioritize identity abuse runbook for VPN-related events."
+  ]
+}

@@ -1,0 +1,12 @@
+name: "DFIR-IRIS"
+slug: "dfir-iris"
+domain: "cyber"
+source_url: "https://github.com/dfir-iris (related)"
+license: "Unknown"
+description: "Open-source incident response platform with case management."
+integration_type: "adapter"
+capabilities:
+  - "incident-case-management"
+  - "forensic-workflow"
+  - "response-tracking"
+airgapped_support: true
