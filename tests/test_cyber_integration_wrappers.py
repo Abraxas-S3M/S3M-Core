@@ -1,100 +1,103 @@
-"""Tests for cyber integration wrappers under packages/integrations/cyber.
+"""Unit tests for cyber-domain integration adapters.
 
 Military/tactical context:
-These tests ensure defensive SOC adapters remain deterministic in airgapped
-operations and reject malformed operator inputs before execution.
+These checks ensure SOC wrapper behavior remains deterministic under
+airgapped conditions used by forward and sovereign cyber defense cells.
 """
 
 from __future__ import annotations
 
-import importlib.util
+import importlib
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 
-_ROOT = Path(__file__).resolve().parents[1]
-
-_ADAPTER_CASES = [
-    {
-        "slug": "wazuh-soc-lab",
-        "class_name": "WazuhSocLabAdapter",
-        "manifest_name": "Wazuh-SOC-Lab",
-        "source_url": "https://github.com/marxgoo/Wazuh-SOC-Lab",
-    },
-    {
-        "slug": "wazuh-soc-enterprise",
-        "class_name": "WazuhSocEnterpriseAdapter",
-        "manifest_name": "wazuh-soc-enterprise",
-        "source_url": "https://github.com/brunoflausino/wazuh-soc-enterprise",
-    },
-    {
-        "slug": "enterprise-soc-detection-and-response-wa",
-        "class_name": "EnterpriseSocDetectionAndAdapter",
-        "manifest_name": "Enterprise-SOC-Detection-and-Response-Wazuh",
-        "source_url": "https://github.com/THeOLdMAn48/Enterprise-SOC-Detection-and-Response-Wazuh",
-    },
-    {
-        "slug": "open-source-siem-soc-stack",
-        "class_name": "OpenSourceSiemSocAdapter",
-        "manifest_name": "Open-Source-SIEM_SOC-Stack",
-        "source_url": "https://github.com/ArfanAbid/Open-Source-SIEM_SOC-Stack",
-    },
-    {
-        "slug": "soc-toolkit",
-        "class_name": "SocToolkitAdapter",
-        "manifest_name": "soc-toolkit",
-        "source_url": "https://github.com/phrp720/soc-toolkit",
-    },
-]
+def _load_cyberthreatintelligence_adapter():
+    module = importlib.import_module("packages.integrations.cyber.cyberthreatintelligence.adapter")
+    return module.CyberthreatintelligenceAdapter
 
 
-def _load_adapter_module(slug: str):
-    module_path = _ROOT / "packages" / "integrations" / "cyber" / slug / "adapter.py"
-    spec = importlib.util.spec_from_file_location(f"test_module_{slug.replace('-', '_')}", module_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _load_soc_multitool_extensions_adapter():
+    module = importlib.import_module("packages.integrations.cyber.soc-multitool-extensions.adapter")
+    return module.SocMultitoolExtensionsAdapter
 
 
-@pytest.mark.parametrize("case", _ADAPTER_CASES)
-def test_adapter_manifest_and_airgapped_fixture(case: dict[str, str]) -> None:
-    module = _load_adapter_module(case["slug"])
-    adapter_class = getattr(module, case["class_name"])
-    adapter = adapter_class(mode="airgapped")
-
+def test_cyberthreatintelligence_manifest_and_logger_contract() -> None:
+    adapter_cls = _load_cyberthreatintelligence_adapter()
+    adapter = adapter_cls(mode="airgapped")
     manifest = adapter.get_manifest()
-    assert manifest.name == case["manifest_name"]
-    assert manifest.slug == case["slug"]
+
+    assert manifest.name == "CyberThreatIntelligence"
+    assert manifest.slug == "cyberthreatintelligence"
     assert manifest.domain == "cyber"
-    assert manifest.source_url == case["source_url"]
-    assert manifest.license == "Unknown"
+    assert adapter.logger.name == "s3m.integrations.cyber.cyberthreatintelligence"
 
-    assert adapter.validate_availability() is True
-    result = adapter.execute({"action": "status"})
+
+def test_cyberthreatintelligence_airgapped_execute_uses_fixture_limit() -> None:
+    adapter_cls = _load_cyberthreatintelligence_adapter()
+    adapter = adapter_cls(mode="airgapped")
+
+    result = adapter.execute({"view": "dashboard", "limit": 2})
     assert result["mode"] == "airgapped"
-    assert result["source"] == "fixture"
-    assert isinstance(result["data"], dict)
-    assert result["data"] != {}
+    assert result["requested_view"] == "dashboard"
+    assert len(result["priority_indicators"]) == 2
 
 
-@pytest.mark.parametrize("case", _ADAPTER_CASES)
-def test_adapter_rejects_invalid_actions_in_online_mode(case: dict[str, str], monkeypatch: Any) -> None:
-    module = _load_adapter_module(case["slug"])
-    adapter_class = getattr(module, case["class_name"])
-    adapter = adapter_class(mode="online")
-
-    monkeypatch.delenv("WAZUH_HOME", raising=False)
-    monkeypatch.delenv("CALDERA_HOME", raising=False)
-    monkeypatch.delenv("DOCKER_HOST", raising=False)
-    monkeypatch.delenv("SOC_TOOLKIT_HOME", raising=False)
-    monkeypatch.setattr(module.shutil, "which", lambda _: None)
-
-    response = adapter.execute({"action": "unsupported"})
-    assert response["ok"] is False
-    assert response["error"] == "invalid_action"
-    assert "allowed_actions" in response
+def test_cyberthreatintelligence_online_unavailable_when_no_path_or_binary(monkeypatch) -> None:
+    adapter_cls = _load_cyberthreatintelligence_adapter()
+    monkeypatch.setenv("PATH", "")
+    monkeypatch.setenv("CYBERTHREATINTELLIGENCE_PATH", "/tmp/does-not-exist-cti")
+    monkeypatch.delenv("S3M_CYBERTHREATINTELLIGENCE_PATH", raising=False)
+    adapter = adapter_cls(mode="online")
 
     assert adapter.validate_availability() is False
+
+
+def test_soc_multitool_extensions_manifest_and_logger_contract() -> None:
+    adapter_cls = _load_soc_multitool_extensions_adapter()
+    adapter = adapter_cls(mode="airgapped")
+    manifest = adapter.get_manifest()
+
+    assert manifest.name == "SOC-Multitool extensions"
+    assert manifest.slug == "soc-multitool-extensions"
+    assert manifest.domain == "cyber"
+    assert adapter.logger.name == "s3m.integrations.cyber.soc-multitool-extensions"
+
+
+def test_soc_multitool_extensions_airgapped_execute_uses_fixture_limit() -> None:
+    adapter_cls = _load_soc_multitool_extensions_adapter()
+    adapter = adapter_cls(mode="airgapped")
+
+    result = adapter.execute({"workflow": "investigation_assist", "case_id": "SOC-2026-1001", "limit": 1})
+    assert result["mode"] == "airgapped"
+    assert result["workflow"] == "investigation_assist"
+    assert result["case_id"] == "SOC-2026-1001"
+    assert len(result["artifacts"]) == 1
+
+
+def test_soc_multitool_extensions_online_unavailable_when_no_path_or_binary(monkeypatch) -> None:
+    adapter_cls = _load_soc_multitool_extensions_adapter()
+    monkeypatch.setenv("PATH", "")
+    monkeypatch.setenv("SOC_MULTITOOL_EXTENSIONS_PATH", "/tmp/does-not-exist-soc-multitool")
+    monkeypatch.delenv("S3M_SOC_MULTITOOL_EXTENSIONS_PATH", raising=False)
+    adapter = adapter_cls(mode="online")
+
+    assert adapter.validate_availability() is False
+
+
+def test_execute_rejects_invalid_limit_values() -> None:
+    cti_cls = _load_cyberthreatintelligence_adapter()
+    soc_cls = _load_soc_multitool_extensions_adapter()
+    cti_adapter = cti_cls(mode="airgapped")
+    soc_adapter = soc_cls(mode="airgapped")
+
+    for adapter in (cti_adapter, soc_adapter):
+        with pytest.raises(ValueError):
+            adapter.execute({"limit": 0})
+
+
+def test_fixture_files_exist_for_airgapped_support() -> None:
+    root = Path(__file__).resolve().parents[1]
+    assert (root / "packages/integrations/cyber/cyberthreatintelligence/fixtures/sample_response.json").exists()
+    assert (root / "packages/integrations/cyber/soc-multitool-extensions/fixtures/sample_response.json").exists()
