@@ -1,0 +1,13 @@
+name: "JSBSim"
+slug: "jsbsim"
+domain: "dashboard"
+source_url: "https://github.com/JSBSim-Team/jsbsim"
+license: "LGPL-2.1"
+description: "Flight dynamics sim with dashboard extensions for mission trajectory projections."
+integration_type: "adapter"
+capabilities:
+  - "flight_projection"
+  - "trajectory_monitoring"
+  - "sim_telemetry_dashboard"
+airgapped_support: true
+

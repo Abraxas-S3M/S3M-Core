@@ -1,0 +1,32 @@
+{
+  "project": "s3m-command-llm-observability",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "window_minutes": 60,
+  "trace_metrics": {
+    "total_traces": 438,
+    "p95_latency_ms": 812,
+    "error_rate": 0.021,
+    "guardrail_triggers": 17
+  },
+  "evaluation_summary": {
+    "evaluations_run": 122,
+    "pass_rate": 0.91,
+    "hallucination_alerts": 4,
+    "prompt_regression_alerts": 2
+  },
+  "top_prompts": [
+    {
+      "prompt_id": "prm-mission-brief-v3",
+      "calls": 86,
+      "avg_tokens": 1412,
+      "quality_score": 0.94
+    },
+    {
+      "prompt_id": "prm-threat-triage-v2",
+      "calls": 57,
+      "avg_tokens": 983,
+      "quality_score": 0.89
+    }
+  ]
+}
+

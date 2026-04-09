@@ -1,0 +1,13 @@
+name: "OpenCTI"
+slug: "opencti"
+domain: "dashboard"
+source_url: "https://github.com/OpenCTI-Platform/opencti"
+license: "Apache 2.0"
+description: "Cyber threat intel platform with dashboards for observables and mission risk."
+integration_type: "adapter"
+capabilities:
+  - "threat_dashboard"
+  - "observable_tracking"
+  - "risk_assessment"
+airgapped_support: true
+

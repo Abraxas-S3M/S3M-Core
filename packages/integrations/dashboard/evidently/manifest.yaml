@@ -1,0 +1,13 @@
+name: "Evidently"
+slug: "evidently"
+domain: "dashboard"
+source_url: "https://github.com/evidentlyai/evidently"
+license: "Apache 2.0"
+description: "ML/LLM observability framework with dashboards for evaluation, testing, and monitoring."
+integration_type: "adapter"
+capabilities:
+  - "ml_monitoring_dashboard"
+  - "drift_detection"
+  - "evaluation_reporting"
+airgapped_support: true
+

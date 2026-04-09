@@ -1,0 +1,32 @@
+{
+  "scenario": "northern-border-intercept",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "fleet_status": {
+    "airframes_tracked": 6,
+    "mission_phase": "intercept",
+    "sim_tick_hz": 60
+  },
+  "flight_health": [
+    {
+      "callsign": "EAGLE-11",
+      "airspeed_kts": 412.4,
+      "altitude_ft": 23850,
+      "fuel_remaining_pct": 64.2,
+      "status": "nominal"
+    },
+    {
+      "callsign": "EAGLE-12",
+      "airspeed_kts": 405.1,
+      "altitude_ft": 24110,
+      "fuel_remaining_pct": 58.7,
+      "status": "nominal"
+    }
+  ],
+  "projection": {
+    "time_horizon_s": 180,
+    "predicted_intercept_success_probability": 0.79,
+    "estimated_separation_nm": 1.8,
+    "advisory": "Maintain climb profile and tighten turn radius by 5%"
+  }
+}
+
