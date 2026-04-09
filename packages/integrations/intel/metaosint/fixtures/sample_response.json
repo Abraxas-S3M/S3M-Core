@@ -1,0 +1,32 @@
+{
+  "briefing_id": "mos-brief-2026-04-09-003",
+  "status": "ok",
+  "mission_focus": "rapid source selection",
+  "query_topic": "maritime sanction evasion",
+  "resource_candidates": [
+    {
+      "resource_name": "vessel-tracking-open-sets",
+      "category": "maritime",
+      "priority": "high",
+      "selection_rationale": "Provides public movement history needed for route anomaly checks."
+    },
+    {
+      "resource_name": "corporate-registry-federation",
+      "category": "corporate",
+      "priority": "high",
+      "selection_rationale": "Supports beneficial-ownership link analysis for shell entities."
+    },
+    {
+      "resource_name": "news-monitor-long-tail",
+      "category": "media",
+      "priority": "medium",
+      "selection_rationale": "Useful for low-signal indicators around transshipment hubs."
+    }
+  ],
+  "collection_plan": {
+    "phase_1": "Acquire vessel and ownership baseline dataset.",
+    "phase_2": "Correlate ownership entities with sanctions and procurement records.",
+    "phase_3": "Generate confidence-scored alert list for commander briefing."
+  }
+}
+

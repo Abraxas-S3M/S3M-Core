@@ -1,29 +1,30 @@
 {
+  "briefing_id": "osf-brief-2026-04-09-001",
   "status": "ok",
-  "brief_id": "osint-framework-catalog-2026-04-09",
-  "generated_at": "2026-04-09T08:00:00Z",
-  "categories": [
+  "priority": "high",
+  "target_profile": {
+    "entity": "Redline Syndicate",
+    "aoi": "Eastern littoral logistics corridor",
+    "confidence": 0.82
+  },
+  "sources_indexed": 47,
+  "high_value_findings": [
     {
-      "name": "Username",
-      "tool_count": 27
+      "finding_id": "osf-f-019",
+      "category": "infrastructure",
+      "summary": "Public procurement bulletin indicates dual-use drone battery purchase spike.",
+      "tactical_relevance": "May signal increased ISR sortie tempo in AOI."
     },
     {
-      "name": "Domain and IP",
-      "tool_count": 33
-    },
-    {
-      "name": "Dark Web",
-      "tool_count": 12
-    },
-    {
-      "name": "Social Networks",
-      "tool_count": 41
+      "finding_id": "osf-f-023",
+      "category": "social-media",
+      "summary": "Clustered posts suggest staging activity near rail transfer node K-12.",
+      "tactical_relevance": "Supports recommendation for route surveillance tasking."
     }
   ],
-  "priority_collection_plan": [
-    "Start with passive DNS and certificate transparency pivots.",
-    "Expand into persona-linked social graph mapping.",
-    "Escalate to dark-web monitoring only with legal authorization."
-  ],
-  "tactical_assessment": "Framework categories support rapid OSINT tasking for time-sensitive mission briefs."
+  "recommended_actions": [
+    "Task HUMINT cell to validate rail-node activity within 12 hours.",
+    "Increase monitoring cadence for logistics contractors in AOI."
+  ]
 }
+

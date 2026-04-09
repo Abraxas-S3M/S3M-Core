@@ -1,22 +1,23 @@
-# OSINT-Framework Integration
+# osint-framework Integration
 
-S3M wrapper for the [OSINT-Framework](https://github.com/lockfale/OSINT-Framework) repository.
+S3M wrapper for the [osint-framework](https://github.com/fr4nc1stein/osint-framework) repository.
 
 ## Military/Tactical Context
 
-This adapter exposes a standardized interface for intelligence and OSINT
-brief generation so mission staff can operate in sovereign, disconnected
-environments without depending on live external services.
+This adapter provides a standardized interface for intelligence teams to perform
+OSINT resource discovery and prepare mission briefings in disconnected or
+contested operating conditions.
 
 ## Behavior
 
-- **Airgapped mode**: returns `fixtures/sample_response.json`.
-- **Online mode**: validates local dependencies and returns a structured
-  orchestrator handoff response.
+- **Airgapped mode** (`mode="airgapped"` or `S3M_AIRGAPPED=true`): returns
+  deterministic fixture data from `fixtures/sample_response.json`.
+- **Online mode**: checks local command/module availability and returns a
+  runtime handoff payload for orchestrator-controlled execution.
 
-## Adapter Class
+## Files
 
-- Module: `packages.integrations.intel.osint-framework.adapter`
-- Class: `OsintFrameworkAdapter`
-- Integration ID: `osint-framework`
-- Domain: `intel`
+- `adapter.py`: `OsintFrameworkAdapter`
+- `manifest.yaml`: discovery metadata
+- `fixtures/sample_response.json`: airgapped sample response
+

@@ -1,8 +1,8 @@
-"""osint-framework adapter for S3M intelligence and OSINT briefings.
+"""MetaOSINT adapter for S3M intelligence and OSINT briefings.
 
 Military/tactical context:
-This wrapper provides a deterministic interface for mission intelligence cells
-to run or emulate OSINT framework workflows when networks are disconnected.
+This wrapper helps intelligence planners quickly map available public-resource
+options for mission preparation when connectivity and time are constrained.
 """
 
 from __future__ import annotations
@@ -17,18 +17,18 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class OsintFrameworkAdapter(IntegrationAdapter):
-    """Thin adapter for osint-framework intelligence workflows."""
+class MetaosintAdapter(IntegrationAdapter):
+    """Thin adapter for MetaOSINT resource-discovery workflows."""
 
-    integration_id = "osint-framework"
+    integration_id = "metaosint"
     domain = "intel"
     _SUPPORTED_OPERATIONS = {
         "resource_discovery",
-        "target_profile",
+        "collection_planning",
         "briefing_summary",
     }
-    _TOOL_MODULES = ("osint_framework", "osintframework")
-    _TOOL_COMMANDS = ("osint-framework", "osintframework")
+    _TOOL_MODULES = ("metaosint",)
+    _TOOL_COMMANDS = ("metaosint",)
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -43,22 +43,22 @@ class OsintFrameworkAdapter(IntegrationAdapter):
     def get_manifest(self) -> IntegrationManifest:
         raw = self._manifest_data()
         return IntegrationManifest(
-            name=str(raw.get("name") or "osint-framework"),
+            name=str(raw.get("name") or "MetaOSINT"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
             source_url=str(raw.get("source_url") or ""),
             license=str(raw.get("license") or "Unknown"),
             description=(
-                "Python OSINT framework adapter for tactical source discovery "
-                "and briefing preparation in sovereign environments."
+                "OSINT resource index adapter for rapid selection of relevant "
+                "public-intelligence sources during mission planning."
             ),
             integration_type="adapter",
-            capabilities=["osint-discovery", "target-profiling", "briefing-support"],
+            capabilities=["resource-indexing", "collection-planning", "briefing-support"],
             airgapped_support=True,
         )
 
     def validate_availability(self) -> bool:
-        """Validate local tooling needed for intelligence wrapper execution."""
+        """Validate local MetaOSINT tooling before runtime execution."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -77,7 +77,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
         if self.is_airgapped:
-            self.logger.info("Returning fixture payload for tactical offline briefing support.")
+            self.logger.info("Returning MetaOSINT fixture for disconnected mission planning.")
             return {
                 "integration_id": self.integration_id,
                 "domain": self.domain,
@@ -98,7 +98,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
                 "status": "unavailable",
                 "operation": operation,
                 "request": request,
-                "message": "osint-framework tooling is not available on this host.",
+                "message": "MetaOSINT tooling is not available on this host.",
             }
 
         return {

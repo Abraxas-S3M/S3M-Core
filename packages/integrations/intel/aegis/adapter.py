@@ -1,8 +1,8 @@
-"""osint-framework adapter for S3M intelligence and OSINT briefings.
+"""AEGIS adapter for S3M intelligence and early-warning briefings.
 
 Military/tactical context:
-This wrapper provides a deterministic interface for mission intelligence cells
-to run or emulate OSINT framework workflows when networks are disconnected.
+This wrapper standardizes early-warning and geostrategic indicators for command
+decision support when sovereign operators must function without cloud services.
 """
 
 from __future__ import annotations
@@ -17,18 +17,18 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class OsintFrameworkAdapter(IntegrationAdapter):
-    """Thin adapter for osint-framework intelligence workflows."""
+class AegisAdapter(IntegrationAdapter):
+    """Thin adapter for AEGIS early-warning intelligence workflows."""
 
-    integration_id = "osint-framework"
+    integration_id = "aegis"
     domain = "intel"
     _SUPPORTED_OPERATIONS = {
-        "resource_discovery",
-        "target_profile",
+        "early_warning_scan",
+        "geostrategic_assessment",
         "briefing_summary",
     }
-    _TOOL_MODULES = ("osint_framework", "osintframework")
-    _TOOL_COMMANDS = ("osint-framework", "osintframework")
+    _TOOL_MODULES = ("aegis",)
+    _TOOL_COMMANDS = ("aegis",)
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -43,22 +43,22 @@ class OsintFrameworkAdapter(IntegrationAdapter):
     def get_manifest(self) -> IntegrationManifest:
         raw = self._manifest_data()
         return IntegrationManifest(
-            name=str(raw.get("name") or "osint-framework"),
+            name=str(raw.get("name") or "AEGIS"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
             source_url=str(raw.get("source_url") or ""),
             license=str(raw.get("license") or "Unknown"),
             description=(
-                "Python OSINT framework adapter for tactical source discovery "
-                "and briefing preparation in sovereign environments."
+                "Early-warning and geostrategic intelligence adapter for "
+                "commander decision support in sovereign operations."
             ),
             integration_type="adapter",
-            capabilities=["osint-discovery", "target-profiling", "briefing-support"],
+            capabilities=["early-warning", "geostrategic-analysis", "briefing-support"],
             airgapped_support=True,
         )
 
     def validate_availability(self) -> bool:
-        """Validate local tooling needed for intelligence wrapper execution."""
+        """Validate local AEGIS tooling before runtime execution."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -77,7 +77,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
         if self.is_airgapped:
-            self.logger.info("Returning fixture payload for tactical offline briefing support.")
+            self.logger.info("Returning AEGIS fixture for offline early-warning briefing.")
             return {
                 "integration_id": self.integration_id,
                 "domain": self.domain,
@@ -98,7 +98,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
                 "status": "unavailable",
                 "operation": operation,
                 "request": request,
-                "message": "osint-framework tooling is not available on this host.",
+                "message": "AEGIS tooling is not available on this host.",
             }
 
         return {

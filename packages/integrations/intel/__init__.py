@@ -1,1 +1,2 @@
-"""Intelligence and OSINT briefing integration wrappers for S3M."""
+"""S3M intelligence and OSINT integration wrappers."""
+

@@ -1,8 +1,8 @@
-"""osint-framework adapter for S3M intelligence and OSINT briefings.
+"""TIGMINT adapter for S3M intelligence and OSINT briefings.
 
 Military/tactical context:
-This wrapper provides a deterministic interface for mission intelligence cells
-to run or emulate OSINT framework workflows when networks are disconnected.
+This wrapper enables analysts to standardize social-media intelligence triage
+for sovereign command workflows, including degraded-network operations.
 """
 
 from __future__ import annotations
@@ -17,18 +17,18 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class OsintFrameworkAdapter(IntegrationAdapter):
-    """Thin adapter for osint-framework intelligence workflows."""
+class TigmintAdapter(IntegrationAdapter):
+    """Thin adapter for TIGMINT OSINT intelligence workflows."""
 
-    integration_id = "osint-framework"
+    integration_id = "tigmint"
     domain = "intel"
     _SUPPORTED_OPERATIONS = {
-        "resource_discovery",
-        "target_profile",
+        "social_media_bundle",
+        "entity_correlation",
         "briefing_summary",
     }
-    _TOOL_MODULES = ("osint_framework", "osintframework")
-    _TOOL_COMMANDS = ("osint-framework", "osintframework")
+    _TOOL_MODULES = ("tigmint",)
+    _TOOL_COMMANDS = ("tigmint",)
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -43,22 +43,22 @@ class OsintFrameworkAdapter(IntegrationAdapter):
     def get_manifest(self) -> IntegrationManifest:
         raw = self._manifest_data()
         return IntegrationManifest(
-            name=str(raw.get("name") or "osint-framework"),
+            name=str(raw.get("name") or "TIGMINT"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
             source_url=str(raw.get("source_url") or ""),
             license=str(raw.get("license") or "Unknown"),
             description=(
-                "Python OSINT framework adapter for tactical source discovery "
-                "and briefing preparation in sovereign environments."
+                "GUI-oriented OSINT adapter for social-media intelligence "
+                "bundling and rapid tactical assessment."
             ),
             integration_type="adapter",
-            capabilities=["osint-discovery", "target-profiling", "briefing-support"],
+            capabilities=["social-media-osint", "entity-linking", "briefing-support"],
             airgapped_support=True,
         )
 
     def validate_availability(self) -> bool:
-        """Validate local tooling needed for intelligence wrapper execution."""
+        """Validate local TIGMINT tooling before runtime execution."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -77,7 +77,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
         if self.is_airgapped:
-            self.logger.info("Returning fixture payload for tactical offline briefing support.")
+            self.logger.info("Returning TIGMINT fixture for offline intelligence rehearsal.")
             return {
                 "integration_id": self.integration_id,
                 "domain": self.domain,
@@ -98,7 +98,7 @@ class OsintFrameworkAdapter(IntegrationAdapter):
                 "status": "unavailable",
                 "operation": operation,
                 "request": request,
-                "message": "osint-framework tooling is not available on this host.",
+                "message": "TIGMINT tooling is not available on this host.",
             }
 
         return {
