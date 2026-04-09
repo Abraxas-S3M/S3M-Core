@@ -1,0 +1,32 @@
+{
+  "mission_id": "s3m-nav-gru-pred-062",
+  "platform": "uav-multiagent",
+  "model": "gru-3d-trajectory",
+  "status": "predicted",
+  "prediction_horizon_s": 5.0,
+  "confidence": 0.91,
+  "predicted_positions": [
+    {
+      "t_s": 1.0,
+      "x": 12.1,
+      "y": -3.4,
+      "z": 47.8
+    },
+    {
+      "t_s": 2.0,
+      "x": 13.6,
+      "y": -1.9,
+      "z": 48.2
+    },
+    {
+      "t_s": 3.0,
+      "x": 15.4,
+      "y": -0.3,
+      "z": 49.0
+    }
+  ],
+  "deconfliction": {
+    "closest_approach_m": 7.3,
+    "alert_level": "green"
+  }
+}

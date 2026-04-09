@@ -1,0 +1,13 @@
+name: trajectory_optimization
+slug: trajectory-optimization
+domain: navigation
+source_url: https://github.com/Zhefan-Xu/trajectory_optimization
+license: (ICRA-style)
+description: Dynamic Polynomial-based MPC for UAV navigation with dynamic obstacle
+  avoidance.
+integration_type: adapter
+capabilities:
+- dpmpc-planning
+- dynamic-obstacle-avoidance
+- uav-corridor-generation
+airgapped_support: true
