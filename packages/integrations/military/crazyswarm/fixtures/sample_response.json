@@ -1,0 +1,20 @@
+{
+  "mission_id": "crazyswarm-stack-2026-04-09-007",
+  "formation": "staggered_wedge",
+  "swarm_size": 8,
+  "leader_drone": "cf-01",
+  "objective": "perimeter_recon",
+  "assigned_sector": "sector-charlie",
+  "waypoint_sequence": [
+    "WP-C1",
+    "WP-C2",
+    "WP-C3",
+    "WP-C4"
+  ],
+  "telemetry_summary": {
+    "avg_battery_pct": 78.2,
+    "max_inter_drone_spacing_m": 6.3,
+    "packet_loss_pct": 0.9
+  },
+  "status": "formation_hold"
+}
