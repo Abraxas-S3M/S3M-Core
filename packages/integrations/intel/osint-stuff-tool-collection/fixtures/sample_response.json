@@ -1,0 +1,45 @@
+{
+  "status": "ok",
+  "dataset": "osint_stuff_tool_collection",
+  "snapshot_version": "2026.04",
+  "query": {
+    "mission": "maritime_chokepoint_monitoring",
+    "priority": "high",
+    "region": "red_sea"
+  },
+  "categories": [
+    {
+      "name": "domain_tools",
+      "count": 148,
+      "examples": [
+        "Subdomain Center",
+        "dnsdumpster",
+        "crt.sh"
+      ]
+    },
+    {
+      "name": "social_media_intel",
+      "count": 123,
+      "examples": [
+        "Sotwe",
+        "TGStat",
+        "Twint references"
+      ]
+    },
+    {
+      "name": "geoint_resources",
+      "count": 96,
+      "examples": [
+        "Google Earth",
+        "OpenStreetMap",
+        "Zoom Earth"
+      ]
+    }
+  ],
+  "recommended_briefing_stack": [
+    "whois_and_dns_enrichment",
+    "social_signal_tracking",
+    "geospatial_confirmation"
+  ],
+  "tactical_note": "Catalog snapshot supports rapid mission intelligence preparation inside disconnected command networks."
+}

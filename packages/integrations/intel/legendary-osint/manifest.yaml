@@ -1,0 +1,12 @@
+name: "Legendary_OSINT"
+slug: "legendary-osint"
+domain: "intel"
+source_url: "https://github.com/K2SOsint/Legendary_OSINT"
+license: "Unknown"
+description: "Curated list of OSINT tools for investigators, CTI, and risk analysis."
+integration_type: "adapter"
+capabilities:
+  - "tool_discovery"
+  - "cti_support"
+  - "risk_analysis_preparation"
+airgapped_support: true

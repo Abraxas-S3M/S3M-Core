@@ -1,2 +1,1 @@
-"""S3M intelligence and OSINT integration wrappers."""
-
+"""Intel-domain integration wrappers for sovereign OSINT briefings."""
