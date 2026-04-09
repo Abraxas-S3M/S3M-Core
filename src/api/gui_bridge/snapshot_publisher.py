@@ -8,26 +8,13 @@ when real-time backend links are interrupted.
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from src.api.gui_bridge.adapters.agent_adapter import AgentAdapter
-from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
-from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
-from src.api.gui_bridge.adapters.cop_adapter import COPAdapter
-from src.api.gui_bridge.adapters.cyber_adapter import CyberAdapter
-from src.api.gui_bridge.adapters.decision_adapter import DecisionAdapter
-from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
-from src.api.gui_bridge.adapters.readiness_adapter import ReadinessAdapter
-from src.api.gui_bridge.adapters.risk_adapter import RiskAdapter
-from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
-from src.api.gui_bridge.adapters.surveillance_adapter import SurveillanceAdapter
-from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
-from src.api.gui_bridge.system_routes import _collect_engine_status, _collect_uptime_seconds
 from src.storage.b2_connector import B2Connector
-from src.training.cloud_cpu.metrics_store import MetricsStore
 
 DEFAULT_SNAPSHOT_PREFIX = "gui-snapshots/"
 
@@ -69,6 +56,25 @@ def _workspace_filename(workspace: str) -> str:
     return mapping.get(workspace, workspace)
 
 
+def _load_metrics_store_class():
+    """Load MetricsStore without relying on package-level import side effects."""
+    try:
+        from src.training.cloud_cpu.metrics_store import MetricsStore
+
+        return MetricsStore
+    except Exception:
+        module_path = Path(__file__).resolve().parents[2] / "training" / "cloud_cpu" / "metrics_store.py"
+        spec = importlib.util.spec_from_file_location("s3m_metrics_store_runtime", module_path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"Unable to load MetricsStore module from {module_path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        metrics_store_class = getattr(module, "MetricsStore", None)
+        if metrics_store_class is None:
+            raise RuntimeError("MetricsStore class is missing from metrics_store module")
+        return metrics_store_class
+
+
 class SnapshotPublisher:
     """Generates and publishes GUI data snapshots to BackBlaze B2.
 
@@ -105,7 +111,8 @@ class SnapshotPublisher:
         self._b2_connector = b2_connector
         self._metrics_dir = Path(metrics_dir)
         self._training_state_root = Path(training_state_root)
-        self._metrics_store = MetricsStore(self._metrics_dir)
+        metrics_store_class = _load_metrics_store_class()
+        self._metrics_store = metrics_store_class(self._metrics_dir)
         self._b2_snapshot_prefix = self._normalize_prefix(b2_snapshot_prefix)
 
     def generate_all_snapshots(self) -> Dict[str, Any]:
@@ -277,6 +284,9 @@ class SnapshotPublisher:
         raise RuntimeError("Configured B2 connector does not expose a JSON upload method")
 
     def _build_command_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.agent_adapter import AgentAdapter
+        from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
+
         adapter = CommandAdapter()
         return {
             "operational_context": _as_dict(adapter.get_operational_context()),
@@ -286,6 +296,8 @@ class SnapshotPublisher:
         }
 
     def _build_cop_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.cop_adapter import COPAdapter
+
         adapter = COPAdapter()
         return {
             "tracks": _as_dict(adapter.get_tracks()),
@@ -293,16 +305,22 @@ class SnapshotPublisher:
         }
 
     def _build_decisions_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.decision_adapter import DecisionAdapter
+
         return {
             "queue": _as_dict(DecisionAdapter().get_queue()),
         }
 
     def _build_risk_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.risk_adapter import RiskAdapter
+
         return {
             "metrics": _as_dict(RiskAdapter().get_metrics()),
         }
 
     def _build_planning_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
+
         adapter = PlanningAdapter()
         return {
             "phases": _as_dict(adapter.get_phases()),
@@ -310,6 +328,8 @@ class SnapshotPublisher:
         }
 
     def _build_sustainment_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.sustainment_adapter import SustainmentAdapter
+
         adapter = SustainmentAdapter()
         return {
             "fleet": _as_dict(adapter.get_fleet()),
@@ -317,11 +337,15 @@ class SnapshotPublisher:
         }
 
     def _build_readiness_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.readiness_adapter import ReadinessAdapter
+
         return {
             "summary": _as_dict(ReadinessAdapter().get_summary()),
         }
 
     def _build_cyber_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.cyber_adapter import CyberAdapter
+
         adapter = CyberAdapter()
         return {
             "incidents": _as_dict(adapter.get_incidents()),
@@ -329,16 +353,22 @@ class SnapshotPublisher:
         }
 
     def _build_simulation_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
+
         return {
             "scenarios": _as_dict(SimulationAdapter().get_scenarios()),
         }
 
     def _build_communication_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.comms_adapter import CommsAdapter
+
         return {
             "messages": _as_dict(CommsAdapter().get_messages()),
         }
 
     def _build_surveillance_snapshot(self) -> Dict[str, Any]:
+        from src.api.gui_bridge.adapters.surveillance_adapter import SurveillanceAdapter
+
         return {
             "assets": _as_dict(SurveillanceAdapter().get_assets()),
         }
@@ -347,8 +377,8 @@ class SnapshotPublisher:
         return {
             "engine_health": {
                 "status": "operational",
-                "engines": _collect_engine_status(),
-                "uptime": _collect_uptime_seconds(),
+                "engines": self._collect_engine_status_safe(),
+                "uptime": self._collect_uptime_seconds_safe(),
                 "updatedAt": _now_iso(),
             },
             "training_status": self._build_training_status_payload(),
@@ -506,13 +536,33 @@ class SnapshotPublisher:
                     total_bytes += entry.stat().st_size
 
         return {
-            "hetzner_health": "degraded" if not _collect_engine_status() else "operational",
+            "hetzner_health": "degraded" if not self._collect_engine_status_safe() else "operational",
             "last_sync_time": _now_iso(),
             "backblaze_usage": {
                 "objects": object_count,
                 "bytes": total_bytes,
             },
         }
+
+    @staticmethod
+    def _collect_engine_status_safe() -> Dict[str, Any]:
+        try:
+            from src.api.gui_bridge.system_routes import _collect_engine_status
+
+            payload = _collect_engine_status()
+            return payload if isinstance(payload, dict) else {}
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _collect_uptime_seconds_safe() -> int:
+        try:
+            from src.api.gui_bridge.system_routes import _collect_uptime_seconds
+
+            value = _collect_uptime_seconds()
+            return int(value)
+        except Exception:
+            return 0
 
     def _resolve_current_step(self, *, last: Dict[str, Any], summary: Dict[str, Any]) -> int:
         for key in ("step", "current_step", "cycle"):
