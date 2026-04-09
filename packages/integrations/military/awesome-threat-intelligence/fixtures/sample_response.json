@@ -1,0 +1,32 @@
+{
+  "intel_brief_id": "threat-brief-uav-117",
+  "focus_area": "low-altitude UAV swarm indicators",
+  "analysis_window": "2026-04-09T00:00:00Z/2026-04-09T06:00:00Z",
+  "sources_reviewed": 34,
+  "curated_collections": [
+    {
+      "collection": "radar-signature-research",
+      "new_entries": 4,
+      "priority": "high"
+    },
+    {
+      "collection": "uav-command-and-control-iocs",
+      "new_entries": 7,
+      "priority": "critical"
+    }
+  ],
+  "emerging_indicators": [
+    {
+      "indicator": "burst telemetry at 2.4GHz bands near perimeter sectors",
+      "confidence": 0.79
+    },
+    {
+      "indicator": "repeat firmware hash family in recovered autopilot images",
+      "confidence": 0.73
+    }
+  ],
+  "recommended_watch_tasks": [
+    "Increase EW monitoring density in sectors east and southeast.",
+    "Cross-reference autopilot hash family with captured mission payloads."
+  ]
+}

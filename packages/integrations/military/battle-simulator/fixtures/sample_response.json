@@ -1,0 +1,36 @@
+{
+  "simulation_id": "sim-northern-ridge-041",
+  "scenario": "Defensive hold at corridor delta",
+  "map_reference": "grid-38SMB-9482",
+  "status": "completed",
+  "time_horizon_minutes": 180,
+  "friendly_nodes": [
+    {
+      "node_id": "alpha-company",
+      "role": "blocking-force",
+      "readiness": 0.91,
+      "position": "38SMB949281"
+    },
+    {
+      "node_id": "bravo-armor",
+      "role": "mobile-reserve",
+      "readiness": 0.87,
+      "position": "38SMB956274"
+    }
+  ],
+  "adversary_estimate": {
+    "unit_type": "mechanized-platoon",
+    "approach_axis": "east-saddle",
+    "confidence": 0.76
+  },
+  "outcome_projection": {
+    "mission_success_probability": 0.82,
+    "estimated_attrition_friendly_percent": 9.4,
+    "estimated_attrition_adversary_percent": 31.2
+  },
+  "recommended_actions": [
+    "Reinforce alpha-company with one anti-armor team by H+35.",
+    "Shift bravo-armor to phase line ember if UAV confirms flank movement.",
+    "Trigger logistics resupply convoy before fuel state drops below 40%."
+  ]
+}
