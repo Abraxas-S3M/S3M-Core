@@ -1,0 +1,27 @@
+{
+  "fixture_version": "1.0",
+  "integration": "open-dis",
+  "status": "ok",
+  "operation": "validate_dis_exchange",
+  "exercise_id": "brigade-live-virtual-26a",
+  "pdu_stream_summary": {
+    "entity_state_pdu": 1860,
+    "fire_pdu": 112,
+    "detonation_pdu": 74,
+    "signal_pdu": 403
+  },
+  "interoperability_assessment": {
+    "clock_drift_ms": 12,
+    "packet_loss_percent": 0.7,
+    "schema_conformance": "passed"
+  },
+  "notable_events": [
+    {
+      "event_id": "dis-evt-043",
+      "event_type": "entity_state_mismatch",
+      "severity": "medium",
+      "assessment": "One armored platoon entity reported stale orientation updates for 3 ticks."
+    }
+  ],
+  "source": "airgapped_fixture"
+}

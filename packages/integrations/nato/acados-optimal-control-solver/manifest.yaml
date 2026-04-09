@@ -1,0 +1,5 @@
+name: "ACADOS (optimal control solver)"
+slug: "acados-optimal-control-solver"
+domain: "nato"
+source_url: "https://github.com/acados/acados"
+license: "BSD"

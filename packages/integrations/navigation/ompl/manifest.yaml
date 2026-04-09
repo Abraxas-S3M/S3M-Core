@@ -1,0 +1,12 @@
+name: "OMPL"
+slug: "ompl"
+domain: "navigation"
+source_url: "https://github.com/ompl/ompl"
+license: "BSD"
+description: "Open Motion Planning Library with sampling-based planners (RRT*, PRM*, etc.)."
+integration_type: "adapter"
+capabilities:
+  - "rrt_star_planning"
+  - "prm_star_planning"
+  - "collision_aware_path_search"
+airgapped_support: true

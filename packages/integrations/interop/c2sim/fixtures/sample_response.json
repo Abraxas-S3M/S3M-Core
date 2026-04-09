@@ -1,0 +1,19 @@
+{
+  "exchange_id": "c2sim-xchg-2026-0409-21",
+  "message_types": [
+    "OrderBody",
+    "PositionReportContent",
+    "TaskStatus"
+  ],
+  "validation": {
+    "schema_pass": true,
+    "semantic_checks_passed": 14,
+    "semantic_warnings": 1
+  },
+  "battle_rhythm": {
+    "simulation_tick_ms": 1000,
+    "orders_ingested": 12,
+    "tracks_updated": 49
+  },
+  "mission_area": "sector-eastern-corridor"
+}

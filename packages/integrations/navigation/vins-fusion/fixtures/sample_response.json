@@ -1,0 +1,25 @@
+{
+  "run_id": "vins-fusion-recon-2026-04-09-008",
+  "status": "completed",
+  "estimator_mode": "stereo_imu_gps",
+  "state": {
+    "position_m": {
+      "x": -55.3,
+      "y": 412.6,
+      "z": 37.9
+    },
+    "velocity_mps": {
+      "x": 4.2,
+      "y": -1.3,
+      "z": 0.2
+    },
+    "attitude_deg": {
+      "roll": 1.0,
+      "pitch": -0.6,
+      "yaw": 271.8
+    }
+  },
+  "innovation_norm": 0.14,
+  "loop_closure_events": 3,
+  "mission_note": "Airgapped replay of fused visual-inertial-GPS estimator for ISR route continuity."
+}

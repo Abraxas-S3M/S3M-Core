@@ -1,0 +1,20 @@
+{
+  "run_id": "lio-sam-mission-2026-04-09-001",
+  "status": "completed",
+  "coordinate_frame": "map",
+  "pose": {
+    "x_m": 1423.78,
+    "y_m": -318.42,
+    "z_m": 12.54,
+    "roll_deg": 0.2,
+    "pitch_deg": -1.1,
+    "yaw_deg": 84.3
+  },
+  "velocity_mps": 9.8,
+  "covariance_trace": 0.018,
+  "sensor_health": {
+    "lidar": "nominal",
+    "imu": "nominal"
+  },
+  "mission_note": "Airgapped replay of LiDAR-IMU odometry over contested urban corridor."
+}

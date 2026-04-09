@@ -1,0 +1,18 @@
+{
+  "mission_id": "nato-ai-assurance-pt-2026-04-09-01",
+  "status": "ready",
+  "operation": "inference",
+  "runtime": {
+    "framework": "pytorch",
+    "version": "2.2.x",
+    "device": "cuda:0",
+    "distributed_backend": "nccl"
+  },
+  "assurance_metrics": {
+    "batch_latency_ms_p50": 17.8,
+    "batch_latency_ms_p95": 26.4,
+    "throughput_samples_per_sec": 231.2,
+    "numerical_stability_checks_passed": true
+  },
+  "mission_notes": "Offline rehearsal indicates model pipeline is stable for contested ISR cueing workloads."
+}

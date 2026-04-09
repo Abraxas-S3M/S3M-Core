@@ -1,0 +1,33 @@
+{
+  "fixture_version": "1.0",
+  "integration": "awesome-security",
+  "status": "ok",
+  "operation": "run_security_posture_check",
+  "assessment_scope": "edge-node-cluster-charlie",
+  "tooling_snapshot": {
+    "ids_engine": "snort",
+    "host_monitoring": "wazuh",
+    "vulnerability_scan_reference": "openvas"
+  },
+  "findings_summary": {
+    "critical": 0,
+    "high": 2,
+    "medium": 5,
+    "low": 9
+  },
+  "priority_findings": [
+    {
+      "finding_id": "aws-sec-004",
+      "severity": "high",
+      "asset": "edge-gateway-03",
+      "assessment": "Outdated TLS cipher support detected on exposed management interface."
+    },
+    {
+      "finding_id": "aws-sec-009",
+      "severity": "high",
+      "asset": "sensor-node-17",
+      "assessment": "Repeated unauthorized login attempts aligned with known brute-force signature."
+    }
+  ],
+  "source": "airgapped_fixture"
+}

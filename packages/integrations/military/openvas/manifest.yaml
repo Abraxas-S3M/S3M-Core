@@ -1,0 +1,12 @@
+name: "OpenVAS"
+slug: "openvas"
+domain: "military"
+source_url: "https://github.com/greenbone/openvas-scanner"
+license: "GPL-2.0"
+description: "Vulnerability scanner integration for military edge device hardening."
+integration_type: "adapter"
+capabilities:
+  - "vulnerability_scanning"
+  - "compliance_assessment"
+  - "edge_hardening"
+airgapped_support: true

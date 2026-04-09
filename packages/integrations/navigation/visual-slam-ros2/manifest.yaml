@@ -1,0 +1,16 @@
+name: "visual-slam-ros2"
+slug: "visual-slam-ros2"
+domain: "navigation"
+source_url: "https://github.com/imnuman/visual-slam-ros2"
+license: "MIT"
+description: "Visual-Inertial SLAM with ORB features + IMU preintegration in ROS2 Humble."
+integration_type: "adapter"
+capabilities:
+  - "visual_inertial_odometry"
+  - "orb_feature_tracking"
+  - "ros2_humble_slam_pipeline"
+system_dependencies:
+  - "ros2"
+  - "opencv"
+  - "eigen"
+airgapped_support: true

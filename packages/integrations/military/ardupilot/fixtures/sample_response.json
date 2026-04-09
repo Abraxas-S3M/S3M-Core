@@ -1,0 +1,24 @@
+{
+  "mission_id": "ardu-sortie-2026-04-09-067",
+  "vehicle_type": "quadrotor",
+  "firmware_profile": "ArduCopter-4.5.0",
+  "flight_mode": "AUTO",
+  "mission_segment": "route_clearance",
+  "link_quality": "stable",
+  "imu_status": "healthy",
+  "gps_fix": "3d_fix",
+  "battery_remaining_percent": 61,
+  "terrain_following": true,
+  "alerts": [
+    {
+      "code": "wind-gust-watch",
+      "severity": "medium",
+      "detail": "Crosswind estimates approaching mission threshold in sector D4."
+    }
+  ],
+  "recommended_actions": [
+    "Enable conservative turn-rate profile for waypoint chain 12 through 18.",
+    "Pre-arm contingency RTL at waypoint HOLD-3.",
+    "Maintain ISR payload frame rate at reduced power profile."
+  ]
+}
