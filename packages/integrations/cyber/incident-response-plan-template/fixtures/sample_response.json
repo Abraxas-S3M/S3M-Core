@@ -1,0 +1,29 @@
+{
+  "template_set": "counteractive-ir-plan",
+  "version": "2026.1",
+  "scenario": "ransomware-activity-in-logistics-network",
+  "sections": [
+    {
+      "section": "Preparation",
+      "tasks": [
+        "Verify offline backups for mission-critical logistics systems",
+        "Confirm incident commander and deputy roles for cyber cell"
+      ]
+    },
+    {
+      "section": "Identification",
+      "tasks": [
+        "Correlate endpoint encryption indicators with SIEM alerts",
+        "Determine blast radius across tactical and enterprise segments"
+      ]
+    },
+    {
+      "section": "Containment",
+      "tasks": [
+        "Isolate impacted enclaves at network boundary controls",
+        "Apply emergency segmentation policy from cyber battle drill SOP"
+      ]
+    }
+  ],
+  "command_recommendation": "Initiate cyber incident command protocol level 2 and brief operations commander within 15 minutes."
+}
