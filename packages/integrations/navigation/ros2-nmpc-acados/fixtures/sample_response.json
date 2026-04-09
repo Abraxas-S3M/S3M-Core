@@ -1,0 +1,44 @@
+{
+  "mission_id": "s3m-nav-nmpc-dd-041",
+  "platform": "ugv-differential-drive",
+  "solver": "acados",
+  "status": "optimal",
+  "horizon_steps": 25,
+  "control_period_ms": 80,
+  "objective_value": 14.27,
+  "predicted_path_m": [
+    {
+      "x": 0.0,
+      "y": 0.0,
+      "theta": 0.0
+    },
+    {
+      "x": 1.4,
+      "y": 0.2,
+      "theta": 0.05
+    },
+    {
+      "x": 2.8,
+      "y": 0.6,
+      "theta": 0.09
+    }
+  ],
+  "control_sequence": [
+    {
+      "v_mps": 1.2,
+      "omega_rps": 0.18
+    },
+    {
+      "v_mps": 1.1,
+      "omega_rps": 0.12
+    },
+    {
+      "v_mps": 1.0,
+      "omega_rps": 0.07
+    }
+  ],
+  "threat_avoidance": {
+    "collision_probability": 0.03,
+    "min_clearance_m": 2.1
+  }
+}
