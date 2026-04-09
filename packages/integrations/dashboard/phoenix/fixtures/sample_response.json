@@ -1,0 +1,30 @@
+{
+  "workspace": "s3m-llm-observability",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "trace_summary": {
+    "total_traces": 295,
+    "successful_traces": 284,
+    "failed_traces": 11,
+    "p95_latency_ms": 967
+  },
+  "experiment_rollup": [
+    {
+      "experiment": "mission-brief-generator-v5",
+      "runs": 72,
+      "avg_score": 0.92,
+      "regression_flag": false
+    },
+    {
+      "experiment": "threat-prioritization-v3",
+      "runs": 38,
+      "avg_score": 0.88,
+      "regression_flag": true
+    }
+  ],
+  "guardrail_insights": {
+    "policy_violations": 3,
+    "prompt_injection_attempts": 2,
+    "escalation_required": true
+  }
+}
+

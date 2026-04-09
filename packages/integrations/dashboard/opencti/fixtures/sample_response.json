@@ -1,0 +1,39 @@
+{
+  "workspace": "Forward-Cyber-Cell-01",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "threat_level": "high",
+  "summary": {
+    "active_observables": 2841,
+    "high_confidence_iocs": 176,
+    "open_incidents": 14,
+    "priority_apt_clusters": 3
+  },
+  "top_risks": [
+    {
+      "risk_id": "risk-apt-desert-jackal",
+      "name": "Desert Jackal C2 beaconing",
+      "severity": "critical",
+      "affected_assets": 12,
+      "confidence": 0.93
+    },
+    {
+      "risk_id": "risk-supply-chain-spearphish",
+      "name": "Supply-chain spearphishing wave",
+      "severity": "high",
+      "affected_assets": 28,
+      "confidence": 0.87
+    }
+  ],
+  "dashboard": {
+    "campaigns": [
+      {
+        "name": "Operation Sandglass",
+        "status": "active",
+        "target_region": "Riyadh AO",
+        "mitre_techniques": ["T1566.001", "T1071.001"]
+      }
+    ],
+    "last_sync_status": "ok"
+  }
+}
+

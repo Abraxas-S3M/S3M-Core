@@ -1,0 +1,13 @@
+name: "Langfuse"
+slug: "langfuse"
+domain: "dashboard"
+source_url: "https://github.com/langfuse/langfuse"
+license: "MIT"
+description: "Open-source LLM observability dashboard for traces, metrics, evals, and prompt management."
+integration_type: "adapter"
+capabilities:
+  - "trace_dashboard"
+  - "prompt_management"
+  - "evaluation_monitoring"
+airgapped_support: true
+

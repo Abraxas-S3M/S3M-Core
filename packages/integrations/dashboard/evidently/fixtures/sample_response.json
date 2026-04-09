@@ -1,0 +1,26 @@
+{
+  "report_id": "evd-20260409-001",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "dataset_window": "rolling-24h",
+  "model_quality": {
+    "accuracy": 0.942,
+    "precision": 0.918,
+    "recall": 0.903,
+    "f1_score": 0.910
+  },
+  "drift": {
+    "feature_drift_detected": true,
+    "drifted_features": ["signal_entropy", "text_confidence", "sensor_noise_ratio"],
+    "drift_score": 0.36,
+    "severity": "medium"
+  },
+  "alerts": [
+    {
+      "alert_id": "qa-regression-17",
+      "type": "quality_regression",
+      "severity": "high",
+      "message": "Classification confidence dropped 8% versus baseline in AO-East feed."
+    }
+  ]
+}
+

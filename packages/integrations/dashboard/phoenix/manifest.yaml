@@ -1,0 +1,13 @@
+name: "Phoenix"
+slug: "phoenix"
+domain: "dashboard"
+source_url: "https://github.com/Arize-ai/phoenix"
+license: "Apache 2.0"
+description: "AI observability platform with tracing dashboards for LLM experiments and prompt/eval monitoring."
+integration_type: "adapter"
+capabilities:
+  - "trace_dashboard"
+  - "experiment_monitoring"
+  - "evaluation_triage"
+airgapped_support: true
+
