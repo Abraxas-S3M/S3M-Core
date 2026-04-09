@@ -1,0 +1,35 @@
+{
+  "workflow_id": "wf-contain-credential-abuse",
+  "execution_id": "exec-44d9a2",
+  "status": "completed",
+  "duration_seconds": 93,
+  "trigger": {
+    "source": "siem",
+    "rule": "Impossible travel with privileged account",
+    "priority": "critical"
+  },
+  "steps": [
+    {
+      "name": "enrich_indicator",
+      "result": "success",
+      "artifacts": {
+        "ip_reputation": "malicious",
+        "asn": "AS64512"
+      }
+    },
+    {
+      "name": "disable_identity",
+      "result": "success",
+      "target": "user:ops-admin-23"
+    },
+    {
+      "name": "create_incident_case",
+      "result": "success",
+      "case_id": "ir-7741"
+    }
+  ],
+  "post_action_assessment": {
+    "containment_level": "full",
+    "residual_risk": "low"
+  }
+}
