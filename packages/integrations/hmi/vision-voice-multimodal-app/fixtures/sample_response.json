@@ -1,0 +1,18 @@
+{
+  "fixture_version": "1.0",
+  "integration": "vision-voice-multimodal-app",
+  "status": "ok",
+  "mission_profile": "command_post_multimodal_assistant",
+  "operation": "analyze_multimodal_prompt",
+  "input_summary": {
+    "voice_transcript": "Identify suspicious movement near Sector Delta and provide a verbal brief.",
+    "image_frame_id": "delta_cam_07_20260409_1611"
+  },
+  "analysis": {
+    "scene_description": "Three individuals moving rapidly between parked vehicles along the western perimeter.",
+    "risk_assessment": "medium",
+    "recommended_action": "Dispatch surveillance drone for angle confirmation and maintain alert posture."
+  },
+  "spoken_answer_preview": "Sector Delta shows coordinated movement among three individuals; recommend immediate aerial confirmation.",
+  "source": "airgapped_fixture"
+}

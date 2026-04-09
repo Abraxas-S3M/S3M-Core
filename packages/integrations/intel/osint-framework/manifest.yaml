@@ -1,0 +1,13 @@
+name: "OSINT-Framework"
+slug: "osint-framework"
+domain: "intel"
+source_url: "https://github.com/lockfale/OSINT-Framework"
+license: "Unknown"
+description: "Web-based OSINT framework with categorized reconnaissance and intelligence-gathering tools."
+integration_type: "adapter"
+capabilities:
+  - "tool_catalog"
+  - "collection_planning"
+  - "source_discovery"
+  - "workflow_bootstrap"
+airgapped_support: true

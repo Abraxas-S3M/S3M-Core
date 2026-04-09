@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "brief_id": "tw-sitrep-2026-04-09-0001",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "tension_index": {
+    "score": 72,
+    "level": "high-watch",
+    "trend_24h": "+5"
+  },
+  "risk_model": {
+    "short_horizon_72h": "elevated",
+    "mid_horizon_7d": "guarded",
+    "confidence": 0.78
+  },
+  "news_digest": [
+    {
+      "region": "Taiwan Strait",
+      "headline": "Increased naval patrol tempo reported overnight",
+      "sentiment": "warning",
+      "source_type": "open-media"
+    },
+    {
+      "region": "Air Defense Identification Zone",
+      "headline": "Intermittent aircraft activity recorded by observers",
+      "sentiment": "caution",
+      "source_type": "regional-monitoring"
+    }
+  ],
+  "recommended_actions": [
+    "Raise command watch condition to WATCHCON-2 for maritime sectors.",
+    "Prioritize ISR collection windows around projected patrol peaks."
+  ],
+  "tactical_assessment": "Escalation indicators remain below conflict threshold but require persistent monitoring."
+}

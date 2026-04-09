@@ -1,0 +1,29 @@
+{
+  "fixture_version": "1.0",
+  "integration": "awesome-embodied-vla-va-vln",
+  "status": "ok",
+  "mission_profile": "hmi_model_selection_board",
+  "operation": "list_curated_resources",
+  "resource_snapshot": {
+    "total_entries_indexed": 312,
+    "categories": [
+      "vision_language_action_models",
+      "visual_navigation",
+      "embodied_agent_benchmarks"
+    ],
+    "top_candidates": [
+      {
+        "name": "RT-2 style VLA policy family",
+        "readiness": "prototype",
+        "notes": "Strong cross-modal grounding for manipulation and navigation tasks."
+      },
+      {
+        "name": "VLN transformer navigation stack",
+        "readiness": "research",
+        "notes": "Useful for waypoint-level indoor route interpretation."
+      }
+    ]
+  },
+  "operator_note": "Use curated references for doctrinal capability mapping, not direct fire-control decisions.",
+  "source": "airgapped_fixture"
+}
