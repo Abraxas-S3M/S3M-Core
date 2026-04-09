@@ -1,0 +1,29 @@
+{
+  "cluster_name": "opensearch-cyber-cluster",
+  "status": "yellow",
+  "active_primary_shards": 52,
+  "active_shards": 97,
+  "unassigned_shards": 1,
+  "indices": [
+    {
+      "index": "soc-alerts-2026.04.09",
+      "docs_count": 142838,
+      "health": "green"
+    },
+    {
+      "index": "netflow-2026.04.09",
+      "docs_count": 953231,
+      "health": "yellow"
+    }
+  ],
+  "hunting_query": {
+    "name": "suspected-c2-beaconing",
+    "matched_documents": 19,
+    "top_hosts": [
+      "sensor-node-14",
+      "gateway-zulu-2",
+      "operator-terminal-5"
+    ]
+  },
+  "tactical_assessment": "Monitor netflow index allocation and isolate top_hosts for beacon triage."
+}

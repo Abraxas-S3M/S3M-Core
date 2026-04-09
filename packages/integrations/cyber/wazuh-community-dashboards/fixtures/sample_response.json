@@ -1,0 +1,50 @@
+{
+  "dashboard_id": "wazuh-soc-overview",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "cluster": "orion-cyber-defense",
+  "widgets": [
+    {
+      "widget_id": "alerts_by_severity",
+      "title": "Alerts by severity",
+      "critical": 14,
+      "high": 31,
+      "medium": 56,
+      "low": 42
+    },
+    {
+      "widget_id": "top_mitre_tactics",
+      "title": "Top MITRE ATT&CK tactics",
+      "items": [
+        {
+          "tactic": "TA0001 Initial Access",
+          "count": 18
+        },
+        {
+          "tactic": "TA0005 Defense Evasion",
+          "count": 22
+        },
+        {
+          "tactic": "TA0008 Lateral Movement",
+          "count": 9
+        }
+      ]
+    },
+    {
+      "widget_id": "impacted_assets",
+      "title": "Most impacted tactical assets",
+      "assets": [
+        {
+          "asset_id": "edge-gateway-07",
+          "site": "forward-operating-node-3",
+          "alert_count": 17
+        },
+        {
+          "asset_id": "mission-laptop-12",
+          "site": "operations-center-alpha",
+          "alert_count": 11
+        }
+      ]
+    }
+  ],
+  "recommendation": "Prioritize containment playbooks for defense-evasion activity on edge-gateway-07."
+}

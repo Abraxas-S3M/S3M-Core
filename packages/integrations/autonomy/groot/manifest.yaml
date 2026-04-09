@@ -1,0 +1,12 @@
+name: "Groot"
+slug: "groot"
+domain: "autonomy"
+source_url: "https://github.com/BehaviorTree/Groot"
+license: "MIT"
+description: "Graphical editor for creating, monitoring, and debugging Behavior Trees."
+integration_type: "adapter"
+capabilities:
+  - "behavior_tree_authoring"
+  - "behavior_tree_monitoring"
+  - "autonomy_debugging"
+airgapped_support: true

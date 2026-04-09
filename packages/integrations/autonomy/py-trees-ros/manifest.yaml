@@ -1,0 +1,15 @@
+name: "py_trees_ros"
+slug: "py-trees-ros"
+domain: "autonomy"
+source_url: "https://github.com/splintered-reality/py_trees_ros"
+license: "BSD"
+description: "ROS integration for py_trees."
+integration_type: "adapter"
+capabilities:
+  - "ros_behaviors"
+  - "behavior_trees"
+pip_dependencies:
+  - "py_trees_ros"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

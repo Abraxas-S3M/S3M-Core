@@ -1,0 +1,5 @@
+name: "Wazuh community dashboards"
+slug: "wazuh-community-dashboards"
+domain: "cyber"
+source_url: "Wazuh GitHub organization (dashboard-related)"
+license: "Unknown"

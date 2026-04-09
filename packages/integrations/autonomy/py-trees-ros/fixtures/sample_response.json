@@ -1,0 +1,22 @@
+{
+  "tree_name": "route-monitor",
+  "namespace": "/s3m/ground_convoy_02",
+  "ros_graph": {
+    "published_topics": [
+      "/status",
+      "/bt/tick",
+      "/alerts"
+    ],
+    "subscribed_topics": [
+      "/threat_feed",
+      "/navigation/waypoints",
+      "/comms/heartbeat"
+    ]
+  },
+  "execution_state": {
+    "status": "RUNNING",
+    "active_behavior": "dynamic-reroute",
+    "last_transition_reason": "detected-ambush-risk"
+  },
+  "latency_ms": 8.4
+}
