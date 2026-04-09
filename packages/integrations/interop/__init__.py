@@ -1,1 +1,1 @@
-"""Interoperability integration wrappers for simulation standards workflows."""
+"""Interoperability & simulation standards integration wrappers for S3M."""
