@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "run_id": "coreds-unreal-2026-04-09-012",
+  "exercise": "urban-combined-arms-sim",
+  "dis_gateway": {
+    "pdus_ingested": 12584,
+    "entity_state_pdus": 9731,
+    "fire_pdus": 442,
+    "detonation_pdus": 389
+  },
+  "sync_health": {
+    "unreal_entities_synced": 148,
+    "desync_events": 3,
+    "avg_state_delay_ms": 57
+  },
+  "notable_events": [
+    "Blue platoon vehicle convoy entered objective district at 07:42Z.",
+    "Two red OPFOR entities dropped from heartbeat for 11 seconds in sector E3."
+  ],
+  "tactical_assessment": "DIS bridge is stable for mission rehearsal; minor entity desynchronization needs tuning before formal certification."
+}

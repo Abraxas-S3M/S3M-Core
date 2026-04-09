@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "snapshot_id": "mesh-2026-04-09-041",
+  "network_zone": "coalition-forward-grid",
+  "nodes": 37,
+  "active_links": 128,
+  "partition_alerts": 1,
+  "route_quality": {
+    "avg_latency_ms": 42,
+    "packet_delivery_ratio": 0.973,
+    "jammed_links": 4
+  },
+  "critical_paths": [
+    {
+      "path_id": "c2-hq-to-brigade-3",
+      "hops": 6,
+      "health": "degraded"
+    },
+    {
+      "path_id": "brigade-3-to-uas-cell",
+      "hops": 3,
+      "health": "healthy"
+    }
+  ],
+  "tactical_assessment": "Mesh remains mission-capable with one partition requiring relay redeployment."
+}

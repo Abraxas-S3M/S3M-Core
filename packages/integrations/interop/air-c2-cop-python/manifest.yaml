@@ -1,0 +1,12 @@
+name: "air-c2-cop-python"
+slug: "air-c2-cop-python"
+domain: "interop"
+source_url: "https://github.com/Esri/air-c2-cop-python"
+license: "Unknown"
+description: "Scripts for Air Operations Command and Control Common Operating Picture."
+integration_type: "adapter"
+capabilities:
+  - "airspace_overlay"
+  - "c2_cop_generation"
+  - "air_tasking_visualization"
+airgapped_support: true

@@ -1,1 +1,1 @@
-"""Interoperability & simulation standards integration wrappers for S3M."""
+"""Interoperability and simulation-standard adapters for tactical systems."""
