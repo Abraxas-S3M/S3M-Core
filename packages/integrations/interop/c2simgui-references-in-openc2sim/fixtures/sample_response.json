@@ -1,0 +1,33 @@
+{
+  "exercise_id": "nato-c2sim-ops-44",
+  "timestamp": "2026-04-09T14:28:00Z",
+  "dashboard": {
+    "view_id": "combined-arms-ops",
+    "theme": "dark-ops",
+    "widgets_loaded": 12,
+    "status": "rendered"
+  },
+  "units": [
+    {
+      "unit_id": "A-COY-1",
+      "affiliation": "friendly",
+      "current_task": "hold_line",
+      "location_grid": "38T MP 242 119"
+    },
+    {
+      "unit_id": "OPFOR-REC-3",
+      "affiliation": "hostile",
+      "current_task": "probing",
+      "location_grid": "38T MP 268 141"
+    }
+  ],
+  "orders_overlay": {
+    "active_orders": 4,
+    "latest_order_id": "fragord-17",
+    "latency_ms": 47
+  },
+  "quality": {
+    "sync_state": "nominal",
+    "confidence": 0.95
+  }
+}
