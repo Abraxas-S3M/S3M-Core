@@ -1,0 +1,12 @@
+name: "ERPNext"
+slug: "erpnext"
+domain: "dashboard"
+source_url: "https://github.com/frappe/erpnext"
+license: "GPL-3.0"
+description: "ERP dashboard adapter for procurement, inventory, and budget controls in tactical sustainment workflows."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "procurement_pipeline"
+  - "asset_tracking"
+  - "budget_control"
