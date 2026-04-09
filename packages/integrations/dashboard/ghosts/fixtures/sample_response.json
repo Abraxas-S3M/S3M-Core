@@ -1,0 +1,31 @@
+{
+  "exercise_id": "EX-ALPHA-17",
+  "environment": "airgapped-training-range",
+  "agents": {
+    "red": 18,
+    "blue": 22,
+    "civilian": 45
+  },
+  "timeline": [
+    {
+      "minute": 5,
+      "event": "phishing_wave_detected",
+      "impact": "low"
+    },
+    {
+      "minute": 17,
+      "event": "domain_controller_lateral_movement",
+      "impact": "high"
+    },
+    {
+      "minute": 31,
+      "event": "blue_team_containment_success",
+      "impact": "medium"
+    }
+  ],
+  "grafana_panels": [
+    "incident-rate-over-time",
+    "containment-latency",
+    "host-compromise-map"
+  ]
+}

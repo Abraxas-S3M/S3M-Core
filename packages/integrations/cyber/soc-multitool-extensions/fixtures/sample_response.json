@@ -1,0 +1,46 @@
+{
+  "integration": "soc-multitool-extensions",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "case_context": {
+    "case_id": "SOC-2026-0042",
+    "mission_priority": "P1",
+    "objective": "Rapid triage of suspicious login telemetry and phishing leads."
+  },
+  "artifacts": [
+    {
+      "artifact_type": "url",
+      "value": "hxxps://secure-auth-support[.]com/session/recover",
+      "source_extension": "ioc_extractor",
+      "risk_score": 91,
+      "tags": [
+        "credential_phishing",
+        "impersonation"
+      ]
+    },
+    {
+      "artifact_type": "domain",
+      "value": "support-identity-check[.]net",
+      "source_extension": "dns_context_helper",
+      "risk_score": 84,
+      "tags": [
+        "newly_registered",
+        "suspicious_ns"
+      ]
+    },
+    {
+      "artifact_type": "hash_sha256",
+      "value": "7698baf0f043e47f4a3d164dfad6e12fc12b43eebf95b261f6384d67ca760ac7",
+      "source_extension": "clipboard_artifact_parser",
+      "risk_score": 76,
+      "tags": [
+        "attachment_payload",
+        "sandbox_recommended"
+      ]
+    }
+  ],
+  "recommended_actions": [
+    "Submit high-risk artifacts to internal detonation pipeline.",
+    "Apply temporary blocklist policy for suspicious domains.",
+    "Notify identity security cell for credential reset contingency."
+  ]
+}

@@ -1,0 +1,14 @@
+name: "rl-baselines3-zoo"
+slug: "rl-baselines3-zoo"
+domain: "autonomy"
+source_url: "https://github.com/DLR-RM/rl-baselines3-zoo"
+license: "MIT"
+description: "Stable-Baselines3 training and tuning workflows for autonomy policy preparation."
+integration_type: "adapter"
+capabilities:
+  - "training_plan_generation"
+  - "hyperparameter_sweep_planning"
+  - "offline_experiment_rehearsal"
+pip_dependencies:
+  - "rl-zoo3"
+airgapped_support: true

@@ -1,0 +1,34 @@
+{
+  "fixture_version": "1.0",
+  "integration": "interpretml",
+  "operation": "global_explanation",
+  "status": "ok",
+  "mission_profile": "border_surveillance_autonomy_transparency_review",
+  "model_type": "ExplainableBoostingClassifier",
+  "global_explanation": {
+    "feature_importance": [
+      {
+        "feature": "track_speed_mps",
+        "importance": 0.27,
+        "operational_interpretation": "Higher speed trajectories correlate with higher interception priority."
+      },
+      {
+        "feature": "restricted_zone_dwell_time_s",
+        "importance": 0.24,
+        "operational_interpretation": "Extended dwell in protected corridors increases threat confidence."
+      },
+      {
+        "feature": "iff_status_encoded",
+        "importance": 0.21,
+        "operational_interpretation": "Unknown or inconsistent IFF status materially increases alert score."
+      },
+      {
+        "feature": "radar_signature_stability",
+        "importance": 0.14,
+        "operational_interpretation": "Unstable signatures may indicate spoofing or rapid maneuvering."
+      }
+    ]
+  },
+  "decision_support_note": "Review explanation stability before approving autonomous engagement recommendations.",
+  "source": "airgapped_fixture"
+}

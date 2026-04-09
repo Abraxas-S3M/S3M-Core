@@ -1,0 +1,28 @@
+{
+  "model": "RogueShield-Forecast-v2",
+  "generated_for": "airgapped-training",
+  "threat_forecast": [
+    {
+      "sector": "forward-operating-base",
+      "horizon_hours": 24,
+      "risk_score": 0.82,
+      "predicted_vector": "lateral-movement"
+    },
+    {
+      "sector": "satcom-gateway",
+      "horizon_hours": 6,
+      "risk_score": 0.61,
+      "predicted_vector": "credential-abuse"
+    }
+  ],
+  "explanations": [
+    {
+      "feature": "east_west_traffic_spike",
+      "importance": 0.34
+    },
+    {
+      "feature": "failed_admin_logins",
+      "importance": 0.27
+    }
+  ]
+}

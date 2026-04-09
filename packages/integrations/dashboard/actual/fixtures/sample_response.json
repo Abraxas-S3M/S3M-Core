@@ -1,0 +1,29 @@
+{
+  "fiscal_period": "2026-Q2",
+  "currency": "USD",
+  "mission_programs": [
+    {
+      "program": "UAS Sustainment",
+      "allocated": 3200000,
+      "spent": 1985000,
+      "burn_rate_pct": 62.03
+    },
+    {
+      "program": "Border ISR Sensors",
+      "allocated": 2100000,
+      "spent": 1450000,
+      "burn_rate_pct": 69.05
+    }
+  ],
+  "alerts": [
+    {
+      "code": "PROC-OVERRUN-RISK",
+      "severity": "high",
+      "message": "Spare battery procurement trend indicates potential overrun in 31 days."
+    }
+  ],
+  "forecast": {
+    "projected_end_of_quarter_spend": 3900000,
+    "confidence": 0.81
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "base": "Forward Logistics Group North",
+  "procurement_queue": [
+    {
+      "po": "PO-2026-0041",
+      "item": "Secure radios",
+      "qty": 75,
+      "status": "awaiting_approval"
+    },
+    {
+      "po": "PO-2026-0048",
+      "item": "Vehicle tires",
+      "qty": 240,
+      "status": "approved"
+    }
+  ],
+  "asset_status": {
+    "total_assets": 1840,
+    "mission_ready_pct": 87.4,
+    "maintenance_due": 94
+  },
+  "budget_control": {
+    "ceiling": 12000000,
+    "obligated": 7940000,
+    "remaining": 4060000
+  }
+}

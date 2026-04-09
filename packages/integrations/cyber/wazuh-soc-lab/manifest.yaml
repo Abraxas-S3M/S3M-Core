@@ -1,0 +1,12 @@
+name: "Wazuh-SOC-Lab"
+slug: "wazuh-soc-lab"
+domain: "cyber"
+source_url: "https://github.com/marxgoo/Wazuh-SOC-Lab"
+license: "Unknown"
+description: "Full SOC home lab with Wazuh SIEM/XDR, Suricata IDS/IPS, pfSense, Sysmon, and VirusTotal integration."
+integration_type: "adapter"
+capabilities:
+  - "siem_monitoring"
+  - "ids_alert_triage"
+  - "endpoint_telemetry"
+airgapped_support: true

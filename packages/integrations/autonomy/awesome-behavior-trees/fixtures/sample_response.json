@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "integration": "awesome-behavior-trees",
+  "analysis_type": "reference_catalog_query",
+  "mission_profile": "autonomy_doctrine_development",
+  "topic": "autonomy_control_logic",
+  "resources": [
+    {
+      "title": "BehaviorTree.CPP Official Documentation",
+      "category": "framework",
+      "relevance_score": 0.95
+    },
+    {
+      "title": "Academic Survey on Behavior Trees in Robotics",
+      "category": "research",
+      "relevance_score": 0.89
+    },
+    {
+      "title": "Mission-Style Patrol Tree Example",
+      "category": "example",
+      "relevance_score": 0.84
+    }
+  ],
+  "commander_summary": "Reference set is suitable for updating autonomy TTPs and simulation exercises."
+}

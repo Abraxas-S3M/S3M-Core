@@ -1,0 +1,33 @@
+{
+  "operation_id": "wl-20260409-0001",
+  "stack": "Wazuh-SOC-Lab",
+  "status": "operational",
+  "site": "forward-operating-soc-alpha",
+  "sensors": {
+    "wazuh_manager": "online",
+    "suricata_ids": "online",
+    "pfsense_gateway": "online",
+    "sysmon_endpoints_reporting": 37
+  },
+  "alerts": {
+    "critical": 1,
+    "high": 4,
+    "medium": 11,
+    "low": 23
+  },
+  "top_threats": [
+    {
+      "rule_id": "100200",
+      "technique": "T1059",
+      "description": "Suspicious PowerShell execution on command post endpoint",
+      "host": "cp-node-07"
+    },
+    {
+      "rule_id": "220311",
+      "technique": "T1071.001",
+      "description": "Potential C2 beaconing over HTTPS from logistics subnet",
+      "host": "logi-srv-03"
+    }
+  ],
+  "generated_at": "2026-04-09T00:00:00Z"
+}
