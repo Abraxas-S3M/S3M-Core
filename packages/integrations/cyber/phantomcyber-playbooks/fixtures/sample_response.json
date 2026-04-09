@@ -1,0 +1,23 @@
+{
+  "incident_id": "soc-ir-2026-0441",
+  "detected_vector": "phishing-with-malicious-attachment",
+  "recommended_playbook": {
+    "name": "Email Phishing Investigation and Containment",
+    "version": "3.2",
+    "priority": "high",
+    "estimated_steps": 12
+  },
+  "playbook_steps": [
+    "Quarantine suspicious mailbox artifacts",
+    "Extract and detonate attachment in isolated sandbox",
+    "Block sender infrastructure in perimeter controls",
+    "Search enterprise endpoints for dropped indicators",
+    "Escalate to incident command if lateral movement is confirmed"
+  ],
+  "automation_readiness": {
+    "fully_automated_steps": 5,
+    "human_approval_steps": 3,
+    "manual_steps": 4
+  },
+  "tactical_note": "Route alerts to blue-team cell bravo for immediate containment and forensics handoff."
+}

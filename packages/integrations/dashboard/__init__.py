@@ -1,2 +1,2 @@
-"""Dashboard-domain integration wrappers for mission visualization workflows."""
+"""Dashboard-domain integration adapters for mission command surfaces."""
 

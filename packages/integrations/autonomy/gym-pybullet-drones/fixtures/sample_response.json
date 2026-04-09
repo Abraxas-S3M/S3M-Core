@@ -1,0 +1,22 @@
+{
+  "scenario_id": "convoy-protection-sector-7",
+  "operation_phase": "mission_rehearsal",
+  "environment": "pybullet-aviary-v0",
+  "mission_profile": {
+    "swarm_size": 6,
+    "flight_time_sec": 420,
+    "rules_of_engagement": "no-fly-zone-compliance"
+  },
+  "outcome": {
+    "status": "completed",
+    "objective_score": 0.93,
+    "collision_count": 0,
+    "geofence_violations": 0,
+    "energy_margin_percent": 14.2
+  },
+  "telemetry_summary": {
+    "mean_tracking_error_m": 0.27,
+    "max_wind_compensation_deg": 11.4,
+    "link_quality": "stable"
+  }
+}
