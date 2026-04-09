@@ -1,0 +1,14 @@
+name: "InterpretML"
+slug: "interpretml"
+domain: "autonomy"
+source_url: "https://github.com/interpretml/interpret"
+license: "MIT"
+description: "Interpretable ML support with glassbox modeling and explanation outputs."
+integration_type: "adapter"
+capabilities:
+  - "global_explanation"
+  - "local_explanation"
+  - "glassbox_model_support"
+pip_dependencies:
+  - "interpret"
+airgapped_support: true
