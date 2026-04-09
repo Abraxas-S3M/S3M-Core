@@ -1,0 +1,12 @@
+name: "Nikto"
+slug: "nikto"
+domain: "military"
+source_url: "https://github.com/sullo/nikto"
+license: "GPL-3.0"
+description: "Web server scanner for vulnerabilities in mission-facing infrastructure."
+integration_type: "adapter"
+capabilities:
+  - web_vulnerability_scanning
+  - surface_assessment
+  - hardening_validation
+airgapped_support: true

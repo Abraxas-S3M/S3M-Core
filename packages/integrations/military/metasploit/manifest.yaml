@@ -1,0 +1,12 @@
+name: "Metasploit"
+slug: "metasploit"
+domain: "military"
+source_url: "https://github.com/rapid7/metasploit-framework"
+license: "BSD-3-Clause"
+description: "Exploitation and validation toolkit for controlled mission-system testing."
+integration_type: "adapter"
+capabilities:
+  - exploit_validation
+  - payload_simulation
+  - attack_surface_testing
+airgapped_support: true

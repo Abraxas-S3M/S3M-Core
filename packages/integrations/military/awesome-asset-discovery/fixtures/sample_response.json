@@ -1,0 +1,29 @@
+{
+  "discovery_run_id": "aad-run-2026-0409-011",
+  "area_of_interest": "southern-maritime-command",
+  "discovered_assets": {
+    "domains": [
+      "ops.smc.gov.local",
+      "logistics.smc.gov.local",
+      "telemetry.smc.gov.local"
+    ],
+    "ip_ranges": [
+      "10.123.18.0/24",
+      "10.123.19.0/24"
+    ],
+    "cloud_exposures": [
+      {
+        "provider": "private-openstack",
+        "service": "object-storage",
+        "finding": "Public read policy on backup bucket",
+        "severity": "high"
+      }
+    ]
+  },
+  "protection_priorities": [
+    "Remove public read policy from backup bucket.",
+    "Enable DNSSEC and strict TLS profile for telemetry.smc.gov.local.",
+    "Add newly observed ranges to IDS monitoring baseline."
+  ],
+  "mission_impact": "Untracked external assets increase reconnaissance surface for adversary pre-positioning."
+}
