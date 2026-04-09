@@ -1,0 +1,27 @@
+{
+  "brief_id": "taranis-brief-2026-04-09-001",
+  "generated_at": "2026-04-09T06:30:00Z",
+  "theater": "Northern maritime approach",
+  "priority_level": "high",
+  "summary": "AI triage detected coordinated information activity targeting maritime logistics narratives across 12 monitored channels.",
+  "signals": [
+    {
+      "signal_id": "sig-441",
+      "topic": "port throughput disruption claims",
+      "confidence": 0.88,
+      "first_seen": "2026-04-09T02:11:00Z"
+    },
+    {
+      "signal_id": "sig-448",
+      "topic": "synthetic imagery of naval staging zones",
+      "confidence": 0.82,
+      "first_seen": "2026-04-09T03:22:00Z"
+    }
+  ],
+  "recommended_actions": [
+    "Escalate narrative forensics to IO cell.",
+    "Cross-check imagery metadata with geospatial validation pipeline.",
+    "Issue commander's note for logistics rumor control."
+  ],
+  "status": "completed"
+}

@@ -1,0 +1,13 @@
+name: "TaiWan-situation"
+slug: "taiwan-situation"
+domain: "intel"
+source_url: "https://github.com/Pluto114/TaiWan-situation"
+license: "Unknown"
+description: "Automated Taiwan Strait tension index dashboard with risk modeling and news aggregation."
+integration_type: "adapter"
+capabilities:
+  - "tension_index"
+  - "risk_modeling"
+  - "news_aggregation"
+  - "escalation_briefing"
+airgapped_support: true

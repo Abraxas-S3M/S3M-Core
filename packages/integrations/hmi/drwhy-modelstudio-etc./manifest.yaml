@@ -1,0 +1,12 @@
+name: "DrWhy (modelStudio etc.)"
+slug: "drwhy-modelstudio-etc."
+domain: "hmi"
+source_url: "https://github.com/ModelOriented/DrWhy"
+license: "GPL-3.0"
+description: "Collection of XAI tools with interactive dashboards for model exploration"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "model_explainability"
+  - "interactive_xai_dashboards"
+  - "feature_attribution_analysis"

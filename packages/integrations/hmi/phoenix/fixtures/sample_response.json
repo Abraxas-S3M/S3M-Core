@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "platform": "phoenix",
+  "workspace": "s3m-ai-observability",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "experiment_summary": {
+    "active_experiments": 4,
+    "regression_alerts": 1,
+    "best_run_score": 0.94
+  },
+  "trace_triage": {
+    "total_traces": 318,
+    "latency_outliers": 12,
+    "critical_failures": 3
+  },
+  "evaluation_metrics": {
+    "factuality": 0.91,
+    "policy_compliance": 0.98,
+    "operator_acceptance": 0.89
+  },
+  "tactical_assessment": "Phoenix analytics indicate stable mission-AI performance with one model variant requiring retraining."
+}

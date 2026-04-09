@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "platform": "grafana",
+  "deployment": "s3m-observability-node",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "dashboard_status": {
+    "active_dashboards": 27,
+    "critical_alerts": 2,
+    "panel_errors": 1
+  },
+  "otel_trace_rollup": {
+    "ingested_spans": 5823,
+    "error_rate": 0.013,
+    "high_latency_services": [
+      "llm-decision-support",
+      "sensor-fusion-summarizer"
+    ]
+  },
+  "llm_plugin_summary": {
+    "enabled_plugins": 3,
+    "anomalous_tokens_detected": 7,
+    "prompt_guardrail_alerts": 1
+  },
+  "tactical_assessment": "Grafana telemetry supports continuous AI mission-health awareness in disconnected theater networks."
+}

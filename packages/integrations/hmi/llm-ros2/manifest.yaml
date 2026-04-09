@@ -1,0 +1,12 @@
+name: "LLM_ROS2"
+slug: "llm-ros2"
+domain: "hmi"
+source_url: "https://github.com/LLMR-boringtao/LLM_ROS2"
+license: "GPL-3.0"
+description: "Multimodal conversational robotics with camera/LiDAR and LLM control in ROS2/Gazebo."
+integration_type: "adapter"
+capabilities:
+  - "multimodal-robot-dialog"
+  - "camera-lidar-grounding"
+  - "ros2-gazebo-control"
+airgapped_support: true

@@ -1,0 +1,17 @@
+{
+  "evaluation_run_id": "opik-eval-332",
+  "workflow": "mission-briefing-agent",
+  "metrics": {
+    "hallucination_rate": 0.03,
+    "instruction_adherence": 0.97,
+    "latency_ms_p95": 218
+  },
+  "alerts": [
+    {
+      "type": "prompt_drift",
+      "severity": "medium",
+      "count": 2
+    }
+  ],
+  "status": "within_thresholds"
+}

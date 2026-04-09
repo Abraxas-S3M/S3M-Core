@@ -1,0 +1,12 @@
+name: "by_your_command"
+slug: "by-your-command"
+domain: "hmi"
+source_url: "https://github.com/pondersome/by_your_command"
+license: "MIT"
+description: "ROS2 voice command processor using LLMs with vision/camera support."
+integration_type: "adapter"
+capabilities:
+  - "ros2-voice-commanding"
+  - "camera-context-grounding"
+  - "robot-task-dispatch"
+airgapped_support: true

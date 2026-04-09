@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "integration": "toutatis",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "query": {
+    "target_handle": "target_profile_alpha"
+  },
+  "profile_summary": {
+    "display_name": "Target Profile Alpha",
+    "risk_tier": "medium",
+    "confidence": 0.79
+  },
+  "source_hits": [
+    {
+      "source": "Open profile metadata",
+      "signal": "consistent username reuse across 4 platforms",
+      "confidence": 0.86
+    },
+    {
+      "source": "Public media archive",
+      "signal": "location indicators near critical logistics hub",
+      "confidence": 0.67
+    },
+    {
+      "source": "Public contact traces",
+      "signal": "possible link to monitored communications cluster",
+      "confidence": 0.62
+    }
+  ],
+  "recommended_actions": [
+    "Cross-validate location indicators with GEOINT snapshots.",
+    "Queue account graph expansion for second-order contact mapping.",
+    "Escalate to counter-disinformation team if coordinated behavior emerges."
+  ]
+}

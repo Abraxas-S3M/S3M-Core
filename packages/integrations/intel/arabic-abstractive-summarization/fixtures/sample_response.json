@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "pipeline": "arabic_abstractive_summarization",
+  "model": "arabert_seq2seq_quantized_int8",
+  "input_profile": {
+    "document_id": "brief-ara-0442",
+    "language": "ar",
+    "tokens_in": 612,
+    "mission_topic": "border_security_update"
+  },
+  "summary": {
+    "tokens_out": 124,
+    "text": "Field report indicates coordinated movement near the border corridor, elevated logistics activity, and increased communications among proxy cells. Priority recommendation is reinforced surveillance and rapid-response readiness at checkpoints.",
+    "confidence": 0.89
+  },
+  "quality_signals": {
+    "compression_ratio": 0.203,
+    "coherence_score": 0.91,
+    "factual_consistency_score": 0.87
+  },
+  "tactical_note": "Condensed Arabic briefing supports faster command decisions during high-tempo operations."
+}

@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "platform": "explainerdashboard",
+  "model_name": "terrain-threat-classifier-v4",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "global_feature_importance": [
+    {"feature": "signal_intercept_density", "importance": 0.31},
+    {"feature": "terrain_cover_index", "importance": 0.24},
+    {"feature": "supply_route_exposure", "importance": 0.18}
+  ],
+  "prediction_audit": {
+    "sample_id": "AO-17",
+    "predicted_risk": "high",
+    "confidence": 0.87,
+    "top_local_factors": [
+      "elevated signal intercept density near objective corridor",
+      "limited terrain cover in staging area"
+    ]
+  },
+  "tactical_assessment": "Explainability output supports commander's risk briefing and model trust calibration."
+}

@@ -1,0 +1,12 @@
+name: "opik"
+slug: "opik"
+domain: "hmi"
+source_url: "https://github.com/comet-ml/opik"
+license: "MIT"
+description: "Debug, evaluate, and monitor LLM applications and agentic workflows"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "llm_trace_monitoring"
+  - "agent_evaluation"
+  - "prompt_regression_tracking"
