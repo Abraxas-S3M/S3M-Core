@@ -1,0 +1,29 @@
+{
+  "dataset_id": "mte-yolo-v1",
+  "provider": "Military Target & Equipment Detection",
+  "format": "yolo",
+  "mission_profile": "equipment_detection_training",
+  "classes": [
+    "rifle",
+    "pistol",
+    "tank",
+    "jet",
+    "soldier",
+    "grenade"
+  ],
+  "splits": {
+    "train_images": 3250,
+    "val_images": 804,
+    "test_images": 410
+  },
+  "label_quality": {
+    "box_annotation_coverage_pct": 98.4,
+    "class_balance_score": 0.72
+  },
+  "recommended_training": {
+    "model_family": "YOLOv8n",
+    "img_size": 640,
+    "epochs": 80
+  },
+  "tactical_note": "Supports force-on-force visual target identification drills in disconnected field labs."
+}

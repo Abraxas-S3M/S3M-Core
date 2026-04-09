@@ -1,0 +1,11 @@
+name: "Military Target & Equipment Detection"
+slug: "military-target-&-equipment-detection"
+domain: "datasets"
+source_url: "https://github.com/KarthikPrabhu2541/Military-Target-and-Equipment-Detection"
+license: "MIT (repo); dataset "
+description: "Custom YOLO dataset with rifles, pistols, tanks, jets, soldiers, and grenades for tactical training."
+integration_type: "dataset"
+capabilities:
+  - object_detection
+  - equipment_classification
+airgapped_support: true

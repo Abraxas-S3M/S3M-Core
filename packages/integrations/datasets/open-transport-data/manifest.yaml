@@ -1,0 +1,11 @@
+name: "Open Transport Data"
+slug: "open-transport-data"
+domain: "datasets"
+source_url: "https://github.com/ITSLeeds/opentransportdata"
+license: "Various"
+description: "Transport networks and route datasets for logistics simulation and mobility planning."
+integration_type: "dataset"
+capabilities:
+  - route_graphing
+  - logistics_simulation
+airgapped_support: true

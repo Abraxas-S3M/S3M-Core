@@ -1,0 +1,11 @@
+name: "VehicleDetection (SAR Small Object)"
+slug: "vehicledetection-sar-small-object"
+domain: "datasets"
+source_url: "https://github.com/KK-MUT/VehicleDetection"
+license: "Request from authors"
+description: "SAR radar images with 23k+ labeled vehicles for small-object surveillance and tactical remote sensing."
+integration_type: "dataset"
+capabilities:
+  - sar_detection
+  - small_object_tracking
+airgapped_support: true
