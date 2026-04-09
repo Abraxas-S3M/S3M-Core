@@ -1,0 +1,20 @@
+{
+  "tracking_run_id": "orb3-track-2026-04-09-018",
+  "sensor_mode": "stereo_inertial",
+  "mapping_state": "tracking_ok",
+  "pose_confidence": 0.93,
+  "loop_closure_events": 4,
+  "map_points_active": 14872,
+  "drift_estimate_percent": 0.9,
+  "terrain_context": "dense_urban_canyon",
+  "gps_dependency": "none",
+  "threat_environment": [
+    "gnss_degradation",
+    "visual_occlusion_spikes"
+  ],
+  "recommended_actions": [
+    "Increase keyframe insertion density in corridor segment bravo.",
+    "Fuse barometric altitude as tertiary constraint during canyon transit.",
+    "Trigger map reset threshold only if confidence drops below 0.7."
+  ]
+}

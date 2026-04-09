@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "mission_id": "convoy-overwatch-bravo-2",
+  "pipeline": "visual-slam-ros2",
+  "vision_metrics": {
+    "frames_processed": 12480,
+    "avg_orb_features": 538,
+    "keyframe_insertions": 211
+  },
+  "inertial_metrics": {
+    "imu_sync_rate_hz": 200,
+    "preintegration_residual": 0.05,
+    "bias_correction_events": 14
+  },
+  "pose_estimate": {
+    "position_m": {
+      "x": -43.8,
+      "y": 216.2,
+      "z": 2.1
+    },
+    "heading_deg": 72.4
+  },
+  "tactical_assessment": {
+    "gps_denied_ready": true,
+    "confidence": 0.9,
+    "comment": "Visual-inertial fusion held lock under intermittent low-light entries."
+  }
+}

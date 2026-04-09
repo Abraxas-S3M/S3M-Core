@@ -1,0 +1,12 @@
+name: "OpenMap (related in DIS contexts)"
+slug: "openmap-related-in-dis-contexts"
+domain: "interop"
+source_url: "Search BBN OpenMap forks"
+license: "Unknown"
+description: "OpenMap toolkit references used in DIS/C2SIM geospatial display workflows."
+integration_type: "adapter"
+capabilities:
+  - "map_rendering_reference"
+  - "dis_visualization_support"
+  - "c2sim_overlay_support"
+airgapped_support: true

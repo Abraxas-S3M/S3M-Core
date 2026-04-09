@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "sortie_id": "aads-2026-04-09-019",
+  "route": [
+    "wp-alpha",
+    "wp-bravo",
+    "wp-charlie"
+  ],
+  "obstacles_avoided": 6,
+  "fuel_margin_pct": 32.1,
+  "avg_altitude_m": 74.5,
+  "navigation_confidence": 0.94,
+  "platform": "jetson-agx-orin"
+}

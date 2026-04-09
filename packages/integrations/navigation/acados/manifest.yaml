@@ -1,0 +1,12 @@
+name: "acados"
+slug: "acados"
+domain: "navigation"
+source_url: "https://github.com/acados/acados"
+license: "BSD"
+description: "High-performance optimal control solver for nonlinear MPC (C++/Python/MATLAB)."
+integration_type: "adapter"
+capabilities:
+  - "nonlinear_mpc"
+  - "optimal_control"
+  - "real_time_solver_warmstart"
+airgapped_support: true

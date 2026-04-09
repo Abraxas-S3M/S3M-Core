@@ -1,0 +1,39 @@
+{
+  "mission_id": "s3m-nav-px4-nmpc-017",
+  "platform": "uav-quadrotor",
+  "controller": "nonlinear-mpc",
+  "status": "tracking",
+  "tracking_error": {
+    "position_rmse_m": 0.42,
+    "yaw_rmse_deg": 2.1
+  },
+  "prediction_horizon_s": 3.0,
+  "control_period_ms": 50,
+  "setpoint_sequence": [
+    {
+      "t_s": 0.0,
+      "x": 4.0,
+      "y": 1.0,
+      "z": 20.0,
+      "yaw_deg": 35.0
+    },
+    {
+      "t_s": 1.0,
+      "x": 7.5,
+      "y": 3.4,
+      "z": 21.2,
+      "yaw_deg": 40.0
+    },
+    {
+      "t_s": 2.0,
+      "x": 11.1,
+      "y": 6.8,
+      "z": 22.0,
+      "yaw_deg": 44.0
+    }
+  ],
+  "safety": {
+    "geofence_ok": true,
+    "wind_rejection_margin": 0.76
+  }
+}

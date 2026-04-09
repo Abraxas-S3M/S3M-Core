@@ -1,0 +1,41 @@
+{
+  "mission_id": "s3m-nav-dpmpc-223",
+  "platform": "uav-fixedwing",
+  "planner": "dpmpc",
+  "status": "optimized",
+  "trajectory_cost": 9.84,
+  "corridor_width_m": 6.5,
+  "dynamic_obstacles": [
+    {
+      "id": "obs-1",
+      "relative_speed_mps": 3.2,
+      "clearance_m": 4.8
+    },
+    {
+      "id": "obs-2",
+      "relative_speed_mps": 2.4,
+      "clearance_m": 5.1
+    }
+  ],
+  "waypoints": [
+    {
+      "lat": 25.1032,
+      "lon": 55.1763,
+      "alt_m": 220.0
+    },
+    {
+      "lat": 25.1047,
+      "lon": 55.1791,
+      "alt_m": 228.0
+    },
+    {
+      "lat": 25.1065,
+      "lon": 55.1824,
+      "alt_m": 235.0
+    }
+  ],
+  "timing": {
+    "solve_time_ms": 37,
+    "replan_rate_hz": 10
+  }
+}

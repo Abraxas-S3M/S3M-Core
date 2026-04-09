@@ -1,0 +1,12 @@
+name: "awesome-threat-intelligence"
+slug: "awesome-threat-intelligence"
+domain: "military"
+source_url: "https://github.com/hslatman/awesome-threat-intelligence"
+license: "MIT"
+description: "Curated threat intelligence tooling adaptable to missile and UAV defense analysis."
+integration_type: "adapter"
+capabilities:
+  - "threat-intel-curation"
+  - "indicator-research"
+  - "uav-missile-threat-monitoring"
+airgapped_support: true

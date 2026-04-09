@@ -1,0 +1,12 @@
+name: "GLAWS (SpearBot)"
+slug: "glaws-spearbot"
+domain: "military"
+source_url: "https://github.com/westpoint-robotics/GLAWS"
+license: "MIT"
+description: "Ground Lethal Autonomous Weapons System prototype integration for ethics and policy rehearsal."
+integration_type: "adapter"
+capabilities:
+  - "ethics_scenario_rehearsal"
+  - "control_loop_status"
+  - "policy_gate_validation"
+airgapped_support: true

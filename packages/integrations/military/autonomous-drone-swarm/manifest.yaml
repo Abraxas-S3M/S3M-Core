@@ -1,0 +1,12 @@
+name: "autonomous-drone-swarm"
+slug: "autonomous-drone-swarm"
+domain: "military"
+source_url: "https://github.com/CUSP-NYU/autonomous-drone-swarm"
+license: "MIT"
+description: "Multi-agent reinforcement learning workflows for autonomous drone swarm exploration and mapping in contested terrain."
+integration_type: "adapter"
+capabilities:
+  - "multi-agent-rl"
+  - "swarm-exploration"
+  - "mapping"
+airgapped_support: true

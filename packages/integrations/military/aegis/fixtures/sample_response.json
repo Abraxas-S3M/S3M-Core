@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "engagement_id": "aegis-2026-04-09-003",
+  "tracks_processed": 12,
+  "threats_classified": 4,
+  "intercept_assignments": [
+    {
+      "threat_track": "T-14",
+      "interceptor": "I-2",
+      "solution_quality": 0.93
+    },
+    {
+      "threat_track": "T-19",
+      "interceptor": "I-1",
+      "solution_quality": 0.9
+    }
+  ],
+  "time_to_decision_ms": 97,
+  "platform": "jetson-agx-orin"
+}

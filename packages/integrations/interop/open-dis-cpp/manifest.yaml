@@ -1,0 +1,12 @@
+name: "open-dis-cpp"
+slug: "open-dis-cpp"
+domain: "interop"
+source_url: "https://github.com/open-dis/open-dis-cpp"
+license: "Unknown"
+description: "C++ implementation of DIS application protocol"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "high-throughput-pdu-processing"
+  - "native-dis-runtime"
+  - "simulation-network-interoperability"

@@ -1,0 +1,12 @@
+name: "SimpleC2Sim"
+slug: "simplec2sim"
+domain: "interop"
+source_url: "https://github.com/AVataRR626/SimpleC2Sim"
+license: "Unknown"
+description: "Web-deployable low-fidelity C2 simulator for exercises and experiments."
+integration_type: "adapter"
+capabilities:
+  - "exercise_simulation"
+  - "c2_workflow_rehearsal"
+  - "web_deployable_training"
+airgapped_support: true

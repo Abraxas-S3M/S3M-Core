@@ -1,0 +1,12 @@
+name: "dis-tutorial"
+slug: "dis-tutorial"
+domain: "interop"
+source_url: "https://github.com/open-dis/dis-tutorial"
+license: "Unknown"
+description: "Comprehensive handbook and tutorial for DIS concepts, implementation, and best practices"
+integration_type: "reference"
+airgapped_support: true
+capabilities:
+  - "dis-doctrine-reference"
+  - "pdu-field-guidance"
+  - "training-scenario-brief-support"

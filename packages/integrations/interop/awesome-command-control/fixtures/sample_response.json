@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "catalog_id": "c2-catalog-2026-04-09-021",
+  "frameworks_indexed": 86,
+  "priority_domains": [
+    "joint command post simulation",
+    "mission-thread orchestration",
+    "distributed decision-support"
+  ],
+  "recommended_stack": [
+    {
+      "role": "battle-management visualization",
+      "candidate_tools": ["SAND-table renderer", "COP dashboard toolkit"]
+    },
+    {
+      "role": "message bus and orchestration",
+      "candidate_tools": ["event-stream core", "workflow automation runtime"]
+    }
+  ],
+  "integration_gaps": [
+    "Limited offline schema translation examples for coalition data exchange standards."
+  ],
+  "tactical_assessment": "Catalog supports simulation design, but interoperability mappings require additional doctrine-specific validation."
+}

@@ -1,0 +1,41 @@
+{
+  "distribution_cycle_id": "lmis-cycle-77",
+  "reporting_period": "2026-W14",
+  "theater": "northern-command",
+  "depots": [
+    {
+      "depot_id": "depot-aurora",
+      "items_in_shortage": 3,
+      "critical_item_codes": ["7.62-NATO", "MED-IV-KIT", "UAV-BATT-9"],
+      "days_of_supply": 6
+    },
+    {
+      "depot_id": "depot-sentinel",
+      "items_in_shortage": 1,
+      "critical_item_codes": ["120MM-HE"],
+      "days_of_supply": 4
+    }
+  ],
+  "route_health": {
+    "primary_routes_operational_percent": 83,
+    "contested_route_segments": 2
+  },
+  "priority_resupply_tasks": [
+    {
+      "task_id": "resup-1009",
+      "target_depot": "depot-sentinel",
+      "cargo_class": "munitions",
+      "required_delivery_window_hours": 18
+    },
+    {
+      "task_id": "resup-1010",
+      "target_depot": "depot-aurora",
+      "cargo_class": "medical",
+      "required_delivery_window_hours": 10
+    }
+  ],
+  "risk_assessment": {
+    "sustainment_risk": "moderate",
+    "degradation_horizon_hours": 36
+  }
+}

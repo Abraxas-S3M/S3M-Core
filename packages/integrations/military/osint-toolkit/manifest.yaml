@@ -1,0 +1,12 @@
+name: "osint_toolkit"
+slug: "osint-toolkit"
+domain: "military"
+source_url: "https://github.com/dev-lu/osint_toolkit"
+license: "MIT"
+description: "OSINT toolkit for cyber and military threat intelligence engineering."
+integration_type: "adapter"
+capabilities:
+  - "osint-collection"
+  - "indicator-enrichment"
+  - "threat-intel-engineering"
+airgapped_support: true

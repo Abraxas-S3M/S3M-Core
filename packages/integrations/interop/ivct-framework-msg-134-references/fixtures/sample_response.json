@@ -1,0 +1,36 @@
+{
+  "status": "ok",
+  "dataset": "ivct-framework-msg-134-references",
+  "snapshot_version": "2026.04",
+  "exercise_profile": {
+    "federation_name": "joint_task_force_interop_trial",
+    "standards": [
+      "HLA",
+      "DIS",
+      "C2SIM"
+    ],
+    "verification_level": "pre-deployment-certification"
+  },
+  "test_suites": [
+    {
+      "suite": "entity_state_pdu_validation",
+      "result": "pass",
+      "coverage": 0.96
+    },
+    {
+      "suite": "c2sim_order_report_exchange",
+      "result": "pass_with_observations",
+      "coverage": 0.91
+    },
+    {
+      "suite": "fom_schema_conformance",
+      "result": "pass",
+      "coverage": 0.98
+    }
+  ],
+  "residual_risks": [
+    "legacy_gateway_time_sync_drift",
+    "vendor_specific_extension_mapping_gap"
+  ],
+  "tactical_note": "Run verification gate prior to coalition exercise cutover to reduce cross-domain simulation failures."
+}

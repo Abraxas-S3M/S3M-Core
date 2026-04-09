@@ -1,0 +1,12 @@
+name: "rpg_mpc"
+slug: "rpg-mpc"
+domain: "navigation"
+source_url: "https://github.com/uzh-rpg/rpg_mpc"
+license: "(BSD-style)"
+description: "Model Predictive Control for quadrotors (ACADO-based, perception-aware extensions)."
+integration_type: "adapter"
+capabilities:
+  - "quadrotor_mpc"
+  - "trajectory_tracking"
+  - "perception_aware_control"
+airgapped_support: true

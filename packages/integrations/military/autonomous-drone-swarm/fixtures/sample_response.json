@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "training_run_id": "adsw-2026-04-09-011",
+  "episodes": 120,
+  "mean_reward": 83.6,
+  "mapping_accuracy_pct": 89.7,
+  "policy_version": "swarm-rl-v2.3-q8",
+  "platform": "jetson-agx-orin"
+}

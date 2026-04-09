@@ -1,0 +1,30 @@
+{
+  "exercise_id": "mission-control-ui-eval-09",
+  "timestamp": "2026-04-09T14:35:00Z",
+  "dashboard_state": {
+    "layout": "multi-panel",
+    "active_view": "cop",
+    "theme": "night-operations",
+    "widgets": [
+      "unit-status-board",
+      "air-tasking-queue",
+      "alerts-feed",
+      "comm-link-health"
+    ]
+  },
+  "mission_snapshot": {
+    "ao": "sector-delta",
+    "friendly_units_tracking": 17,
+    "active_alerts": 3,
+    "priority_alert": "jamming_detected"
+  },
+  "render_metrics": {
+    "fps": 58,
+    "initial_render_ms": 112,
+    "update_latency_ms": 34
+  },
+  "quality": {
+    "status": "nominal",
+    "confidence": 0.97
+  }
+}

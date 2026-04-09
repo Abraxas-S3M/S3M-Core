@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "simulation_id": "adsim-2026-04-09-007",
+  "agents": 8,
+  "mission_type": "perimeter-surveillance",
+  "success_rate_pct": 91.2,
+  "collisions": 0,
+  "coverage_heatmap_checksum": "f79d0cde7a0f5f4b",
+  "platform": "jetson-agx-orin"
+}
