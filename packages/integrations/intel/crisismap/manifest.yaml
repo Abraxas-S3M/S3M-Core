@@ -1,0 +1,13 @@
+name: "crisismap"
+slug: "crisismap"
+domain: "intel"
+source_url: "https://github.com/realwaynesun/crisismap"
+license: "Unknown"
+description: "Real-time geopolitical crisis intelligence dashboard with conflict-event geospatial risk overlays."
+integration_type: "adapter"
+capabilities:
+  - "conflict_mapping"
+  - "event_fusion"
+  - "risk_overlay"
+  - "satellite_context_tags"
+airgapped_support: true

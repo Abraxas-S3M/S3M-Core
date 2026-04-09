@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "brief_id": "osint-framework-catalog-2026-04-09",
+  "generated_at": "2026-04-09T08:00:00Z",
+  "categories": [
+    {
+      "name": "Username",
+      "tool_count": 27
+    },
+    {
+      "name": "Domain and IP",
+      "tool_count": 33
+    },
+    {
+      "name": "Dark Web",
+      "tool_count": 12
+    },
+    {
+      "name": "Social Networks",
+      "tool_count": 41
+    }
+  ],
+  "priority_collection_plan": [
+    "Start with passive DNS and certificate transparency pivots.",
+    "Expand into persona-linked social graph mapping.",
+    "Escalate to dark-web monitoring only with legal authorization."
+  ],
+  "tactical_assessment": "Framework categories support rapid OSINT tasking for time-sensitive mission briefs."
+}
