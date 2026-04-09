@@ -1,1 +1,1 @@
-"""Military-domain integration wrappers for sovereign autonomy tooling."""
+"""Military-domain integration wrappers for sovereign tactical workflows."""

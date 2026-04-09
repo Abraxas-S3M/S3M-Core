@@ -1,0 +1,12 @@
+name: "Battle Management Language (BML)"
+slug: "battle-management-language-bml"
+domain: "military"
+source_url: "https://github.com/c5i-gmu"
+license: "Apache 2.0"
+description: "Interfaces for C4I simulation interoperability via BML/C2SIM exchange."
+integration_type: "adapter"
+capabilities:
+  - "c4i_interoperability"
+  - "order_exchange"
+  - "sim_synchronization"
+airgapped_support: true

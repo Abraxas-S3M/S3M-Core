@@ -1,0 +1,27 @@
+{
+  "fixture_version": "1.0",
+  "integration": "battle-management-language-bml",
+  "status": "ok",
+  "operation": "exchange_c2sim_order",
+  "exercise_id": "joint-sim-ex-26-04",
+  "order_message": {
+    "message_id": "bml-ord-771",
+    "from": "brigade-hq-blue",
+    "to": "task-force-orion",
+    "task": "secure_phase_line_foxtrot",
+    "time_on_target": "2026-04-09T19:30:00Z"
+  },
+  "interoperability_checks": {
+    "schema_validation": "passed",
+    "semantic_consistency": "passed",
+    "sim_sync_latency_ms": 84
+  },
+  "acknowledgements": [
+    {
+      "unit": "task-force-orion",
+      "status": "accepted",
+      "timestamp": "2026-04-09T19:05:12Z"
+    }
+  ],
+  "source": "airgapped_fixture"
+}
