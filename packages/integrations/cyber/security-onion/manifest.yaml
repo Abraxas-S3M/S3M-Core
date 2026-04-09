@@ -1,0 +1,13 @@
+name: "security-onion"
+slug: "security-onion"
+domain: "cyber"
+source_url: "https://github.com/Security-Onion-Solutions/security-onion"
+license: "Unknown"
+description: "Open-source Linux distro for threat hunting, monitoring, and log management that includes Suricata and Zeek telemetry."
+integration_type: "adapter"
+capabilities:
+  - "threat_hunting"
+  - "network_monitoring"
+  - "log_correlation"
+  - "ids_alerting"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "awesome-behavior-trees"
+slug: "awesome-behavior-trees"
+domain: "autonomy"
+source_url: "https://github.com/BehaviorTree/awesome-behavior-trees"
+license: "MIT"
+description: "Curated list of Behavior Trees resources and examples."
+integration_type: "adapter"
+capabilities:
+  - "reference_catalog"
+  - "behavior_tree_training_resources"
+  - "autonomy_playbook_support"
+airgapped_support: true

@@ -1,0 +1,18 @@
+{
+  "experiment_id": "sb3-border-patrol-004",
+  "algorithm": "SAC",
+  "policy": "MlpPolicy",
+  "environment": "border-recon-vehicle-v1",
+  "timesteps_trained": 500000,
+  "eval": {
+    "mean_reward": 118.4,
+    "std_reward": 7.2,
+    "mission_success_rate": 0.84
+  },
+  "constraints": {
+    "no_fire_zone_violations": 0,
+    "blue_force_near_miss": 1
+  },
+  "model_artifact": "fixtures/models/sb3-border-patrol-004.zip",
+  "status": "completed"
+}

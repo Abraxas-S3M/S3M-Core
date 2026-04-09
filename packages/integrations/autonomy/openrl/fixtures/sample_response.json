@@ -1,0 +1,15 @@
+{
+  "training_id": "openrl-joint-taskforce-011",
+  "task_family": "multi-domain-coordination",
+  "agent_count": 12,
+  "parallel_envs": 24,
+  "algorithm": "MAPPO",
+  "episodes_completed": 1800,
+  "metrics": {
+    "joint_objective_score": 0.79,
+    "friendly_loss_rate": 0.04,
+    "logistics_delay_minutes": 6.8
+  },
+  "offline_dataset": "fixtures/datasets/joint-taskforce-buffer.parquet",
+  "status": "completed"
+}

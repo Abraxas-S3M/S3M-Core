@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "integration": "xai-lib",
+  "analysis_type": "explainer_comparison",
+  "mission_profile": "autonomous_convoy_route_risk_scoring",
+  "explainers": [
+    {
+      "method": "SHAP",
+      "stability_score": 0.91,
+      "latency_ms": 84
+    },
+    {
+      "method": "LIME",
+      "stability_score": 0.83,
+      "latency_ms": 46
+    },
+    {
+      "method": "ANCHOR",
+      "stability_score": 0.87,
+      "latency_ms": 71
+    }
+  ],
+  "recommended_method": "SHAP",
+  "commander_summary": "SHAP selected for briefing-grade traceability despite moderate compute overhead."
+}

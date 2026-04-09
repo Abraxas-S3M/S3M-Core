@@ -1,0 +1,14 @@
+name: "PettingZoo"
+slug: "pettingzoo"
+domain: "autonomy"
+source_url: "https://github.com/Farama-Foundation/PettingZoo(maintained"
+license: "MIT"
+description: "Multi-agent RL environments for tactical autonomy simulation."
+integration_type: "adapter"
+capabilities:
+  - "multi_agent_training_environment"
+  - "policy_rehearsal"
+  - "offline_simulation"
+pip_dependencies:
+  - "pettingzoo"
+airgapped_support: true

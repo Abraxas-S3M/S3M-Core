@@ -1,0 +1,33 @@
+{
+  "operation_id": "wse-20260409-0042",
+  "stack": "wazuh-soc-enterprise",
+  "mission_zone": "regional-cyber-defense-hq",
+  "status": "degraded",
+  "components": {
+    "wazuh_cluster_nodes": 3,
+    "suricata_sensors_online": 12,
+    "caldera_server": "online",
+    "dfir_iris": "online",
+    "shuffle_soar": "online"
+  },
+  "alerts": {
+    "critical": 3,
+    "high": 12,
+    "mitigated_last_hour": 9
+  },
+  "active_incidents": [
+    {
+      "case_id": "IR-7781",
+      "severity": "critical",
+      "summary": "Credential dumping detected on finance enclave",
+      "mapped_techniques": ["T1003"]
+    },
+    {
+      "case_id": "IR-7789",
+      "severity": "high",
+      "summary": "Lateral movement via remote services",
+      "mapped_techniques": ["T1021"]
+    }
+  ],
+  "generated_at": "2026-04-09T00:00:00Z"
+}

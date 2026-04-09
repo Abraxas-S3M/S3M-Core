@@ -1,0 +1,13 @@
+name: "SOC Automation Project with wazuh and thehive (medium references)"
+slug: "soc-automation-project-with-wazuh-and-th"
+domain: "cyber"
+source_url: "Search related community forks"
+license: "Unknown"
+description: "Community SOC automation patterns that chain Wazuh detections into TheHive case creation and playbook execution."
+integration_type: "adapter"
+capabilities:
+  - "soc_automation"
+  - "alert_to_case"
+  - "playbook_execution"
+  - "response_coordination"
+airgapped_support: true

@@ -1,0 +1,13 @@
+name: "Watcher"
+slug: "watcher"
+domain: "dashboard"
+source_url: "https://github.com/thalesgroup-cert/Watcher"
+license: "Apache 2.0"
+description: "AI-powered threat hunting dashboard for intel and anomalies."
+integration_type: "adapter"
+capabilities:
+  - "threat_hunting_dashboard"
+  - "anomaly_detection_review"
+  - "analyst_triage_support"
+airgapped_support: true
+

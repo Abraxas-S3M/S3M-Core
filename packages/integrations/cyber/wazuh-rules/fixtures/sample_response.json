@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "platform": "wazuh-rules",
+  "operation": "rule_health_scan",
+  "rules_loaded": 1342,
+  "custom_rules_loaded": 217,
+  "integrations_detected": [
+    "suricata",
+    "sysmon",
+    "auditd"
+  ],
+  "rule_quality": {
+    "high_confidence": 186,
+    "needs_tuning": 24,
+    "deprecated": 3
+  },
+  "recommended_actions": [
+    "Promote medium-confidence lateral movement rules to priority watch list.",
+    "Retire deprecated rules to reduce alert fatigue in forward SOC nodes."
+  ],
+  "tactical_assessment": "Rule tuning increases defender signal-to-noise during high-tempo operations."
+}

@@ -1,0 +1,13 @@
+name: "Incident-Playbook"
+slug: "incident-playbook"
+domain: "cyber"
+source_url: "https://github.com/austinsonger/Incident-Playbook"
+license: "Unknown"
+description: "MITRE ATT&CK-mapped Incident Response Playbooks for every technique."
+integration_type: "adapter"
+capabilities:
+  - "mitre-attack-mapping"
+  - "incident-response"
+  - "playbook-reference"
+airgapped_support: true
+
