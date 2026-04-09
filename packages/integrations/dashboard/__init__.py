@@ -1,2 +1,2 @@
-"""Dashboard-domain integration adapters for S3M."""
+"""Dashboard-domain integration adapters for tactical command surfaces."""
 

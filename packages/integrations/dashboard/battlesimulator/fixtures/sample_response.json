@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "integration_id": "battlesimulator",
+  "domain": "dashboard",
+  "mission_id": "ops-red-sands-17",
+  "generated_at": "2026-04-09T10:15:00Z",
+  "operation": "render_tactical_timeline",
+  "summary": {
+    "friendly_units": 18,
+    "opfor_units": 14,
+    "engagements": 5,
+    "predicted_outcome": "friendly_advantage"
+  },
+  "frames": [
+    {
+      "timestep": 0,
+      "friendly_positions": [
+        [24.7111, 46.6752],
+        [24.7097, 46.6781]
+      ],
+      "opfor_positions": [
+        [24.7164, 46.6895]
+      ]
+    },
+    {
+      "timestep": 1,
+      "friendly_positions": [
+        [24.7123, 46.6760],
+        [24.7108, 46.6793]
+      ],
+      "opfor_positions": [
+        [24.7158, 46.6887]
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "severity": "medium",
+      "code": "FLANK_EXPOSURE",
+      "message": "North-east flank opened for 90 seconds at timestep 1."
+    }
+  ]
+}
+

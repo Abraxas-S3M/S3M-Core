@@ -1,0 +1,13 @@
+name: "Fleetbase"
+slug: "fleetbase"
+domain: "dashboard"
+source_url: "https://github.com/fleetbase/fleetbase"
+license: "Apache 2.0"
+description: "Modular logistics dashboard for supply chain ops, workflows, and monitoring."
+integration_type: "adapter"
+capabilities:
+  - "logistics_workflow_management"
+  - "supply_chain_monitoring"
+  - "vehicle_fleet_visibility"
+airgapped_support: true
+

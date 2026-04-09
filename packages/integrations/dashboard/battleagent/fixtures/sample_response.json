@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "integration_id": "battleagent",
+  "domain": "dashboard",
+  "simulation_id": "coa-eval-rapid-spear-05",
+  "generated_at": "2026-04-09T10:19:00Z",
+  "operation": "evaluate_course_of_action",
+  "coa_summary": {
+    "name": "rapid_spear",
+    "objective": "secure logistics node N-31",
+    "success_probability": 0.71,
+    "estimated_duration_minutes": 95
+  },
+  "model_outputs": [
+    {
+      "modality": "text",
+      "finding": "Primary risk is delayed armor support during phase 2 breach."
+    },
+    {
+      "modality": "map_overlay",
+      "finding": "Most probable opfor fallback route converges on ridge line R-9."
+    }
+  ],
+  "resource_projection": {
+    "fuel_liters": 4200,
+    "medical_kits": 38,
+    "communications_relay_teams": 3
+  }
+}
+

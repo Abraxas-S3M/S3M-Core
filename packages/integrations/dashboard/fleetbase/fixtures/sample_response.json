@@ -1,0 +1,38 @@
+{
+  "status": "ok",
+  "integration_id": "fleetbase",
+  "domain": "dashboard",
+  "operation": "logistics_dashboard_snapshot",
+  "generated_at": "2026-04-09T10:21:00Z",
+  "theater": "eastern-sustainment-grid",
+  "convoys": [
+    {
+      "convoy_id": "cv-118",
+      "route": "route-sable",
+      "eta_utc": "2026-04-09T12:35:00Z",
+      "status": "on_schedule",
+      "cargo_priority": "high"
+    },
+    {
+      "convoy_id": "cv-122",
+      "route": "route-hawk",
+      "eta_utc": "2026-04-09T13:50:00Z",
+      "status": "delayed",
+      "cargo_priority": "critical"
+    }
+  ],
+  "inventory_alerts": [
+    {
+      "depot": "depot-kilo-4",
+      "item": "155mm_shell",
+      "days_remaining": 2,
+      "severity": "high"
+    }
+  ],
+  "workflow_health": {
+    "active_tasks": 37,
+    "completed_last_24h": 112,
+    "failed_last_24h": 3
+  }
+}
+
