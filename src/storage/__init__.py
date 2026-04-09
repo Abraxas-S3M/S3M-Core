@@ -1,10 +1,7 @@
-"""Storage connectors used by training and promotion pipelines.
+"""Storage connectors and precision managers for S3M vault workflows."""
 
-Military/tactical context:
-Deterministic object-store access patterns keep adapter movement auditable
-during contested operations where intermittent connectivity is expected.
-"""
+from .b2_connector import B2Connector
+from .precision_manager import PrecisionManager
+from .vault_paths import VaultPaths
 
-from src.storage.b2_connector import B2Connector
-
-__all__ = ["B2Connector"]
+__all__ = ["B2Connector", "PrecisionManager", "VaultPaths"]
