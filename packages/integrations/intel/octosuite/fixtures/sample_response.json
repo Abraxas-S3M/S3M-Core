@@ -1,0 +1,34 @@
+{
+  "operation": "octosuite_repo_assessment",
+  "status": "success",
+  "collection_id": "octo-ops-5562",
+  "subject": {
+    "type": "repository",
+    "value": "example-org/defense-telemetry"
+  },
+  "analysis_window": "30d",
+  "signals": {
+    "new_contributors": 4,
+    "suspicious_commits": 2,
+    "dependency_alerts": 3,
+    "infrastructure_indicators": 5
+  },
+  "alerts": [
+    {
+      "alert_id": "octo-101",
+      "severity": "high",
+      "category": "supply_chain_risk",
+      "detail": "Unsigned release artifact uploaded from previously unseen contributor endpoint."
+    },
+    {
+      "alert_id": "octo-144",
+      "severity": "medium",
+      "category": "account_behavior",
+      "detail": "Maintainer account pushed outside normal duty cycle with atypical commit metadata."
+    }
+  ],
+  "recommended_actions": [
+    "Require signed commits and tagged releases for protected branches.",
+    "Escalate suspicious contributor accounts for counterintelligence review."
+  ]
+}

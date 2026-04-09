@@ -1,1 +1,1 @@
-"""S3M intelligence and OSINT integration wrappers."""
+"""Intelligence and OSINT domain integration wrappers for S3M."""
