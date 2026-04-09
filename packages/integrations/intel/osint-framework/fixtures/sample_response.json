@@ -1,0 +1,30 @@
+{
+  "briefing_id": "osf-brief-2026-04-09-001",
+  "status": "ok",
+  "priority": "high",
+  "target_profile": {
+    "entity": "Redline Syndicate",
+    "aoi": "Eastern littoral logistics corridor",
+    "confidence": 0.82
+  },
+  "sources_indexed": 47,
+  "high_value_findings": [
+    {
+      "finding_id": "osf-f-019",
+      "category": "infrastructure",
+      "summary": "Public procurement bulletin indicates dual-use drone battery purchase spike.",
+      "tactical_relevance": "May signal increased ISR sortie tempo in AOI."
+    },
+    {
+      "finding_id": "osf-f-023",
+      "category": "social-media",
+      "summary": "Clustered posts suggest staging activity near rail transfer node K-12.",
+      "tactical_relevance": "Supports recommendation for route surveillance tasking."
+    }
+  ],
+  "recommended_actions": [
+    "Task HUMINT cell to validate rail-node activity within 12 hours.",
+    "Increase monitoring cadence for logistics contractors in AOI."
+  ]
+}
+

@@ -1,0 +1,29 @@
+{
+  "fixture_version": "1.0",
+  "integration": "awesome-multimodal-large-language-models",
+  "status": "ok",
+  "mission_profile": "uav_perception_capability_review",
+  "operation": "list_uav_multimodal_resources",
+  "resource_snapshot": {
+    "total_entries_indexed": 148,
+    "focus_areas": [
+      "uav_target_detection",
+      "vision_language_perception",
+      "multimodal_reasoning_for_aerial_platforms"
+    ],
+    "priority_candidates": [
+      {
+        "name": "Aerial VLM situational reporting model",
+        "application": "ISR mission summaries",
+        "maturity": "experimental"
+      },
+      {
+        "name": "Cross-modal UAV change-detection stack",
+        "application": "terrain anomaly identification",
+        "maturity": "prototype"
+      }
+    ]
+  },
+  "operator_note": "Treat this output as planning intelligence for model evaluation pipelines.",
+  "source": "airgapped_fixture"
+}

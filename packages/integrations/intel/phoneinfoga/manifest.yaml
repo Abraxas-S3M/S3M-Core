@@ -1,0 +1,12 @@
+name: "phoneinfoga"
+slug: "phoneinfoga"
+domain: "intel"
+source_url: "https://github.com/sundowndev/phoneinfoga"
+license: "Unknown"
+description: "Advanced phone number OSINT tool."
+integration_type: "adapter"
+capabilities:
+  - "phone_number_enrichment"
+  - "carrier_context"
+  - "risk_screening"
+airgapped_support: true

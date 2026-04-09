@@ -1,0 +1,32 @@
+{
+  "briefing_id": "tgm-brief-2026-04-09-002",
+  "status": "ok",
+  "focus_topic": "coordinated influence activity",
+  "social_collections": [
+    {
+      "platform": "microblog",
+      "posts_reviewed": 1640,
+      "suspicious_accounts": 27,
+      "cluster_label": "narrative-seed-alpha"
+    },
+    {
+      "platform": "video-sharing",
+      "posts_reviewed": 192,
+      "suspicious_accounts": 11,
+      "cluster_label": "narrative-amplification-beta"
+    }
+  ],
+  "correlated_entities": [
+    {
+      "entity_id": "ent-8841",
+      "name": "Frontline Civic Watch",
+      "role_assessment": "potential influence-cutout",
+      "confidence": 0.76
+    }
+  ],
+  "recommended_actions": [
+    "Queue top 10 suspicious accounts for analyst deep-dive.",
+    "Cross-reference narrative clusters against prior operation signatures."
+  ]
+}
+

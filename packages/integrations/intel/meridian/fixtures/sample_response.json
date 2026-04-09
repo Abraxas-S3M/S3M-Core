@@ -1,0 +1,27 @@
+{
+  "brief_id": "meridian-brief-2026-04-09-017",
+  "generated_at": "2026-04-09T07:00:00Z",
+  "collection_window_hours": 24,
+  "priority_topics": [
+    "border corridor disruption",
+    "critical energy infrastructure messaging",
+    "regional diplomatic signaling"
+  ],
+  "items_analyzed": 236,
+  "regional_focus": [
+    "Eastern Europe",
+    "Eastern Mediterranean",
+    "Red Sea approaches"
+  ],
+  "assessment": {
+    "headline": "Information pressure increasing against transport assurance narratives.",
+    "confidence": 0.81,
+    "impact": "moderate-high"
+  },
+  "recommended_actions": [
+    "Task OSINT cell to track narrative pivots every 4 hours.",
+    "Align strategic communications with logistics command updates.",
+    "Flag high-amplification sources for counter-disinformation review."
+  ],
+  "status": "completed"
+}

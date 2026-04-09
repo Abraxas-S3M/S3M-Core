@@ -1,0 +1,12 @@
+name: "holehe"
+slug: "holehe"
+domain: "intel"
+source_url: "https://github.com/megadose/holehe"
+license: "Unknown"
+description: "Check email usage across sites for OSINT."
+integration_type: "adapter"
+capabilities:
+  - "email_footprint_check"
+  - "account_presence_assessment"
+  - "identity_pivot"
+airgapped_support: true
