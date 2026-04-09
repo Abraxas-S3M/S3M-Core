@@ -1,0 +1,25 @@
+{
+  "assessment_id": "ossec-endpoint-2026-0409-005",
+  "fleet": "forward-command-endpoints",
+  "agent_count": 48,
+  "alerts": [
+    {
+      "agent_id": "host-17",
+      "rule_id": 550,
+      "level": 10,
+      "category": "authentication_failure",
+      "message": "Multiple failed SSH logins from 10.90.4.22",
+      "timestamp": "2026-04-09T14:21:09Z"
+    },
+    {
+      "agent_id": "host-31",
+      "rule_id": 554,
+      "level": 12,
+      "category": "file_integrity",
+      "message": "Unauthorized change to /etc/sudoers detected",
+      "timestamp": "2026-04-09T14:24:47Z"
+    }
+  ],
+  "containment_recommendation": "Isolate host-31 from tactical VLAN pending forensic triage.",
+  "mission_impact": "Compromised endpoint privilege controls could enable persistence across command-support systems."
+}

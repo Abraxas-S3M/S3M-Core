@@ -1,0 +1,21 @@
+{
+  "mission_plan_id": "qgc-sortie-2026-04-09-004",
+  "operator_station": "gcs-delta",
+  "vehicle_profile": "vtol-strike-recon",
+  "plan_summary": {
+    "takeoff_point": "FOB-EAST",
+    "landing_point": "FOB-EAST",
+    "waypoint_count": 19,
+    "planned_distance_km": 24.7
+  },
+  "geofence": {
+    "enabled": true,
+    "max_altitude_m": 220,
+    "restricted_areas_loaded": 3
+  },
+  "failsafes": {
+    "rtl_on_link_loss": true,
+    "low_battery_threshold_pct": 25
+  },
+  "status": "mission_package_validated"
+}

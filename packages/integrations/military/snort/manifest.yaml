@@ -1,0 +1,12 @@
+name: "Snort"
+slug: "snort"
+domain: "military"
+source_url: "https://github.com/snort3/snort3"
+license: "GPL-2.0"
+description: "Network intrusion detection for tactical anomaly and threat signaling."
+integration_type: "adapter"
+capabilities:
+  - network_intrusion_detection
+  - packet_alerting
+  - anomaly_triage
+airgapped_support: true

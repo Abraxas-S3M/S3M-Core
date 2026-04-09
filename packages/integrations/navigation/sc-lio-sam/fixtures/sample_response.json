@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "mission_id": "nav-rehearsal-alpha-19",
+  "pipeline": "sc-lio-sam",
+  "map": {
+    "frame_id": "sector_alpha_map",
+    "keyframes": 184,
+    "loop_closures": 7,
+    "map_points": 428510
+  },
+  "pose_estimate": {
+    "position_m": {
+      "x": 132.41,
+      "y": -58.22,
+      "z": 4.03
+    },
+    "orientation_quat": {
+      "x": 0.01,
+      "y": -0.02,
+      "z": 0.67,
+      "w": 0.74
+    },
+    "drift_m_per_km": 0.38
+  },
+  "threat_navigation_assessment": {
+    "gps_denied_ready": true,
+    "confidence": 0.94,
+    "comment": "Loop closures remained stable during contested urban canyon replay."
+  }
+}
