@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "integration": "groot",
+  "analysis_type": "behavior_tree_validation",
+  "mission_profile": "urban_recon_micro_uas",
+  "tree": {
+    "name": "recon_patrol_tree",
+    "node_count": 42,
+    "subtree_count": 6,
+    "validation_passed": true
+  },
+  "runtime_diagnostics": {
+    "tick_rate_hz": 20,
+    "fallback_activation_count": 3,
+    "safety_guard_nodes": [
+      "lost_link_failsafe",
+      "geo_fence_abort"
+    ]
+  },
+  "commander_summary": "Behavior tree passed structural and safety checks for simulation-stage deployment."
+}

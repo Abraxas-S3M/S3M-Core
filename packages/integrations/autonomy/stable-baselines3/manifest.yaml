@@ -1,0 +1,14 @@
+name: "stable-baselines3"
+slug: "stable-baselines3"
+domain: "autonomy"
+source_url: "https://github.com/DLR-RM/stable-baselines3"
+license: "MIT"
+description: "Reliable PyTorch implementations of RL algorithms (PPO, SAC, etc.); extensible to multi-agent via wrappers."
+integration_type: "adapter"
+capabilities:
+  - "policy_training"
+  - "policy_evaluation"
+  - "offline_rollout_review"
+pip_dependencies:
+  - "stable-baselines3"
+airgapped_support: true

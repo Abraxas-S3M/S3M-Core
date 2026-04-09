@@ -1,0 +1,12 @@
+name: "intel-xai-tools"
+slug: "intel-xai-tools"
+domain: "autonomy"
+source_url: "https://github.com/intel/intel-xai-tools"
+license: "Apache 2.0"
+description: "Intel-specific XAI tooling for model interpretability and fairness."
+integration_type: "adapter"
+capabilities:
+  - "model_explainability"
+  - "fairness_assessment"
+  - "tactical_model_validation"
+airgapped_support: true
