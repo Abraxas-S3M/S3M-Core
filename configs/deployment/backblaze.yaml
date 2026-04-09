@@ -4,63 +4,9 @@ backblaze:
   endpoint: "https://s3.us-west-004.backblazeb2.com"
   sync_interval_minutes: 30
   max_retries: 3
-
-  # Dual-precision storage budget (within 1 TB limit)
-  storage_budget:
-    fp16_models_gb: 435
-    q4_models_gb: 119
-    datasets_gb: 100
-    adapters_gb: 50
-    checkpoints_gb: 50
-    gui_snapshots_gb: 1
-    total_budget_gb: 755
-
-  # Which engines can be pulled to compute nodes
-  engines:
-    phi3-medium:
-      fp16_hf_repo: "microsoft/Phi-3-medium-4k-instruct"
-      q4_hf_repo: "bartowski/Phi-3-medium-4k-instruct-GGUF"
-      fp16_size_gb: 28
-      q4_size_gb: 8.5
-      trainable: true
-      servable: true
-    mistral-7b:
-      fp16_hf_repo: "mistralai/Mixtral-8x7B-Instruct-v0.1"
-      q4_hf_repo: "TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
-      fp16_size_gb: 93
-      q4_size_gb: 26
-      trainable: true
-      servable: true
-    allam-7b:
-      fp16_hf_repo: "humain-ai/ALLaM-7B-Instruct-preview"
-      q4_hf_repo: null
-      fp16_size_gb: 14
-      q4_size_gb: 4
-      trainable: true
-      servable: true
-    grok-300b:
-      fp16_hf_repo: "xai-org/grok-1"
-      q4_hf_repo: null
-      fp16_size_gb: 300
-      q4_size_gb: 80
-      trainable: false
-      servable: false
-      role: "validation_oracle_only"
-
-  # Per-machine access rules
-  access_rules:
-    hetzner:
-      pulls_fp16: true
-      pulls_q4: true
-      pulls_datasets: true
-      pushes_checkpoints: true
-      pushes_q4: true
-      pushes_snapshots: true
-      blocked_engines: ["grok-300b"]
-    runpod:
-      pulls_fp16: true
-      pulls_q4: false
-      pulls_datasets: true
-      pushes_adapters: true
-      pushes_checkpoints: true
-      blocked_engines: ["grok-300b"]
+  engines_allowed_for_pull:
+    - "phi3-medium"
+    - "mistral-7b"
+    - "allam-7b"
+  engines_blocked_from_pull:
+    - "grok-300b"

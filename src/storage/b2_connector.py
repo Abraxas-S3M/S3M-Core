@@ -1,58 +1,48 @@
-"""BackBlaze B2 S3-compatible connector for sovereign model storage.
+"""
+BackBlaze B2 S3-compatible connector for sovereign vault operations.
 
-Military/tactical context:
-This connector enforces integrity checks during movement of mission-critical
-model artifacts, ensuring the FP16 source-of-truth and Q4 serving derivatives
-remain coherent across contested or degraded infrastructure.
+Tactical context:
+    Weight artifacts, adapters, and evaluation payloads are strategic
+    resources. This connector enforces resilient transfer procedures so
+    deployed teams can rehydrate model stacks from the vault during
+    contested, disconnected, or degraded operations.
 """
 
 from __future__ import annotations
 
-import fnmatch
 import hashlib
-import json
 import logging
 import os
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Callable, TypeVar
 
-try:
-    import boto3
-    from botocore.exceptions import BotoCoreError, ClientError
-except Exception:  # pragma: no cover - import guard for minimal environments
-    boto3 = None
+import boto3
+from botocore.exceptions import ClientError
 
-    class BotoCoreError(Exception):
-        """Fallback boto core error when botocore is unavailable."""
+logger = logging.getLogger("s3m.storage.b2")
 
-    class ClientError(Exception):
-        """Fallback boto client error when botocore is unavailable."""
-
-        def __init__(self, error_response: dict[str, Any] | None = None, operation_name: str | None = None) -> None:
-            self.response = error_response or {}
-            self.operation_name = str(operation_name or "")
-            super().__init__(f"{self.operation_name}: {self.response}")
-
-
-LOGGER = logging.getLogger("s3m.storage.b2")
+T = TypeVar("T")
 
 
 class B2ConnectorError(RuntimeError):
-    """Raised when B2 storage operations fail after controlled retries."""
+    """Base exception for storage connector failures."""
 
 
-class B2ObjectNotFoundError(B2ConnectorError):
-    """Raised when a requested B2 object key does not exist."""
+class B2ConfigurationError(B2ConnectorError):
+    """Raised when required BackBlaze connector configuration is missing."""
 
 
-class B2ChecksumMismatchError(B2ConnectorError):
-    """Raised when uploaded object checksums fail verification."""
+class B2OperationError(B2ConnectorError):
+    """Raised when an S3-compatible operation cannot be completed safely."""
+
+
+class B2ChecksumError(B2OperationError):
+    """Raised when uploaded object checksum does not match local source data."""
 
 
 class B2Connector:
-    """B2 S3 connector with retries, checksum verification, and sync helpers."""
+    """Unified B2 storage interface for mission artifact transport."""
 
     def __init__(
         self,
@@ -61,432 +51,296 @@ class B2Connector:
         app_key: str | None = None,
         bucket_name: str | None = None,
         endpoint: str | None = None,
-        region_name: str = "us-east-1",
+        region_name: str = "us-west-004",
         max_retries: int = 3,
-        client: Any | None = None,
+        retry_base_seconds: float = 1.0,
     ) -> None:
-        self.key_id = self._required_value("S3M_B2_KEY_ID", key_id)
-        self.app_key = self._required_value("S3M_B2_APP_KEY", app_key)
-        self.bucket_name = str(bucket_name or os.getenv("S3M_B2_BUCKET_NAME", "s3m-vault")).strip() or "s3m-vault"
-        self.endpoint = self._required_value("S3M_B2_ENDPOINT", endpoint)
-        self.region_name = str(region_name or "us-east-1").strip() or "us-east-1"
-        self.max_retries = max(1, int(max_retries))
+        """
+        Initialize B2 S3-compatible client from environment or explicit values.
 
-        if client is not None:
-            self._client = client
-        else:
-            if boto3 is None:
-                raise ImportError("boto3 must be installed to use B2Connector")
-            self._client = boto3.client(
-                "s3",
-                endpoint_url=self.endpoint,
-                aws_access_key_id=self.key_id,
-                aws_secret_access_key=self.app_key,
-                region_name=self.region_name,
-            )
+        Tactical context:
+            Strong defaults and explicit validation reduce misconfiguration risk
+            before high-value model artifacts begin moving through the vault.
+        """
+        self.key_id = self._required_config(key_id, "S3M_B2_KEY_ID")
+        self.app_key = self._required_config(app_key, "S3M_B2_APP_KEY")
+        self.endpoint = self._required_config(endpoint, "S3M_B2_ENDPOINT")
+        self.bucket_name = (bucket_name or os.getenv("S3M_B2_BUCKET_NAME", "s3m-vault")).strip()
+        self.region_name = region_name
 
-    @classmethod
-    def from_env(cls) -> "B2Connector":
-        """Build connector from standard S3M BackBlaze environment variables."""
-        return cls()
+        if not self.bucket_name:
+            raise B2ConfigurationError("S3M_B2_BUCKET_NAME resolved to an empty value")
+        if max_retries <= 0:
+            raise ValueError("max_retries must be >= 1")
+        if retry_base_seconds < 0:
+            raise ValueError("retry_base_seconds must be >= 0")
 
-    @classmethod
-    def from_config(cls, config: dict[str, Any]) -> "B2Connector":
-        """Build connector from loaded YAML config, resolving ${ENV_NAME} tokens."""
-        backblaze = config.get("backblaze", {}) if isinstance(config, dict) else {}
-        if not isinstance(backblaze, dict):
-            raise ValueError("backblaze config section must be a mapping")
-
-        credentials = backblaze.get("credentials", {})
-        if not isinstance(credentials, dict):
-            credentials = {}
-
-        key_id = cls._resolve_config_value(backblaze.get("key_id")) or cls._resolve_config_value(
-            os.getenv(str(credentials.get("key_id_env", "S3M_B2_KEY_ID")))
+        self.max_retries = max_retries
+        self.retry_base_seconds = retry_base_seconds
+        self._client = boto3.client(
+            "s3",
+            endpoint_url=self.endpoint,
+            aws_access_key_id=self.key_id,
+            aws_secret_access_key=self.app_key,
+            region_name=self.region_name,
         )
-        app_key = cls._resolve_config_value(backblaze.get("app_key")) or cls._resolve_config_value(
-            os.getenv(str(credentials.get("app_key_env", "S3M_B2_APP_KEY")))
-        )
-
-        return cls(
-            key_id=key_id,
-            app_key=app_key,
-            bucket_name=cls._resolve_config_value(backblaze.get("bucket_name")) or "s3m-vault",
-            endpoint=cls._resolve_config_value(backblaze.get("endpoint")),
-            region_name=cls._resolve_config_value(backblaze.get("region_name"))
-            or cls._resolve_config_value(backblaze.get("region"))
-            or "us-east-1",
-            max_retries=int(backblaze.get("max_retries", 3)),
-        )
-
-    def upload_file(self, local_path: str | Path, remote_key: str) -> dict[str, Any]:
-        """Upload one local artifact with SHA-256 integrity metadata."""
-        source = Path(local_path).resolve()
-        key = self._normalize_key(remote_key)
-        if not source.exists() or not source.is_file():
-            raise ValueError(f"local_path is not a readable file: {source}")
-
-        sha256 = self._sha256_file(source)
-        size_bytes = source.stat().st_size
-        LOGGER.info("Uploading %s -> s3://%s/%s (%s bytes)", source, self.bucket_name, key, size_bytes)
-
-        self._with_retries(
-            action=f"upload file '{source}' to '{key}'",
-            operation=lambda: self._client.upload_file(
-                Filename=str(source),
-                Bucket=self.bucket_name,
-                Key=key,
-                ExtraArgs={"Metadata": {"sha256": sha256}},
-            ),
-        )
-        head = self._head_object(key)
-        self._verify_upload_integrity(head=head, expected_sha256=sha256, expected_size=size_bytes, remote_key=key)
-        return {"remote_key": key, "size_bytes": size_bytes, "sha256": sha256}
-
-    def download_file(self, remote_key: str, local_path: str | Path) -> dict[str, Any]:
-        """Download one artifact from B2 to a local path."""
-        key = self._normalize_key(remote_key)
-        destination = Path(local_path).resolve()
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        expected_size = int(self._head_object(key).get("ContentLength", 0))
-        LOGGER.info("Downloading s3://%s/%s -> %s", self.bucket_name, key, destination)
-
-        self._with_retries(
-            action=f"download key '{key}' to '{destination}'",
-            operation=lambda: self._client.download_file(
-                Bucket=self.bucket_name,
-                Key=key,
-                Filename=str(destination),
-            ),
-        )
-        actual_size = destination.stat().st_size
-        if expected_size and expected_size != actual_size:
-            raise B2ConnectorError(
-                f"Downloaded file size mismatch for key '{key}': expected={expected_size}, got={actual_size}"
-            )
-        return {"remote_key": key, "local_path": str(destination), "size_bytes": actual_size}
-
-    def sync_down(
-        self,
-        remote_prefix: str,
-        local_dir: str | Path,
-        exclude_patterns: list[str] | None = None,
-    ) -> dict[str, int]:
-        """Download every object under a prefix into a local directory."""
-        prefix = self._normalize_prefix(remote_prefix)
-        destination_root = Path(local_dir).resolve()
-        destination_root.mkdir(parents=True, exist_ok=True)
-        patterns = [str(pattern) for pattern in (exclude_patterns or []) if str(pattern).strip()]
-
-        downloaded = 0
-        skipped = 0
-        bytes_transferred = 0
-
-        for key in self.list_keys(prefix):
-            relative = key[len(prefix) :] if key.startswith(prefix) else key
-            if not relative:
-                continue
-            if self._is_excluded(relative, patterns):
-                skipped += 1
-                continue
-            target = destination_root / Path(relative)
-            result = self.download_file(key, target)
-            downloaded += 1
-            bytes_transferred += int(result.get("size_bytes", 0))
-
-        return {
-            "downloaded": downloaded,
-            "uploaded": 0,
-            "skipped": skipped,
-            "bytes_transferred": bytes_transferred,
-        }
-
-    def sync_up(self, local_dir: str | Path, remote_prefix: str) -> dict[str, int]:
-        """Upload every file in a local directory tree into a B2 prefix."""
-        source_root = Path(local_dir).resolve()
-        if not source_root.exists() or not source_root.is_dir():
-            raise ValueError(f"local_dir must exist and be a directory: {source_root}")
-
-        prefix = self._normalize_prefix(remote_prefix)
-        uploaded = 0
-        bytes_transferred = 0
-        for path in sorted(source_root.rglob("*")):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(source_root).as_posix()
-            key = f"{prefix}{relative}"
-            result = self.upload_file(path, key)
-            uploaded += 1
-            bytes_transferred += int(result.get("size_bytes", 0))
-
-        return {
-            "downloaded": 0,
-            "uploaded": uploaded,
-            "skipped": 0,
-            "bytes_transferred": bytes_transferred,
-        }
-
-    def list_keys(self, prefix: str) -> list[str]:
-        """List object keys beneath a prefix."""
-        normalized_prefix = self._normalize_prefix(prefix)
-
-        def _list() -> list[str]:
-            paginator = self._client.get_paginator("list_objects_v2")
-            keys: list[str] = []
-            for page in paginator.paginate(Bucket=self.bucket_name, Prefix=normalized_prefix):
-                for entry in page.get("Contents", []):
-                    key = str(entry.get("Key", "")).strip()
-                    if key:
-                        keys.append(key)
-            return keys
-
-        keys = self._with_retries(action=f"list keys for prefix '{normalized_prefix}'", operation=_list)
-        return sorted(keys)
-
-    def file_exists(self, remote_key: str) -> bool:
-        """Return True when a key exists in B2."""
-        key = self._normalize_key(remote_key)
-        try:
-            self._head_object(key)
-            return True
-        except B2ObjectNotFoundError:
-            return False
-
-    def delete_file(self, remote_key: str) -> bool:
-        """Delete one object from B2."""
-        key = self._normalize_key(remote_key)
-        LOGGER.info("Deleting s3://%s/%s", self.bucket_name, key)
-        self._with_retries(
-            action=f"delete key '{key}'",
-            operation=lambda: self._client.delete_object(Bucket=self.bucket_name, Key=key),
-        )
-        return True
-
-    def get_file_size(self, remote_key: str) -> int:
-        """Return object size in bytes."""
-        key = self._normalize_key(remote_key)
-        return int(self._head_object(key).get("ContentLength", 0))
-
-    def get_file_sha256(self, remote_key: str) -> str:
-        """Return stored SHA-256 metadata for a key, if present."""
-        key = self._normalize_key(remote_key)
-        metadata = self._head_object(key).get("Metadata", {})
-        return str(metadata.get("sha256", "")).strip().lower()
-
-    # ---------------------------------------------------------------------
-    # Compatibility helpers used by existing sync/snapshot modules.
-    # ---------------------------------------------------------------------
-    def upload_json(self, object_key: str, payload: dict[str, Any]) -> dict[str, Any]:
-        """Upload JSON payload to B2 and return metadata for manifests."""
-        content = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-        return self.upload_bytes(object_key=object_key, content=content, content_type="application/json")
-
-    def upload_bytes(
-        self,
-        object_key: str,
-        content: bytes,
-        content_type: str = "application/octet-stream",
-    ) -> dict[str, Any]:
-        """Upload raw bytes to B2 while validating SHA-256 integrity metadata."""
-        key = self._normalize_key(object_key)
-        if not isinstance(content, (bytes, bytearray)):
-            raise ValueError("content must be bytes")
-        payload = bytes(content)
-        sha256 = hashlib.sha256(payload).hexdigest()
-        size_bytes = len(payload)
-
-        self._with_retries(
-            action=f"upload byte payload to '{key}'",
-            operation=lambda: self._client.put_object(
-                Bucket=self.bucket_name,
-                Key=key,
-                Body=payload,
-                ContentType=content_type,
-                Metadata={"sha256": sha256},
-            ),
-        )
-        head = self._head_object(key)
-        self._verify_upload_integrity(head=head, expected_sha256=sha256, expected_size=size_bytes, remote_key=key)
-        etag = str(head.get("ETag", "")).replace('"', "")
-        return {
-            "object_key": key,
-            "etag": etag,
-            "uploaded_at": datetime.now(timezone.utc).isoformat(),
-            "size_bytes": size_bytes,
-            "content_type": content_type,
-        }
-
-    def list_objects(self, prefix: str) -> list[dict[str, Any]]:
-        """Legacy object listing shape used by sync daemon guards."""
-        normalized_prefix = self._normalize_prefix(prefix)
-
-        def _list() -> list[dict[str, Any]]:
-            paginator = self._client.get_paginator("list_objects_v2")
-            objects: list[dict[str, Any]] = []
-            for page in paginator.paginate(Bucket=self.bucket_name, Prefix=normalized_prefix):
-                for entry in page.get("Contents", []):
-                    key = str(entry.get("Key", "")).strip()
-                    if not key:
-                        continue
-                    objects.append({"Key": key, "Size": int(entry.get("Size", 0))})
-            return objects
-
-        return self._with_retries(action=f"list objects for prefix '{normalized_prefix}'", operation=_list)
-
-    def sync_prefix_to_local(
-        self,
-        prefix: str,
-        local_dir: str | Path,
-        blocked_tokens: list[str] | None = None,
-    ) -> dict[str, int]:
-        """Legacy wrapper around sync_down with optional blocked-token filtering."""
-        lowered_tokens = [str(token).lower() for token in (blocked_tokens or []) if str(token).strip()]
-        if lowered_tokens and any(token in str(prefix).lower() for token in lowered_tokens):
-            LOGGER.warning("Refusing blocked pull prefix: %s", prefix)
-            return {"downloaded": 0, "uploaded": 0, "skipped": 0, "bytes_transferred": 0}
-
-        normalized_prefix = self._normalize_prefix(prefix)
-        target_root = Path(local_dir).resolve()
-        target_root.mkdir(parents=True, exist_ok=True)
-        downloaded = 0
-        skipped = 0
-        bytes_transferred = 0
-
-        for key in self.list_keys(normalized_prefix):
-            lower_key = key.lower()
-            if lowered_tokens and any(token in lower_key for token in lowered_tokens):
-                skipped += 1
-                continue
-            relative = key[len(normalized_prefix) :] if key.startswith(normalized_prefix) else key
-            if not relative:
-                continue
-            result = self.download_file(key, target_root / relative)
-            downloaded += 1
-            bytes_transferred += int(result.get("size_bytes", 0))
-
-        return {
-            "downloaded": downloaded,
-            "uploaded": 0,
-            "skipped": skipped,
-            "bytes_transferred": bytes_transferred,
-        }
-
-    def sync_local_to_prefix(self, local_dir: str | Path, prefix: str) -> dict[str, int]:
-        """Legacy wrapper around sync_up."""
-        return self.sync_up(local_dir=local_dir, remote_prefix=prefix)
-
-    # ---------------------------------------------------------------------
-    # Internal helpers.
-    # ---------------------------------------------------------------------
-    def _head_object(self, remote_key: str) -> dict[str, Any]:
-        key = self._normalize_key(remote_key)
-        try:
-            return self._with_retries(
-                action=f"head object '{key}'",
-                operation=lambda: self._client.head_object(Bucket=self.bucket_name, Key=key),
-            )
-        except B2ConnectorError as exc:
-            root = exc.__cause__
-            if isinstance(root, ClientError):
-                code = str(root.response.get("Error", {}).get("Code", "")).strip()
-                if code in {"404", "NoSuchKey", "NotFound"}:
-                    raise B2ObjectNotFoundError(f"B2 object not found: '{key}'") from exc
-            raise
-
-    def _verify_upload_integrity(
-        self,
-        *,
-        head: dict[str, Any],
-        expected_sha256: str,
-        expected_size: int,
-        remote_key: str,
-    ) -> None:
-        metadata = head.get("Metadata", {}) if isinstance(head, dict) else {}
-        remote_sha256 = str(metadata.get("sha256", "")).strip().lower()
-        remote_size = int(head.get("ContentLength", 0))
-        if remote_sha256 != expected_sha256.lower():
-            raise B2ChecksumMismatchError(
-                f"SHA-256 mismatch after upload for '{remote_key}': "
-                f"expected={expected_sha256}, remote={remote_sha256 or 'missing'}"
-            )
-        if remote_size != expected_size:
-            raise B2ChecksumMismatchError(
-                f"Size mismatch after upload for '{remote_key}': expected={expected_size}, remote={remote_size}"
-            )
-
-    def _with_retries(self, *, action: str, operation: Callable[[], Any]) -> Any:
-        last_error: Exception | None = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                return operation()
-            except Exception as exc:  # noqa: BLE001
-                if not self._should_retry(exc) or attempt >= self.max_retries:
-                    raise B2ConnectorError(f"Failed to {action}") from exc
-                backoff_seconds = 2 ** (attempt - 1)
-                LOGGER.warning(
-                    "Retrying B2 operation after failure (attempt %s/%s, backoff=%ss): %s",
-                    attempt,
-                    self.max_retries,
-                    backoff_seconds,
-                    action,
-                )
-                last_error = exc
-                time.sleep(backoff_seconds)
-        raise B2ConnectorError(f"Failed to {action}") from last_error
 
     @staticmethod
-    def _should_retry(error: Exception) -> bool:
-        if isinstance(error, (BotoCoreError, OSError, TimeoutError)):
-            return True
-        if isinstance(error, ClientError):
-            error_code = str(error.response.get("Error", {}).get("Code", "")).strip()
-            if error_code in {"404", "NoSuchKey", "NotFound", "InvalidAccessKeyId", "SignatureDoesNotMatch"}:
-                return False
-            return True
-        return False
+    def _required_config(value: str | None, env_name: str) -> str:
+        resolved = (value or os.getenv(env_name, "")).strip()
+        if not resolved:
+            raise B2ConfigurationError(f"Missing required BackBlaze configuration: {env_name}")
+        return resolved
 
     @staticmethod
-    def _sha256_file(path: Path) -> str:
+    def _normalize_key(remote_key: str) -> str:
+        if not isinstance(remote_key, str):
+            raise ValueError("remote_key must be a string")
+        key = remote_key.strip().lstrip("/")
+        if not key:
+            raise ValueError("remote_key must be a non-empty path-like string")
+        return key
+
+    @staticmethod
+    def _normalize_prefix(prefix: str) -> str:
+        if not isinstance(prefix, str):
+            raise ValueError("prefix must be a string")
+        normalized = prefix.strip().lstrip("/")
+        if not normalized:
+            return ""
+        if not normalized.endswith("/"):
+            normalized = f"{normalized}/"
+        return normalized
+
+    @staticmethod
+    def _sha256_file(file_path: Path) -> str:
         digest = hashlib.sha256()
-        with path.open("rb") as handle:
-            while True:
-                chunk = handle.read(1024 * 1024)
-                if not chunk:
-                    break
+        with file_path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
                 digest.update(chunk)
         return digest.hexdigest()
 
-    @staticmethod
-    def _is_excluded(relative_path: str, patterns: list[str]) -> bool:
-        if not patterns:
-            return False
-        normalized = str(relative_path).replace("\\", "/")
-        return any(fnmatch.fnmatch(normalized, pattern) for pattern in patterns)
+    def _with_retries(self, action: str, operation: Callable[[], T]) -> T:
+        last_exception: Exception | None = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                return operation()
+            except Exception as exc:  # nosec B110 - controlled retry wrapper with re-raise
+                last_exception = exc
+                if attempt >= self.max_retries:
+                    break
+                delay = self.retry_base_seconds * (2 ** (attempt - 1))
+                logger.warning(
+                    "B2 %s failed on attempt %d/%d: %s; retrying in %.2fs",
+                    action,
+                    attempt,
+                    self.max_retries,
+                    exc,
+                    delay,
+                )
+                time.sleep(delay)
 
-    @classmethod
-    def _normalize_key(cls, remote_key: str) -> str:
-        key = str(remote_key or "").strip().lstrip("/")
-        if not key:
-            raise ValueError("remote key must be non-empty")
-        if ".." in Path(key).parts:
-            raise ValueError("remote key must not contain path traversal")
-        return key
-
-    @classmethod
-    def _normalize_prefix(cls, prefix: str) -> str:
-        cleaned = cls._normalize_key(prefix)
-        return cleaned if cleaned.endswith("/") else f"{cleaned}/"
-
-    @staticmethod
-    def _required_value(env_name: str, provided: str | None) -> str:
-        value = str(provided if provided is not None else os.getenv(env_name, "")).strip()
-        if not value:
-            raise ValueError(f"Missing required BackBlaze credential/config: {env_name}")
-        return value
+        raise B2OperationError(
+            f"B2 {action} failed after {self.max_retries} attempts: {last_exception}"
+        ) from last_exception
 
     @staticmethod
-    def _resolve_config_value(value: Any) -> str:
-        text = str(value or "").strip()
-        if text.startswith("${") and text.endswith("}") and len(text) > 3:
-            return str(os.getenv(text[2:-1], "")).strip()
-        return text
+    def _safe_local_target(local_dir: Path, relative_path: str) -> Path:
+        if not isinstance(relative_path, str):
+            raise ValueError("relative_path must be a string")
+
+        candidate = (local_dir / relative_path.lstrip("/")).resolve()
+        base_dir = local_dir.resolve()
+        if candidate != base_dir and base_dir not in candidate.parents:
+            raise ValueError(f"unsafe path traversal detected for key fragment: {relative_path}")
+        return candidate
+
+    def upload_file(self, local_path: str | Path, remote_key: str) -> None:
+        """
+        Upload one local artifact to the B2 vault and verify SHA-256 integrity.
+
+        Tactical context:
+            Checksum verification prevents silent corruption of mission-critical
+            model payloads before they are staged for downstream pull operations.
+        """
+        source = Path(local_path)
+        if not source.exists() or not source.is_file():
+            raise ValueError(f"local_path must point to an existing file: {source}")
+
+        key = self._normalize_key(remote_key)
+        checksum = self._sha256_file(source)
+
+        def _operation() -> None:
+            self._client.upload_file(
+                str(source),
+                self.bucket_name,
+                key,
+                ExtraArgs={"Metadata": {"sha256": checksum}},
+            )
+            metadata = self._client.head_object(Bucket=self.bucket_name, Key=key).get("Metadata", {})
+            remote_checksum = metadata.get("sha256")
+            if remote_checksum != checksum:
+                raise B2ChecksumError(
+                    f"checksum verification failed for key '{key}': "
+                    f"expected {checksum}, got {remote_checksum}"
+                )
+
+        self._with_retries(f"upload_file key={key}", _operation)
+        logger.info("Uploaded %s to b2://%s/%s", source, self.bucket_name, key)
+
+    def download_file(self, remote_key: str, local_path: str | Path) -> None:
+        """
+        Download one B2 object to local storage.
+
+        Tactical context:
+            Precise file recovery supports rapid rebuild of edge-ready runtimes
+            when deployed teams need to restore degraded compute nodes.
+        """
+        key = self._normalize_key(remote_key)
+        target = Path(local_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        def _operation() -> None:
+            self._client.download_file(self.bucket_name, key, str(target))
+
+        self._with_retries(f"download_file key={key}", _operation)
+        logger.info("Downloaded b2://%s/%s to %s", self.bucket_name, key, target)
+
+    def list_keys(self, prefix: str) -> list[str]:
+        """
+        List object keys under a B2 prefix.
+
+        Tactical context:
+            Deterministic inventory of vault contents enables auditable staging
+            plans before synchronizing weights into operational enclaves.
+        """
+        normalized_prefix = self._normalize_prefix(prefix)
+
+        def _operation() -> list[str]:
+            paginator = self._client.get_paginator("list_objects_v2")
+            pages = paginator.paginate(Bucket=self.bucket_name, Prefix=normalized_prefix)
+            keys: list[str] = []
+            for page in pages:
+                for obj in page.get("Contents", []):
+                    key = obj.get("Key")
+                    if key:
+                        keys.append(str(key))
+            return keys
+
+        keys = self._with_retries(f"list_keys prefix={normalized_prefix}", _operation)
+        logger.info("Listed %d keys under prefix '%s'", len(keys), normalized_prefix)
+        return keys
+
+    def sync_down(self, remote_prefix: str, local_dir: str | Path) -> list[Path]:
+        """
+        Pull all files under a B2 prefix into a local directory.
+
+        Tactical context:
+            Bulk synchronization allows forward teams to preload required model
+            artifacts before mission windows with constrained connectivity.
+        """
+        normalized_prefix = self._normalize_prefix(remote_prefix)
+        destination = Path(local_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+
+        downloaded_paths: list[Path] = []
+        for key in self.list_keys(normalized_prefix):
+            if key.endswith("/"):
+                continue
+            relative_fragment = key[len(normalized_prefix) :] if normalized_prefix and key.startswith(normalized_prefix) else key
+            target_path = self._safe_local_target(destination, relative_fragment)
+            self.download_file(key, target_path)
+            downloaded_paths.append(target_path)
+
+        logger.info(
+            "Synced down %d files from prefix '%s' into %s",
+            len(downloaded_paths),
+            normalized_prefix,
+            destination,
+        )
+        return downloaded_paths
+
+    def sync_up(self, local_dir: str | Path, remote_prefix: str) -> list[str]:
+        """
+        Upload all files from a local directory into a B2 prefix.
+
+        Tactical context:
+            Structured promotion of newly trained artifacts keeps the sovereign
+            vault aligned with current battlefield model baselines.
+        """
+        source_dir = Path(local_dir)
+        if not source_dir.exists() or not source_dir.is_dir():
+            raise ValueError(f"local_dir must point to an existing directory: {source_dir}")
+
+        normalized_prefix = self._normalize_prefix(remote_prefix)
+        uploaded_keys: list[str] = []
+
+        for file_path in sorted(path for path in source_dir.rglob("*") if path.is_file()):
+            relative_key = file_path.relative_to(source_dir).as_posix()
+            remote_key = f"{normalized_prefix}{relative_key}" if normalized_prefix else relative_key
+            self.upload_file(file_path, remote_key)
+            uploaded_keys.append(remote_key)
+
+        logger.info(
+            "Synced up %d files from %s into prefix '%s'",
+            len(uploaded_keys),
+            source_dir,
+            normalized_prefix,
+        )
+        return uploaded_keys
+
+    def file_exists(self, remote_key: str) -> bool:
+        """
+        Check whether a specific object exists in B2.
+
+        Tactical context:
+            Presence checks help orchestrators avoid redundant transfers and
+            quickly decide whether a mission package is combat-ready.
+        """
+        key = self._normalize_key(remote_key)
+        last_exception: Exception | None = None
+
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                self._client.head_object(Bucket=self.bucket_name, Key=key)
+                return True
+            except ClientError as exc:
+                code = str(exc.response.get("Error", {}).get("Code", ""))
+                if code in {"404", "NoSuchKey", "NotFound"}:
+                    logger.info("Key not found in B2: %s", key)
+                    return False
+                last_exception = exc
+            except Exception as exc:  # nosec B110 - controlled retry wrapper with re-raise
+                last_exception = exc
+
+            if attempt < self.max_retries:
+                delay = self.retry_base_seconds * (2 ** (attempt - 1))
+                logger.warning(
+                    "B2 file_exists key=%s failed on attempt %d/%d: %s; retrying in %.2fs",
+                    key,
+                    attempt,
+                    self.max_retries,
+                    last_exception,
+                    delay,
+                )
+                time.sleep(delay)
+
+        raise B2OperationError(
+            f"B2 file_exists key={key} failed after {self.max_retries} attempts: {last_exception}"
+        ) from last_exception
+
+    def delete_file(self, remote_key: str) -> None:
+        """
+        Delete an object from the B2 bucket.
+
+        Tactical context:
+            Controlled deletion removes superseded or compromised artifacts from
+            distribution channels to protect downstream deployments.
+        """
+        key = self._normalize_key(remote_key)
+
+        def _operation() -> None:
+            self._client.delete_object(Bucket=self.bucket_name, Key=key)
+
+        self._with_retries(f"delete_file key={key}", _operation)
+        logger.info("Deleted b2://%s/%s", self.bucket_name, key)
