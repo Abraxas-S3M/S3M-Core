@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "mission_id": "nav-ompl-2026-04-09-01",
+  "planner": "RRTstar",
+  "planning_scene": "urban_canyon_sector_bravo",
+  "start_pose": [12.4, -3.1, 0.0],
+  "goal_pose": [104.8, 76.2, 0.0],
+  "path": {
+    "waypoints": [
+      [12.4, -3.1, 0.0],
+      [21.2, 5.6, 0.0],
+      [46.9, 22.3, 0.0],
+      [73.5, 48.7, 0.0],
+      [104.8, 76.2, 0.0]
+    ],
+    "cost": 127.34,
+    "clearance_meters_min": 1.7
+  },
+  "solver_metrics": {
+    "solve_time_ms": 84,
+    "states_sampled": 3128,
+    "exact_solution": true
+  },
+  "tactical_assessment": {
+    "route_viability": "high",
+    "risk_zones_avoided": 4
+  }
+}

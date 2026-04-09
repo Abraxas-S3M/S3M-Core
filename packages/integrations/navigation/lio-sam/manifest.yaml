@@ -1,0 +1,14 @@
+name: "LIO-SAM"
+slug: "lio-sam"
+domain: "navigation"
+source_url: "https://github.com/TixiaoShan/LIO-SAM"
+license: "(BSD-style)"
+description: "Tightly-coupled LiDAR-inertial odometry via smoothing and mapping for GPS-denied navigation."
+integration_type: "adapter"
+capabilities:
+  - "lidar_odometry"
+  - "imu_fusion"
+  - "mapping"
+system_dependencies:
+  - "ros"
+airgapped_support: true

@@ -1,0 +1,16 @@
+name: "Autonomous-drone-navigation"
+slug: "autonomous-drone-navigation"
+domain: "navigation"
+source_url: "https://github.com/ahmedeltaher/Autonomous-drone-navigation"
+license: "MIT"
+description: "GPS-denied indoor UAV navigation with optical flow, IMU, LiDAR fusion (ROS2/PX4)."
+integration_type: "adapter"
+capabilities:
+  - "indoor_uav_navigation"
+  - "optical_flow_imu_lidar_fusion"
+  - "px4_ros2_guidance"
+system_dependencies:
+  - "ros2"
+  - "px4"
+  - "mavsdk"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "awesome-threat-intelligence (adapt)"
+slug: "awesome-threat-intelligence-adapt"
+domain: "military"
+source_url: "https://github.com/hslatman/awesome-threat-intelligence"
+license: "MIT"
+description: "Threat-intelligence tooling integration for OSINT risk forecasting in military planning."
+integration_type: "adapter"
+capabilities:
+  - osint_risk_forecasting
+  - threat_tool_curation
+  - analyst_briefing_support
+airgapped_support: true

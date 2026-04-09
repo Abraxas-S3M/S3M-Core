@@ -1,0 +1,12 @@
+name: "mpc_planner"
+slug: "mpc-planner"
+domain: "navigation"
+source_url: "https://github.com/tud-amr/mpc_planner"
+license: "MIT"
+description: "MPC motion planner in ROS/ROS2 for dynamic environments (acados/Forces support)."
+integration_type: "adapter"
+capabilities:
+  - "dynamic_obstacle_avoidance"
+  - "ros2_mpc_planning"
+  - "trajectory_optimization"
+airgapped_support: true

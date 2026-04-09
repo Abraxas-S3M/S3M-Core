@@ -1,0 +1,33 @@
+{
+  "operation": "osint_risk_forecast",
+  "status": "success",
+  "forecast_id": "ati-adapt-2026-0409-509",
+  "area_of_interest": "coastal-supply-lane-charlie",
+  "threat_outlook": {
+    "next_24h": "moderate",
+    "next_72h": "high",
+    "confidence": "medium-high"
+  },
+  "drivers": [
+    {
+      "factor": "coordinated_disinformation_activity",
+      "weight": 0.37,
+      "assessment": "Narrative manipulation may mask kinetic preparation."
+    },
+    {
+      "factor": "commercial_satellite_anomaly_reports",
+      "weight": 0.28,
+      "assessment": "Repeated nighttime convoy signatures near choke points."
+    },
+    {
+      "factor": "regional_cyber_intrusion_alerts",
+      "weight": 0.21,
+      "assessment": "Potential pre-positioning for command-and-control disruption."
+    }
+  ],
+  "recommended_collection_focus": [
+    "maritime_ais_anomaly_correlation",
+    "social_signal_authenticity_scoring",
+    "critical_port_network_exposure_review"
+  ]
+}

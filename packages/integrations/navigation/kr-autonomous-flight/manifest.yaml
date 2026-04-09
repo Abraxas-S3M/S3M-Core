@@ -1,0 +1,14 @@
+name: "kr_autonomous_flight"
+slug: "kr-autonomous-flight"
+domain: "navigation"
+source_url: "https://github.com/KumarRobotics/kr_autonomous_flight"
+license: "(BSD-style)"
+description: "Complete autonomous flight stack for GPS-denied quadrotors."
+integration_type: "adapter"
+capabilities:
+  - "gps_denied_navigation"
+  - "quadrotor_state_estimation"
+  - "trajectory_tracking"
+system_dependencies:
+  - "ros"
+airgapped_support: true
