@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "integration_id": "xai-ethicalml",
+  "domain": "autonomy",
+  "execution_mode": "airgapped",
+  "mission_id": "mission-ai-target-priority-04",
+  "model_id": "threat-priority-net-v2",
+  "result": {
+    "top_features": [
+      {
+        "name": "signal_strength_delta",
+        "contribution": 0.37
+      },
+      {
+        "name": "thermal_signature_score",
+        "contribution": 0.24
+      },
+      {
+        "name": "route_anomaly_index",
+        "contribution": 0.18
+      }
+    ],
+    "stability_score": 0.91,
+    "fairness_flags": []
+  },
+  "telemetry": {
+    "analyst_role": "autonomy-watch-officer",
+    "timestamp_utc": "2026-04-09T04:36:51Z"
+  }
+}

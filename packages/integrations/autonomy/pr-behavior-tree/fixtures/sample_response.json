@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "integration_id": "pr-behavior-tree",
+  "domain": "autonomy",
+  "execution_mode": "airgapped",
+  "mission_id": "mission-convoy-screen-09",
+  "tree_id": "pr_bt_screening_v1",
+  "result": {
+    "tree_state": "RUNNING",
+    "ticks": 18,
+    "active_leaf": "monitor_flank_routes",
+    "blackboard": {
+      "threat_level": "elevated",
+      "route_integrity": "stable"
+    }
+  },
+  "telemetry": {
+    "timestamp_utc": "2026-04-09T04:31:02Z",
+    "edge_node": "orin-bravo-1"
+  }
+}

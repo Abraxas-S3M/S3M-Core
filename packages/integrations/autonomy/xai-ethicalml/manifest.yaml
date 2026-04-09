@@ -1,0 +1,14 @@
+name: "xai (EthicalML)"
+slug: "xai-ethicalml"
+domain: "autonomy"
+source_url: "https://github.com/EthicalML/xai"
+license: "MIT"
+description: "Explainability toolbox focused on responsible ML principles"
+integration_type: "adapter"
+capabilities:
+  - "feature_attribution"
+  - "responsible_ml_assessment"
+  - "explainability_reporting"
+pip_dependencies:
+  - "xai"
+airgapped_support: true
