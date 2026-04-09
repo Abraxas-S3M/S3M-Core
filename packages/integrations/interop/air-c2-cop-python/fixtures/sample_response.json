@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "snapshot_id": "air-c2-cop-2026-04-09-017",
+  "theater": "northern-sector",
+  "air_picture": {
+    "friendly_tracks": 22,
+    "coalition_tracks": 14,
+    "unknown_tracks": 3,
+    "restricted_zones": 5
+  },
+  "tasking_summary": [
+    {
+      "package_id": "ATO-ALPHA-31",
+      "mission_type": "CAP",
+      "time_window_zulu": "04:00-05:30Z",
+      "priority": "high"
+    },
+    {
+      "package_id": "ATO-BRAVO-08",
+      "mission_type": "SEAD escort",
+      "time_window_zulu": "04:20-06:00Z",
+      "priority": "critical"
+    }
+  ],
+  "deconfliction_alerts": [
+    "Potential altitude overlap detected in corridor RAVEN-2 between CAP and tanker lanes."
+  ],
+  "tactical_assessment": "COP snapshot supports synchronized air tasking and reduced blue-on-blue risk in contested airspace."
+}

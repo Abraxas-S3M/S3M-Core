@@ -1,0 +1,12 @@
+name: "awesome-command-control"
+slug: "awesome-command-control"
+domain: "interop"
+source_url: "https://github.com/tcostam/awesome-command-control"
+license: "Unknown"
+description: "Curated list of command-and-control frameworks and tools adapted for simulation."
+integration_type: "adapter"
+capabilities:
+  - "c2_catalog_indexing"
+  - "framework_filtering"
+  - "simulation_reference_mapping"
+airgapped_support: true

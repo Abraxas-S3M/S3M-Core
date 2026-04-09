@@ -1,0 +1,12 @@
+name: "TacticalMesh"
+slug: "tacticalmesh"
+domain: "interop"
+source_url: "https://github.com/TamTunnel/TacticalMesh"
+license: "Unknown"
+description: "Decentralized mesh networking for resilient C2 in coalition operations."
+integration_type: "adapter"
+capabilities:
+  - "mesh_topology_management"
+  - "link_resilience_monitoring"
+  - "c2_message_routing"
+airgapped_support: true
