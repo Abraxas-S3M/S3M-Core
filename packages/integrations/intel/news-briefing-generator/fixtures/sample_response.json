@@ -1,0 +1,26 @@
+{
+  "brief_id": "nbg-brief-2026-04-09-003",
+  "generated_at": "2026-04-09T07:40:00Z",
+  "feed_count": 18,
+  "articles_processed": 142,
+  "clusters": [
+    {
+      "cluster_id": "cluster-01",
+      "theme": "critical infrastructure cyber incidents",
+      "article_count": 37,
+      "sentiment": "negative"
+    },
+    {
+      "cluster_id": "cluster-02",
+      "theme": "regional naval movement reporting",
+      "article_count": 24,
+      "sentiment": "neutral"
+    }
+  ],
+  "executive_summary": "Cluster analysis indicates rising concern around infrastructure resilience and amplified commentary about maritime force posture.",
+  "priority_watch_items": [
+    "New outage claims tied to transport control systems.",
+    "Cross-platform spread of unverified naval mobilization maps."
+  ],
+  "status": "completed"
+}

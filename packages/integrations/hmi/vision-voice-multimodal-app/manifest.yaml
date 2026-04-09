@@ -1,0 +1,15 @@
+name: "vision-voice-multimodal-app"
+slug: "vision-voice-multimodal-app"
+domain: "hmi"
+source_url: "https://github.com/EvanGks/vision-voice-multimodal-app"
+license: "MIT"
+description: "Full-stack multimodal AI assistant with visual understanding, voice input, and spoken output."
+integration_type: "adapter"
+capabilities:
+  - "voice_command_understanding"
+  - "image_scene_interpretation"
+  - "spoken_response_generation"
+system_dependencies:
+  - "node"
+  - "python3"
+airgapped_support: true

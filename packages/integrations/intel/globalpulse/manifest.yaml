@@ -1,0 +1,12 @@
+name: "globalpulse"
+slug: "globalpulse"
+domain: "intel"
+source_url: "https://github.com/ntamero/globalpulse"
+license: "Unknown"
+description: "Real-time global intelligence dashboard with AI analysis and multilingual briefing support."
+integration_type: "adapter"
+capabilities:
+  - "global_situational_awareness"
+  - "multilingual_analysis"
+  - "alert_prioritization"
+airgapped_support: true
