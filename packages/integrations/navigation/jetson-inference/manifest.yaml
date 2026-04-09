@@ -1,0 +1,12 @@
+name: "jetson-inference"
+slug: "jetson-inference"
+domain: "navigation"
+source_url: "https://github.com/dusty-nv/jetson-inference"
+license: "MIT"
+description: "Hello AI World guide with TensorRT inference, transfer learning on Jetson."
+integration_type: "adapter"
+capabilities:
+  - "vision-inference"
+  - "edge-tensorrt"
+  - "jetson-transfer-learning"
+airgapped_support: true

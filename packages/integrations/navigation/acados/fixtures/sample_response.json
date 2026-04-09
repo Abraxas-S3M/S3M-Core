@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "mission_id": "nav-acados-2026-04-09-01",
+  "controller": "nonlinear_mpc",
+  "prediction_horizon_steps": 40,
+  "sampling_time_s": 0.05,
+  "objective": {
+    "tracking_error_l2": 0.36,
+    "control_effort_l2": 0.19
+  },
+  "solver_metrics": {
+    "iterations": 9,
+    "cpu_time_ms": 6.8,
+    "qp_status": "success"
+  },
+  "first_control_action": {
+    "thrust": 12.1,
+    "roll_rate": -0.04,
+    "pitch_rate": 0.06,
+    "yaw_rate": 0.02
+  },
+  "tactical_assessment": {
+    "stability_margin": "nominal",
+    "formation_integrity": "maintained"
+  }
+}

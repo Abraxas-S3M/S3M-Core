@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "mission_id": "nav-mpc-planner-2026-04-09-01",
+  "planner_mode": "dynamic_environment",
+  "robot_id": "ugv-echo-7",
+  "start_pose": [3.0, 2.5, 0.0],
+  "goal_pose": [58.0, 41.0, 0.0],
+  "dynamic_obstacles": [
+    {"id": "veh-1", "predicted_crossing_s": 6.4},
+    {"id": "ped-2", "predicted_crossing_s": 8.1}
+  ],
+  "trajectory": {
+    "points": 46,
+    "duration_s": 19.5,
+    "clearance_m_min": 1.5
+  },
+  "solver_backend": "acados",
+  "solver_metrics": {
+    "total_solve_time_ms": 17.2,
+    "success_rate": 1.0
+  },
+  "tactical_assessment": {
+    "route_safety": "high",
+    "intercept_exposure": "reduced"
+  }
+}

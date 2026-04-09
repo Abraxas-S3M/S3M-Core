@@ -1,0 +1,21 @@
+{
+  "event_id": "ort-trt-nav-2026-04-09-045",
+  "platform": "jetson-orin-nx",
+  "mission_profile": "coastal-border-overwatch",
+  "optimization_job": {
+    "input_model": "nav_transformer.onnx",
+    "output_engine": "nav_transformer_int8.plan",
+    "quantization_mode": "int8",
+    "calibration_set": "night-coastal-v2"
+  },
+  "benchmark": {
+    "latency_ms_p95": 7.1,
+    "throughput_fps": 121.4,
+    "gpu_utilization": 0.68
+  },
+  "tactical_assessment": {
+    "recommended_action": "deploy_optimized_engine",
+    "confidence": 0.94,
+    "resource_savings_percent": 32
+  }
+}
