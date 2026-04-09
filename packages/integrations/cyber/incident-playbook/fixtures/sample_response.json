@@ -1,0 +1,49 @@
+{
+  "status": "ok",
+  "integration": "incident-playbook",
+  "operation": "technique_playbook_lookup",
+  "source": "fixture",
+  "entries": [
+    {
+      "id": "ipb-t1566",
+      "title": "Phishing Initial Access Response",
+      "summary": "Contain user-targeted phishing campaigns and prevent credential replay against mission systems.",
+      "mitre_techniques": [
+        "T1566",
+        "T1556"
+      ],
+      "priority": "high",
+      "tags": [
+        "initial-access",
+        "email-security",
+        "identity-defense"
+      ],
+      "recommended_actions": [
+        "Block identified sender infrastructure at secure email gateways.",
+        "Force credential reset for targeted operators and privileged users.",
+        "Deploy endpoint hunting query for suspicious child-process execution from mail clients."
+      ]
+    },
+    {
+      "id": "ipb-t1059",
+      "title": "Command and Scripting Interpreter Containment",
+      "summary": "Detect and suppress malicious script execution used for persistence and command-and-control staging.",
+      "mitre_techniques": [
+        "T1059",
+        "T1547"
+      ],
+      "priority": "critical",
+      "tags": [
+        "execution",
+        "persistence",
+        "endpoint-defense"
+      ],
+      "recommended_actions": [
+        "Apply emergency application control rules for high-risk interpreters.",
+        "Quarantine endpoints exhibiting encoded PowerShell or shell obfuscation behavior.",
+        "Correlate script block logs with known adversary tooling signatures."
+      ]
+    }
+  ]
+}
+
