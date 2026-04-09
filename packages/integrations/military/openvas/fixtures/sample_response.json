@@ -1,0 +1,35 @@
+{
+  "fixture_version": "1.0",
+  "integration": "openvas",
+  "status": "ok",
+  "operation": "scan_edge_assets",
+  "scan_id": "ovas-20260409-3312",
+  "target_group": "forward-sensor-mesh-delta",
+  "assets_scanned": 14,
+  "vulnerability_summary": {
+    "critical": 1,
+    "high": 3,
+    "medium": 8,
+    "low": 11
+  },
+  "top_findings": [
+    {
+      "cve": "CVE-2025-10417",
+      "severity": "critical",
+      "asset": "edge-router-02",
+      "assessment": "Remote code execution condition on exposed management endpoint."
+    },
+    {
+      "cve": "CVE-2024-7741",
+      "severity": "high",
+      "asset": "telemetry-node-11",
+      "assessment": "Authentication bypass risk due to outdated firmware package."
+    }
+  ],
+  "recommended_actions": [
+    "Apply emergency patch bundle v26.4",
+    "Restrict management interface to command VLAN",
+    "Re-run validation scan after remediation"
+  ],
+  "source": "airgapped_fixture"
+}

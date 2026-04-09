@@ -1,0 +1,5 @@
+name: "VINS-Mono / VINS-Fusion"
+slug: "vins-mono---vins-fusion"
+domain: "military"
+source_url: "https://github.com/HKUST-Aerial-Robotics/VINS-Mono"
+license: "(BSD-style)"

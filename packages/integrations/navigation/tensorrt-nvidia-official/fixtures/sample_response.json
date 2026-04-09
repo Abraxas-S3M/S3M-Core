@@ -1,0 +1,20 @@
+{
+  "mission_id": "s3m-nav-trt-jetson-088",
+  "platform": "jetson-agx-orin",
+  "runtime": "tensorrt",
+  "status": "ready",
+  "precision_mode": "INT8",
+  "engine": {
+    "name": "uav_collision_guard_v4.engine",
+    "latency_ms_p50": 6.8,
+    "throughput_fps": 142.0
+  },
+  "memory": {
+    "gpu_mem_mb": 1536,
+    "workspace_mb": 512
+  },
+  "safety_checks": {
+    "calibration_loaded": true,
+    "fallback_policy": "safe-hover"
+  }
+}

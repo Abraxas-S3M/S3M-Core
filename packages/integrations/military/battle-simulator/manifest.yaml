@@ -1,0 +1,12 @@
+name: "battle-simulator"
+slug: "battle-simulator"
+domain: "military"
+source_url: "https://github.com/manos02/battle-simulator"
+license: "MIT"
+description: "Interactive map-based battle simulation with force-node management."
+integration_type: "adapter"
+capabilities:
+  - "battlefield-simulation"
+  - "node-management"
+  - "operations-rehearsal"
+airgapped_support: true

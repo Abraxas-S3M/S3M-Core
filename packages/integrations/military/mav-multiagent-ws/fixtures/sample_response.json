@@ -1,0 +1,21 @@
+{
+  "coordination_id": "mav-maws-2026-04-09-003",
+  "swarm_id": "wolfpack-5",
+  "uav_count": 5,
+  "task_graph": {
+    "mission": "urban_sector_scan",
+    "clusters": [
+      "north-grid",
+      "east-grid",
+      "south-grid"
+    ],
+    "handoff_policy": "nearest_available_agent"
+  },
+  "deconfliction": {
+    "vertical_separation_m": 20,
+    "min_horizontal_spacing_m": 35,
+    "conflicts_detected": 1,
+    "conflicts_resolved": 1
+  },
+  "status": "coordination_plan_ready"
+}

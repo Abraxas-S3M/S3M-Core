@@ -1,0 +1,5 @@
+name: "mavros"
+slug: "mavros"
+domain: "military"
+source_url: "https://github.com/mavlink/mavros"
+license: "BSD"

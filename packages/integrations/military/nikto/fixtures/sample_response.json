@@ -1,0 +1,29 @@
+{
+  "scan_id": "nikto-op-2026-0409-001",
+  "target": "https://forward-fob-gateway.local",
+  "started_at": "2026-04-09T13:40:00Z",
+  "completed_at": "2026-04-09T13:43:18Z",
+  "findings": [
+    {
+      "severity": "high",
+      "category": "misconfiguration",
+      "title": "Directory indexing enabled",
+      "path": "/backup/",
+      "recommendation": "Disable auto-indexing and enforce authenticated access."
+    },
+    {
+      "severity": "medium",
+      "category": "header_hardening",
+      "title": "Missing X-Content-Type-Options header",
+      "path": "/",
+      "recommendation": "Set X-Content-Type-Options: nosniff in reverse proxy."
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  },
+  "mission_impact": "Potential web foothold against logistics command portal if hardening backlog persists."
+}

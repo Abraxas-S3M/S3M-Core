@@ -1,0 +1,12 @@
+name: "awesome-geospatial"
+slug: "awesome-geospatial"
+domain: "interop"
+source_url: "https://github.com/sacridini/Awesome-Geospatial"
+license: "Unknown"
+description: "Curated geospatial and simulation tools for DIS/C2SIM mission planning."
+integration_type: "adapter"
+capabilities:
+  - "geospatial_catalog"
+  - "dis_c2sim_support"
+  - "planning_reference"
+airgapped_support: true

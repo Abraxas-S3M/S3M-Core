@@ -1,0 +1,5 @@
+name: "mav_multiagent_ws"
+slug: "mav-multiagent-ws"
+domain: "military"
+source_url: "https://github.com/ethz-asl/mav_multiagent_ws"
+license: "(BSD-style)"

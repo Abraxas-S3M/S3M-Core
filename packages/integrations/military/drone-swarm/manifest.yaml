@@ -1,0 +1,5 @@
+name: "drone_swarm"
+slug: "drone-swarm"
+domain: "military"
+source_url: "https://github.com/iamrajee/drone_swarm"
+license: "MIT"

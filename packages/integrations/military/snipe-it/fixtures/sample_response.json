@@ -1,0 +1,38 @@
+{
+  "operation": "asset_inventory_sync",
+  "status": "success",
+  "snapshot_id": "snipe-it-sync-2026-0409-0915",
+  "theater": "northern-logistics-command",
+  "asset_counts": {
+    "total_assets": 6842,
+    "mission_ready": 6537,
+    "maintenance_due": 221,
+    "quarantined": 84
+  },
+  "critical_assets": [
+    {
+      "asset_tag": "SATCOM-TRM-4412",
+      "category": "satcom_terminal",
+      "readiness": "mission_ready",
+      "assigned_unit": "7th Expeditionary Signals"
+    },
+    {
+      "asset_tag": "UAS-C2-119",
+      "category": "command_and_control_node",
+      "readiness": "maintenance_due",
+      "assigned_unit": "ISR Group East"
+    }
+  ],
+  "procurement_watchlist": [
+    {
+      "item": "hardened_ssd_module",
+      "shortfall": 37,
+      "priority": "high"
+    },
+    {
+      "item": "field_router_kit",
+      "shortfall": 12,
+      "priority": "medium"
+    }
+  ]
+}

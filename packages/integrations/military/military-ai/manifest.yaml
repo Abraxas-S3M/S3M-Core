@@ -1,0 +1,12 @@
+name: "military-ai"
+slug: "military-ai"
+domain: "military"
+source_url: "https://github.com/AI-Guru/military-ai"
+license: "MIT (curated)"
+description: "Curated military AI resource collection including open-source LLM references for Army mission workflows."
+integration_type: "adapter"
+capabilities:
+  - "resource_indexing"
+  - "model_catalog_reference"
+  - "doctrine_mapping"
+airgapped_support: true

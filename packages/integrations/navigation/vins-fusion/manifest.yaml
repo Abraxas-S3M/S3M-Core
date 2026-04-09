@@ -1,0 +1,14 @@
+name: "VINS-Fusion"
+slug: "vins-fusion"
+domain: "navigation"
+source_url: "https://github.com/HKUST-Aerial-Robotics/VINS-Fusion"
+license: "(BSD-style)"
+description: "Optimization-based multi-sensor state estimator for visual-inertial, stereo, and GPS fusion."
+integration_type: "adapter"
+capabilities:
+  - "visual_inertial_odometry"
+  - "stereo_fusion"
+  - "gps_fusion"
+system_dependencies:
+  - "ros"
+airgapped_support: true

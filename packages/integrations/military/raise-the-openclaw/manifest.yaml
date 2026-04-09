@@ -1,0 +1,12 @@
+name: "Raise-The-OpenClaw"
+slug: "raise-the-openclaw"
+domain: "military"
+source_url: "https://github.com/bgoldmann/Raise-The-OpenClaw"
+license: "MIT"
+description: "Open-source autonomous AI agent framework with Army-style orchestrators and multi-node meshes."
+integration_type: "adapter"
+capabilities:
+  - "orchestrator_status"
+  - "mesh_node_coordination"
+  - "mission_rehearsal"
+airgapped_support: true

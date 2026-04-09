@@ -1,0 +1,12 @@
+name: "IVCT_Framework (MSG-134 references)"
+slug: "ivct-framework-msg-134-references"
+domain: "interop"
+source_url: "References in NATO MSG-134 GitHub org (historical)"
+license: "Unknown"
+description: "Interoperability Verification & Certification Tool references for HLA/DIS/C2SIM."
+integration_type: "adapter"
+capabilities:
+  - "federation_verification"
+  - "hla_dis_c2sim_testing"
+  - "compliance_reference"
+airgapped_support: true

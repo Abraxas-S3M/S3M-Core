@@ -1,0 +1,5 @@
+name: "qgroundcontrol"
+slug: "qgroundcontrol"
+domain: "military"
+source_url: "https://github.com/mavlink/qgroundcontrol"
+license: "Apache 2.0"

@@ -1,0 +1,20 @@
+{
+  "exercise_id": "CWIX-MSG201-2026-ALPHA",
+  "scenario": "multinational-c2sim-validation",
+  "artifact_set": [
+    "orders-001.xml",
+    "tracks-bridge-update.xml",
+    "report-cbrn-spot.xml"
+  ],
+  "validation_summary": {
+    "messages_checked": 52,
+    "schema_passed": 50,
+    "warnings": 2,
+    "critical_failures": 0
+  },
+  "participants": [
+    "NATO-JWC",
+    "national-lab-alpha",
+    "coalition-cell-bravo"
+  ]
+}

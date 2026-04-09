@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "dataset": "openmap-related-in-dis-contexts",
+  "snapshot_version": "2026.04",
+  "display_profile": {
+    "ui_mode": "coalition_common_operational_picture",
+    "coordinate_system": "WGS84",
+    "refresh_interval_seconds": 2
+  },
+  "dis_entities": [
+    {
+      "entity_type": "ground_mechanized_company",
+      "symbol_standard": "MIL-STD-2525D",
+      "overlay_layer": "friendly_units"
+    },
+    {
+      "entity_type": "rotary_wing_cas",
+      "symbol_standard": "MIL-STD-2525D",
+      "overlay_layer": "air_support"
+    }
+  ],
+  "c2sim_overlay_channels": [
+    "orders_layer",
+    "reports_layer",
+    "logistics_layer"
+  ],
+  "tactical_note": "OpenMap profile enables synchronized geospatial overlays across DIS/C2SIM-enabled command clients."
+}
