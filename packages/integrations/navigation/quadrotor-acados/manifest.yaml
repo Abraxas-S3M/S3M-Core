@@ -1,0 +1,12 @@
+name: "quadrotor_acados"
+slug: "quadrotor-acados"
+domain: "navigation"
+source_url: "https://github.com/duynamrcv/quadrotor_acados"
+license: "MIT"
+description: "MPC for quadrotor formation/trajectory using acados solver."
+integration_type: "adapter"
+capabilities:
+  - "formation_mpc"
+  - "trajectory_tracking"
+  - "quadrotor_team_control"
+airgapped_support: true
