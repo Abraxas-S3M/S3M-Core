@@ -1,0 +1,12 @@
+name: "awesome-multimodal-large-language-models"
+slug: "awesome-multimodal-large-language-models"
+domain: "hmi"
+source_url: "https://github.com/bradyfu/awesome-multimodal-large-language-models"
+license: "MIT"
+description: "Latest advances on multimodal large language models"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "multimodal_model_catalog"
+  - "research_tracking"
+  - "capability_gap_analysis"

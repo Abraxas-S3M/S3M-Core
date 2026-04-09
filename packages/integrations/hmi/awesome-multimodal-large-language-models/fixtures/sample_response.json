@@ -1,0 +1,21 @@
+{
+  "catalog_snapshot": "2026-04-09",
+  "tracked_modalities": [
+    "text",
+    "image",
+    "audio",
+    "video"
+  ],
+  "notable_models": [
+    {
+      "name": "VisionCommand-LM",
+      "strength": "real-time ISR captioning"
+    },
+    {
+      "name": "AudioTactical-LLM",
+      "strength": "radio transcript fusion"
+    }
+  ],
+  "recommendation": "Prioritize models with robust low-bandwidth inference for edge command posts.",
+  "status": "indexed"
+}
