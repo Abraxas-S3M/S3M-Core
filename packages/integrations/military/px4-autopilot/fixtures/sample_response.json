@@ -1,0 +1,20 @@
+{
+  "sortie_id": "px4-sortie-2026-04-09-044",
+  "vehicle_class": "fixed-wing-uav",
+  "autopilot_firmware": "px4-v1.15.2",
+  "flight_mode": "AUTO.MISSION",
+  "mission_phase": "ingress_recon",
+  "navigation_status": "on_course",
+  "failsafe_state": "nominal",
+  "estimated_endurance_minutes": 37,
+  "ekf_health": {
+    "position": "good",
+    "velocity": "good",
+    "yaw": "good"
+  },
+  "recommended_actions": [
+    "Maintain current waypoint cadence and ISR sensor duty cycle.",
+    "Prepare loiter fallback at contingency waypoint C2 if GNSS variance rises.",
+    "Confirm encrypted command uplink heartbeat every 5 seconds."
+  ]
+}

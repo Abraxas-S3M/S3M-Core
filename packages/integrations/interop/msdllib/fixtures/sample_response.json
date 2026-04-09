@@ -1,0 +1,20 @@
+{
+  "parse_job_id": "msdl-parse-2026-04-09-901",
+  "msdl_version": "1.0",
+  "scenario_name": "joint-task-force-southern-flank",
+  "force_packages": [
+    {
+      "name": "blue-brigade",
+      "units": 14
+    },
+    {
+      "name": "red-regiment",
+      "units": 11
+    }
+  ],
+  "integrity_checks": {
+    "xml_well_formed": true,
+    "required_elements_present": true,
+    "coordinate_reference_system": "EPSG:4326"
+  }
+}

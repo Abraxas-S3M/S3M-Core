@@ -1,0 +1,19 @@
+{
+  "bridge_session_id": "mavros-bridge-2026-04-09-015",
+  "vehicle_id": "uav-bravo-2",
+  "flight_mode": "AUTO.MISSION",
+  "mavlink_endpoint": "udp://127.0.0.1:14540",
+  "ros_namespace": "/uav/bravo2",
+  "telemetry": {
+    "armed": true,
+    "altitude_m": 132.7,
+    "ground_speed_mps": 18.4,
+    "heading_deg": 214
+  },
+  "link_health": {
+    "heartbeat_hz": 1.0,
+    "rx_drop_pct": 0.4,
+    "latency_ms": 42
+  },
+  "status": "bridge_nominal"
+}

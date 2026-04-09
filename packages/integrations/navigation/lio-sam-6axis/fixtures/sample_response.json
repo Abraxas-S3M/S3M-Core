@@ -1,0 +1,20 @@
+{
+  "run_id": "lio-sam-6axis-convoy-2026-04-09-003",
+  "status": "completed",
+  "imu_mode": "6axis",
+  "pose": {
+    "x_m": 918.5,
+    "y_m": -140.7,
+    "z_m": 2.8,
+    "yaw_deg": 187.4
+  },
+  "trajectory_quality": {
+    "drift_rate_m_per_km": 2.1,
+    "consistency_score": 0.93
+  },
+  "sensor_profile": {
+    "lidar": "ouster_os1",
+    "imu": "vectornav_6axis"
+  },
+  "mission_note": "Airgapped replay of 6-axis LiDAR-IMU navigation during convoy route assurance."
+}

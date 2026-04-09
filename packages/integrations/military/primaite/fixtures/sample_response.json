@@ -1,0 +1,20 @@
+{
+  "episode_id": "primaite-episode-2026-04-09-014",
+  "scenario": "forward-operating-base-network-defense",
+  "training_metrics": {
+    "episodes_completed": 240,
+    "defense_success_rate": 0.89,
+    "mean_time_to_contain_seconds": 37
+  },
+  "threat_simulation": {
+    "threat_family": "lateral-movement-worm",
+    "attack_steps_emulated": 12,
+    "critical_assets_compromised": 0
+  },
+  "policy_evaluation": {
+    "rules_passed": 17,
+    "rules_failed": 1,
+    "failed_rule": "deception-decoy-threshold"
+  },
+  "status": "ok"
+}

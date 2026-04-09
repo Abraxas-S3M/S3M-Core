@@ -1,0 +1,21 @@
+{
+  "event_id": "ort-nav-2026-04-09-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "contested-gps-denied-corridor",
+  "model": {
+    "name": "terrain_nav_encoder.onnx",
+    "opset": 17,
+    "execution_provider": "TensorrtExecutionProvider"
+  },
+  "inference": {
+    "latency_ms_p95": 11.4,
+    "throughput_fps": 86.2,
+    "precision": "fp16",
+    "status": "stable"
+  },
+  "tactical_assessment": {
+    "recommended_action": "maintain_route",
+    "confidence": 0.93,
+    "threat_window_seconds": 45
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "operation": "scenario_turn_resolution",
+  "status": "success",
+  "scenario_id": "milsim-2026-0409-14",
+  "scenario_name": "contested-supply-corridor",
+  "turn": 6,
+  "blue_force_state": {
+    "combat_effectiveness": 0.78,
+    "supply_level": 0.64,
+    "morale": "stable"
+  },
+  "red_force_activity": [
+    {
+      "event": "ambush_attempt",
+      "sector": "delta-3",
+      "intensity": "medium"
+    },
+    {
+      "event": "communications_jamming",
+      "sector": "delta-2",
+      "intensity": "low"
+    }
+  ],
+  "recommended_actions": [
+    "reposition_recon_team_to_delta_3",
+    "allocate_ew_countermeasure_window_90s",
+    "reroute_logistics_convoy_via_route_bravo"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "plan_id": "ompl-rrtstar-2026-04-09-011",
+  "planner": "RRT*",
+  "mission_type": "uav_recon_corridor",
+  "vehicle_id": "uav-alpha-3",
+  "start": {
+    "lat": 24.74228,
+    "lon": 46.67811,
+    "alt_m": 120
+  },
+  "goal": {
+    "lat": 24.74814,
+    "lon": 46.69172,
+    "alt_m": 140
+  },
+  "constraint_summary": {
+    "max_climb_rate_mps": 3.2,
+    "min_turn_radius_m": 18.0,
+    "no_fly_zones_avoided": 2
+  },
+  "path_metrics": {
+    "waypoint_count": 14,
+    "path_length_m": 1782.4,
+    "estimated_time_s": 296,
+    "risk_score": 0.21
+  },
+  "status": "feasible"
+}

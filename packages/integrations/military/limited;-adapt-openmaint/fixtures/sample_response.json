@@ -1,0 +1,41 @@
+{
+  "operation": "maintenance_readiness_report",
+  "status": "success",
+  "report_id": "openmaint-mil-2026-0409-217",
+  "command": "joint-support-brigade",
+  "asset_classes": [
+    {
+      "class": "armored_vehicle",
+      "total": 172,
+      "operational": 158,
+      "in_maintenance": 14
+    },
+    {
+      "class": "mobile_radar_unit",
+      "total": 48,
+      "operational": 43,
+      "in_maintenance": 5
+    }
+  ],
+  "scheduled_actions": [
+    {
+      "work_order": "WO-77831",
+      "priority": "high",
+      "system": "vehicle_powertrain",
+      "deadline_utc": "2026-04-12T18:00:00Z"
+    },
+    {
+      "work_order": "WO-77847",
+      "priority": "medium",
+      "system": "base_perimeter_generator",
+      "deadline_utc": "2026-04-14T12:00:00Z"
+    }
+  ],
+  "procurement_risk": {
+    "critical_spares": [
+      "thermal_imager_module",
+      "satcom_power_regulator"
+    ],
+    "days_of_cover": 11
+  }
+}

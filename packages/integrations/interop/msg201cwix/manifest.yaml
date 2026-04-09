@@ -1,0 +1,12 @@
+name: "MSG201CWIX"
+slug: "msg201cwix"
+domain: "interop"
+source_url: "https://github.com/OpenC2SIM/MSG201CWIX"
+license: "Unknown"
+description: "NATO MSG-201 CWIX project artifacts for C2SIM testing and exercises."
+integration_type: "adapter"
+capabilities:
+  - "cwix_artifact_validation"
+  - "c2sim_test_rehearsal"
+  - "interop_assurance"
+airgapped_support: true

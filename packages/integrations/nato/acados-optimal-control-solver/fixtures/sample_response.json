@@ -1,0 +1,23 @@
+{
+  "mission_id": "nato-swarm-mpc-2026-04-09-12",
+  "status": "optimal",
+  "operation": "trajectory_optimization",
+  "solver": {
+    "name": "acados",
+    "backend": "hpipm",
+    "horizon_steps": 40,
+    "sample_time_s": 0.1
+  },
+  "optimization_result": {
+    "cost": 138.27,
+    "solve_time_ms": 8.9,
+    "constraints_satisfied": true,
+    "terminal_state_error": 0.042
+  },
+  "trajectory_summary": {
+    "waypoints_generated": 41,
+    "max_turn_rate_deg_s": 22.5,
+    "fuel_proxy_score": 0.81
+  },
+  "mission_notes": "Offline optimization rehearsal meets ISR loiter and corridor constraints for autonomous patrol planning."
+}
