@@ -1,0 +1,45 @@
+{
+  "status": "ok",
+  "integration": "gsvsoc-cirt-playbook-battle-cards",
+  "operation": "battle_card_query",
+  "source": "fixture",
+  "entries": [
+    {
+      "id": "bc-001",
+      "title": "Web Shell Intrusion Countermeasures",
+      "summary": "Immediate actions for detecting, containing, and eradicating adversary web shells on exposed services.",
+      "threat_family": "webshell",
+      "priority": "critical",
+      "tags": [
+        "command-and-control",
+        "persistence",
+        "server-hardening"
+      ],
+      "initial_actions": [
+        "Place impacted service behind emergency segmentation controls.",
+        "Capture volatile process and network artifacts for forensic timeline.",
+        "Rotate service credentials and redeploy trusted image baseline."
+      ],
+      "success_criteria": "No unauthorized shell callbacks observed for two monitoring windows."
+    },
+    {
+      "id": "bc-002",
+      "title": "Business Email Compromise Response",
+      "summary": "Rapid battle card for account takeover and fraudulent payment workflow disruption.",
+      "threat_family": "bec",
+      "priority": "high",
+      "tags": [
+        "email-security",
+        "identity",
+        "fraud-prevention"
+      ],
+      "initial_actions": [
+        "Suspend compromised mailbox sessions and revoke active tokens.",
+        "Block malicious forwarding rules and mailbox delegates.",
+        "Alert finance operations to hold high-risk transfer requests."
+      ],
+      "success_criteria": "No additional fraudulent transfer attempts after account hardening."
+    }
+  ]
+}
+

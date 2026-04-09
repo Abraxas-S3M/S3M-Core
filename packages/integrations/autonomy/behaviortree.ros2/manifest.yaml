@@ -1,0 +1,14 @@
+name: "BehaviorTree.ROS2"
+slug: "behaviortree.ros2"
+domain: "autonomy"
+source_url: "https://github.com/BehaviorTree/BehaviorTree.ROS2"
+license: "MIT"
+description: "ROS2 utilities and plugins for BehaviorTree.CPP."
+integration_type: "adapter"
+capabilities:
+  - "ros2_behaviors"
+  - "behavior_tree_plugins"
+system_dependencies:
+  - "ros2"
+  - "behaviortree_cpp"
+airgapped_support: true

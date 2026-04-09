@@ -1,0 +1,32 @@
+{
+  "site": "Mission-Power-Node-17",
+  "generated_for": "airgapped-training",
+  "assets": [
+    {
+      "asset_id": "plc-07",
+      "role": "turbine-control",
+      "criticality": "critical",
+      "patch_state": "behind"
+    },
+    {
+      "asset_id": "hmi-02",
+      "role": "operator-console",
+      "criticality": "high",
+      "patch_state": "current"
+    }
+  ],
+  "network_segments": [
+    {
+      "segment": "ot-control",
+      "observed_risk": "high"
+    },
+    {
+      "segment": "dmz-historian",
+      "observed_risk": "medium"
+    }
+  ],
+  "exposure_summary": {
+    "critical_open_findings": 3,
+    "high_open_findings": 7
+  }
+}

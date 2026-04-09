@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "integration_id": "nav2-behavior-tree",
+  "domain": "autonomy",
+  "execution_mode": "airgapped",
+  "mission_id": "mission-red-corridor-17",
+  "tree_id": "bt_nav2_patrol_v3",
+  "result": {
+    "tree_state": "SUCCESS",
+    "ticks": 42,
+    "elapsed_ms": 834,
+    "replan_events": 2,
+    "obstacle_contacts": 1,
+    "goal_reached": true
+  },
+  "telemetry": {
+    "node": "jetson-orin-alpha",
+    "sector": "grid-echo-4",
+    "timestamp_utc": "2026-04-09T04:18:42Z"
+  }
+}

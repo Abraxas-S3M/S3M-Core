@@ -1,0 +1,14 @@
+name: "openrl"
+slug: "openrl"
+domain: "autonomy"
+source_url: "https://github.com/OpenRL-Lab/openrl"
+license: "Apache 2.0"
+description: "Unified RL framework supporting single/multi-agent, offline, and various tasks."
+integration_type: "adapter"
+capabilities:
+  - "single_agent_rl"
+  - "multi_agent_rl"
+  - "offline_rl"
+pip_dependencies:
+  - "openrl"
+airgapped_support: true

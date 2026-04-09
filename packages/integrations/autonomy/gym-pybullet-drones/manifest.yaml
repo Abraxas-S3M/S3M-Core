@@ -1,0 +1,13 @@
+name: "gym-pybullet-drones"
+slug: "gym-pybullet-drones"
+domain: "autonomy"
+source_url: "https://github.com/utiasDSL/gym-pybullet-drones"
+license: "MIT"
+description: "PyBullet environments for single/multi-agent quadcopter control and RL training."
+integration_type: "adapter"
+capabilities:
+  - "drone_simulation"
+  - "rl_training"
+pip_dependencies:
+  - "gym-pybullet-drones"
+airgapped_support: true

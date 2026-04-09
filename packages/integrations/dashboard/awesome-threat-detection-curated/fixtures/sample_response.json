@@ -1,0 +1,30 @@
+{
+  "collection": "awesome-threat-detection-curated",
+  "generated_for": "airgapped-training",
+  "dashboard_catalog": [
+    {
+      "name": "EveBox",
+      "focus": "Suricata alert triage",
+      "deployment_readiness": "field-validated",
+      "tags": [
+        "suricata",
+        "ids",
+        "soc-dashboard"
+      ]
+    },
+    {
+      "name": "SELKS Kibana Dashboards",
+      "focus": "Network event hunting and timeline pivots",
+      "deployment_readiness": "staging",
+      "tags": [
+        "elk",
+        "suricata",
+        "threat-hunting"
+      ]
+    }
+  ],
+  "recommended_playbooks": [
+    "Prioritize north-south IDS alerts near command links.",
+    "Escalate repeated C2 beaconing signatures within 15 minutes."
+  ]
+}
