@@ -1,0 +1,15 @@
+name: "vlms_with_ros2_workshop"
+slug: "vlms-with-ros2-workshop"
+domain: "hmi"
+source_url: "https://github.com/nilutpolkashyap/vlms_with_ros2_workshop"
+license: "MIT"
+description: "Workshop and tooling for Vision-Language Models with ROS2 and edge deployment."
+integration_type: "adapter"
+capabilities:
+  - "vlm_perception"
+  - "ros2_message_flow_validation"
+  - "edge_inference_rehearsal"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "Awesome-Embodied-Multimodal-LLMs"
+slug: "awesome-embodied-multimodal-llms"
+domain: "hmi"
+source_url: "https://github.com/tulerfeng/Awesome-Embodied-Multimodal-LLMs"
+license: "MIT"
+description: "Curated advances in embodied multimodal LLM and Vision-Language-Action systems."
+integration_type: "adapter"
+capabilities:
+  - "embodied_llm_resource_curation"
+  - "vision_language_action_model_review"
+  - "offline_reference_shortlisting"
+airgapped_support: true
