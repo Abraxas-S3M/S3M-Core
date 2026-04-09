@@ -42,6 +42,7 @@ try:
         AutoTokenizer,
         TrainingArguments,
         BitsAndBytesConfig,
+        TrainerCallback,
     )
     from peft import LoraConfig as PeftLoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
     from trl import SFTTrainer
@@ -95,6 +96,26 @@ def format_s3m_example(example: Dict[str, str], engine_id: str = "") -> str:
 
 
 # ── Core Trainer ─────────────────────────────────────────────────────────
+
+class RuntimeLimitCallback(TrainerCallback):
+    """Stops training when a hard runtime budget is reached."""
+
+    def __init__(self, max_runtime_seconds: float) -> None:
+        self.max_runtime_seconds = max_runtime_seconds
+        self._start_time = 0.0
+        self.time_limit_reached = False
+
+    def on_train_begin(self, args, state, control, **kwargs):  # type: ignore[override]
+        self._start_time = time.perf_counter()
+        return control
+
+    def on_step_end(self, args, state, control, **kwargs):  # type: ignore[override]
+        elapsed = time.perf_counter() - self._start_time
+        if elapsed >= self.max_runtime_seconds:
+            self.time_limit_reached = True
+            control.should_training_stop = True
+        return control
+
 
 class S3MLoRATrainer:
     """Fine-tune any S3M engine with QLoRA on RunPod 4090 GPUs."""
@@ -216,6 +237,7 @@ class S3MLoRATrainer:
         self,
         dataset_path: str,
         resume_from: Optional[str] = None,
+        max_runtime_seconds: Optional[float] = None,
     ) -> Dict[str, Any]:
         """Run LoRA fine-tuning and return metrics."""
         if self.model is None:
@@ -262,6 +284,10 @@ class S3MLoRATrainer:
                 texts.append(format_s3m_example(ex, self.engine_id))
             return texts
 
+        runtime_callback = None
+        if max_runtime_seconds and max_runtime_seconds > 0:
+            runtime_callback = RuntimeLimitCallback(max_runtime_seconds=max_runtime_seconds)
+
         trainer = SFTTrainer(
             model=self.model,
             tokenizer=self.tokenizer,
@@ -270,6 +296,7 @@ class S3MLoRATrainer:
             formatting_func=formatting_func,
             max_seq_length=self.engine_cfg.max_seq_length,
             packing=True,
+            callbacks=[runtime_callback] if runtime_callback else None,
         )
 
         logger.info("Starting training: %s | steps=%d", self.run_name, self.config.max_steps)
@@ -283,10 +310,31 @@ class S3MLoRATrainer:
         elapsed = time.perf_counter() - t0
         logger.info("Training complete in %.1fs", elapsed)
 
+        time_limit_reached = bool(runtime_callback and runtime_callback.time_limit_reached)
+        checkpoint_path: Optional[Path] = None
+        if time_limit_reached:
+            checkpoint_path = self.output_dir / "time_limit_checkpoint"
+            trainer.save_model(str(checkpoint_path))
+            trainer.save_state()
+            logger.warning("Session time limit reached. Checkpoint saved for resume.")
+
         # Save final adapter
         adapter_path = self.output_dir / "final_adapter"
         self.model.save_pretrained(str(adapter_path))
         self.tokenizer.save_pretrained(str(adapter_path))
+
+        final_loss = None
+        for entry in reversed(trainer.state.log_history):
+            if "loss" in entry:
+                final_loss = float(entry["loss"])
+                break
+
+        examples_processed = (
+            int(trainer.state.global_step)
+            * int(self.config.per_device_batch_size)
+            * int(self.config.gradient_accumulation_steps)
+        )
+        training_completed = bool(trainer.state.global_step >= self.config.max_steps and not time_limit_reached)
 
         metrics = {
             "engine_id": self.engine_id,
@@ -294,7 +342,13 @@ class S3MLoRATrainer:
             "hf_repo": self.engine_cfg.hf_repo,
             "lora_rank": self.engine_cfg.lora_rank,
             "steps": self.config.max_steps,
+            "global_step": int(trainer.state.global_step),
             "elapsed_seconds": round(elapsed, 1),
+            "final_loss": final_loss,
+            "examples_processed": examples_processed,
+            "training_completed": training_completed,
+            "time_limit_reached": time_limit_reached,
+            "checkpoint_path": str(checkpoint_path) if checkpoint_path else None,
             "adapter_path": str(adapter_path),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
