@@ -1,0 +1,43 @@
+{
+  "status": "ok",
+  "integration": "soc-multitool",
+  "operation": "workflow_query",
+  "source": "fixture",
+  "entries": [
+    {
+      "id": "smt-001",
+      "title": "IOC Pivot Workflow",
+      "summary": "Analyst workflow for pivoting between hashes, domains, and IP indicators during active investigations.",
+      "workflow": "ioc-pivot",
+      "priority": "high",
+      "tags": [
+        "ioc-enrichment",
+        "triage",
+        "threat-hunting"
+      ],
+      "recommended_steps": [
+        "Normalize IOC context from SIEM alert metadata.",
+        "Execute local pivot chain across case artifacts.",
+        "Publish enriched indicator package to SOC case timeline."
+      ]
+    },
+    {
+      "id": "smt-002",
+      "title": "Alert Triage Shortcut Pack",
+      "summary": "Reduces analyst friction with predefined shortcuts for repetitive triage and validation checks.",
+      "workflow": "alert-triage",
+      "priority": "medium",
+      "tags": [
+        "triage",
+        "automation",
+        "analyst-efficiency"
+      ],
+      "recommended_steps": [
+        "Apply one-click context enrichment against local threat intel cache.",
+        "Map detection metadata to ATT&CK tactic and technique.",
+        "Escalate high-confidence incidents to containment queue."
+      ]
+    }
+  ]
+}
+

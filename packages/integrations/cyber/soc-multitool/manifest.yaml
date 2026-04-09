@@ -1,0 +1,13 @@
+name: "SOC-Multitool"
+slug: "soc-multitool"
+domain: "cyber"
+source_url: "https://github.com/zdhenard42/SOC-Multitool"
+license: "Unknown"
+description: "Browser extension streamlining SOC investigations."
+integration_type: "adapter"
+capabilities:
+  - "analyst-workflow"
+  - "investigation-acceleration"
+  - "soc-tooling"
+airgapped_support: true
+
