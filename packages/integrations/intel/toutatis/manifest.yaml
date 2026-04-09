@@ -1,0 +1,12 @@
+name: "toutatis"
+slug: "toutatis"
+domain: "intel"
+source_url: "https://github.com/megadose/toutatis"
+license: "Unknown"
+description: "OSINT tool for gathering information from various sources."
+integration_type: "adapter"
+capabilities:
+  - "profile_reconnaissance"
+  - "identity_enrichment"
+  - "source_fusion"
+airgapped_support: true
