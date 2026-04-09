@@ -1,0 +1,12 @@
+name: "Supply-Chain-Performance-Dashboard"
+slug: "supply-chain-performance-dashboard"
+domain: "dashboard"
+source_url: "https://github.com/PolinaBurova/Supply-Chain-Performance-Dashboard"
+license: "MIT"
+description: "Interactive dashboard for risks, sales, fulfillment, and profitability."
+integration_type: "adapter"
+capabilities:
+  - "fulfillment-performance-monitoring"
+  - "supply-risk-analytics"
+  - "profitability-visibility"
+airgapped_support: true

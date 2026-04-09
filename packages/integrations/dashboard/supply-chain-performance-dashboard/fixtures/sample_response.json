@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "scp-2026-04-09T00:00:00Z",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "performance_summary": {
+    "on_time_fulfillment_rate": 0.88,
+    "order_cycle_time_days": 4.6,
+    "gross_margin_ratio": 0.29
+  },
+  "risk_register": [
+    {
+      "risk_id": "sc-risk-21",
+      "title": "Single-source dependency for avionics component",
+      "severity": "high",
+      "mitigation_status": "in-progress"
+    },
+    {
+      "risk_id": "sc-risk-34",
+      "title": "Port delay affecting regional distribution",
+      "severity": "medium",
+      "mitigation_status": "active-monitoring"
+    }
+  ],
+  "sales_and_demand": {
+    "monthly_orders": 2130,
+    "priority_orders": 421,
+    "forecast_variance": 0.11
+  },
+  "profitability": {
+    "top_margin_category": "comms-systems",
+    "lowest_margin_category": "transport-consumables",
+    "cost_pressure_index": 0.67
+  }
+}

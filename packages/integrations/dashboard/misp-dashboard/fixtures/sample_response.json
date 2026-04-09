@@ -1,0 +1,42 @@
+{
+  "snapshot_id": "mispdash-2026-04-09T00:00:00Z",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "threat_stream": {
+    "events_last_24h": 142,
+    "ioc_total": 3821,
+    "high_confidence_iocs": 611
+  },
+  "top_indicator_types": [
+    {
+      "type": "ip-src",
+      "count": 911
+    },
+    {
+      "type": "domain",
+      "count": 844
+    },
+    {
+      "type": "sha256",
+      "count": 576
+    }
+  ],
+  "active_campaigns": [
+    {
+      "campaign": "Phishing Cluster Echo",
+      "severity": "high",
+      "target_sector": "defense-industrial",
+      "confidence": 0.81
+    },
+    {
+      "campaign": "Supply Chain Backdoor Delta",
+      "severity": "critical",
+      "target_sector": "logistics",
+      "confidence": 0.9
+    }
+  ],
+  "interoperability_status": {
+    "partner_feeds": 7,
+    "stix_export_ready": true,
+    "taxii_sync_health": "degraded"
+  }
+}

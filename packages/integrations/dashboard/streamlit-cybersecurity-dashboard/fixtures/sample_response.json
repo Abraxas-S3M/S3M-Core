@@ -1,0 +1,40 @@
+{
+  "snapshot_id": "scd-2026-04-09T00:00:00Z",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "security_overview": {
+    "open_incidents": 27,
+    "critical_incidents": 4,
+    "unpatched_vulnerabilities": 63
+  },
+  "incident_breakdown": [
+    {
+      "category": "phishing",
+      "count": 11
+    },
+    {
+      "category": "malware",
+      "count": 8
+    },
+    {
+      "category": "privilege-escalation",
+      "count": 5
+    }
+  ],
+  "vulnerability_hotspots": [
+    {
+      "asset_group": "forward-operating-network",
+      "high_risk_cves": 12,
+      "patch_compliance": 0.64
+    },
+    {
+      "asset_group": "hq-mission-systems",
+      "high_risk_cves": 7,
+      "patch_compliance": 0.78
+    }
+  ],
+  "defensive_posture": {
+    "edr_coverage_ratio": 0.94,
+    "mttd_minutes": 19,
+    "mttr_minutes": 71
+  }
+}

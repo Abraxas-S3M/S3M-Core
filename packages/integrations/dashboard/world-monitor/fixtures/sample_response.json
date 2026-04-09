@@ -1,0 +1,55 @@
+{
+  "snapshot_id": "wm-2026-04-09T00:00:00Z",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "theater_overview": {
+    "global_risk_index": 71,
+    "rising_flashpoints": 3,
+    "active_conflicts": 9
+  },
+  "regions": [
+    {
+      "region": "Eastern Europe",
+      "risk_level": "high",
+      "trend": "rising",
+      "top_drivers": [
+        "force_posture_changes",
+        "cross_border_strikes",
+        "energy_disruption"
+      ]
+    },
+    {
+      "region": "Red Sea Corridor",
+      "risk_level": "high",
+      "trend": "stable",
+      "top_drivers": [
+        "shipping_interdiction",
+        "proxy_activity",
+        "port_congestion"
+      ]
+    },
+    {
+      "region": "South China Sea",
+      "risk_level": "medium",
+      "trend": "rising",
+      "top_drivers": [
+        "maritime_incursions",
+        "airspace_pressure",
+        "trade_route_uncertainty"
+      ]
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "wm-a-1007",
+      "severity": "critical",
+      "title": "Critical chokepoint logistics disruption risk",
+      "confidence": 0.87
+    },
+    {
+      "alert_id": "wm-a-1008",
+      "severity": "high",
+      "title": "Escalation indicators detected in contested border region",
+      "confidence": 0.79
+    }
+  ]
+}
