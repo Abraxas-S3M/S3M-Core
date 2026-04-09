@@ -1,0 +1,14 @@
+name: "Quantus"
+slug: "quantus"
+domain: "hmi"
+source_url: "https://github.com/understandable-machine-intelligence-lab/Quantus"
+license: "Apache 2.0"
+description: "Toolkit for evaluating quality and robustness of neural network explanations."
+integration_type: "adapter"
+capabilities:
+  - "robustness_evaluation"
+  - "faithfulness_evaluation"
+  - "complexity_evaluation"
+pip_dependencies:
+  - "quantus"
+airgapped_support: true
