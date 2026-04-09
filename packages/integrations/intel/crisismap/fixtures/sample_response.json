@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "brief_id": "crisismap-ops-2026-04-09-a",
+  "generated_at": "2026-04-09T06:30:00Z",
+  "conflict_events": [
+    {
+      "event_id": "evt-34911",
+      "lat": 33.5138,
+      "lon": 36.2765,
+      "severity": "high",
+      "event_type": "kinetic-strike",
+      "timestamp": "2026-04-09T05:58:00Z"
+    },
+    {
+      "event_id": "evt-34918",
+      "lat": 14.7167,
+      "lon": 40.7667,
+      "severity": "moderate",
+      "event_type": "cross-border-movement",
+      "timestamp": "2026-04-09T06:10:00Z"
+    }
+  ],
+  "satellite_context": {
+    "coverage_status": "partial",
+    "latest_pass_utc": "2026-04-09T06:05:00Z"
+  },
+  "risk_overlay": {
+    "high_risk_cells": 4,
+    "medium_risk_cells": 9,
+    "civilian_exposure_estimate": "moderate"
+  },
+  "tactical_assessment": "Crisis corridors are expanding along two logistics routes; route deconfliction advised."
+}

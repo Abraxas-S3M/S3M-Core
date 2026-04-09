@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "brief_id": "awesome-osint-brief-2026-04-09",
+  "generated_at": "2026-04-09T09:15:00Z",
+  "sections": [
+    {
+      "name": "Search Engines",
+      "resources": 18
+    },
+    {
+      "name": "Social Media",
+      "resources": 25
+    },
+    {
+      "name": "Geospatial",
+      "resources": 14
+    },
+    {
+      "name": "Metadata Forensics",
+      "resources": 9
+    }
+  ],
+  "recommended_training_track": [
+    "Week 1: Search and identity resolution tradecraft.",
+    "Week 2: Geospatial and imagery verification drills.",
+    "Week 3: Metadata exploitation under airgapped constraints."
+  ],
+  "tactical_assessment": "Curated resources improve analyst readiness and reduce tool-selection latency."
+}
