@@ -1,2 +1,2 @@
-"""Dashboard-domain integration adapters for tactical command surfaces."""
+"""Dashboard-domain integration adapters for mission command surfaces."""
 

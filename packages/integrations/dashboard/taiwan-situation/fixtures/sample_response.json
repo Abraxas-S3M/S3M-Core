@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "tw-situation-brief-11",
+  "status": "updated",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "tension_index": {
+    "score": 68,
+    "level": "elevated",
+    "trend_24h": "+4"
+  },
+  "indicators": [
+    {
+      "name": "maritime_activity",
+      "weight": 0.35,
+      "signal": "increased-patrol-density"
+    },
+    {
+      "name": "airspace_activity",
+      "weight": 0.25,
+      "signal": "intermittent-incursions"
+    },
+    {
+      "name": "information_operations",
+      "weight": 0.2,
+      "signal": "coordinated-narrative-spike"
+    }
+  ],
+  "recommended_watch_condition": "watchcon-2"
+}
+

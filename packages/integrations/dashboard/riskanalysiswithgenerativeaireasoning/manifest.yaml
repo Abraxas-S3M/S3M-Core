@@ -1,0 +1,12 @@
+name: "RiskAnalysisWithGenerativeAIReasoning"
+slug: "riskanalysiswithgenerativeaireasoning"
+domain: "dashboard"
+source_url: "https://github.com/bartczernicki/RiskAnalysisWithGenerativeAIReasoning"
+license: "MIT"
+description: "AI-based risk analysis dashboard for SEC/geopolitical docs."
+integration_type: "adapter"
+capabilities:
+  - "risk_scoring"
+  - "dashboard_reporting"
+airgapped_support: true
+
