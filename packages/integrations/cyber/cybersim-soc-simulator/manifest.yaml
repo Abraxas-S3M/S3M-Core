@@ -1,0 +1,12 @@
+name: "cybersim-soc-simulator"
+slug: "cybersim-soc-simulator"
+domain: "cyber"
+source_url: "https://github.com/TheGhostPacket/cybersim-soc-simulator"
+license: "Unknown"
+description: "Professional SOC training platform with enterprise-grade dashboard and incident response scenarios."
+integration_type: "adapter"
+capabilities:
+  - "soc-simulation"
+  - "incident-response-training"
+  - "dashboard-rehearsal"
+airgapped_support: true

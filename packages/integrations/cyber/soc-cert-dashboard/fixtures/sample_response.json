@@ -1,0 +1,39 @@
+{
+  "dashboard_cycle": "night-watch-3",
+  "generated_at": "2026-04-09T08:29:00Z",
+  "overall_posture": "elevated",
+  "threat_analysis": {
+    "priority_score": 0.87,
+    "top_vectors": [
+      "phishing",
+      "credential_stuffing",
+      "command_and_control_beaconing"
+    ],
+    "predicted_next_phase": "privilege_escalation"
+  },
+  "cert_cases": [
+    {
+      "case_id": "cert-1220",
+      "title": "Potential supply-chain malware beacon",
+      "severity": "critical",
+      "owner_cell": "malware-response",
+      "status": "active"
+    },
+    {
+      "case_id": "cert-1221",
+      "title": "Credential abuse in contractor segment",
+      "severity": "high",
+      "owner_cell": "identity-defense",
+      "status": "monitoring"
+    }
+  ],
+  "mitre_focus": [
+    "T1195",
+    "T1078",
+    "T1105"
+  ],
+  "recommended_orders": [
+    "Elevate endpoint telemetry collection on contractor VLAN.",
+    "Initiate targeted hunt for staged payload transfer channels."
+  ]
+}

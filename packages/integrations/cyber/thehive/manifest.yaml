@@ -1,0 +1,11 @@
+name: "TheHive"
+slug: "thehive"
+domain: "cyber"
+source_url: "https://github.com/TheHive-Project/TheHive"
+license: "Unknown"
+description: "Security incident response platform adapter for orchestrating cyber case management in defensive operations."
+integration_type: "adapter"
+capabilities:
+  - cyber_defense
+  - incident_response
+airgapped_support: true

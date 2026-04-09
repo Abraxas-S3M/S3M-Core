@@ -1,0 +1,22 @@
+{
+  "run_id": "rllib-opfor-swarm-017",
+  "algorithm": "PPO",
+  "environment": "contested-urban-swarm-v2",
+  "workers": 16,
+  "timesteps_total": 1250000,
+  "episode_reward_mean": 43.82,
+  "episode_len_mean": 268.4,
+  "policy_metrics": {
+    "blue_team": {
+      "success_rate": 0.71,
+      "collisions": 2,
+      "fuel_violations": 0
+    },
+    "red_team": {
+      "intercept_rate": 0.33,
+      "jamming_effectiveness": 0.48
+    }
+  },
+  "checkpoint_path": "fixtures/checkpoints/rllib-opfor-swarm-017",
+  "status": "completed"
+}

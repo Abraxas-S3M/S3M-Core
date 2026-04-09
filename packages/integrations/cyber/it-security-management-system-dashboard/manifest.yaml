@@ -1,0 +1,12 @@
+name: "IT-Security-Management-System-Dashboard"
+slug: "it-security-management-system-dashboard"
+domain: "cyber"
+source_url: "https://github.com/Secu7/IT-Security-Management-System-Dashboard"
+license: "Unknown"
+description: "Browser-based cybersecurity dashboard simulating modern SOC functions."
+integration_type: "adapter"
+capabilities:
+  - "soc-dashboard"
+  - "alert-triage"
+  - "incident-kpi-visualization"
+airgapped_support: true

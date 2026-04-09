@@ -1,0 +1,13 @@
+name: "awesome-siem"
+slug: "awesome-siem"
+domain: "cyber"
+source_url: "https://github.com/cybersader/awesome-siem"
+license: "Unknown"
+description: "Curated SIEM, visibility, and event-driven defensive solutions including Wazuh and Graylog references."
+integration_type: "adapter"
+capabilities:
+  - "tool_discovery"
+  - "siem_landscape_mapping"
+  - "reference_indexing"
+  - "defensive_architecture"
+airgapped_support: true

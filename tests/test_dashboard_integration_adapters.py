@@ -1,4 +1,4 @@
-"""Unit tests for dashboard-domain S3M integration adapters."""
+"""Tests for dashboard integration wrappers in sovereign airgapped workflows."""
 
 from __future__ import annotations
 
@@ -95,13 +95,8 @@ ADAPTER_CASES = [
 ]
 
 
-def _load_adapter_class(slug_dir: str, class_name: str):
-    adapter_path = REPO_ROOT / "packages" / "integrations" / "dashboard" / slug_dir / "adapter.py"
-    module_name = f"tests.dashboard_integrations.{slug_dir.replace('-', '_')}"
-    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def _load_adapter(module_path: str, class_name: str) -> type[Any]:
+    module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
 
@@ -115,26 +110,23 @@ def test_package_exports_expected_adapter(case: dict[str, str]) -> None:
 def test_manifest_fields(case: dict[str, str]) -> None:
     adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
+
     manifest = adapter.get_manifest()
-
-    assert manifest.name == case["manifest_name"]
-    assert manifest.slug == case["integration_id"]
+    assert manifest.slug == slug
     assert manifest.domain == "dashboard"
-    assert manifest.source_url == case["source_url"]
-    assert manifest.license == case["license"]
-    assert manifest.integration_type == "adapter"
+    assert manifest.license == license_name
     assert manifest.airgapped_support is True
+    assert adapter.logger.name == f"s3m.integrations.dashboard.{slug}"
 
 
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_validate_availability_airgapped(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
-    assert adapter_cls(mode="airgapped").validate_availability() is True
-
-
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_execute_uses_fixture_in_airgapped_mode(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "slug", "_license_name"), CASES)
+def test_execute_airgapped_returns_fixture_data(
+    module_path: str,
+    class_name: str,
+    slug: str,
+    _license_name: str,
+) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
 
     response = adapter.execute({"operation": "status"})

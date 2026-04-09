@@ -1,0 +1,14 @@
+name: "ray (with RLlib)"
+slug: "ray-with-rllib"
+domain: "autonomy"
+source_url: "https://github.com/ray-project/ray"
+license: "Apache 2.0"
+description: "Scalable distributed RL library with strong multi-agent support for swarms and complex environments."
+integration_type: "adapter"
+capabilities:
+  - "distributed_training"
+  - "multi_agent_rl"
+  - "policy_evaluation"
+pip_dependencies:
+  - "ray[rllib]"
+airgapped_support: true

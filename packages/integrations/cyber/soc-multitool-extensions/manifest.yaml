@@ -1,0 +1,12 @@
+name: "SOC-Multitool extensions"
+slug: "soc-multitool-extensions"
+domain: "cyber"
+source_url: "Related forks of zdhenard42/SOC-Multitool"
+license: "Unknown"
+description: "Browser extensions and tools streamlining SOC investigations."
+integration_type: "adapter"
+capabilities:
+  - "browser_ioc_extraction"
+  - "case_enrichment"
+  - "investigation_acceleration"
+airgapped_support: true

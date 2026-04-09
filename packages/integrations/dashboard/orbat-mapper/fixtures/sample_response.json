@@ -1,0 +1,36 @@
+{
+  "map_reference": "EPSG:4326",
+  "generated_for": "airgapped-training",
+  "units": [
+    {
+      "unit_id": "1-22-AR",
+      "echelon": "battalion",
+      "symbol": "armor",
+      "location": {
+        "lat": 33.214,
+        "lon": 44.366
+      },
+      "readiness": "high"
+    },
+    {
+      "unit_id": "2-5-ADA",
+      "echelon": "battery",
+      "symbol": "air-defense",
+      "location": {
+        "lat": 33.251,
+        "lon": 44.401
+      },
+      "readiness": "medium"
+    }
+  ],
+  "overlays": [
+    {
+      "type": "phase-line",
+      "name": "PHASE-LINE BRAVO"
+    },
+    {
+      "type": "restricted-area",
+      "name": "NO-FIRE ZONE ALPHA"
+    }
+  ]
+}

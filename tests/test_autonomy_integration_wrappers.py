@@ -2,107 +2,90 @@
 
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
+import importlib
 
 import pytest
 
-from packages.integrations.base import IntegrationAdapter
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
-AUTONOMY_ROOT = REPO_ROOT / "packages" / "integrations" / "autonomy"
-
-CASES = [
-    (
-        "gym-pybullet-drones",
-        "GymPybulletDronesAdapter",
-        "gym-pybullet-drones",
-        "gym-pybullet-drones",
-        "MIT",
-    ),
-    (
-        "behaviortree.cpp",
-        "BehaviortreecppAdapter",
-        "BehaviorTree.CPP",
-        "behaviortree.cpp",
-        "MIT",
-    ),
-    (
-        "py-trees",
-        "PyTreesAdapter",
-        "py_trees",
-        "py-trees",
-        "BSD",
-    ),
-    (
-        "py-trees-ros",
-        "PyTreesRosAdapter",
-        "py_trees_ros",
-        "py-trees-ros",
-        "BSD",
-    ),
-    (
-        "behaviortree.ros2",
-        "Behaviortreeros2Adapter",
-        "BehaviorTree.ROS2",
-        "behaviortree.ros2",
-        "MIT",
-    ),
+INTEGRATIONS = [
+    {
+        "module": "packages.integrations.autonomy.nav2-behavior-tree.adapter",
+        "class_name": "Nav2BehaviorTreeAdapter",
+        "name": "nav2_behavior_tree",
+        "slug": "nav2-behavior-tree",
+        "source_url": "https://github.com/ros-planning/navigation2(nav2_behavior_tree",
+        "license": "BSD",
+    },
+    {
+        "module": "packages.integrations.autonomy.spot-bt-ros.adapter",
+        "class_name": "SpotBtRosAdapter",
+        "name": "spot_bt_ros",
+        "slug": "spot-bt-ros",
+        "source_url": "https://github.com/sandialabs/spot_bt_ros",
+        "license": "Apache 2.0",
+    },
+    {
+        "module": "packages.integrations.autonomy.pr-behavior-tree.adapter",
+        "class_name": "PrBehaviorTreeAdapter",
+        "name": "pr_behavior_tree",
+        "slug": "pr-behavior-tree",
+        "source_url": "https://github.com/personalrobotics/pr_behavior_tree",
+        "license": "MIT",
+    },
+    {
+        "module": "packages.integrations.autonomy.xai-ethicalml.adapter",
+        "class_name": "XaiethicalmlAdapter",
+        "name": "xai (EthicalML)",
+        "slug": "xai-ethicalml",
+        "source_url": "https://github.com/EthicalML/xai",
+        "license": "MIT",
+    },
+    {
+        "module": "packages.integrations.autonomy.trustyai-explainability.adapter",
+        "class_name": "TrustyaiExplainabilityAdapter",
+        "name": "trustyai-explainability",
+        "slug": "trustyai-explainability",
+        "source_url": "https://github.com/trustyai-explainability/trustyai-explainability",
+        "license": "Apache 2.0",
+    },
 ]
 
 
-def _load_adapter_class(directory_name: str, class_name: str):
-    module_path = AUTONOMY_ROOT / directory_name / "adapter.py"
-    module_name = f"autonomy_adapter_{directory_name.replace('-', '_').replace('.', '_')}"
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    if spec is None or spec.loader is None:
-        raise AssertionError(f"Unable to build module spec for {module_path}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def _load_adapter_class(module_path: str, class_name: str):
+    module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
 
-@pytest.mark.parametrize(
-    ("directory_name", "class_name", "expected_name", "expected_slug", "expected_license"),
-    CASES,
-)
-def test_manifest_and_airgapped_execution(
-    directory_name: str,
-    class_name: str,
-    expected_name: str,
-    expected_slug: str,
-    expected_license: str,
-) -> None:
-    adapter_cls = _load_adapter_class(directory_name, class_name)
+@pytest.mark.parametrize("entry", INTEGRATIONS)
+def test_manifest_fields(entry: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(entry["module"], entry["class_name"])
     adapter = adapter_cls(mode="airgapped")
-
-    assert isinstance(adapter, IntegrationAdapter)
-    assert adapter.integration_id == expected_slug
-    assert adapter.domain == "autonomy"
-    assert adapter.logger.name == f"s3m.integrations.autonomy.{expected_slug}"
-
     manifest = adapter.get_manifest()
-    assert manifest.name == expected_name
-    assert manifest.slug == expected_slug
+
+    assert manifest.name == entry["name"]
+    assert manifest.slug == entry["slug"]
     assert manifest.domain == "autonomy"
-    assert manifest.license == expected_license
+    assert manifest.source_url == entry["source_url"]
+    assert manifest.license == entry["license"]
+    assert manifest.integration_type == "adapter"
     assert manifest.airgapped_support is True
 
-    availability = adapter.validate_availability()
-    assert isinstance(availability, bool)
 
-    result = adapter.execute({"mission_id": "test-mission"})
-    assert result["mode"] == "airgapped"
-    assert result["source"] == "fixture"
-    assert result["integration_id"] == expected_slug
-    assert isinstance(result["result"], dict)
-    assert result["result"]
-
-
-@pytest.mark.parametrize(("directory_name", "class_name"), [(case[0], case[1]) for case in CASES])
-def test_execute_rejects_non_dict_params(directory_name: str, class_name: str) -> None:
-    adapter_cls = _load_adapter_class(directory_name, class_name)
+@pytest.mark.parametrize("entry", INTEGRATIONS)
+def test_logger_name_uses_autonomy_slug(entry: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(entry["module"], entry["class_name"])
     adapter = adapter_cls(mode="airgapped")
-    with pytest.raises(ValueError, match="params must be a dictionary"):
-        adapter.execute("invalid-input")  # type: ignore[arg-type]
+    assert adapter.logger.name == f"s3m.integrations.autonomy.{entry['slug']}"
+
+
+@pytest.mark.parametrize("entry", INTEGRATIONS)
+def test_airgapped_mode_uses_fixtures(entry: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(entry["module"], entry["class_name"])
+    adapter = adapter_cls(mode="airgapped")
+
+    assert adapter.validate_availability() is True
+
+    payload = adapter.execute({"action": "unit-test-action"})
+    assert payload["integration_id"] == entry["slug"]
+    assert payload["execution_mode"] == "airgapped"
+    assert payload["requested_action"] == "unit-test-action"

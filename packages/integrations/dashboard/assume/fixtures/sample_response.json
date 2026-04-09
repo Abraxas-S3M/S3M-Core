@@ -1,0 +1,23 @@
+{
+  "scenario_id": "assume-market-stress-14",
+  "status": "completed",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "summary": {
+    "steps": 240,
+    "agents": 64,
+    "convergence_score": 0.92
+  },
+  "key_metrics": {
+    "supply_resilience_index": 0.81,
+    "adversarial_disruption_score": 0.37,
+    "recommended_posture": "reinforce-logistics-corridor"
+  },
+  "alerts": [
+    {
+      "id": "ALT-331",
+      "severity": "medium",
+      "message": "Fuel demand shock detected in eastern sector training lane."
+    }
+  ]
+}
+

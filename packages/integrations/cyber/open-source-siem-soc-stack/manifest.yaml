@@ -1,0 +1,12 @@
+name: "Open-Source-SIEM_SOC-Stack"
+slug: "open-source-siem-soc-stack"
+domain: "cyber"
+source_url: "https://github.com/ArfanAbid/Open-Source-SIEM_SOC-Stack"
+license: "Unknown"
+description: "Complete Docker-based SOC stack with Wazuh, Graylog, Grafana, and Shuffle SOAR."
+integration_type: "adapter"
+capabilities:
+  - "siem_observability"
+  - "containerized_soc_ops"
+  - "soar_playbooks"
+airgapped_support: true

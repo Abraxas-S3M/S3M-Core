@@ -1,0 +1,24 @@
+{
+  "dashboard_id": "dsip-training-sim-07",
+  "status": "ready",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "views": [
+    {
+      "name": "feature-sensitivity",
+      "panels": 4,
+      "last_refresh_s": 12
+    },
+    {
+      "name": "model-drift-watch",
+      "panels": 3,
+      "last_refresh_s": 18
+    }
+  ],
+  "training_summary": {
+    "scenario": "contested-logistics-forecast",
+    "samples": 5000,
+    "mae": 0.14,
+    "readiness_label": "green"
+  }
+}
+

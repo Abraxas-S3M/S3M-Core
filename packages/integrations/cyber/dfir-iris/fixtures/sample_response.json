@@ -1,0 +1,32 @@
+{
+  "case_id": "iris-case-2026-041",
+  "title": "Suspected multi-stage intrusion in command support network",
+  "status": "investigation",
+  "severity": "critical",
+  "opened_at": "2026-04-09T07:58:00Z",
+  "commander_priority": "P1",
+  "assigned_team": "joint-dfir-cell-alpha",
+  "assets_impacted": [
+    "gateway-node-12",
+    "auth-server-3",
+    "log-collector-1"
+  ],
+  "timeline": [
+    {
+      "time": "2026-04-09T08:02:00Z",
+      "event": "Initial suspicious PowerShell execution observed"
+    },
+    {
+      "time": "2026-04-09T08:06:00Z",
+      "event": "Credential dump artifact uploaded for analysis"
+    },
+    {
+      "time": "2026-04-09T08:15:00Z",
+      "event": "Containment initiated for affected authentication segment"
+    }
+  ],
+  "next_actions": [
+    "Acquire volatile memory from auth-server-3.",
+    "Run credential reset protocol for elevated accounts."
+  ]
+}

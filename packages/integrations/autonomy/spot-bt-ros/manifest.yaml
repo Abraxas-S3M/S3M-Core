@@ -1,0 +1,14 @@
+name: "spot_bt_ros"
+slug: "spot-bt-ros"
+domain: "autonomy"
+source_url: "https://github.com/sandialabs/spot_bt_ros"
+license: "Apache 2.0"
+description: "Behavior Trees package for Boston Dynamics Spot robot (ROS2)"
+integration_type: "adapter"
+capabilities:
+  - "spot_behavior_tree_control"
+  - "ros2_mission_execution"
+  - "ground_robot_task_sequences"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

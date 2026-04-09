@@ -1,0 +1,24 @@
+{
+  "analysis_id": "risk-genai-brief-03",
+  "status": "completed",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "documents_processed": 127,
+  "risk_register": [
+    {
+      "risk_id": "R-19",
+      "category": "geopolitical",
+      "score": 0.78,
+      "confidence": 0.84,
+      "recommended_action": "increase-maritime-monitoring"
+    },
+    {
+      "risk_id": "R-21",
+      "category": "regulatory",
+      "score": 0.52,
+      "confidence": 0.79,
+      "recommended_action": "prepare-compliance-brief"
+    }
+  ],
+  "overall_posture": "heightened-awareness"
+}
+
