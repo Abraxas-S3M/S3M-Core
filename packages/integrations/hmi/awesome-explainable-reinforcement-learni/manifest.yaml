@@ -1,0 +1,12 @@
+name: "awesome-explainable-reinforcement-learning"
+slug: "awesome-explainable-reinforcement-learni"
+domain: "hmi"
+source_url: "https://github.com/Plankson/awesome-explainable-reinforcement-learning"
+license: "MIT"
+description: "Curated resources and survey on Explainable Reinforcement Learning (XRL)."
+integration_type: "reference"
+capabilities:
+  - "xrl_reference_curation"
+  - "operator_model_transparency_briefing"
+  - "mission_policy_explainability_support"
+airgapped_support: true

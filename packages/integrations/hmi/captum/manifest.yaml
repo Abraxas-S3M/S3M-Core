@@ -1,0 +1,14 @@
+name: "Captum"
+slug: "captum"
+domain: "hmi"
+source_url: "https://github.com/pytorch/captum"
+license: "BSD"
+description: "Model interpretability and attribution library for PyTorch (usable in RL/LLMs)."
+integration_type: "adapter"
+capabilities:
+  - "feature_attribution"
+  - "layer_attribution"
+  - "mission_model_explanation_support"
+pip_dependencies:
+  - "captum"
+airgapped_support: true

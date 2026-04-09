@@ -1,0 +1,12 @@
+name: "xai_resources"
+slug: "xai-resources"
+domain: "hmi"
+source_url: "https://github.com/pbiecek/xai_resources"
+license: "MIT"
+description: "Collection of XAI papers, tools, and resources."
+integration_type: "reference"
+capabilities:
+  - "xai_reference_collection"
+  - "operator_explainability_training_support"
+  - "assurance_artifact_preparation"
+airgapped_support: true

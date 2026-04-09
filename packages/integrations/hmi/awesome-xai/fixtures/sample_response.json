@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "source": "fixture",
+  "integration": "awesome-xai",
+  "analysis_type": "xai_method_catalog",
+  "mission_profile": "operator_trust_calibration",
+  "mission_task": "explainability_method_selection",
+  "resource_groups": [
+    {
+      "group": "attribution_methods",
+      "items": [
+        "Integrated Gradients",
+        "SHAP",
+        "Layer-wise Relevance Propagation"
+      ]
+    },
+    {
+      "group": "counterfactual_methods",
+      "items": [
+        "DiCE",
+        "Recourse Benchmarking Toolkit"
+      ]
+    },
+    {
+      "group": "evaluation_frameworks",
+      "items": [
+        "Faithfulness Metrics",
+        "Robustness and Stability Benchmarks"
+      ]
+    }
+  ],
+  "commander_summary": "Catalog supports rapid selection of explanation techniques for mission-risk review boards."
+}

@@ -1,0 +1,12 @@
+name: "explainable-reinforcement-learning"
+slug: "explainable-reinforcement-learning"
+domain: "hmi"
+source_url: "https://github.com/observer4599/explainable-reinforcement-learning"
+license: "MIT"
+description: "Repository of XRL research papers and resources."
+integration_type: "reference"
+capabilities:
+  - "xrl_paper_indexing"
+  - "doctrinal_explainability_research_support"
+  - "operator_review_packet_generation"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "awesome-xai"
+slug: "awesome-xai"
+domain: "hmi"
+source_url: "https://github.com/altamiracorp/awesome-xai"
+license: "MIT"
+description: "Curated list of XAI papers, methods, tools, and resources."
+integration_type: "reference"
+capabilities:
+  - "xai_landscape_mapping"
+  - "method_selection_support"
+  - "mission_model_assurance_reference"
+airgapped_support: true
