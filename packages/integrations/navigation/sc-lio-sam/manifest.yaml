@@ -1,0 +1,16 @@
+name: "SC-LIO-SAM"
+slug: "sc-lio-sam"
+domain: "navigation"
+source_url: "https://github.com/gisbi-kim/SC-LIO-SAM"
+license: "(BSD-style)"
+description: "Scan Context + LIO-SAM for robust LiDAR-inertial SLAM."
+integration_type: "adapter"
+capabilities:
+  - "lidar_inertial_slam"
+  - "scan_context_loop_closure"
+  - "global_pose_graph_optimization"
+system_dependencies:
+  - "ros2"
+  - "pcl"
+  - "eigen"
+airgapped_support: true
