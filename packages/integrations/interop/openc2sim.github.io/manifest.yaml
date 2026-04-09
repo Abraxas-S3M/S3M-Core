@@ -1,0 +1,12 @@
+name: "OpenC2SIM.github.io"
+slug: "openc2sim.github.io"
+domain: "interop"
+source_url: "https://github.com/OpenC2SIM/OpenC2SIM.github.io"
+license: "Unknown"
+description: "Official site and reference resources for C2SIM command-and-control simulation interoperation."
+integration_type: "adapter"
+capabilities:
+  - "c2sim_reference"
+  - "schema_guidance"
+  - "interop_doctrine"
+airgapped_support: true

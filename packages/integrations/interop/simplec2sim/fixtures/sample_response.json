@@ -1,0 +1,23 @@
+{
+  "simulation_id": "simplec2sim-ex-2026-117",
+  "exercise_mode": "low-fidelity-command-post",
+  "friendly_units": 8,
+  "opposing_units": 6,
+  "events": [
+    {
+      "time": "00:05:00",
+      "event": "contact_report",
+      "unit": "alpha-company"
+    },
+    {
+      "time": "00:11:30",
+      "event": "maneuver_order",
+      "unit": "bravo-platoon"
+    }
+  ],
+  "after_action_metrics": {
+    "decision_latency_sec": 22.4,
+    "order_ack_rate": 0.95,
+    "blue_force_losses": 1
+  }
+}
