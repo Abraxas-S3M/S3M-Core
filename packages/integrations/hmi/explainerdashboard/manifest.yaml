@@ -1,0 +1,12 @@
+name: "explainerdashboard"
+slug: "explainerdashboard"
+domain: "hmi"
+source_url: "https://github.com/oegedijk/explainerdashboard"
+license: "MIT"
+description: "Quickly build interactive Explainable AI dashboards for black-box ML models (scikit-learn compatible)."
+integration_type: "adapter"
+capabilities:
+  - "feature_importance"
+  - "model_explainability"
+  - "dashboard_review"
+airgapped_support: true
