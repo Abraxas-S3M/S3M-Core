@@ -50,6 +50,7 @@ try:
     HF_STACK_AVAILABLE = True
 except ImportError:
     HF_STACK_AVAILABLE = False
+    TrainerCallback = object  # type: ignore[assignment,misc]
 
 try:
     from unsloth import FastLanguageModel
