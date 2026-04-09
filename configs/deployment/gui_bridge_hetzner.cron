@@ -1,0 +1,9 @@
+# S3M GUI bridge snapshot publishing cadence for Hetzner cloud demo nodes.
+# Military/tactical context: frequent training-status refresh keeps readiness
+# displays current during disconnected command-post rehearsals.
+
+# Every 15 minutes: publish only training-status snapshot.
+*/15 * * * * cd /opt/s3m && /usr/bin/python3 scripts/publish_gui_snapshots.py --training-only >> /var/log/s3m/gui-bridge-training.log 2>&1
+
+# Every 2 hours: publish full workspace snapshot set.
+0 */2 * * * cd /opt/s3m && /usr/bin/python3 scripts/publish_gui_snapshots.py --all >> /var/log/s3m/gui-bridge-full.log 2>&1

@@ -1,6 +1,5 @@
-"""Storage connectors for offline-compatible artifact sync."""
+"""Storage connectors for tactical snapshot persistence."""
 
-from src.storage.b2_connector import B2Connector
-from src.storage.vault_paths import VaultPaths
+from .b2_connector import B2Connector
 
-__all__ = ["B2Connector", "VaultPaths"]
+__all__ = ["B2Connector"]
