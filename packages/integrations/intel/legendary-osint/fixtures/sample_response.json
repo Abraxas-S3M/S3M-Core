@@ -1,0 +1,45 @@
+{
+  "status": "ok",
+  "dataset": "Legendary_OSINT",
+  "snapshot_version": "2026.04",
+  "query_profile": {
+    "threat_focus": "cti_infrastructure_tracking",
+    "language": "en",
+    "aoi": "levant_corridor"
+  },
+  "sections": [
+    {
+      "name": "username_and_identity",
+      "tool_count": 42,
+      "priority_tools": [
+        "Sherlock references",
+        "WhatsMyName references",
+        "Holehe references"
+      ]
+    },
+    {
+      "name": "darkweb_and_breach_intel",
+      "tool_count": 27,
+      "priority_tools": [
+        "Have I Been Pwned references",
+        "Onion index references",
+        "Leak telemetry references"
+      ]
+    },
+    {
+      "name": "threat_actor_profiling",
+      "tool_count": 33,
+      "priority_tools": [
+        "Maltego references",
+        "MISP references",
+        "OpenCTI references"
+      ]
+    }
+  ],
+  "briefing_recommendation": [
+    "identity_seed_collection",
+    "infrastructure_enrichment",
+    "cross_source_corroboration"
+  ],
+  "tactical_note": "Curated set enables repeatable threat actor profiling workflows in sovereign command posts."
+}
