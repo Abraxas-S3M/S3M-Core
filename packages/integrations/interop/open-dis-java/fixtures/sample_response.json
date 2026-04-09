@@ -1,0 +1,16 @@
+{
+  "session_id": "open-dis-java-federation-305",
+  "operation": "marshal_entity_state_pdus",
+  "standard": "IEEE-1278",
+  "java_runtime": "17",
+  "pdu_summary": {
+    "entity_state": 96,
+    "transmitter": 14,
+    "signal": 14
+  },
+  "quality_gate": {
+    "serialization_errors": 0,
+    "interop_test_vectors_passed": true
+  },
+  "status": "java_stack_ready_for_command_post_exercise"
+}

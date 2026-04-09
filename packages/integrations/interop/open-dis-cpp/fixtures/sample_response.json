@@ -1,0 +1,14 @@
+{
+  "session_id": "open-dis-cpp-sim-118",
+  "operation": "decode_fire_and_detonation_pdus",
+  "runtime_profile": "native_cpp",
+  "throughput_metrics": {
+    "pdus_processed_per_second": 42850,
+    "latency_ms_p95": 6.2
+  },
+  "interoperability_checks": {
+    "endianness_verification": "passed",
+    "field_alignment_validation": "passed"
+  },
+  "status": "native_runtime_ready_for_joint_exercise"
+}

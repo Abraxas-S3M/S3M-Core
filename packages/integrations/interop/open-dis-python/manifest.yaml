@@ -1,0 +1,12 @@
+name: "open-dis-python"
+slug: "open-dis-python"
+domain: "interop"
+source_url: "https://github.com/open-dis/open-dis-python"
+license: "Unknown"
+description: "Python 3 implementation of DIS v7 protocol"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "dis-v7-pdu-serialization"
+  - "exercise-telemetry-exchange"
+  - "python-sim-integration"
