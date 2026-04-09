@@ -1,0 +1,18 @@
+{
+  "session_id": "pantheonrl-redblue-selfplay-009",
+  "environment": "pettingzoo_capture_zone_v3",
+  "training_mode": "self_play",
+  "rounds": 120,
+  "elo_progression": {
+    "red_start": 1000,
+    "red_end": 1148,
+    "blue_start": 1000,
+    "blue_end": 1089
+  },
+  "engagement_metrics": {
+    "average_time_to_objective_s": 94.2,
+    "blue_zone_control_rate": 0.69,
+    "civilian_zone_incidents": 0
+  },
+  "status": "completed"
+}
