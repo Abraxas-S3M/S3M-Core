@@ -1,0 +1,11 @@
+name: "Panopticon AI Scenarios"
+slug: "panopticon-ai-scenarios"
+domain: "datasets"
+source_url: "https://github.com/Panopticon-AI-team/panopticon"
+license: "MIT"
+description: "Wargaming scenarios for RL/AI agents in military modeling and tactical experimentation."
+integration_type: "dataset"
+capabilities:
+  - wargaming_scenarios
+  - rl_training
+airgapped_support: true

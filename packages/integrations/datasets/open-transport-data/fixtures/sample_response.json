@@ -1,0 +1,27 @@
+{
+  "dataset_id": "opentransportdata-logistics-v1",
+  "provider": "Open Transport Data",
+  "mission_profile": "logistics_route_simulation",
+  "network_summary": {
+    "nodes": 18294,
+    "edges": 42108,
+    "connected_components": 11
+  },
+  "modal_layers": [
+    "road",
+    "rail",
+    "bus_routes"
+  ],
+  "region_coverage": [
+    "urban_logistics_corridor",
+    "coastal_supply_route",
+    "inland_resupply_network"
+  ],
+  "licensing_notes": "Mixed upstream data licenses require per-layer compliance checks before redistribution.",
+  "recommended_processing": {
+    "graph_library": "networkx",
+    "pathfinding": "a_star",
+    "time_window_modeling": true
+  },
+  "tactical_note": "Enables convoy routing and sustainment rehearsal under degraded mobility assumptions."
+}

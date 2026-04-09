@@ -1,0 +1,28 @@
+{
+  "dataset_id": "panopticon-scenarios-ops-v3",
+  "provider": "Panopticon AI Scenarios",
+  "mission_profile": "wargaming_and_rl_training",
+  "scenario_count": 128,
+  "scenario_families": [
+    "convoy_ambush_response",
+    "urban_clearance",
+    "base_defense",
+    "maritime_chokepoint_control"
+  ],
+  "agent_interfaces": [
+    "gymnasium",
+    "jsonl_rollout_spec"
+  ],
+  "metrics_available": [
+    "mission_success_rate",
+    "attrition_ratio",
+    "time_to_objective",
+    "civilian_risk_index"
+  ],
+  "recommended_training": {
+    "algorithm": "ppo",
+    "parallel_envs": 16,
+    "episode_horizon": 1200
+  },
+  "tactical_note": "Provides doctrine-focused scenario rehearsal for command decision-support validation."
+}

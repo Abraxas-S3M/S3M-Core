@@ -1,0 +1,22 @@
+{
+  "dataset_id": "vehicledetection-sar-v2",
+  "provider": "VehicleDetection",
+  "sensor": "synthetic_aperture_radar",
+  "mission_profile": "remote_surveillance_small_object_detection",
+  "scene_count": 23147,
+  "annotated_vehicle_instances": 98736,
+  "spatial_resolution_meters_per_pixel": 0.5,
+  "labels": {
+    "vehicle": 98736
+  },
+  "recommended_training": {
+    "model_family": "yolov8n",
+    "input_channels": 1,
+    "tiling_strategy": "1024_overlap_128"
+  },
+  "operational_constraints": [
+    "author_permission_required_for_full_dataset_access",
+    "offline_mirror_required_for_deployed_cells"
+  ],
+  "tactical_note": "Supports low-observable convoy detection rehearsal for denied-area ISR planning."
+}
