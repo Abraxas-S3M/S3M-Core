@@ -1,0 +1,12 @@
+name: "NETN references in OpenC2SIM"
+slug: "netn-references-in-openc2sim"
+domain: "interop"
+source_url: "Artifacts in OpenC2SIM repos"
+license: "Unknown"
+description: "Federation agreements and extensions for NATO DIS/C2SIM interoperability."
+integration_type: "adapter"
+capabilities:
+  - "federation_agreement_reference"
+  - "c2sim_extension_mapping"
+  - "interop_profile_alignment"
+airgapped_support: true
