@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "source": "fixture",
+  "integration": "explainable-reinforcement-learning",
+  "analysis_type": "xrl_paper_query",
+  "mission_profile": "human_machine_teaming_policy_audit",
+  "topic": "human_interpretable_policy_analysis",
+  "papers": [
+    {
+      "title": "Policy Summaries for Deep RL with Operator Oversight",
+      "year": 2023,
+      "relevance_score": 0.93
+    },
+    {
+      "title": "Counterfactual Explanations for Tactical RL Decisions",
+      "year": 2022,
+      "relevance_score": 0.9
+    },
+    {
+      "title": "Visual State Attribution in Reinforcement Learning",
+      "year": 2021,
+      "relevance_score": 0.88
+    }
+  ],
+  "commander_summary": "Collected papers provide sufficient evidence templates for AI action accountability briefings."
+}

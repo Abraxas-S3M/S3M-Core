@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "source": "fixture",
+  "integration": "awesome-explainable-reinforcement-learning",
+  "analysis_type": "xrl_reference_catalog",
+  "mission_profile": "human_machine_teaming_rules_of_engagement_validation",
+  "focus_area": "policy_explainability",
+  "resources": [
+    {
+      "title": "Explainable Reinforcement Learning Survey",
+      "category": "survey",
+      "relevance_score": 0.96
+    },
+    {
+      "title": "Reward Decomposition Explainability Methods",
+      "category": "method",
+      "relevance_score": 0.9
+    },
+    {
+      "title": "State Attribution Techniques for Tactical RL Agents",
+      "category": "paper",
+      "relevance_score": 0.87
+    }
+  ],
+  "commander_summary": "Resource set supports pre-mission review of autonomous policy rationale."
+}

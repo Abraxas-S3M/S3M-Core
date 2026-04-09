@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "source": "fixture",
+  "integration": "captum",
+  "analysis_type": "attribution_report",
+  "mission_profile": "operator_ai_recommendation_explainability",
+  "method": "integrated_gradients",
+  "target_model": "tactical-intent-classifier-v2",
+  "attribution_summary": {
+    "top_features": [
+      "sensor_track_confidence",
+      "hostile_pattern_similarity",
+      "communications_anomaly_index"
+    ],
+    "confidence_delta": 0.18,
+    "stability_score": 0.91
+  },
+  "commander_summary": "Attribution indicates recommendation is driven by track confidence and anomaly cues, supporting supervised approval."
+}

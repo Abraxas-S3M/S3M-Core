@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "source": "fixture",
+  "integration": "xai_resources",
+  "analysis_type": "resource_bundle_selection",
+  "mission_profile": "human_machine_teaming_assurance_pipeline",
+  "focus": "model_transparency_training_pack",
+  "bundle": {
+    "papers": 14,
+    "tools": 6,
+    "benchmarks": 4,
+    "recommended_sequence": [
+      "fundamental_interpretability",
+      "operational_risk_assessment",
+      "post_mission_explanation_audit"
+    ]
+  },
+  "commander_summary": "Bundle supports structured training and transparent post-action review for AI-assisted missions."
+}
