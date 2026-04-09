@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "mission_id": "jetson-orin-flight-lane-kilo",
+  "pipeline": "vslam-uav",
+  "platform": {
+    "compute": "Jetson Orin Nano",
+    "stack": [
+      "ROS2 Humble",
+      "Isaac ROS",
+      "PX4"
+    ],
+    "thermal_state": "nominal"
+  },
+  "vio_metrics": {
+    "tracking_state": "good",
+    "feature_tracks": 612,
+    "relocalization_events": 3,
+    "latency_ms": 24
+  },
+  "flight_readiness": {
+    "offboard_ready": true,
+    "failsafe_margin_s": 4.5,
+    "confidence": 0.92
+  },
+  "tactical_assessment": {
+    "gps_denied_ready": true,
+    "comment": "Edge pipeline sustained stable localization through rapid altitude transitions."
+  }
+}

@@ -1,9 +1,10 @@
-"""Unit tests for navigation integration wrappers used in tactical rehearsal."""
+"""Unit tests for navigation integration wrappers used in tactical mission rehearsal."""
 
 from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -12,143 +13,107 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NAVIGATION_ROOT = PROJECT_ROOT / "packages" / "integrations" / "navigation"
 
-ADAPTER_SPECS = [
-    (
-        "lio-sam",
-        "LioSamAdapter",
-        "LIO-SAM",
-        "https://github.com/TixiaoShan/LIO-SAM",
-        "(BSD-style)",
-    ),
-    (
-        "kr-autonomous-flight",
-        "KrAutonomousFlightAdapter",
-        "kr_autonomous_flight",
-        "https://github.com/KumarRobotics/kr_autonomous_flight",
-        "(BSD-style)",
-    ),
-    (
-        "vins-fusion",
-        "VinsFusionAdapter",
-        "VINS-Fusion",
-        "https://github.com/HKUST-Aerial-Robotics/VINS-Fusion",
-        "(BSD-style)",
-    ),
-    (
-        "openvins",
-        "OpenvinsAdapter",
-        "OpenVINS",
-        "https://github.com/rpng/open_vins",
-        "(BSD-style)",
-    ),
-    (
-        "lio-sam-6axis",
-        "LioSam6axisAdapter",
-        "LIO_SAM_6AXIS",
-        "https://github.com/JokerJohn/LIO_SAM_6AXIS",
-        "(BSD-style)",
-    ),
+NAVIGATION_CASES: list[dict[str, str]] = [
+    {
+        "slug": "sc-lio-sam",
+        "class_name": "ScLioSamAdapter",
+        "name": "SC-LIO-SAM",
+        "source_url": "https://github.com/gisbi-kim/SC-LIO-SAM",
+        "license": "(BSD-style)",
+    },
+    {
+        "slug": "li-slam-ros2",
+        "class_name": "LiSlamRos2Adapter",
+        "name": "li_slam_ros2",
+        "source_url": "https://github.com/rsasaki0109/li_slam_ros2",
+        "license": "(ROS2-style)",
+    },
+    {
+        "slug": "autonomous-drone-navigation",
+        "class_name": "AutonomousDroneNavigationAdapter",
+        "name": "Autonomous-drone-navigation",
+        "source_url": "https://github.com/ahmedeltaher/Autonomous-drone-navigation",
+        "license": "MIT",
+    },
+    {
+        "slug": "visual-slam-ros2",
+        "class_name": "VisualSlamRos2Adapter",
+        "name": "visual-slam-ros2",
+        "source_url": "https://github.com/imnuman/visual-slam-ros2",
+        "license": "MIT",
+    },
+    {
+        "slug": "vslam-uav",
+        "class_name": "VslamUavAdapter",
+        "name": "VSLAM-UAV",
+        "source_url": "https://github.com/bandofpv/VSLAM-UAV",
+        "license": "MIT",
+    },
 ]
 
 
-def _load_adapter_class(slug: str, class_name: str):
-    module_path = NAVIGATION_ROOT / slug / "adapter.py"
-    module_name = f"test_navigation_{slug.replace('-', '_')}_adapter"
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
+def _load_adapter_class(slug: str, class_name: str) -> type[Any]:
+    adapter_path = NAVIGATION_ROOT / slug / "adapter.py"
+    module_name = f"tests.dynamic_navigation_{slug.replace('-', '_')}_adapter"
+    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return getattr(module, class_name)
 
 
-@pytest.mark.parametrize(
-    ("slug", "class_name", "name", "source_url", "license_name"),
-    ADAPTER_SPECS,
-    ids=[slug for slug, *_ in ADAPTER_SPECS],
-)
-def test_manifest_is_loaded_from_yaml(
-    slug: str,
-    class_name: str,
-    name: str,
-    source_url: str,
-    license_name: str,
-) -> None:
-    adapter_cls = _load_adapter_class(slug, class_name)
+@pytest.mark.parametrize("case", NAVIGATION_CASES, ids=[entry["slug"] for entry in NAVIGATION_CASES])
+def test_manifest_fields(case: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
     manifest = adapter.get_manifest()
 
-    manifest_yaml = NAVIGATION_ROOT / slug / "manifest.yaml"
-    raw = yaml.safe_load(manifest_yaml.read_text(encoding="utf-8"))
+    raw = yaml.safe_load((NAVIGATION_ROOT / case["slug"] / "manifest.yaml").read_text(encoding="utf-8"))
 
-    assert manifest.name == name
-    assert manifest.slug == slug
-    assert manifest.domain == "navigation"
-    assert manifest.source_url == source_url
-    assert manifest.license == license_name
+    assert manifest.name == case["name"]
     assert manifest.name == raw["name"]
+    assert manifest.slug == case["slug"]
     assert manifest.slug == raw["slug"]
+    assert manifest.domain == "navigation"
+    assert manifest.domain == raw["domain"]
+    assert manifest.source_url == case["source_url"]
+    assert manifest.source_url == raw["source_url"]
+    assert manifest.license == case["license"]
+    assert manifest.license == raw["license"]
+    assert manifest.integration_type == "adapter"
+    assert manifest.airgapped_support is True
 
 
-@pytest.mark.parametrize(
-    ("slug", "class_name", "name", "source_url", "license_name"),
-    ADAPTER_SPECS,
-    ids=[slug for slug, *_ in ADAPTER_SPECS],
-)
-def test_logger_name_matches_navigation_integration_slug(
-    slug: str,
-    class_name: str,
-    name: str,
-    source_url: str,
-    license_name: str,
-) -> None:
-    del name, source_url, license_name
-    adapter_cls = _load_adapter_class(slug, class_name)
+@pytest.mark.parametrize("case", NAVIGATION_CASES, ids=[entry["slug"] for entry in NAVIGATION_CASES])
+def test_logger_names_follow_navigation_slug(case: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
-    assert adapter.logger.name == f"s3m.integrations.navigation.{slug}"
+    assert adapter.logger.name == f"s3m.integrations.navigation.{case['slug']}"
 
 
-@pytest.mark.parametrize(
-    ("slug", "class_name", "name", "source_url", "license_name"),
-    ADAPTER_SPECS,
-    ids=[slug for slug, *_ in ADAPTER_SPECS],
-)
-def test_airgapped_validate_and_execute_use_local_fixture(
-    slug: str,
-    class_name: str,
-    name: str,
-    source_url: str,
-    license_name: str,
-) -> None:
-    del name, source_url, license_name
-    adapter_cls = _load_adapter_class(slug, class_name)
+@pytest.mark.parametrize("case", NAVIGATION_CASES, ids=[entry["slug"] for entry in NAVIGATION_CASES])
+def test_airgapped_validate_and_execute(case: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
 
     assert adapter.validate_availability() is True
-    response = adapter.execute({"operation": "mission_rehearsal"})
 
-    assert response["integration_id"] == slug
+    response = adapter.execute({"operation": "unit_test_navigation_check"})
+    assert response["status"] == "ok"
+    assert response["integration_id"] == case["slug"]
     assert response["domain"] == "navigation"
     assert response["mode"] == "airgapped"
     assert response["source"] == "fixture"
+    assert response["operation"] == "unit_test_navigation_check"
     assert response["available"] is True
-    assert response["result"]["status"] == "completed"
+    assert isinstance(response["data"], dict)
+    assert response["data"]["status"] == "ok"
 
 
-@pytest.mark.parametrize(
-    ("slug", "class_name", "name", "source_url", "license_name"),
-    ADAPTER_SPECS,
-    ids=[slug for slug, *_ in ADAPTER_SPECS],
-)
-def test_execute_rejects_non_mapping_params(
-    slug: str,
-    class_name: str,
-    name: str,
-    source_url: str,
-    license_name: str,
-) -> None:
-    del name, source_url, license_name
-    adapter_cls = _load_adapter_class(slug, class_name)
+@pytest.mark.parametrize("case", NAVIGATION_CASES, ids=[entry["slug"] for entry in NAVIGATION_CASES])
+def test_execute_rejects_non_mapping_params(case: dict[str, str]) -> None:
+    adapter_cls = _load_adapter_class(case["slug"], case["class_name"])
     adapter = adapter_cls(mode="airgapped")
 
-    with pytest.raises(ValueError):
-        adapter.execute(["unsafe", "params"])
+    with pytest.raises(ValueError, match="dictionary"):
+        adapter.execute(params=["unsafe", "params"])  # type: ignore[arg-type]

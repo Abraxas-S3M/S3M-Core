@@ -1,1 +1,1 @@
-"""Navigation-domain integration wrappers for sovereign mission planning."""
+"""Navigation integration domain for tactical localization and SLAM wrappers."""
