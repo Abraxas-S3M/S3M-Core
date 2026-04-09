@@ -1,0 +1,24 @@
+{
+  "status": "completed",
+  "mission_id": "mre-ra-2026-04-09-001",
+  "phase": "area-reconnaissance",
+  "assets": {
+    "uav": 1,
+    "ugv": 3
+  },
+  "coverage_pct": 87.4,
+  "detections": [
+    {
+      "type": "thermal_anomaly",
+      "grid": "G7",
+      "confidence": 0.91
+    },
+    {
+      "type": "obstacle_cluster",
+      "grid": "F5",
+      "confidence": 0.88
+    }
+  ],
+  "latency_ms": 142,
+  "platform": "jetson-agx-orin"
+}

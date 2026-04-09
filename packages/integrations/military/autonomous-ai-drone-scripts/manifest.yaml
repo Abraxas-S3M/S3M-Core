@@ -1,0 +1,12 @@
+name: "Autonomous-Ai-drone-scripts"
+slug: "autonomous-ai-drone-scripts"
+domain: "military"
+source_url: "https://github.com/sieuwe1/Autonomous-Ai-drone-scripts"
+license: "MIT"
+description: "AI-powered autonomous multirotor navigation and obstacle avoidance for low-latency tactical flight operations."
+integration_type: "adapter"
+capabilities:
+  - "autonomous-navigation"
+  - "obstacle-avoidance"
+  - "multirotor-control"
+airgapped_support: true
