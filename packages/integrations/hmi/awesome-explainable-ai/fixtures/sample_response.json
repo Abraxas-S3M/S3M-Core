@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "integration": "awesome-explainable-ai",
+  "briefing_topic": "human-machine teaming explainability baseline",
+  "mission_phase": "pre-mission model assurance",
+  "frontier_methods": [
+    {
+      "method": "SHAP",
+      "category": "feature attribution",
+      "operational_value": "Supports commander audit trails for high-risk target recommendations."
+    },
+    {
+      "method": "Counterfactual Explanations",
+      "category": "what-if reasoning",
+      "operational_value": "Clarifies minimum sensor or context shifts that would alter autonomous decisions."
+    },
+    {
+      "method": "Concept Bottleneck Models",
+      "category": "interpretable architecture",
+      "operational_value": "Improves trust calibration by exposing semantically meaningful intermediate concepts."
+    }
+  ],
+  "commander_summary": "Recommend SHAP plus counterfactual reporting for mission briefs where lethal or strategic decisions require traceable rationale."
+}
