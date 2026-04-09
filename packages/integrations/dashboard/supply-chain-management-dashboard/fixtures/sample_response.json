@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "scm-2026-04-09T00:00:00Z",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "inventory_status": {
+    "total_skus": 1240,
+    "critical_low_stock": 37,
+    "days_of_supply": 22
+  },
+  "supplier_performance": [
+    {
+      "supplier": "Northern Components Group",
+      "on_time_delivery_rate": 0.92,
+      "quality_score": 0.95,
+      "risk_level": "low"
+    },
+    {
+      "supplier": "Blue Corridor Fabrication",
+      "on_time_delivery_rate": 0.71,
+      "quality_score": 0.84,
+      "risk_level": "high"
+    }
+  ],
+  "demand_signal": {
+    "forecast_horizon_days": 30,
+    "projected_spike_categories": [
+      "medical-kits",
+      "secure-radios"
+    ],
+    "forecast_confidence": 0.83
+  },
+  "logistics": {
+    "active_shipments": 58,
+    "delayed_shipments": 9,
+    "contested_route_exposure": "medium"
+  }
+}

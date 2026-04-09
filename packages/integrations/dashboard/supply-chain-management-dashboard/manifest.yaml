@@ -1,0 +1,12 @@
+name: "Supply-Chain-Management-Dashboard"
+slug: "supply-chain-management-dashboard"
+domain: "dashboard"
+source_url: "https://github.com/GirishKumarV25/Supply-Chain-Management-Dashboard"
+license: "MIT"
+description: "Power BI-like dashboard for inventory, suppliers, demand, and logistics visuals."
+integration_type: "adapter"
+capabilities:
+  - "inventory-visibility"
+  - "supplier-monitoring"
+  - "logistics-optimization-view"
+airgapped_support: true

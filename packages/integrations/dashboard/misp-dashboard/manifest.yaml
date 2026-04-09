@@ -1,0 +1,12 @@
+name: "MISP-Dashboard"
+slug: "misp-dashboard"
+domain: "dashboard"
+source_url: "https://github.com/MISP/misp-dashboard"
+license: "AGPL-3.0"
+description: "Live threat intel dashboard from MISP feeds; visualizes situational awareness for interoperability."
+integration_type: "adapter"
+capabilities:
+  - "threat-telemetry-visualization"
+  - "ioc-stream-monitoring"
+  - "interoperability-situational-awareness"
+airgapped_support: true
