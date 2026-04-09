@@ -1,0 +1,12 @@
+name: Industrace
+slug: industrace
+domain: dashboard
+source_url: https://github.com/industrace/industrace
+license: MIT
+description: ICS/OT asset exposure dashboard wrapper for mission-critical industrial
+  sites and operational technology enclaves.
+integration_type: adapter
+capabilities:
+- dashboard_observability
+- airgapped_fixture_execution
+airgapped_support: true
