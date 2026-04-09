@@ -1,0 +1,13 @@
+name: "Wazuh-Rules"
+slug: "wazuh-rules"
+domain: "cyber"
+source_url: "https://github.com/socfortress/Wazuh-Rules"
+license: "Unknown"
+description: "Advanced, enriched Wazuh rules for more accurate threat detection including Suricata-correlated events."
+integration_type: "adapter"
+capabilities:
+  - "rule_enrichment"
+  - "alert_tuning"
+  - "suricata_alignment"
+  - "threat_detection"
+airgapped_support: true

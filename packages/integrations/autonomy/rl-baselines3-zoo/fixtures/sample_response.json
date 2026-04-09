@@ -1,0 +1,29 @@
+{
+  "fixture_version": "1.0",
+  "integration": "rl-baselines3-zoo",
+  "operation": "build_training_plan",
+  "status": "planned",
+  "mission_profile": "autonomous_convoy_escort_reinforcement_learning",
+  "plan": {
+    "algo": "ppo",
+    "env_id": "pettingzoo:simple_spread_v3",
+    "policy": "MlpPolicy",
+    "total_timesteps": 1500000,
+    "eval_freq": 25000,
+    "n_eval_episodes": 20,
+    "seed": 17,
+    "command": "python train.py --algo ppo --env pettingzoo:simple_spread_v3 -n 1500000 --eval-freq 25000 --eval-episodes 20 --seed 17"
+  },
+  "hyperparameters": {
+    "learning_rate": 0.0003,
+    "n_steps": 2048,
+    "batch_size": 256,
+    "gamma": 0.99,
+    "gae_lambda": 0.95
+  },
+  "quantization_gate": {
+    "required_for_edge_deployment": true,
+    "recommended_format": "int8"
+  },
+  "source": "airgapped_fixture"
+}

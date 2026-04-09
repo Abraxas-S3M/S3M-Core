@@ -1,0 +1,14 @@
+name: "trustyai-explainability"
+slug: "trustyai-explainability"
+domain: "autonomy"
+source_url: "https://github.com/trustyai-explainability/trustyai-explainability"
+license: "Apache 2.0"
+description: "Java-based XAI toolkit with fairness metrics and explainability algorithms"
+integration_type: "adapter"
+capabilities:
+  - "fairness_metrics"
+  - "counterfactual_explanations"
+  - "jvm_xai_runtime"
+system_dependencies:
+  - "java"
+airgapped_support: true

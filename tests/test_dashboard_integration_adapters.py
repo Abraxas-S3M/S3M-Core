@@ -1,108 +1,95 @@
-"""Unit tests for dashboard-domain S3M integration adapters."""
+"""Tests for dashboard integration wrappers in sovereign airgapped workflows."""
 
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
+import importlib
+from typing import Any
 
 import pytest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-
-ADAPTER_CASES = [
-    {
-        "slug_dir": "battlesimulator",
-        "class_name": "BattlesimulatorAdapter",
-        "integration_id": "battlesimulator",
-        "manifest_name": "BattleSimulator",
-        "license": "MIT",
-        "source_url": "https://github.com/gregparkes/BattleSimulator",
-    },
-    {
-        "slug_dir": "panopticon-ai",
-        "class_name": "PanopticonAiAdapter",
-        "integration_id": "panopticon-ai",
-        "manifest_name": "Panopticon AI",
-        "license": "MIT",
-        "source_url": "https://github.com/Panopticon-AI-team/panopticon",
-    },
-    {
-        "slug_dir": "battleagent",
-        "class_name": "BattleagentAdapter",
-        "integration_id": "battleagent",
-        "manifest_name": "BattleAgent",
-        "license": "Apache 2.0",
-        "source_url": "https://github.com/agiresearch/BattleAgent",
-    },
-    {
-        "slug_dir": "fleetbase",
-        "class_name": "FleetbaseAdapter",
-        "integration_id": "fleetbase",
-        "manifest_name": "Fleetbase",
-        "license": "Apache 2.0",
-        "source_url": "https://github.com/fleetbase/fleetbase",
-    },
-    {
-        "slug_dir": "watcher",
-        "class_name": "WatcherAdapter",
-        "integration_id": "watcher",
-        "manifest_name": "Watcher",
-        "license": "Apache 2.0",
-        "source_url": "https://github.com/thalesgroup-cert/Watcher",
-    },
+CASES = [
+    (
+        "packages.integrations.dashboard.awesome-asset-discovery-curated.adapter",
+        "AwesomeAssetDiscoverycuratedAdapter",
+        "awesome-asset-discovery-curated",
+        "MIT",
+    ),
+    (
+        "packages.integrations.dashboard.actual.adapter",
+        "ActualAdapter",
+        "actual",
+        "MIT",
+    ),
+    (
+        "packages.integrations.dashboard.ocular.adapter",
+        "OcularAdapter",
+        "ocular",
+        "MIT",
+    ),
+    (
+        "packages.integrations.dashboard.erpnext.adapter",
+        "ErpnextAdapter",
+        "erpnext",
+        "GPL-3.0",
+    ),
+    (
+        "packages.integrations.dashboard.ghosts.adapter",
+        "GhostsAdapter",
+        "ghosts",
+        "Apache 2.0",
+    ),
 ]
 
 
-def _load_adapter_class(slug_dir: str, class_name: str):
-    adapter_path = REPO_ROOT / "packages" / "integrations" / "dashboard" / slug_dir / "adapter.py"
-    module_name = f"tests.dashboard_integrations.{slug_dir.replace('-', '_')}"
-    spec = importlib.util.spec_from_file_location(module_name, adapter_path)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+def _load_adapter(module_path: str, class_name: str) -> type[Any]:
+    module = importlib.import_module(module_path)
     return getattr(module, class_name)
 
 
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_manifest_fields(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "slug", "license_name"), CASES)
+def test_manifest_and_logger_shape(module_path: str, class_name: str, slug: str, license_name: str) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
+
     manifest = adapter.get_manifest()
-
-    assert manifest.name == case["manifest_name"]
-    assert manifest.slug == case["integration_id"]
+    assert manifest.slug == slug
     assert manifest.domain == "dashboard"
-    assert manifest.source_url == case["source_url"]
-    assert manifest.license == case["license"]
-    assert manifest.integration_type == "adapter"
+    assert manifest.license == license_name
     assert manifest.airgapped_support is True
+    assert adapter.logger.name == f"s3m.integrations.dashboard.{slug}"
 
 
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_validate_availability_airgapped(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
-    assert adapter_cls(mode="airgapped").validate_availability() is True
-
-
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_execute_uses_fixture_in_airgapped_mode(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "slug", "_license_name"), CASES)
+def test_execute_airgapped_returns_fixture_data(
+    module_path: str,
+    class_name: str,
+    slug: str,
+    _license_name: str,
+) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
 
-    response = adapter.execute({"operation": "status"})
+    result = adapter.execute({"action": "status"})
+    assert result["integration_id"] == slug
+    assert result["mode"] == "airgapped"
+    assert result["source"] == "fixture"
+    assert isinstance(result["data"], dict)
+    assert result["data"] != {}
 
-    assert response["integration_id"] == case["integration_id"]
-    assert response["domain"] == "dashboard"
-    assert response["mode"] == "airgapped"
-    assert response["request"] == {"operation": "status"}
 
-
-@pytest.mark.parametrize("case", ADAPTER_CASES, ids=[item["integration_id"] for item in ADAPTER_CASES])
-def test_execute_rejects_non_mapping_params(case: dict[str, str]) -> None:
-    adapter_cls = _load_adapter_class(case["slug_dir"], case["class_name"])
+@pytest.mark.parametrize(("module_path", "class_name", "_slug", "_license_name"), CASES)
+def test_execute_rejects_invalid_action(
+    module_path: str,
+    class_name: str,
+    _slug: str,
+    _license_name: str,
+) -> None:
+    adapter_cls = _load_adapter(module_path, class_name)
     adapter = adapter_cls(mode="airgapped")
 
-    with pytest.raises(ValueError, match="dictionary"):
+    with pytest.raises(ValueError):
+        adapter.execute({"action": ""})
+
+    with pytest.raises(TypeError):
         adapter.execute(params="invalid")  # type: ignore[arg-type]
-

@@ -1,0 +1,29 @@
+{
+  "operation": "cortex_analysis",
+  "status": "completed",
+  "analyzer": "VirusTotal_GetReport_3_1",
+  "observable": {
+    "dataType": "domain",
+    "data": "suspicious-login-portal.co"
+  },
+  "taxonomies": [
+    {
+      "namespace": "VT",
+      "predicate": "Malicious",
+      "value": "high",
+      "level": "malicious"
+    },
+    {
+      "namespace": "Sandbox",
+      "predicate": "Behavior",
+      "value": "credential-access",
+      "level": "suspicious"
+    }
+  ],
+  "responder_actions": [
+    {
+      "name": "FirewallBlock",
+      "status": "queued"
+    }
+  ]
+}

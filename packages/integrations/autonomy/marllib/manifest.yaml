@@ -1,0 +1,14 @@
+name: "MARLlib"
+slug: "marllib"
+domain: "autonomy"
+source_url: "https://github.com/Replicable-MARL/MARLlib"
+license: "MIT"
+description: "Multi-agent RL library built on Ray RLlib with unified interfaces and algorithms."
+integration_type: "adapter"
+capabilities:
+  - "multi_agent_training"
+  - "algorithm_benchmarking"
+  - "rllib_interoperability"
+pip_dependencies:
+  - "marllib"
+airgapped_support: true

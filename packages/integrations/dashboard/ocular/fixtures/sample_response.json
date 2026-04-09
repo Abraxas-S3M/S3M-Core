@@ -1,0 +1,53 @@
+{
+  "scenario": "contested-logistics-posture",
+  "sankey": {
+    "nodes": [
+      "Appropriation",
+      "Procurement",
+      "Maintenance",
+      "Fuel",
+      "Readiness"
+    ],
+    "links": [
+      {
+        "source": "Appropriation",
+        "target": "Procurement",
+        "value": 2.4
+      },
+      {
+        "source": "Appropriation",
+        "target": "Maintenance",
+        "value": 1.8
+      },
+      {
+        "source": "Procurement",
+        "target": "Readiness",
+        "value": 1.3
+      },
+      {
+        "source": "Maintenance",
+        "target": "Readiness",
+        "value": 1.1
+      }
+    ],
+    "unit": "million_usd"
+  },
+  "chart_summary": {
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar"
+    ],
+    "planned": [
+      1.2,
+      1.1,
+      1.3
+    ],
+    "actual": [
+      1.0,
+      1.25,
+      1.4
+    ]
+  },
+  "analysis": "Maintenance spending drift requires immediate contracting review for readiness protection."
+}

@@ -1,0 +1,40 @@
+{
+  "fixture_version": "1.0",
+  "integration": "pettingzoo",
+  "operation": "list_env_families",
+  "status": "ok",
+  "mission_profile": "swarm_perimeter_defense_rehearsal",
+  "env_families": [
+    {
+      "family": "mpe",
+      "representative_envs": [
+        "simple_spread_v3",
+        "simple_adversary_v3"
+      ],
+      "use_case": "Collaborative and adversarial drone swarm coordination."
+    },
+    {
+      "family": "atari",
+      "representative_envs": [
+        "pong_v3",
+        "space_invaders_v2"
+      ],
+      "use_case": "Shared-observation policy stress testing under partial observability."
+    },
+    {
+      "family": "sisl",
+      "representative_envs": [
+        "waterworld_v4",
+        "multiwalker_v9"
+      ],
+      "use_case": "Persistent multi-agent maneuvering and energy management drills."
+    }
+  ],
+  "metrics_snapshot": {
+    "episodes_evaluated": 120,
+    "team_reward_mean": 37.4,
+    "collision_rate": 0.06,
+    "policy_sync_lag_ms": 14.2
+  },
+  "source": "airgapped_fixture"
+}
