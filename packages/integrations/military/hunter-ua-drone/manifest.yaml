@@ -1,0 +1,12 @@
+name: "Hunter-UA-Drone"
+slug: "hunter-ua-drone"
+domain: "military"
+source_url: "https://github.com/Ohara124c41/Hunter-UA-Drone"
+license: "MIT"
+description: "Autonomous hunter UAV specifications and implementation for defensive drone interception workflows."
+integration_type: "adapter"
+capabilities:
+  - "counter_uas_rehearsal"
+  - "intercept_path_planning"
+  - "sensor_fusion_status"
+airgapped_support: true
