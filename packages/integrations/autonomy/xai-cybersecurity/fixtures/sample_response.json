@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "integration": "xai-cybersecurity",
+  "analysis_type": "intrusion_alert_explanation",
+  "mission_profile": "forward_operating_network_defense",
+  "alert": {
+    "alert_id": "soc-alert-001",
+    "classification": "lateral_movement",
+    "risk_level": "high"
+  },
+  "explanation_features": [
+    {
+      "feature": "abnormal_smb_session_fanout",
+      "importance": 0.41
+    },
+    {
+      "feature": "credential_reuse_pattern",
+      "importance": 0.25
+    },
+    {
+      "feature": "off_hours_admin_login",
+      "importance": 0.18
+    }
+  ],
+  "recommended_action": "isolate_host_and_rotate_credentials",
+  "commander_summary": "Explainable evidence supports immediate containment with low false-positive risk."
+}

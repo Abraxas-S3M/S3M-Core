@@ -1,0 +1,13 @@
+name: "BattleAgent"
+slug: "battleagent"
+domain: "dashboard"
+source_url: "https://github.com/agiresearch/BattleAgent"
+license: "Apache 2.0"
+description: "LLM-based battle emulation with multi-modal dashboard for planning."
+integration_type: "adapter"
+capabilities:
+  - "llm_battle_emulation"
+  - "course_of_action_assessment"
+  - "multi_modal_planning"
+airgapped_support: true
+

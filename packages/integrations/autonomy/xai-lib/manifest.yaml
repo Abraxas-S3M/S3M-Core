@@ -1,0 +1,12 @@
+name: "XAI-Lib"
+slug: "xai-lib"
+domain: "autonomy"
+source_url: "https://github.com/kdd-lab/XAI-Lib"
+license: "MIT"
+description: "Unified Python library for various XAI explanation methods."
+integration_type: "adapter"
+capabilities:
+  - "multi_method_explanations"
+  - "counterfactual_analysis"
+  - "mission_model_transparency"
+airgapped_support: true

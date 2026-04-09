@@ -1,0 +1,14 @@
+name: "PantheonRL"
+slug: "pantheonrl"
+domain: "autonomy"
+source_url: "https://github.com/Stanford-ILIAD/PantheonRL"
+license: "MIT"
+description: "MARL framework with web UI, self-play, and PettingZoo support (built on SB3)."
+integration_type: "adapter"
+capabilities:
+  - "self_play"
+  - "pettingzoo_support"
+  - "multi_agent_training"
+pip_dependencies:
+  - "pantheonrl"
+airgapped_support: true
