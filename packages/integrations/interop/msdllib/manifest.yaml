@@ -1,0 +1,12 @@
+name: "msdllib"
+slug: "msdllib"
+domain: "interop"
+source_url: "https://github.com/orbat-mapper/msdllib"
+license: "Unknown"
+description: "JavaScript/TypeScript library for parsing MSDL data in C2SIM-adjacent workflows."
+integration_type: "adapter"
+capabilities:
+  - "msdl_parsing"
+  - "scenario_ingest"
+  - "force_structure_validation"
+airgapped_support: true

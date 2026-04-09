@@ -1,0 +1,12 @@
+name: "c2sim"
+slug: "c2sim"
+domain: "interop"
+source_url: "https://github.com/gmuc4i/c2sim"
+license: "Unknown"
+description: "Original GMU C5I Center C2SIM implementation for simulation interoperability experimentation."
+integration_type: "adapter"
+capabilities:
+  - "c2sim_exchange"
+  - "order_validation"
+  - "track_synchronization"
+airgapped_support: true
