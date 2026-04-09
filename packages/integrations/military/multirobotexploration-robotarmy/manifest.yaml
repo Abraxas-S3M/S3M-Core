@@ -1,0 +1,12 @@
+name: "multiRobotExploration-RobotArmy"
+slug: "multirobotexploration-robotarmy"
+domain: "military"
+source_url: "https://github.com/abdulkadrtr/multiRobotExploration-RobotArmy"
+license: "MIT"
+description: "Autonomous exploration army with UAV and UGV cooperation over ROS 2 and Gazebo for mission-area reconnaissance."
+integration_type: "adapter"
+capabilities:
+  - "uav-ugv-coordination"
+  - "ros2-exploration"
+  - "gazebo-simulation"
+airgapped_support: true
