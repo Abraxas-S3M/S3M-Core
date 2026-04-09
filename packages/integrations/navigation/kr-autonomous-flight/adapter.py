@@ -23,7 +23,7 @@ class KrAutonomousFlightAdapter(IntegrationAdapter):
 
     integration_id = "kr-autonomous-flight"
     domain = "navigation"
-    _COMMAND_CANDIDATES = ("kr_flight", "kr_mav_manager", "ros2", "rospack")
+    _COMMAND_CANDIDATES = ("kr_flight", "kr_mav_manager")
     _ROS_PACKAGES = ("kr_autonomous_flight", "kr_mav_manager")
 
     def __init__(self, mode: str | None = None) -> None:

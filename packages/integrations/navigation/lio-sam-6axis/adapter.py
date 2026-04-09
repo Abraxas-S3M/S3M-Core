@@ -23,7 +23,7 @@ class LioSam6axisAdapter(IntegrationAdapter):
 
     integration_id = "lio-sam-6axis"
     domain = "navigation"
-    _COMMAND_CANDIDATES = ("lio_sam_6axis", "lio_sam", "ros2", "rospack")
+    _COMMAND_CANDIDATES = ("lio_sam_6axis", "lio_sam")
     _ROS_PACKAGES = ("lio_sam_6axis", "lio_sam")
 
     def __init__(self, mode: str | None = None) -> None:

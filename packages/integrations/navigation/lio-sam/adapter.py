@@ -23,7 +23,7 @@ class LioSamAdapter(IntegrationAdapter):
 
     integration_id = "lio-sam"
     domain = "navigation"
-    _COMMAND_CANDIDATES = ("lio_sam", "lio_sam_mapping", "ros2", "rospack")
+    _COMMAND_CANDIDATES = ("lio_sam", "lio_sam_mapping")
     _ROS_PACKAGES = ("lio_sam", "lio_sam_ros2")
 
     def __init__(self, mode: str | None = None) -> None:
@@ -74,21 +74,37 @@ class LioSamAdapter(IntegrationAdapter):
         )
         return self._manifest_cache
 
-    def _probe_ros_package(self) -> bool:
-        for probe_command, package in (
-            ("ros2", self._ROS_PACKAGES[0]),
-            ("rospack", self._ROS_PACKAGES[0]),
-        ):
-            binary = shutil.which(probe_command)
-            if not binary:
-                continue
-            cmd = [binary, "pkg", "prefix", package] if probe_command == "ros2" else [binary, "find", package]
-            try:
-                probe = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=8)
-            except (subprocess.SubprocessError, OSError):
-                continue
-            if probe.returncode == 0:
-                return True
+    def _probe_ros_packages(self) -> bool:
+        for package in self._ROS_PACKAGES:
+            ros2_bin = shutil.which("ros2")
+            if ros2_bin:
+                try:
+                    probe = subprocess.run(
+                        [ros2_bin, "pkg", "prefix", package],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=8,
+                    )
+                except (subprocess.SubprocessError, OSError):
+                    probe = None
+                if probe and probe.returncode == 0:
+                    return True
+
+            rospack_bin = shutil.which("rospack")
+            if rospack_bin:
+                try:
+                    probe = subprocess.run(
+                        [rospack_bin, "find", package],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                        timeout=8,
+                    )
+                except (subprocess.SubprocessError, OSError):
+                    probe = None
+                if probe and probe.returncode == 0:
+                    return True
         return False
 
     def _sanitize_params(self, params: dict[str, Any] | None) -> dict[str, Any]:
@@ -124,7 +140,7 @@ class LioSamAdapter(IntegrationAdapter):
         if any(shutil.which(command) for command in self._COMMAND_CANDIDATES):
             return True
 
-        return self._probe_ros_package()
+        return self._probe_ros_packages()
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Run LIO-SAM adapter flow with deterministic airgapped fallback."""

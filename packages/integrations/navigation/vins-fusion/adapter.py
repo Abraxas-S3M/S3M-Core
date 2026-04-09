@@ -23,7 +23,7 @@ class VinsFusionAdapter(IntegrationAdapter):
 
     integration_id = "vins-fusion"
     domain = "navigation"
-    _COMMAND_CANDIDATES = ("vins_estimator", "vins_node", "ros2", "rospack")
+    _COMMAND_CANDIDATES = ("vins_estimator", "vins_node")
     _ROS_PACKAGES = ("vins", "vins_estimator", "vins_fusion")
 
     def __init__(self, mode: str | None = None) -> None:

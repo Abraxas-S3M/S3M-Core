@@ -23,7 +23,7 @@ class OpenvinsAdapter(IntegrationAdapter):
 
     integration_id = "openvins"
     domain = "navigation"
-    _COMMAND_CANDIDATES = ("ov_msckf", "ov_eval", "ros2", "rospack")
+    _COMMAND_CANDIDATES = ("ov_msckf", "ov_eval")
     _ROS_PACKAGES = ("ov_core", "ov_msckf", "open_vins")
 
     def __init__(self, mode: str | None = None) -> None:
