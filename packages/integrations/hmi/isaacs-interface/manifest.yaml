@@ -1,0 +1,12 @@
+name: "ISAACS_Interface"
+slug: "isaacs-interface"
+domain: "hmi"
+source_url: "https://github.com/augcog/ISAACS_Interface"
+license: "Apache 2.0"
+description: "VR interface for multi-UAV teleoperation with sensor integration"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "vr_teleoperation"
+  - "multi_uav_coordination"
+  - "sensor_fusion_display"

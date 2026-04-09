@@ -1,4 +1,4 @@
-"""Adapter for awesome-multimodal-large-language-models.
+"""Adapter for ISAACS_Interface.
 
 Military/tactical context:
 This wrapper enables sovereign human-machine teaming workflows on airgapped
@@ -17,17 +17,17 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
-    """S3M integration adapter for awesome-multimodal-large-language-models."""
+class IsaacsInterfaceAdapter(IntegrationAdapter):
+    """S3M integration adapter for ISAACS_Interface."""
 
-    integration_id = "awesome-multimodal-large-language-models"
+    integration_id = "isaacs-interface"
     domain = "hmi"
-    _COMMAND_CANDIDATES = ('git', 'python3')
+    _COMMAND_CANDIDATES = ('isaacs_interface', 'isaacs', 'ros2')
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
         # Tactical requirement: logger namespace must stay stable for after-action audit trails.
-        self.logger = logging.getLogger("s3m.integrations.hmi.awesome-multimodal-large-language-models")
+        self.logger = logging.getLogger("s3m.integrations.hmi.isaacs-interface")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -59,18 +59,18 @@ class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
         """Load integration metadata used by command orchestration and compliance checks."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "awesome-multimodal-large-language-models"),
+            name=str(raw.get("name") or "ISAACS_Interface"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/bradyfu/awesome-multimodal-large-language-models"),
-            license=str(raw.get("license") or "MIT"),
+            source_url=str(raw.get("source_url") or "https://github.com/augcog/ISAACS_Interface"),
+            license=str(raw.get("license") or "Apache 2.0"),
             description=str(
                 raw.get("description")
-                or "Latest advances on multimodal large language models"
+                or "VR interface for multi-UAV teleoperation with sensor integration"
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
-                raw.get("capabilities") or ['multimodal_model_catalog', 'research_tracking', 'capability_gap_analysis']
+                raw.get("capabilities") or ['vr_teleoperation', 'multi_uav_coordination', 'sensor_fusion_display']
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
         )

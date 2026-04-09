@@ -1,4 +1,4 @@
-"""S3M HMI integration wrapper for awesome-multimodal-large-language-models."""
+"""S3M HMI integration wrapper for awesome-machine-learning-interpretability."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 
-_CLASS_NAME = "AwesomeMultimodalLargeLanguageAdapter"
+_CLASS_NAME = "AwesomeMachineLearningInterpretabilityAdapter"
 
 
 def __getattr__(name: str) -> Any:

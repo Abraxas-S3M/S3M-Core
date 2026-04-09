@@ -1,6 +1,6 @@
-# awesome-multimodal-large-language-models integration
+# DrWhy (modelStudio etc.) integration
 
-This wrapper provides a sovereign S3M HMI integration for **awesome-multimodal-large-language-models**.
+This wrapper provides a sovereign S3M HMI integration for **DrWhy (modelStudio etc.)**.
 
 ## Tactical role
 
@@ -9,9 +9,9 @@ with deterministic outputs while disconnected from external infrastructure.
 
 ## Adapter
 
-- Class: `AwesomeMultimodalLargeLanguageAdapter`
+- Class: `DrwhymodelstudioEtcAdapter`
 - Inherits: `packages.integrations.base.IntegrationAdapter`
-- Logger: `s3m.integrations.hmi.awesome-multimodal-large-language-models`
+- Logger: `s3m.integrations.hmi.drwhy-modelstudio-etc.`
 
 ## Runtime behavior
 

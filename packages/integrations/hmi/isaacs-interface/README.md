@@ -1,6 +1,6 @@
-# awesome-multimodal-large-language-models integration
+# ISAACS_Interface integration
 
-This wrapper provides a sovereign S3M HMI integration for **awesome-multimodal-large-language-models**.
+This wrapper provides a sovereign S3M HMI integration for **ISAACS_Interface**.
 
 ## Tactical role
 
@@ -9,9 +9,9 @@ with deterministic outputs while disconnected from external infrastructure.
 
 ## Adapter
 
-- Class: `AwesomeMultimodalLargeLanguageAdapter`
+- Class: `IsaacsInterfaceAdapter`
 - Inherits: `packages.integrations.base.IntegrationAdapter`
-- Logger: `s3m.integrations.hmi.awesome-multimodal-large-language-models`
+- Logger: `s3m.integrations.hmi.isaacs-interface`
 
 ## Runtime behavior
 

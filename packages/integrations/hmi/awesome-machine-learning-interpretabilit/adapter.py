@@ -1,4 +1,4 @@
-"""Adapter for awesome-multimodal-large-language-models.
+"""Adapter for awesome-machine-learning-interpretability.
 
 Military/tactical context:
 This wrapper enables sovereign human-machine teaming workflows on airgapped
@@ -17,17 +17,17 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
-    """S3M integration adapter for awesome-multimodal-large-language-models."""
+class AwesomeMachineLearningInterpretabilityAdapter(IntegrationAdapter):
+    """S3M integration adapter for awesome-machine-learning-interpretability."""
 
-    integration_id = "awesome-multimodal-large-language-models"
+    integration_id = "awesome-machine-learning-interpretabilit"
     domain = "hmi"
     _COMMAND_CANDIDATES = ('git', 'python3')
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
         # Tactical requirement: logger namespace must stay stable for after-action audit trails.
-        self.logger = logging.getLogger("s3m.integrations.hmi.awesome-multimodal-large-language-models")
+        self.logger = logging.getLogger("s3m.integrations.hmi.awesome-machine-learning-interpretabilit")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -59,18 +59,18 @@ class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
         """Load integration metadata used by command orchestration and compliance checks."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "awesome-multimodal-large-language-models"),
+            name=str(raw.get("name") or "awesome-machine-learning-interpretability"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/bradyfu/awesome-multimodal-large-language-models"),
+            source_url=str(raw.get("source_url") or "https://github.com/jphall663/awesome-machine-learning-interpretability"),
             license=str(raw.get("license") or "MIT"),
             description=str(
                 raw.get("description")
-                or "Latest advances on multimodal large language models"
+                or "Curated responsible ML and interpretability resources"
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
-                raw.get("capabilities") or ['multimodal_model_catalog', 'research_tracking', 'capability_gap_analysis']
+                raw.get("capabilities") or ['responsible_ml_reference', 'interpretability_pattern_library', 'governance_briefing_support']
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
         )

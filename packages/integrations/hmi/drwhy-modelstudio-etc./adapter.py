@@ -1,4 +1,4 @@
-"""Adapter for awesome-multimodal-large-language-models.
+"""Adapter for DrWhy (modelStudio etc.).
 
 Military/tactical context:
 This wrapper enables sovereign human-machine teaming workflows on airgapped
@@ -17,17 +17,17 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
-    """S3M integration adapter for awesome-multimodal-large-language-models."""
+class DrwhymodelstudioEtcAdapter(IntegrationAdapter):
+    """S3M integration adapter for DrWhy (modelStudio etc.)."""
 
-    integration_id = "awesome-multimodal-large-language-models"
+    integration_id = "drwhy-modelstudio-etc."
     domain = "hmi"
-    _COMMAND_CANDIDATES = ('git', 'python3')
+    _COMMAND_CANDIDATES = ('Rscript', 'R')
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
         # Tactical requirement: logger namespace must stay stable for after-action audit trails.
-        self.logger = logging.getLogger("s3m.integrations.hmi.awesome-multimodal-large-language-models")
+        self.logger = logging.getLogger("s3m.integrations.hmi.drwhy-modelstudio-etc.")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -59,18 +59,18 @@ class AwesomeMultimodalLargeLanguageAdapter(IntegrationAdapter):
         """Load integration metadata used by command orchestration and compliance checks."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "awesome-multimodal-large-language-models"),
+            name=str(raw.get("name") or "DrWhy (modelStudio etc.)"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/bradyfu/awesome-multimodal-large-language-models"),
-            license=str(raw.get("license") or "MIT"),
+            source_url=str(raw.get("source_url") or "https://github.com/ModelOriented/DrWhy"),
+            license=str(raw.get("license") or "GPL-3.0"),
             description=str(
                 raw.get("description")
-                or "Latest advances on multimodal large language models"
+                or "Collection of XAI tools with interactive dashboards for model exploration"
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
-                raw.get("capabilities") or ['multimodal_model_catalog', 'research_tracking', 'capability_gap_analysis']
+                raw.get("capabilities") or ['model_explainability', 'interactive_xai_dashboards', 'feature_attribution_analysis']
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
         )

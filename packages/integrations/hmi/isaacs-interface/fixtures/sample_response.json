@@ -1,0 +1,25 @@
+{
+  "session_id": "vr-uav-alpha-07",
+  "mission_phase": "target_handoff",
+  "operator_station": "hmt-node-east-2",
+  "uav_links": [
+    {
+      "callsign": "Raven-11",
+      "link_quality": 0.94,
+      "latency_ms": 42,
+      "sensor_feed": "EO/IR"
+    },
+    {
+      "callsign": "Raven-12",
+      "link_quality": 0.89,
+      "latency_ms": 55,
+      "sensor_feed": "LiDAR"
+    }
+  ],
+  "control_mode": "assisted-teleop",
+  "safety_envelope": {
+    "collision_avoidance": true,
+    "geofence_enforced": true
+  },
+  "status": "stable"
+}
