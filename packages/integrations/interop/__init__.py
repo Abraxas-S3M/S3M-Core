@@ -1,1 +1,1 @@
-"""S3M interoperability and simulation standards integration wrappers."""
+"""Interop-domain integration wrappers for sovereign simulation standards."""
