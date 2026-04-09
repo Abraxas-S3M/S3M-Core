@@ -1,0 +1,12 @@
+name: "Open-DIS (Distributed Interactive Simulation)"
+slug: "open-dis-distributed-interactive-simulat"
+domain: "nato"
+source_url: "https://github.com/open-dis"
+license: "BSD-3-Clause"
+description: "Protocol interoperability support for distributed multi-domain military simulation environments."
+integration_type: "adapter"
+capabilities:
+  - "dis_interoperability"
+  - "c4i_simulation_exchange"
+  - "synthetic_battlefield_rehearsal"
+airgapped_support: true

@@ -1,0 +1,31 @@
+{
+  "exercise_id": "gcc-joint-sim-2026-04",
+  "run_id": "dis-2026-04-09-3115",
+  "federation_name": "nato-md-sim-federation-alpha",
+  "pdu_validation": {
+    "total_pdus": 12850,
+    "valid_pdus": 12837,
+    "invalid_pdus": 13,
+    "schema_version": "IEEE-1278.1-2012"
+  },
+  "interop_events": [
+    {
+      "timestamp": "2026-04-09T13:45:12Z",
+      "entity_id": "2-15-3401",
+      "event_type": "EntityStatePdu",
+      "status": "accepted"
+    },
+    {
+      "timestamp": "2026-04-09T13:46:01Z",
+      "entity_id": "3-04-1172",
+      "event_type": "FirePdu",
+      "status": "rejected",
+      "reason": "Unsupported munition descriptor length"
+    }
+  ],
+  "summary": {
+    "accepted_events": 2,
+    "rejected_events": 1,
+    "interoperability_score": 0.989
+  }
+}

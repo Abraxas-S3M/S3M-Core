@@ -1,0 +1,12 @@
+name: "awesome-threat-intelligence (curated list)"
+slug: "awesome-threat-intelligence-curated-list"
+domain: "nato"
+source_url: "https://github.com/hslatman/awesome-threat-intelligence"
+license: "MIT"
+description: "Curated collection of OSINT and threat-intelligence resources for analyst workflows."
+integration_type: "adapter"
+capabilities:
+  - "osint_catalog_indexing"
+  - "threat_intel_reference"
+  - "analytic_doctrine_support"
+airgapped_support: true
