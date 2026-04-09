@@ -1,0 +1,15 @@
+{
+  "session_id": "uvx-mission-2026-04-09-001",
+  "modality": "speech+text",
+  "language": "en-US",
+  "transcript": "Blue squad, hold at checkpoint Bravo and report thermal anomalies every five minutes.",
+  "assistant_response": "Acknowledged. Blue squad will hold at checkpoint Bravo and send thermal anomaly reports every five minutes.",
+  "latency_ms": 168,
+  "confidence": 0.96,
+  "safety_flags": [],
+  "telemetry": {
+    "packet_loss_pct": 0.2,
+    "jitter_ms": 11,
+    "device": "jetson-agx-orin"
+  }
+}
