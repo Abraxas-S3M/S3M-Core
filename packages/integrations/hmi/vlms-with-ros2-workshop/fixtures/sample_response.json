@@ -1,0 +1,24 @@
+{
+  "fixture_version": "1.0",
+  "integration": "vlms-with-ros2-workshop",
+  "status": "ok",
+  "mission_profile": "hmi_reconnaissance_robotics",
+  "operation": "run_vlm_inference",
+  "robot_platform": "tracked_uav_escort_ugv",
+  "sensor_input": {
+    "camera_topic": "/camera/front/image_raw",
+    "resolution": "1280x720",
+    "timestamp_utc": "2026-04-09T16:14:21Z"
+  },
+  "vlm_output": {
+    "scene_summary": "Two personnel, one wheeled vehicle, and a probable communications mast near checkpoint Bravo.",
+    "objects_of_interest": [
+      "communications_mast",
+      "vehicle_light_transport",
+      "personnel_group"
+    ],
+    "confidence": 0.91
+  },
+  "operator_guidance": "Forward detections to tactical map overlay and request secondary verification before engagement decisions.",
+  "source": "airgapped_fixture"
+}
