@@ -1,0 +1,12 @@
+name: "recon-ng"
+slug: "recon-ng"
+domain: "intel"
+source_url: "https://github.com/lanmaster53/recon-ng"
+license: "Unknown"
+description: "Web reconnaissance framework for OSINT."
+integration_type: "adapter"
+capabilities:
+  - osint_collection
+  - surface_mapping
+  - target_profiling
+airgapped_support: true
