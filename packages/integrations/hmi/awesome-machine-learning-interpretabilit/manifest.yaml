@@ -1,0 +1,12 @@
+name: "awesome-machine-learning-interpretability"
+slug: "awesome-machine-learning-interpretabilit"
+domain: "hmi"
+source_url: "https://github.com/jphall663/awesome-machine-learning-interpretability"
+license: "MIT"
+description: "Curated responsible ML and interpretability resources"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "responsible_ml_reference"
+  - "interpretability_pattern_library"
+  - "governance_briefing_support"

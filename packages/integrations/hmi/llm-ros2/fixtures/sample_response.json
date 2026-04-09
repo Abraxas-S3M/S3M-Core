@@ -1,0 +1,20 @@
+{
+  "interaction_id": "llmros2-op-2026-04-09-009",
+  "operator_prompt": "Recon bot, scan sector Delta with LiDAR and report drivable corridors.",
+  "multimodal_state": {
+    "camera_feed": "front_rgb_cam",
+    "lidar_points": 143210,
+    "map_frame": "sector_delta_map"
+  },
+  "intent": "terrain_scan_and_route_assessment",
+  "ros2_plan": {
+    "node": "/mission_control_llm",
+    "action": "/recon_bot_2/scan_sector",
+    "waypoints_generated": 6
+  },
+  "response_text": "Scanning sector Delta now. Two drivable corridors identified and transmitted.",
+  "risk_assessment": {
+    "obstacle_density": "moderate",
+    "confidence": 0.91
+  }
+}

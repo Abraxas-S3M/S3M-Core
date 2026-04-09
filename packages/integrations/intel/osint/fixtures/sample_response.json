@@ -1,0 +1,31 @@
+{
+  "briefing_id": "osi-brief-2026-04-09-004",
+  "status": "ok",
+  "catalog_scope": "counter-network finance",
+  "resources_scanned": 312,
+  "recommended_toolchains": [
+    {
+      "pipeline_name": "entity-trace-basic",
+      "steps": [
+        "username enumeration",
+        "public records pivot",
+        "graph linkage review"
+      ],
+      "suitability": "high"
+    },
+    {
+      "pipeline_name": "logistics-route-watch",
+      "steps": [
+        "ship movement baseline",
+        "port call anomaly detection",
+        "beneficial ownership check"
+      ],
+      "suitability": "high"
+    }
+  ],
+  "risk_notes": [
+    "Two candidate tools require internet APIs and are excluded from sovereign deployment.",
+    "One collection script needs additional sanitization before use on classified enclaves."
+  ]
+}
+

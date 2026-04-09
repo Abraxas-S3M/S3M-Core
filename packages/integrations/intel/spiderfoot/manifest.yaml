@@ -1,0 +1,12 @@
+name: "spiderfoot"
+slug: "spiderfoot"
+domain: "intel"
+source_url: "https://github.com/smicallef/spiderfoot"
+license: "Unknown"
+description: "Automated OSINT tool for reconnaissance and threat intelligence."
+integration_type: "adapter"
+capabilities:
+  - threat_enrichment
+  - asset_discovery
+  - osint_automation
+airgapped_support: true

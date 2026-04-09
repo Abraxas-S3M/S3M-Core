@@ -1,0 +1,10 @@
+{
+  "event_id": "rva-mission-2026-04-09-031",
+  "recognized_speech": "Ground robot three, switch to silent movement and hold position.",
+  "nlp_intent": "movement_mode_change",
+  "target_robot": "ground_robot_3",
+  "published_topic": "/ground_robot_3/voice_commands",
+  "tts_feedback": "Silent movement enabled. Holding current position.",
+  "stt_confidence": 0.93,
+  "execution_status": "accepted"
+}

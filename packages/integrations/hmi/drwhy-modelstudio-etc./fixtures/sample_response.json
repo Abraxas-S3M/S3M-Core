@@ -1,0 +1,25 @@
+{
+  "analysis_id": "xai-brief-119",
+  "dashboard": "modelStudio",
+  "model_name": "threat-priority-classifier-v4",
+  "top_features": [
+    {
+      "name": "signal_confidence",
+      "importance": 0.32
+    },
+    {
+      "name": "route_volatility",
+      "importance": 0.21
+    },
+    {
+      "name": "comms_entropy",
+      "importance": 0.16
+    }
+  ],
+  "local_explanation": {
+    "sample_id": "pkt-8841",
+    "prediction": "high-risk",
+    "confidence": 0.91
+  },
+  "status": "ready_for_briefing"
+}

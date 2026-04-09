@@ -1,0 +1,12 @@
+name: "LLM-controlled-drone"
+slug: "llm-controlled-drone"
+domain: "hmi"
+source_url: "https://github.com/pratikPhadte/LLM-controlled-drone"
+license: "MIT"
+description: "Autonomous drone agent with natural language commands, local LLM, and YOLO vision (ROS2/PX4)."
+integration_type: "adapter"
+capabilities:
+  - "natural-language-flight-tasking"
+  - "local-yolo-target-detection"
+  - "ros2-px4-execution"
+airgapped_support: true

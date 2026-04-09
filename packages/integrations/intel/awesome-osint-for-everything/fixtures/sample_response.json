@@ -1,0 +1,28 @@
+{
+  "query_id": "osint-catalog-2026-04-09-005",
+  "generated_at": "2026-04-09T08:55:00Z",
+  "mission_focus": "counter-disinformation and infrastructure threat tracking",
+  "tool_domains": [
+    {
+      "domain": "social-media-monitoring",
+      "recommended_tools": ["Twint-like collectors", "Telegram OSINT utilities"],
+      "priority": "high"
+    },
+    {
+      "domain": "geospatial",
+      "recommended_tools": ["satellite imagery explorers", "geocoding validation kits"],
+      "priority": "high"
+    },
+    {
+      "domain": "darkweb",
+      "recommended_tools": ["credential leak trackers", "forum monitoring indexes"],
+      "priority": "medium"
+    }
+  ],
+  "planning_notes": [
+    "Assign collection ownership per domain to avoid duplication.",
+    "Validate legal constraints before active reconnaissance tasks.",
+    "Route high-confidence findings to fusion cell for cross-source corroboration."
+  ],
+  "status": "completed"
+}

@@ -1,0 +1,12 @@
+name: "osint_stuff_tool_collection"
+slug: "osint-stuff-tool-collection"
+domain: "intel"
+source_url: "https://github.com/cipher387/osint_stuff_tool_collection"
+license: "Unknown"
+description: "Extensive collection of OSINT tools, services, and techniques."
+integration_type: "adapter"
+capabilities:
+  - "tool_discovery"
+  - "workflow_indexing"
+  - "investigation_planning"
+airgapped_support: true

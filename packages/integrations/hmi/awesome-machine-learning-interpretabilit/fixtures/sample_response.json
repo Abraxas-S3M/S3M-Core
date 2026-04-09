@@ -1,0 +1,14 @@
+{
+  "resource_pack": "interpretability-ops-v2",
+  "focus_areas": [
+    "global_explanations",
+    "counterfactual_analysis",
+    "model_risk_governance"
+  ],
+  "mission_use_case": "command-level model assurance briefing",
+  "recommended_playbooks": [
+    "bias_audit_checklist",
+    "post_deployment_drift_review"
+  ],
+  "status": "curated"
+}
