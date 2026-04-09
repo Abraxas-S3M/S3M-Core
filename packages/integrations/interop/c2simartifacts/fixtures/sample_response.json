@@ -1,0 +1,16 @@
+{
+  "artifact_bundle_id": "c2sim-artifacts-091",
+  "operation": "validate_order_message_schema",
+  "standard": "C2SIM",
+  "schemas_loaded": [
+    "C2SIM_SMX_LOX_v1.0.xsd",
+    "OrderCore.xsd",
+    "MilitaryOrganization.xsd"
+  ],
+  "validation_summary": {
+    "documents_checked": 42,
+    "schema_errors": 0,
+    "warnings": 1
+  },
+  "status": "artifacts_ready_for_command_interop_rehearsal"
+}

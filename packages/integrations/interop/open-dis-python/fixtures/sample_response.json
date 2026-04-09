@@ -1,0 +1,15 @@
+{
+  "session_id": "open-dis-python-run-204",
+  "operation": "encode_pdu_batch",
+  "protocol_version": "DISv7",
+  "pdu_counts": {
+    "entity_state": 120,
+    "fire": 8,
+    "detonation": 8
+  },
+  "validation": {
+    "schema_checks_passed": true,
+    "checksum_failures": 0
+  },
+  "status": "packets_ready_for_battlespace_replay"
+}
