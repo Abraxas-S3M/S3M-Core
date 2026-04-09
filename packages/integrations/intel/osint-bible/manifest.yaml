@@ -1,0 +1,12 @@
+name: "OSINT-BIBLE"
+slug: "osint-bible"
+domain: "intel"
+source_url: "https://github.com/frangelbarrera/OSINT-BIBLE"
+license: "Unknown"
+description: "Comprehensive 2026 guide to OSINT tools, methodologies, and resources."
+integration_type: "adapter"
+capabilities:
+  - "methodology_guidance"
+  - "resource_cataloging"
+  - "briefing_support"
+airgapped_support: true

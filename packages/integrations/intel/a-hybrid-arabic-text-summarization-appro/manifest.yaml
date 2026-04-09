@@ -1,0 +1,16 @@
+name: "A-Hybrid-Arabic-Text-Summarization-Approach-based-on-Transformers"
+slug: "a-hybrid-arabic-text-summarization-appro"
+domain: "intel"
+source_url: "https://github.com/mohamedehab00/A-Hybrid-Arabic-Text-Summarization-Approach-based-on-Transformers"
+license: "Unknown"
+description: "Hybrid extractive/abstractive Arabic summarization with transformers."
+integration_type: "adapter"
+capabilities:
+  - "hybrid_summarization"
+  - "arabic_briefing_support"
+  - "offline_transformer_runtime"
+pip_dependencies:
+  - "transformers"
+  - "torch"
+  - "nltk"
+airgapped_support: true

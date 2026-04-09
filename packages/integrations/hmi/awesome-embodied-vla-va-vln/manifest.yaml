@@ -1,0 +1,12 @@
+name: "awesome-embodied-vla-va-vln"
+slug: "awesome-embodied-vla-va-vln"
+domain: "hmi"
+source_url: "https://github.com/jonyzhang2023/awesome-embodied-vla-va-vln"
+license: "MIT"
+description: "Curated list of embodied AI, VLA models, and navigation resources."
+integration_type: "adapter"
+capabilities:
+  - "resource_discovery"
+  - "vla_model_comparison"
+  - "navigation_reference_curation"
+airgapped_support: true

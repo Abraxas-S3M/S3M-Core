@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "pipeline": "hybrid_arabic_text_summarization",
+  "model_stack": {
+    "extractive": "arabic_sentence_ranker_quantized",
+    "abstractive": "transformer_decoder_quantized"
+  },
+  "input_profile": {
+    "document_id": "hyb-ara-1187",
+    "language": "ar",
+    "tokens_in": 944,
+    "topic": "critical_infrastructure_security"
+  },
+  "extractive_stage": {
+    "selected_sentences": 6,
+    "salience_threshold": 0.73,
+    "coverage_score": 0.9
+  },
+  "abstractive_stage": {
+    "tokens_out": 176,
+    "summary": "Situation report indicates coordinated reconnaissance activity around infrastructure nodes, with repeated probing patterns and synchronized communication bursts. Recommended action is to increase perimeter monitoring, reinforce rapid response teams, and continue multi-source corroboration before escalation.",
+    "confidence": 0.86
+  },
+  "tactical_note": "Hybrid summarization preserves key signal sentences while compressing narrative load for operational commanders."
+}

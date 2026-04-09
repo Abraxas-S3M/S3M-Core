@@ -1,0 +1,12 @@
+name: "octosuite"
+slug: "octosuite"
+domain: "intel"
+source_url: "https://github.com/bellingcat/octosuite"
+license: "Unknown"
+description: "GitHub OSINT framework for investigating repositories and users."
+integration_type: "adapter"
+capabilities:
+  - repo_investigation
+  - actor_profiling
+  - supply_chain_intel
+airgapped_support: true

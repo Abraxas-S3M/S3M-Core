@@ -1,0 +1,12 @@
+name: "ultravox"
+slug: "ultravox"
+domain: "hmi"
+source_url: "https://github.com/fixie-ai/ultravox"
+license: "(Open weights)"
+description: "Fast multimodal LLM for real-time voice interaction without separate ASR."
+integration_type: "adapter"
+capabilities:
+  - "multimodal-voice"
+  - "speech-text-fusion"
+  - "real-time-commanding"
+airgapped_support: true

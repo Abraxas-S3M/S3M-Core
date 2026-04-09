@@ -1,0 +1,30 @@
+{
+  "briefing_id": "aeg-brief-2026-04-09-005",
+  "status": "ok",
+  "early_warning_level": "amber",
+  "theater": "Northern maritime approaches",
+  "indicator_summary": {
+    "indicators_monitored": 58,
+    "critical_indicators": 4,
+    "trend_direction": "deteriorating"
+  },
+  "priority_alerts": [
+    {
+      "alert_id": "aeg-alert-11",
+      "type": "force_posture_shift",
+      "summary": "Observed increase in naval logistics movements across sector N-3.",
+      "confidence": 0.79
+    },
+    {
+      "alert_id": "aeg-alert-15",
+      "type": "information_environment",
+      "summary": "Coordinated narrative activity targeting port access reliability.",
+      "confidence": 0.72
+    }
+  ],
+  "recommended_actions": [
+    "Raise ISR priority for sector N-3 logistics corridors.",
+    "Issue commander update with confidence-bounded escalation pathways."
+  ]
+}
+

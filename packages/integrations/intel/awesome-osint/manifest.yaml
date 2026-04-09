@@ -1,0 +1,12 @@
+name: "awesome-osint"
+slug: "awesome-osint"
+domain: "intel"
+source_url: "https://github.com/jivoi/awesome-osint"
+license: "Unknown"
+description: "Curated list of open-source intelligence tools and references for mission planning workflows."
+integration_type: "adapter"
+capabilities:
+  - "resource_curation"
+  - "osint_training_support"
+  - "tool_reference_briefing"
+airgapped_support: true
