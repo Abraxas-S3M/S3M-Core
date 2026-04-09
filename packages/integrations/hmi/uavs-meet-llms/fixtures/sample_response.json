@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "simulation_run_id": "sim-uavllm-ops-001",
+  "mission_profile": "low_altitude_urban_recon",
+  "vehicle": {
+    "platform_id": "uav-alpha-07",
+    "sensor_stack": ["eo_ir_camera", "laser_altimeter"],
+    "battery_eta_minutes": 36
+  },
+  "operator_prompt": "Identify suspicious convoy movement near checkpoint delta.",
+  "model_summary": {
+    "task": "vision_language_target_cueing",
+    "confidence": 0.91,
+    "top_hypotheses": [
+      "two-light-vehicle convoy pausing at unregistered stop point",
+      "civilian maintenance crew around damaged utility truck"
+    ]
+  },
+  "recommended_actions": [
+    "maintain standoff altitude at 120m AGL",
+    "re-task secondary UAV for flank observation",
+    "request human confirmation before escalation"
+  ],
+  "safety_constraints": {
+    "no_fire_zone_respected": true,
+    "civilian_presence_risk": "moderate"
+  }
+}

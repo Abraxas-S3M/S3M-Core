@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "integration": "awesome-intelligence",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "briefing_focus": "Cross-domain OSINT collection planning",
+  "collections": [
+    {
+      "name": "General Intelligence Tradecraft",
+      "priority": "high",
+      "examples": [
+        "Structured analytic techniques",
+        "Collection management checklists",
+        "Attribution methodology references"
+      ]
+    },
+    {
+      "name": "Geospatial and Maritime OSINT",
+      "priority": "medium",
+      "examples": [
+        "AIS/SAT maritime trackers",
+        "Open satellite image repositories",
+        "Port activity anomaly guides"
+      ]
+    },
+    {
+      "name": "Threat Monitoring Sources",
+      "priority": "high",
+      "examples": [
+        "Incident reporting feeds",
+        "Conflict event datasets",
+        "Community threat intelligence digests"
+      ]
+    }
+  ],
+  "recommended_actions": [
+    "Map curated sources to priority intelligence requirements before tasking analysts.",
+    "Cross-check critical leads with at least two independent source categories.",
+    "Archive approved references locally to preserve airgapped continuity."
+  ]
+}

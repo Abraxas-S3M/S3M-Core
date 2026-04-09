@@ -1,0 +1,14 @@
+name: "AIX360"
+slug: "aix360"
+domain: "hmi"
+source_url: "https://github.com/Trusted-AI/AIX360"
+license: "Apache 2.0"
+description: "Comprehensive toolkit for interpretability and explainability of datasets and models."
+integration_type: "adapter"
+capabilities:
+  - "global_explanation"
+  - "local_explanation"
+  - "counterfactual_reasoning"
+pip_dependencies:
+  - "aix360"
+airgapped_support: true

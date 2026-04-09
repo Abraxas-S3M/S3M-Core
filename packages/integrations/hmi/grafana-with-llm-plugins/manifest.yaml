@@ -1,0 +1,12 @@
+name: "Grafana (with LLM plugins)"
+slug: "grafana-with-llm-plugins"
+domain: "hmi"
+source_url: "https://github.com/grafana/grafana"
+license: "AGPL-3.0"
+description: "Composable observability platform with AI/LLM tracing dashboards (OpenTelemetry integration)."
+integration_type: "adapter"
+capabilities:
+  - "dashboard_observability"
+  - "otel_trace_analysis"
+  - "llm_plugin_monitoring"
+airgapped_support: true

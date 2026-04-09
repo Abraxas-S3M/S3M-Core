@@ -1,0 +1,12 @@
+name: "ros-voice-assistant"
+slug: "ros-voice-assistant"
+domain: "hmi"
+source_url: "https://github.com/victorcarvesk/ros-voice-assistant"
+license: "MIT"
+description: "ROS2 package for voice-enabled robotic applications (TTS + SpeechRecognition)."
+integration_type: "adapter"
+capabilities:
+  - "speech-recognition"
+  - "text-to-speech"
+  - "robot-voice-control"
+airgapped_support: true

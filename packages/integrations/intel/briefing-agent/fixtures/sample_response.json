@@ -1,0 +1,32 @@
+{
+  "brief_id": "agent-brief-2026-04-09-009",
+  "generated_at": "2026-04-09T08:15:00Z",
+  "agents": [
+    {
+      "name": "collector-agent",
+      "status": "complete",
+      "sources_processed": 64
+    },
+    {
+      "name": "analysis-agent",
+      "status": "complete",
+      "hypotheses_tested": 11
+    },
+    {
+      "name": "redteam-agent",
+      "status": "complete",
+      "counter_narratives_identified": 3
+    }
+  ],
+  "consensus_assessment": {
+    "summary": "Coordinated messaging activity likely intended to degrade trust in regional ISR patrol reporting.",
+    "confidence": 0.84,
+    "risk_level": "high"
+  },
+  "commander_brief": [
+    "Prioritize verification of high-velocity claims from newly created accounts.",
+    "Issue synchronized factual updates through trusted partner channels.",
+    "Maintain elevated watch on ISR narrative manipulation attempts."
+  ],
+  "status": "completed"
+}

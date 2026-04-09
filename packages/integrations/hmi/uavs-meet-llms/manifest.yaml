@@ -1,0 +1,13 @@
+name: "UAVs_Meet_LLMs"
+slug: "uavs-meet-llms"
+domain: "hmi"
+source_url: "https://github.com/Hub-Tian/UAVs_Meet_LLMs"
+license: "MIT"
+description: "Integration of LLMs with UAVs for agentic low-altitude mobility (vision-language)."
+integration_type: "adapter"
+capabilities:
+  - "uav_mission_planning"
+  - "vision_language_reasoning"
+  - "agentic_task_coordination"
+pip_dependencies: []
+airgapped_support: true

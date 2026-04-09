@@ -1,0 +1,29 @@
+{
+  "fixture_version": "1.0",
+  "integration": "awesome-embodied-multimodal-llms",
+  "status": "ok",
+  "mission_profile": "embodied_hmi_model_triage",
+  "operation": "summarize_embodied_llm_resources",
+  "resource_snapshot": {
+    "total_entries_indexed": 227,
+    "categories": [
+      "vision_language_action",
+      "embodied_reasoning",
+      "robotic_planning_llms"
+    ],
+    "recommended_review_queue": [
+      {
+        "name": "Embodied chain-of-thought planner",
+        "priority": "high",
+        "justification": "Improves explainable route choice for semi-autonomous patrol units."
+      },
+      {
+        "name": "Vision-grounded manipulation policy",
+        "priority": "medium",
+        "justification": "Useful for logistics support and contested environment object handling."
+      }
+    ]
+  },
+  "operator_note": "Validate model provenance and risk posture before integrating into mission autonomy stacks.",
+  "source": "airgapped_fixture"
+}

@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "integration": "social-media-osint-tools-collection",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "tasking_context": "Regional influence and disinformation monitoring",
+  "platform_groups": [
+    {
+      "platform": "X/Twitter",
+      "priority": "high",
+      "tool_examples": [
+        "Tweet archive scrapers",
+        "Hashtag velocity trackers",
+        "Account network mappers"
+      ]
+    },
+    {
+      "platform": "Telegram",
+      "priority": "high",
+      "tool_examples": [
+        "Public channel indexers",
+        "Message timeline extractors",
+        "Forward-chain analyzers"
+      ]
+    },
+    {
+      "platform": "Instagram",
+      "priority": "medium",
+      "tool_examples": [
+        "Profile metadata collectors",
+        "Geotag clustering utilities",
+        "Story archival tools"
+      ]
+    }
+  ],
+  "tactical_notes": [
+    "Prioritize sources with historical reliability for operational decisions.",
+    "Correlate social-media observations with HUMINT or GEOINT before escalation.",
+    "Retain chain-of-custody metadata for all collected evidence."
+  ]
+}

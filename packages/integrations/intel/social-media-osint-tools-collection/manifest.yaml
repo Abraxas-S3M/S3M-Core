@@ -1,0 +1,12 @@
+name: "Social-Media-OSINT-Tools-Collection"
+slug: "social-media-osint-tools-collection"
+domain: "intel"
+source_url: "https://github.com/osintambition/Social-Media-OSINT-Tools-Collection"
+license: "Unknown"
+description: "Collection of social media OSINT tools."
+integration_type: "adapter"
+capabilities:
+  - "platform_tool_index"
+  - "social_collection_planning"
+  - "osint_reference_lookup"
+airgapped_support: true

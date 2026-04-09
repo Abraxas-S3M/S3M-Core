@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "integration": "phoneinfoga",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "query": {
+    "input": "+33 6 11 22 33 44",
+    "normalized_e164": "+33611223344"
+  },
+  "assessment": {
+    "country": "FR",
+    "carrier": "Example Mobile Carrier",
+    "line_type": "mobile",
+    "risk_score": 0.64,
+    "risk_factors": [
+      "Number appeared in credential-phishing lure metadata.",
+      "Multiple alias profiles observed across open messaging channels."
+    ]
+  },
+  "recommended_actions": [
+    "Correlate number sightings with active watchlist entities.",
+    "Task HUMINT team to validate ownership attribution confidence.",
+    "Escalate to counterintelligence cell when risk score exceeds 0.8."
+  ]
+}

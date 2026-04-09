@@ -1,0 +1,25 @@
+{
+  "mission_id": "drone-nl-2026-04-09-021",
+  "operator_command": "Drone Alpha, orbit grid F7 at 120 meters and mark any armored vehicles.",
+  "parsed_plan": {
+    "vehicle": "drone_alpha",
+    "mode": "orbit",
+    "grid": "F7",
+    "altitude_m": 120
+  },
+  "vision_stack": {
+    "model": "yolo-local-int8",
+    "detections": [
+      {
+        "class": "armored_vehicle",
+        "confidence": 0.84,
+        "grid_ref": "F7-3"
+      }
+    ]
+  },
+  "control_bus": {
+    "ros2_topic": "/drone_alpha/mission_cmd",
+    "px4_mode": "AUTO.LOITER"
+  },
+  "status": "mission_active"
+}

@@ -1,0 +1,35 @@
+{
+  "operation": "spiderfoot_scan",
+  "status": "success",
+  "scan_id": "sf-2026-0410-7721",
+  "target": "example-logistics-node.net",
+  "scan_profile": "mission-intel-baseline",
+  "modules_used": [
+    "sfp_dnsresolve",
+    "sfp_whois",
+    "sfp_shodan",
+    "sfp_socialprofiles"
+  ],
+  "risk_summary": {
+    "critical": 1,
+    "high": 3,
+    "medium": 6,
+    "low": 4
+  },
+  "indicators": [
+    {
+      "indicator_id": "sf-ind-112",
+      "type": "ip_address",
+      "value": "203.0.113.44",
+      "confidence": "high",
+      "assessment": "Associated with hostile scanning activity toward allied infrastructure."
+    },
+    {
+      "indicator_id": "sf-ind-198",
+      "type": "email",
+      "value": "procurement.ops@example-logistics-node.net",
+      "confidence": "medium",
+      "assessment": "Public exposure increases spear-phishing susceptibility for supply-chain operations."
+    }
+  ]
+}
