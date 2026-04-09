@@ -1,0 +1,14 @@
+name: "pr_behavior_tree"
+slug: "pr-behavior-tree"
+domain: "autonomy"
+source_url: "https://github.com/personalrobotics/pr_behavior_tree"
+license: "MIT"
+description: "Simple Python BT library using coroutines"
+integration_type: "adapter"
+capabilities:
+  - "python_behavior_trees"
+  - "coroutine_execution"
+  - "edge_decision_logic"
+pip_dependencies:
+  - "pr_behavior_tree"
+airgapped_support: true

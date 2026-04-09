@@ -1,0 +1,14 @@
+name: "nav2_behavior_tree"
+slug: "nav2-behavior-tree"
+domain: "autonomy"
+source_url: "https://github.com/ros-planning/navigation2(nav2_behavior_tree"
+license: "BSD"
+description: "Behavior Tree integration in ROS2 Navigation2 stack"
+integration_type: "adapter"
+capabilities:
+  - "behavior_tree_execution"
+  - "path_replanning"
+  - "navigation_mission_control"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

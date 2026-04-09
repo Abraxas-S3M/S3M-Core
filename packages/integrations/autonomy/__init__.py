@@ -1,1 +1,1 @@
-"""Autonomy domain integrations for S3M tactical AI workflows."""
+"""Autonomy-domain integration wrappers for tactical mission orchestration."""
