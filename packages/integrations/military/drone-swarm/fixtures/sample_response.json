@@ -1,0 +1,20 @@
+{
+  "mission_id": "swarm-drill-2026-04-09-021",
+  "network_architecture": "MQLINK",
+  "swarm_size": 16,
+  "theater": "contested_urban_corridor",
+  "status": "link_stable",
+  "latency_ms": 22,
+  "packet_delivery_ratio": 0.984,
+  "formation_state": "adaptive_wedge",
+  "autonomy_level": "human_supervised",
+  "threat_flags": [
+    "gps_jamming_detected_sector_3",
+    "intermittent_rf_interference_sector_5"
+  ],
+  "recommended_actions": [
+    "Shift relay leader to unit-07 to preserve command mesh continuity.",
+    "Enable anti-jam fallback waveform profile bravo.",
+    "Reduce strike package spacing by 12 percent before waypoint delta."
+  ]
+}
