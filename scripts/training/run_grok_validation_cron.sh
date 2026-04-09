@@ -26,4 +26,4 @@ if [[ "${MODE}" == "api" ]]; then
 fi
 
 cd "${REPO_ROOT}"
-python scripts/training/run_grok_validation.py --mode "${MODE}" ${TRACK_ARG} ${XAI_ARG}
+python3 scripts/training/run_grok_validation.py --mode "${MODE}" ${TRACK_ARG} ${XAI_ARG}
