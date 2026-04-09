@@ -1,0 +1,20 @@
+{
+  "command_id": "byc-c2-2026-04-09-014",
+  "input_mode": "voice",
+  "recognized_text": "Scout rover, advance to waypoint Echo and inspect left-side alley.",
+  "vision_context": {
+    "camera_enabled": true,
+    "detections": [
+      {
+        "label": "vehicle",
+        "confidence": 0.88,
+        "bearing_deg": 73
+      }
+    ]
+  },
+  "parsed_intent": "navigate_and_inspect",
+  "target_robot": "scout_rover_1",
+  "ros2_action": "/scout_rover_1/mission/navigate_inspect",
+  "safety_verdict": "approved",
+  "acknowledgement": "Command accepted and routed to ROS2 action server."
+}
