@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "platform": "langfuse",
+  "workspace": "s3m-mission-observability",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "trace_summary": {
+    "total_traces": 462,
+    "successful_traces": 441,
+    "failed_traces": 21,
+    "p95_latency_ms": 912
+  },
+  "evaluation_rollup": {
+    "mission_brief_accuracy": 0.93,
+    "rules_of_engagement_compliance": 0.99,
+    "hallucination_rate": 0.02
+  },
+  "prompt_governance": {
+    "approved_prompts": 38,
+    "flagged_prompt_changes": 2
+  },
+  "tactical_assessment": "Observability posture supports high-tempo command decisions under disconnected operations."
+}

@@ -1,0 +1,12 @@
+name: "phoenix"
+slug: "phoenix"
+domain: "hmi"
+source_url: "https://github.com/arize-ai/phoenix"
+license: "Apache 2.0"
+description: "Open-source AI observability platform for experimentation, evaluation, tracing, and troubleshooting."
+integration_type: "adapter"
+capabilities:
+  - "experiment_tracking"
+  - "trace_analysis"
+  - "evaluation_triage"
+airgapped_support: true

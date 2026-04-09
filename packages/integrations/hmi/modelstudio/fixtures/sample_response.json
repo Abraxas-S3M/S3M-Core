@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "platform": "modelstudio",
+  "model_name": "friendly-force-logistics-eta-v2",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "model_exploration": {
+    "global_fit_score": 0.9,
+    "worst_case_error_minutes": 18.4,
+    "most_sensitive_feature": "bridge_capacity_estimate"
+  },
+  "residual_review": {
+    "high_error_segments": 3,
+    "largest_bias_segment": "mountain_supply_routes",
+    "recommended_data_collection": "Increase winter terrain observations for convoy timing."
+  },
+  "what_if_analysis": {
+    "scenario": "reduced_route_access",
+    "eta_shift_minutes": 11.2
+  },
+  "tactical_assessment": "Model exploration indicates acceptable mission-logistics forecasting with identified edge-case bias."
+}

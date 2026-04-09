@@ -1,0 +1,12 @@
+name: "modelStudio"
+slug: "modelstudio"
+domain: "hmi"
+source_url: "https://github.com/ModelOriented/modelStudio"
+license: "GPL-3.0"
+description: "Interactive dashboard generator for model exploration and explanations (R/Python)."
+integration_type: "adapter"
+capabilities:
+  - "model_exploration"
+  - "explanation_dashboard"
+  - "scenario_drilldown"
+airgapped_support: true

@@ -1,1 +1,1 @@
-"""Human-Machine Teaming domain integration wrappers for S3M."""
+"""Human-Machine Teaming Open Source domain integration wrappers for S3M."""
