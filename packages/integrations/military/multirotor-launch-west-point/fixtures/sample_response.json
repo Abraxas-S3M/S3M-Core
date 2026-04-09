@@ -1,0 +1,28 @@
+{
+  "mission_id": "uav-launch-2026-04-09-wp-014",
+  "site": "foxtrot-ridge-forward-pad",
+  "uav_team": [
+    "alpha-1",
+    "alpha-2",
+    "alpha-3"
+  ],
+  "launch_profile": {
+    "package_name": "glaws_multirotor",
+    "launch_file": "multirotor_mission.launch",
+    "formation": "staggered-diamond",
+    "altitude_m_agl": 110,
+    "deconfliction_radius_m": 70
+  },
+  "preflight_checks": {
+    "gps_lock": "pass",
+    "imu_calibration": "pass",
+    "battery_health": "pass",
+    "payload_link": "pass"
+  },
+  "command_bus": {
+    "ros_master": "127.0.0.1:11311",
+    "telemetry_topic": "/glaws/fleet/telemetry",
+    "mission_topic": "/glaws/fleet/mission_cmd"
+  },
+  "status": "launch-plan-validated"
+}
