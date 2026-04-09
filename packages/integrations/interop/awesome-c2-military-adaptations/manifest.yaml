@@ -1,0 +1,12 @@
+name: "awesome-c2 (military adaptations)"
+slug: "awesome-c2-military-adaptations"
+domain: "interop"
+source_url: "Search related awesome lists and forks"
+license: "Unknown"
+description: "Curated military C2 and interoperability resources"
+integration_type: "adapter"
+capabilities:
+  - "c2-resource-catalog"
+  - "interoperability-references"
+  - "military-adaptation-guidance"
+airgapped_support: true

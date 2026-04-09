@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "integration": "open-dis-supporting-libraries",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "mission_context": "Brigade simulation federation data exchange",
+  "coordinate_conversion": {
+    "input_frame": "WGS84",
+    "output_frame": "ECEF",
+    "sample_point": {
+      "latitude_deg": 24.7136,
+      "longitude_deg": 46.6753,
+      "altitude_m": 612.4
+    },
+    "converted_point": {
+      "x_m": 1946055.12,
+      "y_m": 5190807.41,
+      "z_m": 2665831.77
+    },
+    "error_radius_m": 1.9
+  },
+  "pdu_validation": {
+    "pdu_type": "Entity State PDU",
+    "edition": "IEEE 1278.1-2012",
+    "total_pdus_checked": 36,
+    "valid_pdus": 34,
+    "invalid_pdus": 2,
+    "issues": [
+      {
+        "pdu_index": 11,
+        "severity": "medium",
+        "message": "Timestamp jitter exceeded interoperability threshold."
+      },
+      {
+        "pdu_index": 24,
+        "severity": "high",
+        "message": "Entity type field out of allowed doctrine profile bounds."
+      }
+    ]
+  },
+  "recommended_actions": [
+    "Replay malformed PDUs through pre-mission certification pipeline.",
+    "Apply stricter timestamp normalization in gateway translation layer."
+  ]
+}

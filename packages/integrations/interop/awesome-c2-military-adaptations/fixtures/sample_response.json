@@ -1,0 +1,53 @@
+{
+  "status": "ok",
+  "integration": "awesome-c2-military-adaptations",
+  "generated_at": "2026-04-09T00:00:00Z",
+  "mission_focus": "Coalition C2 interoperability modernization",
+  "resource_catalog": [
+    {
+      "topic": "NATO APP-11 message alignment",
+      "priority": "high",
+      "resource_count": 7,
+      "sample_items": [
+        "Link-16 gateway implementation notes",
+        "Message profile translation checklists",
+        "Coalition data field harmonization examples"
+      ]
+    },
+    {
+      "topic": "Joint fires coordination interfaces",
+      "priority": "high",
+      "resource_count": 5,
+      "sample_items": [
+        "Digital CAS request workflow references",
+        "Fire mission message interoperability guides",
+        "C2 node synchronization patterns"
+      ]
+    },
+    {
+      "topic": "Battle management UX and doctrine mapping",
+      "priority": "medium",
+      "resource_count": 6,
+      "sample_items": [
+        "Command-post dashboard adaptation patterns",
+        "Doctrinal symbol standardization references",
+        "Operator training handover templates"
+      ]
+    }
+  ],
+  "capability_mapping": {
+    "current_stack": "Legacy brigade C2 baseline",
+    "identified_gaps": [
+      "No standardized coalition message profile",
+      "Limited schema translation for partner feeds"
+    ],
+    "recommended_tracks": [
+      "Adopt interoperable message normalization layer",
+      "Build doctrine-aware metadata crosswalks for shared COP updates"
+    ]
+  },
+  "recommended_actions": [
+    "Prioritize resources tagged high for next command-post exercise cycle.",
+    "Mirror approved repositories into sovereign artifact storage for offline continuity."
+  ]
+}
