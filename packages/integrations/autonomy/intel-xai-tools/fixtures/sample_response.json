@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "integration": "intel-xai-tools",
+  "analysis_type": "model_explainability",
+  "mission_profile": "border_surveillance_uav_classifier",
+  "feature_attribution": [
+    {
+      "feature": "thermal_signature_variance",
+      "importance": 0.34,
+      "impact": "positive"
+    },
+    {
+      "feature": "pattern_of_life_shift",
+      "importance": 0.27,
+      "impact": "positive"
+    },
+    {
+      "feature": "terrain_occlusion_index",
+      "importance": 0.12,
+      "impact": "negative"
+    }
+  ],
+  "fairness_audit": {
+    "bias_risk": "low",
+    "demographic_parity_delta": 0.04,
+    "equalized_odds_delta": 0.03
+  },
+  "commander_summary": "Explanation confidence is sufficient for supervised deployment in training-sector operations."
+}
