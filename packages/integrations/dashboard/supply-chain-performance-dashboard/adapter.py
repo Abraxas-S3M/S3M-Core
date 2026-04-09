@@ -81,6 +81,10 @@ class SupplyChainPerformanceDashboardAdapter(IntegrationAdapter):
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute wrapper and return fixture-backed response when airgapped."""
+        if params is not None and not isinstance(params, dict):
+            raise ValueError(
+                "Supply-Chain-Performance-Dashboard execute params must be a dictionary."
+            )
         safe_params = params or {}
         operation = str(safe_params.get("operation") or "performance-overview")
 

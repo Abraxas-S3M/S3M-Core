@@ -1,0 +1,20 @@
+{
+  "tree_id": "urban-route-clearance-v2",
+  "mission_context": "convoy_route_security",
+  "tick_rate_hz": 30.0,
+  "execution_summary": {
+    "ticks_processed": 390,
+    "final_status": "SUCCESS",
+    "fallback_branches_triggered": 2,
+    "recovery_actions": [
+      "reroute-around-threat-sector",
+      "temporary-hold-at-checkpoint-bravo"
+    ]
+  },
+  "node_metrics": {
+    "total_nodes": 64,
+    "success_nodes": 58,
+    "failure_nodes": 1,
+    "running_nodes": 5
+  }
+}

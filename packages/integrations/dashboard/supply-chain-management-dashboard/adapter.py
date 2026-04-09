@@ -81,6 +81,8 @@ class SupplyChainManagementDashboardAdapter(IntegrationAdapter):
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute adapter with secure fixture fallback in airgapped mode."""
+        if params is not None and not isinstance(params, dict):
+            raise ValueError("Supply-Chain-Management-Dashboard execute params must be a dictionary.")
         safe_params = params or {}
         operation = str(safe_params.get("operation") or "logistics-overview")
 

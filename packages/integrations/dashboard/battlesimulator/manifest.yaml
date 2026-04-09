@@ -1,0 +1,13 @@
+name: "BattleSimulator"
+slug: "battlesimulator"
+domain: "dashboard"
+source_url: "https://github.com/gregparkes/BattleSimulator"
+license: "MIT"
+description: "Animated 2D battle visualizer/dashboard for unit behaviors and simulations."
+integration_type: "adapter"
+capabilities:
+  - "simulation_playback"
+  - "unit_behavior_visualization"
+  - "after_action_review"
+airgapped_support: true
+

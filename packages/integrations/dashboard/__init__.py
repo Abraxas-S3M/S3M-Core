@@ -1,1 +1,1 @@
-"""Dashboard integration domain for S3M wrappers."""
+"""Dashboard-domain integration adapters for tactical command surfaces."""

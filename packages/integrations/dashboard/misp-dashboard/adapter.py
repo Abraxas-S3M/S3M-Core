@@ -77,7 +77,12 @@ class MispDashboardAdapter(IntegrationAdapter):
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute dashboard wrapper with fixture fallback in airgapped mode."""
-        safe_params = params or {}
+        if params is None:
+            safe_params: dict[str, Any] = {}
+        elif isinstance(params, dict):
+            safe_params = params
+        else:
+            raise ValueError("MISP-Dashboard execute params must be a dictionary.")
         operation = str(safe_params.get("operation") or "threat-stream")
 
         if self.is_airgapped:

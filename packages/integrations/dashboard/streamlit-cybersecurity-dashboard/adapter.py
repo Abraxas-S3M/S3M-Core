@@ -81,7 +81,14 @@ class StreamlitCybersecurityDashboardAdapter(IntegrationAdapter):
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute wrapper and return fixture data under airgapped posture."""
-        safe_params = params or {}
+        if params is None:
+            safe_params: dict[str, Any] = {}
+        elif isinstance(params, dict):
+            safe_params = params
+        else:
+            raise ValueError(
+                "Streamlit-Cybersecurity-Dashboard execute params must be a dictionary."
+            )
         operation = str(safe_params.get("operation") or "incident-overview")
 
         if self.is_airgapped:
