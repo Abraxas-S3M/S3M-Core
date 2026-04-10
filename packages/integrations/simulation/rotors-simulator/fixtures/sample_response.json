@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "sortie_id": "rotor-recon-14",
+  "generated_at": "2026-04-10T08:30:00Z",
+  "vehicle_state": {
+    "frame": "multirotor-x",
+    "position_enu_m": [128.2, 45.7, 62.4],
+    "attitude_rpy_deg": [2.1, -1.4, 84.0],
+    "velocity_mps": [7.3, 0.8, -0.2]
+  },
+  "controller_status": {
+    "tracking_error_m": 0.42,
+    "motor_saturation": false,
+    "estimator_health": "nominal"
+  },
+  "environment": {
+    "wind_mps": 5.1,
+    "gps_jamming": "none",
+    "terrain_profile": "mixed-urban"
+  },
+  "recommended_actions": [
+    "Reduce lateral speed before entering narrow canyon segment.",
+    "Switch to conservative gain profile under gust conditions.",
+    "Flag waypoint WP-19 for alternate approach in next rehearsal."
+  ]
+}

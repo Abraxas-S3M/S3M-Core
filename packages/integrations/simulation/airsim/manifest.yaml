@@ -1,0 +1,12 @@
+name: "AirSim"
+slug: "airsim"
+domain: "simulation"
+source_url: "https://github.com/microsoft/AirSim"
+license: "MIT"
+description: "Photorealistic simulator for drones, cars, and autonomous systems (Unreal Engine)."
+integration_type: "adapter"
+capabilities:
+  - "uav_telemetry_snapshot"
+  - "sensor_fusion_feed_simulation"
+  - "autonomy_policy_rehearsal"
+airgapped_support: true

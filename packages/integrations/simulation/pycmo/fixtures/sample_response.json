@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "scenario_id": "cmo-baltic-escalation-001",
+  "turn": 42,
+  "generated_at": "2026-04-10T08:15:00Z",
+  "episode_metrics": {
+    "reward": 17.4,
+    "mission_success_probability": 0.71,
+    "friendly_losses": 2,
+    "opfor_losses": 6
+  },
+  "observation_summary": {
+    "detected_hostile_contacts": 14,
+    "active_friendly_sorties": 9,
+    "fuel_state_percent": 68,
+    "air_defense_readiness": "high"
+  },
+  "recommended_actions": [
+    "Shift CAP patrol east to close radar coverage gap.",
+    "Prioritize SEAD package against coastal SAM battery.",
+    "Commit reserve tanker within next two simulation turns."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "exercise_id": "op-desert-spear-03",
+  "generated_at": "2026-04-10T08:20:00Z",
+  "game_clock_seconds": 1860,
+  "blue_force": {
+    "controlled_zones": 7,
+    "combat_power_index": 0.82,
+    "supply_status": "stable"
+  },
+  "red_force": {
+    "controlled_zones": 5,
+    "combat_power_index": 0.64,
+    "detected_maneuver_axis": "western_ridge"
+  },
+  "rl_agent_feedback": {
+    "policy_id": "ppo-bde-2",
+    "step_reward": 5.8,
+    "confidence": 0.77
+  },
+  "recommended_actions": [
+    "Reinforce western ridge with one mechanized platoon.",
+    "Commit ISR drone to sector delta for route denial confirmation.",
+    "Delay reserve armor push until artillery suppression window opens."
+  ]
+}
