@@ -1,1 +1,1 @@
-"""Readiness-domain integration wrappers for personnel mission readiness."""
+"""Readiness-domain integration adapters for personnel and force preparation."""
