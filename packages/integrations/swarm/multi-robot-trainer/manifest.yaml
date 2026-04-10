@@ -1,0 +1,12 @@
+name: "multi_robot_trainer"
+slug: "multi-robot-trainer"
+domain: "swarm"
+source_url: "https://github.com/zmk5/multi_robot_trainer"
+license: "MIT"
+description: "Deep RL ROS2 package for synchronous/asynchronous training of single or multiple robots."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "multi_robot_training"
+  - "policy_optimization"
+  - "ros2_simulation"
