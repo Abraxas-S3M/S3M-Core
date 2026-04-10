@@ -1,0 +1,13 @@
+name: "TRACK-MY-VOYAGE"
+slug: "track-my-voyage"
+domain: "sensor_analytics"
+source_url: "https://github.com/gopika-10/TRACK-MY-VOYAGE"
+license: "Unknown"
+description: "YOLOv8-based maritime vessel detection and classification from satellite and aerial imagery feeds."
+integration_type: "adapter"
+capabilities:
+  - yolov8_ship_detection
+  - real_time_classification
+  - imagery_inference_pipeline
+
+airgapped_support: true

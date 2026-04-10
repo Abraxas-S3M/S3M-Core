@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "mission_id": "tmv-op-4417",
+  "region": "Northern Sea Corridor",
+  "imagery_source": "satellite_aerial_fusion",
+  "detections": [
+    {
+      "track_id": "VSL-1001",
+      "class_label": "cargo_ship",
+      "confidence": 0.94,
+      "bbox_xywh": [
+        1820,
+        960,
+        210,
+        86
+      ],
+      "velocity_kts": 14.2,
+      "heading_deg": 72
+    },
+    {
+      "track_id": "VSL-1002",
+      "class_label": "patrol_boat",
+      "confidence": 0.9,
+      "bbox_xywh": [
+        732,
+        418,
+        88,
+        45
+      ],
+      "velocity_kts": 29.8,
+      "heading_deg": 201
+    }
+  ],
+  "threat_summary": {
+    "high_risk_tracks": 0,
+    "watchlist_matches": 1,
+    "engagement_recommendation": "monitor"
+  },
+  "generated_at": "2026-04-10T00:00:00Z"
+}

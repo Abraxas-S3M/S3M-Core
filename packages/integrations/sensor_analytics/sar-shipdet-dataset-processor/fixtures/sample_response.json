@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "job_id": "sarshipdet-job-1903",
+  "input_datasets": [
+    "SSDD",
+    "HRSID",
+    "LS-SSDD-v1.0"
+  ],
+  "output_layout": {
+    "images": 12740,
+    "annotations": 12740,
+    "splits": {
+      "train": 10192,
+      "val": 1274,
+      "test": 1274
+    }
+  },
+  "quality_checks": {
+    "invalid_boxes_removed": 37,
+    "duplicate_records_removed": 12,
+    "orphan_annotations": 0
+  },
+  "artifact_path": "/opt/s3m/datasets/sar-shipdet-dataset-processor/normalized_bundle",
+  "generated_at": "2026-04-10T00:00:00Z"
+}
