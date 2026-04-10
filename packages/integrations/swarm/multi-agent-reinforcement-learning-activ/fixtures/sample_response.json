@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "active-slam-2026-04-10-07",
+  "operation": "run_active_slam_episode",
+  "team_id": "scout-pack-4",
+  "agents": [
+    "uav-scout-1",
+    "uav-scout-2",
+    "ugv-scout-1"
+  ],
+  "episode_summary": {
+    "duration_s": 930,
+    "frontier_cells_explored": 1840,
+    "map_coverage_ratio": 0.87
+  },
+  "coordination_metrics": {
+    "inter_agent_conflicts": 2,
+    "packet_loss_ratio": 0.03,
+    "decentralized_policy_reward": 72.8
+  },
+  "tactical_assessment": {
+    "unknown_sector_reduction": "high",
+    "map_quality": "usable_for_assault_planning"
+  }
+}
