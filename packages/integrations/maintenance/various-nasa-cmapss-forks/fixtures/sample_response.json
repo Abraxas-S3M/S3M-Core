@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "integration_id": "various-nasa-cmapss-forks",
+  "domain": "maintenance",
+  "operation": "estimate_remaining_useful_life",
+  "generated_at": "2026-04-10T08:58:00Z",
+  "dataset": "FD004",
+  "engine_predictions": [
+    {
+      "engine_id": "fd004-209",
+      "cycles_observed": 187,
+      "rul_estimate_cycles": 24,
+      "risk_level": "high"
+    },
+    {
+      "engine_id": "fd004-233",
+      "cycles_observed": 164,
+      "rul_estimate_cycles": 47,
+      "risk_level": "medium"
+    }
+  ],
+  "maintenance_window": {
+    "next_24h_candidates": 1,
+    "next_72h_candidates": 3,
+    "recommended_action": "prioritize_engine_fd004-209_for_inspection"
+  }
+}
