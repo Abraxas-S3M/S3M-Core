@@ -1,0 +1,29 @@
+{
+  "operation": "professional_wargame_run",
+  "status": "success",
+  "exercise_id": "wargamesai-ts-2026-0410-1002",
+  "scenario": "urban_counteroffensive_phase2",
+  "blue_team_objective": "secure logistics corridor and suppress enemy artillery batteries",
+  "agent_turns": [
+    {
+      "turn": 1,
+      "blue_action": "deploy ISR drones and reserve armor behind cover",
+      "red_action": "counter-battery fire with decoy launchers",
+      "adjudication": "blue ISR confirms 2 decoy positions, preserves main force"
+    },
+    {
+      "turn": 2,
+      "blue_action": "precision fires on confirmed artillery nodes",
+      "red_action": "rapid displacement to secondary firing points",
+      "adjudication": "blue degrades red fire capacity by 43 percent"
+    }
+  ],
+  "after_action_review": {
+    "mission_outcome": "favorable",
+    "key_lessons": [
+      "staggered reconnaissance reduced exposure to deception",
+      "distributed command posts maintained tempo under EW pressure"
+    ],
+    "readiness_score": 0.82
+  }
+}

@@ -1,0 +1,12 @@
+name: "LLMWargaming"
+slug: "llmwargaming"
+domain: "training_sim"
+source_url: "https://github.com/ancorso/LLMWargaming"
+license: "Unknown"
+description: "LLM-driven military wargaming tools for decision-making simulation workflows."
+integration_type: "adapter"
+capabilities:
+  - "coa_generation"
+  - "decision_support_simulation"
+  - "mission_rehearsal"
+airgapped_support: true

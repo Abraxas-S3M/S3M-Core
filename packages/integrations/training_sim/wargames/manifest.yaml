@@ -1,0 +1,12 @@
+name: "Wargames"
+slug: "wargames"
+domain: "training_sim"
+source_url: "https://github.com/thomsen85/Wargames"
+license: "Unknown"
+description: "Java war simulation integration with terrain and unit-mechanics training support."
+integration_type: "adapter"
+capabilities:
+  - "terrain_simulation"
+  - "unit_mechanics"
+  - "mission_rehearsal"
+airgapped_support: true

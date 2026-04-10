@@ -1,0 +1,37 @@
+{
+  "mission_id": "air-ground-lingual-05",
+  "timestamp_utc": "2026-04-10T09:55:41Z",
+  "language_command": "Secure the eastern corridor, identify blocked routes, and maintain overwatch.",
+  "parsed_objectives": [
+    "secure_corridor_east",
+    "route_reconnaissance",
+    "persistent_overwatch"
+  ],
+  "teaming_plan": {
+    "air_assets": [
+      {
+        "unit": "uav-scout-2",
+        "task": "overwatch",
+        "sector": "east-ridge"
+      }
+    ],
+    "ground_assets": [
+      {
+        "unit": "ugv-pathfinder-4",
+        "task": "route_probe",
+        "sector": "corridor-e1"
+      },
+      {
+        "unit": "ugv-support-1",
+        "task": "checkpoint_security",
+        "sector": "junction-j3"
+      }
+    ]
+  },
+  "coordination_metrics": {
+    "expected_completion_min": 18,
+    "deconfliction_confidence": 0.91,
+    "comms_load": "moderate"
+  },
+  "notes": "Planner produced synchronized air-ground task graph suitable for offline execution in unknown urban terrain."
+}
