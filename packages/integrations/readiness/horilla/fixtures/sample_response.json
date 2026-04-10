@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "horilla-rd-2026-0410-0830z",
+  "region": "southern-joint-task-force",
+  "as_of_utc": "2026-04-10T08:30:00Z",
+  "language_support": [
+    "en",
+    "ar",
+    "fr"
+  ],
+  "personnel_status": {
+    "active": 1732,
+    "field_deployable": 1618,
+    "pending_clearance": 46,
+    "medical_monitoring": 68
+  },
+  "attendance_readiness": {
+    "last_7_days_compliance_pct": 96.1,
+    "critical_absence_cases": 7
+  },
+  "certification_watchlist": [
+    {
+      "unit": "Rapid Response Group 2",
+      "certification": "Urban Tactical Medicine",
+      "expiring_within_days": 14,
+      "personnel_affected": 11
+    }
+  ],
+  "status": "stable"
+}
