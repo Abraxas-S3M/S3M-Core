@@ -1,0 +1,20 @@
+{
+  "event_id": "gtn-sa-2026-04-10-003",
+  "theater": "eastern-mediterranean",
+  "surveillance_window_utc": "2026-04-10T01:00:00Z/2026-04-10T03:00:00Z",
+  "vessel_track": {
+    "mmsi": "271004113",
+    "track_points": 172,
+    "avg_speed_knots": 14.6
+  },
+  "anomaly_assessment": {
+    "score": 0.93,
+    "flags": ["dark_activity_gap", "non_compliant_course_shift", "rendezvous_pattern"]
+  },
+  "satellite_correlation": {
+    "imagery_hits": 2,
+    "latest_capture_id": "sentinel2-l2a-t34scc-20260410t021421",
+    "confidence": 0.89
+  },
+  "status": "queued_for_maritime_fusion_cell"
+}

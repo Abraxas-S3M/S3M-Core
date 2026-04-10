@@ -1,0 +1,12 @@
+name: "particle_filter"
+slug: "particle-filter"
+domain: "sensor_fusion"
+source_url: "https://github.com/JMU-ROBOTICS-VIVA/particle_filter"
+license: "MIT"
+description: "Pure-Python ROS2 Particle Filter as a drop-in localization fallback for Nav2."
+integration_type: "adapter"
+capabilities:
+  - "particle-localization"
+  - "nav2-localization-fallback"
+  - "pose-estimation"
+airgapped_support: true

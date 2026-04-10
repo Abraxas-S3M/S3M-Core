@@ -1,0 +1,12 @@
+name: "Ninja"
+slug: "ninja"
+domain: "comms"
+source_url: "https://github.com/ahmedkhlief/Ninja"
+license: "Unknown"
+description: "Stealthy encrypted C2 server wrapper for tactical field operations."
+integration_type: "adapter"
+capabilities:
+  - "encrypted_c2_exchange"
+  - "stealth_channel_health"
+  - "field_session_tracking"
+airgapped_support: true

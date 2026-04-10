@@ -1,0 +1,12 @@
+name: "AIS-Visual-Fusion"
+slug: "ais-visual-fusion"
+domain: "sensor_analytics"
+source_url: "https://github.com/QuJX/AIS-Visual-Fusion"
+license: "Unknown"
+description: "Video and AIS fusion for intelligent maritime surveillance."
+integration_type: "adapter"
+capabilities:
+  - "track_association"
+  - "ais_video_alignment"
+  - "maritime_activity_monitoring"
+airgapped_support: true

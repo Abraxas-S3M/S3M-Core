@@ -1,0 +1,37 @@
+{
+  "mission_id": "isr-seg-2026-04-10-1200z",
+  "imagery_source": "satellite",
+  "tile_id": "36QWD_20260410T101500",
+  "operation": "segment_satellite_imagery",
+  "model_profile": {
+    "name": "samgeo-edge-quantized",
+    "precision": "int8",
+    "backend": "onnxruntime"
+  },
+  "detections": [
+    {
+      "class": "runway",
+      "confidence": 0.94,
+      "polygon_points": 52,
+      "area_m2": 31876.4
+    },
+    {
+      "class": "hardened_shelter",
+      "confidence": 0.89,
+      "polygon_points": 31,
+      "area_m2": 1278.6
+    },
+    {
+      "class": "vehicle_cluster",
+      "confidence": 0.86,
+      "polygon_points": 19,
+      "estimated_count": 14
+    }
+  ],
+  "threat_indicators": {
+    "activity_level": "elevated",
+    "change_vs_previous_scan": "new_vehicle_cluster_detected"
+  },
+  "status": "ok",
+  "generated_at": "2026-04-10T12:00:00Z"
+}

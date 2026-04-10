@@ -1,0 +1,12 @@
+name: "arabic-text-classification-summarization"
+slug: "arabic-text-classification-summarization"
+domain: "comms"
+source_url: "https://github.com/NouraAbuthnain/arabic-text-classification-summarization"
+license: "Unknown"
+description: "Arabic text classification and summarization using transformers."
+integration_type: "adapter"
+capabilities:
+  - "arabic_topic_classification"
+  - "arabic_summarization"
+  - "offline_fixture_replay"
+airgapped_support: true

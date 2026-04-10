@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "mission_id": "maritime-anomaly-2026-04-10-geo-17",
+  "operation": "detect_maritime_anomalies_from_ais_tracks",
+  "area_of_interest": "northern_red_sea_sector_bravo",
+  "window_utc": {
+    "start": "2026-04-10T00:00:00Z",
+    "end": "2026-04-10T06:00:00Z"
+  },
+  "model_summary": {
+    "name": "GeoTrackNet",
+    "inference_mode": "probabilistic_track_model",
+    "tracks_evaluated": 142
+  },
+  "detections": [
+    {
+      "track_id": "ais-773441",
+      "anomaly_score": 0.93,
+      "behavior": "unexpected_loitering_near_shipping_lane",
+      "risk_level": "high"
+    },
+    {
+      "track_id": "ais-771908",
+      "anomaly_score": 0.81,
+      "behavior": "route_deviation_from_declared_destination",
+      "risk_level": "medium"
+    }
+  ],
+  "tactical_assessment": {
+    "recommended_action": "queue_for_isr_review",
+    "watchlist_updates": 2,
+    "mission_readiness": "go"
+  }
+}

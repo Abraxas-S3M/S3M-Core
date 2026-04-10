@@ -1,0 +1,20 @@
+{
+  "event_id": "lrrf-2026-04-10-005",
+  "mission_id": "air-defense-tracking-58",
+  "tracking_cycle": {
+    "sensor_pair": "lidar_radar",
+    "measurement_count": 96,
+    "timestamp_utc": "2026-04-10T14:07:22Z"
+  },
+  "estimated_state": {
+    "position_m": [1421.8, -332.4],
+    "velocity_mps": [84.2, 6.9],
+    "yaw_rate_dps": 1.4
+  },
+  "filter_comparison": {
+    "ekf_nis": 5.2,
+    "ukf_nis": 4.8,
+    "selected_filter": "ukf"
+  },
+  "tactical_assessment": "stable_track_for_fire_control_handoff"
+}

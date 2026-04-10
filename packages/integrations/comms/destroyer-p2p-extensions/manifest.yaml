@@ -1,0 +1,12 @@
+name: "Destroyer_P2P (extensions)"
+slug: "destroyer-p2p-extensions"
+domain: "comms"
+source_url: "https://github.com/Destroyer-official/Destroyer_P2P"
+license: "Unknown"
+description: "Post-quantum secure P2P chat extension wrapper with relay support for hardened field coordination."
+integration_type: "adapter"
+capabilities:
+  - "post_quantum_channel_status"
+  - "relay_assisted_p2p"
+  - "airgapped_fixture_replay"
+airgapped_support: true
