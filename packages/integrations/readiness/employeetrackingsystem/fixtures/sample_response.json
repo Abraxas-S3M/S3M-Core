@@ -1,0 +1,22 @@
+{
+  "report_id": "ets-readiness-2026-0410-003",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "organization": "brigade-support-group-7",
+  "summary": {
+    "employees_total": 425,
+    "clocked_in": 379,
+    "on_leave": 21,
+    "on_mission_assignment": 18,
+    "unreported": 7
+  },
+  "late_clock_ins": [
+    {
+      "team": "maintenance-alpha",
+      "count": 4
+    }
+  ],
+  "recommended_actions": [
+    "Escalate unreported staff to duty officer for accountability confirmation.",
+    "Adjust standby roster for teams with repeated late clock-ins."
+  ]
+}

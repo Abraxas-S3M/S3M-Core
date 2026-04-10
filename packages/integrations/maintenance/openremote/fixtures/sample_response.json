@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "integration_id": "openremote",
+  "domain": "maintenance",
+  "operation": "fleet_health_snapshot",
+  "generated_at": "2026-04-10T09:04:00Z",
+  "fleet": "convoy-group-gamma",
+  "assets": [
+    {
+      "asset_id": "mrzr-17",
+      "engine_temp_c": 93.5,
+      "battery_health_pct": 78,
+      "fault_probability_72h": 0.31,
+      "maintenance_priority": "high"
+    },
+    {
+      "asset_id": "apc-04",
+      "engine_temp_c": 81.2,
+      "battery_health_pct": 84,
+      "fault_probability_72h": 0.12,
+      "maintenance_priority": "medium"
+    }
+  ],
+  "alerts": [
+    {
+      "asset_id": "mrzr-17",
+      "alert_code": "DRVTRN-VIB-02",
+      "recommended_action": "inspect_drivetrain_within_12h"
+    }
+  ]
+}

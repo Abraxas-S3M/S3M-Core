@@ -1,0 +1,27 @@
+{
+  "inference_batch_id": "aws-pdm-20260410-044",
+  "generated_at": "2026-04-10T08:50:00Z",
+  "model_version": "edge-gbm-q8-v3.1",
+  "fleet_segment": "southern-armored-logistics",
+  "predictions": [
+    {
+      "asset_id": "ltv-442",
+      "predicted_failure_component": "cooling_pump",
+      "failure_probability_7d": 0.83,
+      "recommended_action": "replace_component_within_36h",
+      "mission_impact": "high"
+    },
+    {
+      "asset_id": "mrv-109",
+      "predicted_failure_component": "alternator",
+      "failure_probability_7d": 0.61,
+      "recommended_action": "schedule_preemptive_repair",
+      "mission_impact": "medium"
+    }
+  ],
+  "readiness_projection": {
+    "current_readiness_percent": 91.2,
+    "projected_readiness_percent_7d": 87.5,
+    "preventive_actions_required": 6
+  }
+}

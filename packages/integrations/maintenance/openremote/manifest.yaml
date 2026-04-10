@@ -1,0 +1,12 @@
+name: "openremote"
+slug: "openremote"
+domain: "maintenance"
+source_url: "https://github.com/openremote/openremote (fleet examples)"
+license: "Unknown"
+description: "IoT platform for fleet telematics and predictive maintenance operations."
+integration_type: "adapter"
+capabilities:
+  - "fleet_telematics_monitoring"
+  - "predictive_vehicle_maintenance"
+  - "asset_health_alerting"
+airgapped_support: true

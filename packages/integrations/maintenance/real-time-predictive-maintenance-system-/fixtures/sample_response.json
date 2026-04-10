@@ -1,0 +1,25 @@
+{
+  "assessment_id": "rtpms-air-20260410-009",
+  "generated_at": "2026-04-10T09:05:00Z",
+  "air_wing": "expeditionary-wing-12",
+  "engine_health_feed": [
+    {
+      "aircraft_id": "jet-12-041",
+      "engine_serial": "ENG-TF-88213",
+      "anomaly_score": 0.79,
+      "predicted_failure_horizon_hours": 18,
+      "recommended_action": "ground_aircraft_for_compressor_inspection"
+    },
+    {
+      "aircraft_id": "jet-12-027",
+      "engine_serial": "ENG-TF-77632",
+      "anomaly_score": 0.41,
+      "predicted_failure_horizon_hours": 96,
+      "recommended_action": "continue_monitoring"
+    }
+  ],
+  "sortie_readiness_impact": {
+    "aircraft_temporarily_restricted": 1,
+    "mission_schedule_adjustments_required": 2
+  }
+}

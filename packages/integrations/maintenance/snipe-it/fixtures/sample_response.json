@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "snipe-it-maint-2026-0410-1115z",
+  "generated_at": "2026-04-10T11:15:00Z",
+  "organization": "forward-maintenance-command",
+  "asset_counts": {
+    "total_assets": 1242,
+    "operational": 1118,
+    "maintenance_due_30d": 79,
+    "overdue": 45
+  },
+  "maintenance_queue": [
+    {
+      "asset_tag": "COMMS-RADIO-7712",
+      "category": "communications",
+      "due_date": "2026-04-19",
+      "priority": "high"
+    },
+    {
+      "asset_tag": "NVG-SET-443",
+      "category": "optics",
+      "due_date": "2026-04-13",
+      "priority": "critical"
+    }
+  ],
+  "alerts": [
+    "45 assets are overdue for scheduled maintenance tasks.",
+    "Battery lot B19 exhibits accelerated failure rates; schedule replacement."
+  ]
+}
