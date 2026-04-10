@@ -78,7 +78,7 @@ class AwesomeSyntheticDataAdapter(IntegrationAdapter):
                 raw.get("description")
                 or "Curated list of synthetic data tools and resources for simulation planning."
             ),
-            integration_type=str(raw.get("integration_type") or "reference"),
+            integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_str_list(
                 raw.get("capabilities")
                 or ["tool_catalog_reference", "synthetic_data_landscape_scan", "offline_resource_indexing"]

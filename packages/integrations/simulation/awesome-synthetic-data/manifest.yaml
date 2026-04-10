@@ -4,7 +4,7 @@ domain: "simulation"
 source_url: "https://github.com/statice/awesome-synthetic-data"
 license: "MIT"
 description: "Curated list of synthetic data tools and resources."
-integration_type: "reference"
+integration_type: "adapter"
 capabilities:
   - "tool_discovery"
   - "capability_mapping"
