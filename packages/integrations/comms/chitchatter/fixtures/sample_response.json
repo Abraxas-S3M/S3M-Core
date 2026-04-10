@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "chitchatter-comms-2026-0410-1315z",
+  "generated_at": "2026-04-10T13:15:00Z",
+  "mesh_status": {
+    "active_peers": 23,
+    "avg_route_hops": 2.4,
+    "rekey_interval_seconds": 180
+  },
+  "critical_paths": [
+    {
+      "path_id": "ops-grid-east",
+      "status": "stable",
+      "packet_delivery_ratio": 0.95
+    },
+    {
+      "path_id": "medical-evac-west",
+      "status": "congested",
+      "packet_delivery_ratio": 0.84
+    }
+  ],
+  "tactical_note": "P2P mesh operational; re-balance evac-west relay load before peak movement window."
+}

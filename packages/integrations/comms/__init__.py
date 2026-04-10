@@ -1,1 +1,1 @@
-"""Secure communications integration domain for tactical messaging wrappers."""
+"""Secure communications integration wrappers for S3M."""

@@ -1,0 +1,12 @@
+name: "enchat"
+slug: "enchat"
+domain: "comms"
+source_url: "https://github.com/sudodevdante/enchat"
+license: "Unknown"
+description: "Terminal-based end-to-end encrypted ephemeral chat with blind relays."
+integration_type: "adapter"
+capabilities:
+  - "ephemeral_chat_sessions"
+  - "blind_relay_pathing"
+  - "terminal_secure_exchange"
+airgapped_support: true
