@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
-from .adapter import InertialsenseRos2Adapter
+import importlib
+
+InertialsenseRos2Adapter = importlib.import_module(
+    "packages.integrations.navigation.inertialsense-ros2.adapter"
+).InertialsenseRos2Adapter
 
 __all__ = ["InertialsenseRos2Adapter"]

@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
-from .adapter import MoveitmotionPlanningAdapter
+import importlib
+
+MoveitmotionPlanningAdapter = importlib.import_module(
+    "packages.integrations.navigation.moveit-motion-planning.adapter"
+).MoveitmotionPlanningAdapter
 
 __all__ = ["MoveitmotionPlanningAdapter"]

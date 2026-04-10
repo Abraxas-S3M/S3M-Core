@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
-from .adapter import ModelInferenceDeploymentAdapter
+import importlib
+
+ModelInferenceDeploymentAdapter = importlib.import_module(
+    "packages.integrations.navigation.model-inference-deployment.adapter"
+).ModelInferenceDeploymentAdapter
 
 __all__ = ["ModelInferenceDeploymentAdapter"]
