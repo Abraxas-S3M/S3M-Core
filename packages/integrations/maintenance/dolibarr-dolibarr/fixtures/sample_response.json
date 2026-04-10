@@ -1,0 +1,30 @@
+{
+  "site": "Forward Sustainment Hub 12",
+  "snapshot_time": "2026-04-10T08:00:00Z",
+  "procurement_orders": [
+    {
+      "po_id": "PO-MNT-2041",
+      "supplier": "Orion Field Systems",
+      "priority": "high",
+      "status": "awaiting_command_approval",
+      "line_items": 4
+    },
+    {
+      "po_id": "PO-MNT-2044",
+      "supplier": "Atlas Drivetrain Works",
+      "priority": "routine",
+      "status": "approved",
+      "line_items": 7
+    }
+  ],
+  "inventory": {
+    "critical_spares_ready_pct": 88.6,
+    "backordered_skus": 13,
+    "fuel_filter_kits_on_hand": 96
+  },
+  "maintenance_work_orders": {
+    "open": 27,
+    "overdue": 3,
+    "mission_blocking": 2
+  }
+}

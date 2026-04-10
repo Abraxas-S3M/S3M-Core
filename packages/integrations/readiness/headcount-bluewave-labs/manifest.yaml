@@ -1,0 +1,12 @@
+name: "Headcount (bluewave-labs)"
+slug: "headcount-bluewave-labs"
+domain: "readiness"
+source_url: "Search bluewave-labs Headcount on GitHub"
+license: "Unknown"
+description: "Modern HRM with time-off and employee management."
+integration_type: "adapter"
+capabilities:
+  - "employee_registry"
+  - "time_off_management"
+  - "workforce_readiness_visibility"
+airgapped_support: true

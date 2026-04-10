@@ -1,0 +1,12 @@
+name: "worldmonitor"
+slug: "worldmonitor"
+domain: "readiness"
+source_url: "https://github.com/koala73/worldmonitor"
+license: "Unknown"
+description: "Geopolitical and military situational awareness dashboard adapted for personnel readiness."
+integration_type: "adapter"
+capabilities:
+  - "geopolitical_readiness_cues"
+  - "regional_risk_briefing"
+  - "alert_prioritization"
+airgapped_support: true

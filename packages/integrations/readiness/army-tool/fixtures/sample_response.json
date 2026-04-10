@@ -1,0 +1,24 @@
+{
+  "report_id": "at-readiness-2026-04-10-01",
+  "unit_id": "1st-battalion-alpha",
+  "generated_at": "2026-04-10T06:15:00Z",
+  "personnel_strength": {
+    "authorized": 620,
+    "assigned": 598,
+    "fit_for_duty": 552,
+    "medical_hold": 23,
+    "leave": 23
+  },
+  "duty_allocation": {
+    "critical_posts_filled_pct": 96.8,
+    "unfilled_posts": 4,
+    "next_rotation_window_hours": 10
+  },
+  "readiness_level": "C2",
+  "priority_actions": [
+    "Reassign communications specialists to night watch section.",
+    "Schedule expedited medical re-evaluations for temporary profiles.",
+    "Backfill two logistics NCO posts before convoy preparation."
+  ],
+  "commander_assessment": "Unit ready for sustained base defense with moderate staffing risk in logistics."
+}
