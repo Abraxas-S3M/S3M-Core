@@ -1,0 +1,12 @@
+name: "PDMBench (references)"
+slug: "pdmbench-references"
+domain: "maintenance"
+source_url: "Search PDMBench related repos"
+license: "Unknown"
+description: "Standardized platform for predictive maintenance benchmarking references."
+integration_type: "adapter"
+capabilities:
+  - "predictive_maintenance_benchmarking"
+  - "cross_dataset_model_scoring"
+  - "readiness_model_comparison"
+airgapped_support: true

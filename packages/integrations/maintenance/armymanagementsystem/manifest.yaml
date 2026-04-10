@@ -1,0 +1,12 @@
+name: "ArmyManagementSystem"
+slug: "armymanagementsystem"
+domain: "maintenance"
+source_url: "https://github.com/christos-pelekis/ArmyManagementSystem"
+license: "Unknown"
+description: "Army personnel and asset management with maintenance elements."
+integration_type: "adapter"
+capabilities:
+  - "personnel_asset_coordination"
+  - "maintenance_readiness_tracking"
+  - "support_task_management"
+airgapped_support: true

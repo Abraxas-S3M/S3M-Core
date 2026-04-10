@@ -1,0 +1,12 @@
+name: "Various NASA CMAPSS forks"
+slug: "various-nasa-cmapss-forks"
+domain: "maintenance"
+source_url: "Multiple forks (e.g., vinayak-tyagi, kkratos)"
+license: "Unknown"
+description: "NASA CMAPSS turbofan degradation simulation datasets and predictive scripts."
+integration_type: "adapter"
+capabilities:
+  - "turbofan_degradation_modeling"
+  - "remaining_useful_life_estimation"
+  - "predictive_maintenance_planning"
+airgapped_support: true
