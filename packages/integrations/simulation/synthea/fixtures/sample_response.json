@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "synthea-casualty-2026-0410-001",
+  "generator": {
+    "tool": "Synthea",
+    "model": "combat-casualty-profile-v2",
+    "seed": 8841
+  },
+  "scenario": {
+    "theater": "arid-border-sector",
+    "time_window": "2026-04-10T00:00:00Z/2026-04-10T12:00:00Z",
+    "simulated_population": 2400
+  },
+  "casualty_projection": {
+    "total_estimated": 86,
+    "triage": {
+      "immediate": 18,
+      "delayed": 27,
+      "minimal": 32,
+      "expectant": 9
+    },
+    "medevac_required": 21
+  },
+  "logistics_forecast": {
+    "blood_units_o_negative": 64,
+    "tourniquets": 112,
+    "field_analgesic_doses": 183
+  },
+  "confidence": 0.82
+}

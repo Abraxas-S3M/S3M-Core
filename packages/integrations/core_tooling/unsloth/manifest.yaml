@@ -1,0 +1,12 @@
+name: "Unsloth"
+slug: "unsloth"
+domain: "core_tooling"
+source_url: "https://github.com/unslothai/unsloth"
+license: "Unknown"
+description: "High-speed fine-tuning stack that accelerates LoRA training and lowers memory usage on NVIDIA GPUs."
+integration_type: "adapter"
+capabilities:
+  - "lora-finetuning"
+  - "training-acceleration"
+  - "gpu-memory-optimization"
+airgapped_support: true
