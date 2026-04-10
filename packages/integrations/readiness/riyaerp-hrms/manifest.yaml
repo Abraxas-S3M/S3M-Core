@@ -1,0 +1,12 @@
+name: "RiyaErp-hrms"
+slug: "riyaerp-hrms"
+domain: "readiness"
+source_url: "https://github.com/TheLogicIraqCompany/RiyaErp-hrms"
+license: "Unknown"
+description: "Open-source HR and payroll system adapted for military personnel readiness accounting."
+integration_type: "adapter"
+capabilities:
+  - "personnel_registry_sync"
+  - "payroll_readiness_signals"
+  - "regional_language_support"
+airgapped_support: true

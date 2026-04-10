@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-04-10T09:30:00Z",
+  "command_unit": "Task-Force-Orion",
+  "readiness_summary": {
+    "total_personnel": 128,
+    "deployable_now": 114,
+    "restricted_duty": 9,
+    "awaiting_clearance": 5
+  },
+  "projects": [
+    {
+      "project_id": "OPS-ALPHA-21",
+      "name": "Forward Logistics Digitization",
+      "assigned_staff": 36,
+      "required_staff": 40,
+      "staffing_health": "amber",
+      "critical_roles_open": [
+        "signals_analyst",
+        "maintenance_supervisor"
+      ]
+    },
+    {
+      "project_id": "OPS-BRAVO-07",
+      "name": "Border Patrol Automation",
+      "assigned_staff": 28,
+      "required_staff": 28,
+      "staffing_health": "green",
+      "critical_roles_open": []
+    }
+  ],
+  "attendance": {
+    "present_today": 119,
+    "remote_drills": 6,
+    "medical_absence": 3
+  },
+  "alerts": [
+    "Two platoon leaders require re-certification within 10 days.",
+    "Signals platoon training completion dropped below 85% threshold."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "snapshot_id": "erpnext-manning-2026-0410-0610z",
+  "formation": "Northern Joint Task Group",
+  "generated_at": "2026-04-10T06:10:00Z",
+  "authorized_strength": 1240,
+  "effective_strength": 1179,
+  "deployable_strength": 1112,
+  "critical_roles": [
+    {
+      "role": "combat_medic",
+      "authorized": 64,
+      "filled": 58
+    },
+    {
+      "role": "signals_operator",
+      "authorized": 96,
+      "filled": 91
+    }
+  ],
+  "leave_and_absence": {
+    "on_leave": 37,
+    "medical_nondeployable": 21,
+    "disciplinary_hold": 9
+  }
+}

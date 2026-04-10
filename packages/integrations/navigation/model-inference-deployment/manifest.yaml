@@ -1,0 +1,12 @@
+name: "Model-Inference-Deployment"
+slug: "model-inference-deployment"
+domain: "navigation"
+source_url: "https://github.com/Yulv-git/Model-Inference-Deployment"
+license: "MIT"
+description: "Curated list of inference frameworks including TensorRT, ONNX Runtime, TVM, and OpenVINO."
+integration_type: "adapter"
+capabilities:
+  - "runtime-selection"
+  - "edge-inference-deployment"
+  - "offline-readiness-checks"
+airgapped_support: true

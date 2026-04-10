@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-04-10T09:37:00Z",
+  "ui_bundle": "mission-control-theme-v3",
+  "dashboard_profiles": [
+    {
+      "profile_id": "ops-watchfloor",
+      "components_ready": 42,
+      "components_required": 44,
+      "status": "amber",
+      "missing_components": [
+        "threat-timeline-chart",
+        "personnel-readiness-heatmap"
+      ]
+    },
+    {
+      "profile_id": "air-tasking-cell",
+      "components_ready": 31,
+      "components_required": 31,
+      "status": "green",
+      "missing_components": []
+    }
+  ],
+  "accessibility_checks": {
+    "contrast_compliance": 0.97,
+    "keyboard_navigation": 0.95,
+    "screen_reader_labels": 0.93
+  },
+  "recommended_actions": [
+    "Complete tactical readiness heatmap component integration before next command post exercise."
+  ]
+}

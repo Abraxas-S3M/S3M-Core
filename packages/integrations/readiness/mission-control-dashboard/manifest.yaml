@@ -1,0 +1,12 @@
+name: "mission-control-dashboard"
+slug: "mission-control-dashboard"
+domain: "readiness"
+source_url: "PatternFly examples on GitHub"
+license: "Unknown"
+description: "PatternFly mission-control UI adapted for defense-grade readiness command surfaces."
+integration_type: "adapter"
+capabilities:
+  - "command_surface_readiness"
+  - "kpi_monitoring"
+  - "role_based_status_views"
+airgapped_support: true

@@ -1,0 +1,24 @@
+{
+  "event_id": "isr2-nav-2026-04-10-001",
+  "mission_id": "denied-gps-canyon-route-17",
+  "platform": "jetson-agx-orin",
+  "fusion_state": {
+    "mode": "ins-primary",
+    "gnss_status": "degraded",
+    "position_confidence": 0.93,
+    "velocity_confidence": 0.95
+  },
+  "solution": {
+    "latitude_deg": 24.68432,
+    "longitude_deg": 46.72155,
+    "altitude_m": 613.4,
+    "heading_deg": 118.2
+  },
+  "alerts": [
+    {
+      "code": "GNSS_JAMMING_SUSPECTED",
+      "severity": "high",
+      "recommended_action": "maintain INS dead-reckoning and tighten waypoint acceptance radius"
+    }
+  ]
+}

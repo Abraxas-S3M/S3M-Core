@@ -1,0 +1,12 @@
+name: "allegro/ralph"
+slug: "allegro-ralph"
+domain: "maintenance"
+source_url: "https://github.com/allegro/ralph"
+license: "Unknown"
+description: "Open-source asset management with lifecycle and configuration tracking."
+integration_type: "adapter"
+capabilities:
+  - "configuration_tracking"
+  - "lifecycle_governance"
+  - "service_readiness_audit"
+airgapped_support: true

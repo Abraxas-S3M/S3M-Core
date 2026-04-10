@@ -1,0 +1,12 @@
+name: "glpi-project/glpi"
+slug: "glpi-project-glpi"
+domain: "maintenance"
+source_url: "https://github.com/glpi-project/glpi"
+license: "Unknown"
+description: "Open-source IT and asset management with maintenance scheduling."
+integration_type: "adapter"
+capabilities:
+  - "ticketed_maintenance"
+  - "asset_lifecycle_control"
+  - "schedule_planning"
+airgapped_support: true

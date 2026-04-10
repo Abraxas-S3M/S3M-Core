@@ -1,0 +1,28 @@
+{
+  "report_id": "hrms-readiness-2026-04-10-01",
+  "organization": "Joint Sustainment Command",
+  "generated_at": "2026-04-10T06:45:00Z",
+  "workforce_snapshot": {
+    "total_employees": 1320,
+    "active_operational_staff": 1187,
+    "reserve_or_standby": 74,
+    "administrative_hold": 59
+  },
+  "payroll_and_benefits_status": {
+    "current_cycle": "2026-04",
+    "processed_pct": 99.2,
+    "exceptions": 11
+  },
+  "readiness_risks": [
+    {
+      "risk": "language-qualified clerks shortfall",
+      "severity": "medium"
+    },
+    {
+      "risk": "late contract renewals for support technicians",
+      "severity": "high"
+    }
+  ],
+  "operational_readiness_score": 0.9,
+  "recommended_command_action": "Resolve high-severity contract renewals within 72 hours to protect deployment staffing baseline."
+}

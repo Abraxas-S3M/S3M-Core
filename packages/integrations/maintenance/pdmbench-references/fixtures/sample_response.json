@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "integration_id": "pdmbench-references",
+  "domain": "maintenance",
+  "operation": "benchmark_snapshot",
+  "generated_at": "2026-04-10T08:51:00Z",
+  "benchmark_suite": "pdmbench-v1-reference",
+  "evaluations": [
+    {
+      "model_id": "gru-rul-baseline",
+      "dataset": "cmapss-fd001",
+      "rmse": 11.2,
+      "mae": 8.7,
+      "ranking": 2
+    },
+    {
+      "model_id": "temporal-transformer-rul",
+      "dataset": "cmapss-fd004",
+      "rmse": 9.4,
+      "mae": 7.1,
+      "ranking": 1
+    }
+  ],
+  "readiness_assessment": {
+    "fleet_segment": "rotary-wing-training",
+    "maintenance_posture": "monitor_closely",
+    "recommended_model": "temporal-transformer-rul"
+  }
+}

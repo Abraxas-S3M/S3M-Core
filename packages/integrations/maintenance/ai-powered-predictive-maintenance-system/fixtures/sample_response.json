@@ -1,0 +1,27 @@
+{
+  "analysis_id": "apms-veh-20260410-021",
+  "generated_at": "2026-04-10T08:58:00Z",
+  "model_family": "gradient_boosting",
+  "deployment_profile": "edge-airgapped-q8",
+  "vehicle_assessments": [
+    {
+      "vehicle_id": "recon-4x4-027",
+      "health_score": 0.72,
+      "failure_risk_72h": 0.38,
+      "primary_risk_factor": "engine_temperature_variance",
+      "recommended_window": "inspect_within_24h"
+    },
+    {
+      "vehicle_id": "fueler-091",
+      "health_score": 0.49,
+      "failure_risk_72h": 0.67,
+      "primary_risk_factor": "oil_pressure_instability",
+      "recommended_window": "service_immediately"
+    }
+  ],
+  "command_summary": {
+    "high_risk_assets": 1,
+    "medium_risk_assets": 1,
+    "estimated_downtime_if_ignored_hours": 31
+  }
+}

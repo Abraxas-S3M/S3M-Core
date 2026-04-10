@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "mission_id": "gps-denied-variant-ops-2026-04-10-01",
+  "vehicle_id": "uav-recon-17",
+  "operation": "evaluate_gps_denied_route",
+  "localization_stack": {
+    "primary": "optical_flow_inertial_fusion",
+    "fallback": "visual_odometry",
+    "confidence": 0.93
+  },
+  "route_assessment": {
+    "estimated_path_length_m": 1820.4,
+    "predicted_drift_m": 1.7,
+    "safe_corridors_identified": 4
+  },
+  "tactical_assessment": {
+    "jamming_resilience": "high",
+    "line_of_sight_maintenance": "stable",
+    "mission_readiness": "approved"
+  }
+}

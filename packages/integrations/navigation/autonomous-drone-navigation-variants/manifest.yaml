@@ -1,0 +1,12 @@
+name: "Autonomous-drone-navigation (variants)"
+slug: "autonomous-drone-navigation-variants"
+domain: "navigation"
+source_url: "https://github.com/topics/gps-denied"
+license: "Varies"
+description: "GPS-denied topics and related drone navigation repositories with optical-flow and sensor-fusion techniques."
+integration_type: "adapter"
+capabilities:
+  - "gps_denied_navigation"
+  - "optical_flow_fusion"
+  - "contested_zone_localization"
+airgapped_support: true

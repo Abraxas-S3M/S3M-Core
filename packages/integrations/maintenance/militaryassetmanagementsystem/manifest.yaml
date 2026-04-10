@@ -1,0 +1,12 @@
+name: "MilitaryAssetManagementSystem"
+slug: "militaryassetmanagementsystem"
+domain: "maintenance"
+source_url: "https://github.com/chiragSahani/MilitaryAssetManagementSystem"
+license: "Unknown"
+description: "Secure full-stack military asset management with real-time dashboards and role-based access."
+integration_type: "adapter"
+capabilities:
+  - "asset_lifecycle_management"
+  - "maintenance_status_tracking"
+  - "role_based_logistics_visibility"
+airgapped_support: true

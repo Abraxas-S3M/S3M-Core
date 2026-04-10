@@ -1,0 +1,21 @@
+{
+  "report_id": "arab-osc-readiness-2026-0410-004",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "language_focus": "ar",
+  "summary": {
+    "localization_projects_indexed": 215,
+    "active_contributors": 97,
+    "mission_packages_localized": 24
+  },
+  "priority_gaps": [
+    {
+      "system": "field-maintenance-ui",
+      "missing_terms": 38,
+      "operational_risk": "medium"
+    }
+  ],
+  "recommended_actions": [
+    "Assign Arabic localization review for maintenance and medical workflow UIs.",
+    "Coordinate contributor onboarding for high-priority terminology gaps."
+  ]
+}

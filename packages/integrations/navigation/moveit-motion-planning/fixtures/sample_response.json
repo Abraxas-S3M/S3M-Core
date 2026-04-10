@@ -1,0 +1,21 @@
+{
+  "event_id": "moveit-nav-2026-04-10-001",
+  "mission_id": "urban-corridor-autonomy-22",
+  "platform": "ground-ugv-alpha",
+  "planning_request": {
+    "start_pose": [2.1, -4.7, 0.0],
+    "goal_pose": [35.8, 11.4, 0.0],
+    "planner": "RRTConnect"
+  },
+  "planning_result": {
+    "status": "success",
+    "path_length_m": 48.6,
+    "planning_time_s": 0.73,
+    "collision_free": true
+  },
+  "safety_constraints": {
+    "max_turn_rate_deg_s": 38.0,
+    "min_obstacle_clearance_m": 1.4,
+    "rules_of_maneuver_compliant": true
+  }
+}

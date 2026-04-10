@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "glpi-maint-2026-0410-1130z",
+  "generated_at": "2026-04-10T11:30:00Z",
+  "maintenance_calendar": {
+    "period": "2026-W15",
+    "planned_tasks": 58,
+    "completed_tasks": 41,
+    "blocked_tasks": 6
+  },
+  "critical_assets": [
+    {
+      "asset_id": "SATCOM-TRM-14",
+      "status": "service_due",
+      "next_action": "rf-amplifier calibration",
+      "deadline": "2026-04-12"
+    },
+    {
+      "asset_id": "MRAP-CHASSIS-32",
+      "status": "open_ticket",
+      "next_action": "suspension assembly inspection",
+      "deadline": "2026-04-14"
+    }
+  ],
+  "risk_assessment": {
+    "readiness_risk_level": "medium",
+    "at_risk_mission_systems": 4
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "map_snapshot_id": "orbat-ready-2026-04-10-0700z",
+  "generated_at": "2026-04-10T07:00:00Z",
+  "force_layout": {
+    "tracked_formations": 12,
+    "understrength_formations": 3,
+    "critical_command_nodes": 2
+  },
+  "formation_readiness": [
+    {
+      "formation": "1st Mechanized Brigade",
+      "personnel_fill_rate": 0.91,
+      "command_readiness": "high",
+      "alert": "none"
+    },
+    {
+      "formation": "4th Rapid Response Group",
+      "personnel_fill_rate": 0.74,
+      "command_readiness": "medium",
+      "alert": "staffing_gap"
+    },
+    {
+      "formation": "Air Defense Battalion North",
+      "personnel_fill_rate": 0.69,
+      "command_readiness": "medium",
+      "alert": "specialist_shortage"
+    }
+  ],
+  "recommended_actions": [
+    "Backfill specialist billets in formations below 75% staffing.",
+    "Reallocate reserve command staff to critical command nodes.",
+    "Prioritize refresher training for recently merged units."
+  ]
+}

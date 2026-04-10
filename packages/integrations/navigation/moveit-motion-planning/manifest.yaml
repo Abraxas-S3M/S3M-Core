@@ -1,0 +1,12 @@
+name: "MoveIt (motion planning)"
+slug: "moveit-motion-planning"
+domain: "navigation"
+source_url: "https://github.com/moveit/moveit"
+license: "BSD"
+description: "Motion planning framework for robotic systems with OMPL integration."
+integration_type: "adapter"
+capabilities:
+  - "motion-planning"
+  - "collision-checking"
+  - "trajectory-execution-readiness"
+airgapped_support: true
