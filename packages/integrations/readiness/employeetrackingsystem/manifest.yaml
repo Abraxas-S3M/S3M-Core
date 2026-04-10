@@ -1,0 +1,12 @@
+name: "EmployeeTrackingSystem"
+slug: "employeetrackingsystem"
+domain: "readiness"
+source_url: "https://github.com/AkshandraSingh/EmployeeTrackingSystem"
+license: "Unknown"
+description: "Node.js employee tracking with clock-in, leave, and status visibility."
+integration_type: "adapter"
+capabilities:
+  - "attendance_tracking"
+  - "leave_management"
+  - "duty_status_visibility"
+airgapped_support: true

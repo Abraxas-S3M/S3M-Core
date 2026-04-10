@@ -1,0 +1,12 @@
+name: "openspp-modules"
+slug: "openspp-modules"
+domain: "readiness"
+source_url: "https://github.com/OpenSPP/openspp-modules"
+license: "Unknown"
+description: "Odoo-based modules for personnel and beneficiary readiness tracking."
+integration_type: "adapter"
+capabilities:
+  - "beneficiary_registry"
+  - "personnel_status_tracking"
+  - "readiness_reporting"
+airgapped_support: true
