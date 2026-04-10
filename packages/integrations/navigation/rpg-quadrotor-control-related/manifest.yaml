@@ -1,0 +1,12 @@
+name: "rpg_quadrotor_control (related)"
+slug: "rpg-quadrotor-control-related"
+domain: "navigation"
+source_url: "https://github.com/uzh-rpg/rpg_quadrotor_control"
+license: "(BSD-style)"
+description: "Quadrotor control framework often paired with rpg_mpc for aggressive trajectory tracking."
+integration_type: "adapter"
+capabilities:
+  - "quadrotor_control"
+  - "trajectory_tracking"
+  - "high_agility_stabilization"
+airgapped_support: true

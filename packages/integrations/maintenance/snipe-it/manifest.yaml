@@ -1,0 +1,12 @@
+name: "snipe-it"
+slug: "snipe-it"
+domain: "maintenance"
+source_url: "https://github.com/snipe/snipe-it"
+license: "Unknown"
+description: "Open-source IT asset management with lifecycle tracking."
+integration_type: "adapter"
+capabilities:
+  - "asset_inventory"
+  - "lifecycle_tracking"
+  - "maintenance_schedule_audit"
+airgapped_support: true

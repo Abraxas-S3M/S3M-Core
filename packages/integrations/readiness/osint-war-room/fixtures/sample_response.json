@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "snapshot_id": "oswr-ready-2026-04-10-0630z",
+  "generated_at": "2026-04-10T06:30:00Z",
+  "operations_cell": {
+    "active_shifts": 4,
+    "high_fatigue_teams": 2,
+    "critical_staffing_gaps": 1
+  },
+  "team_readiness": [
+    {
+      "team": "ISR Fusion Cell",
+      "readiness": "high",
+      "fatigue_flag": false,
+      "staffing_delta": 0
+    },
+    {
+      "team": "Tactical Watch Floor",
+      "readiness": "medium",
+      "fatigue_flag": true,
+      "staffing_delta": -2
+    },
+    {
+      "team": "Crisis Action Planning Cell",
+      "readiness": "medium",
+      "fatigue_flag": true,
+      "staffing_delta": -1
+    }
+  ],
+  "recommended_actions": [
+    "Rotate watch officers from reserve pool into tactical watch floor.",
+    "Schedule resilience cycle for teams with repeated high-tempo shifts.",
+    "Escalate staffing gap for command decision before next operations window."
+  ]
+}

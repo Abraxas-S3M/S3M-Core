@@ -1,0 +1,33 @@
+{
+  "status": "ok",
+  "integration_id": "armymanagementsystem",
+  "domain": "maintenance",
+  "operation": "maintenance_readiness_snapshot",
+  "generated_at": "2026-04-10T09:10:00Z",
+  "unit": "3rd-support-battalion",
+  "asset_readiness": [
+    {
+      "asset_id": "ifv-223",
+      "platform_type": "infantry_fighting_vehicle",
+      "readiness_state": "limited",
+      "next_service_due_hours": 14,
+      "priority": "high"
+    },
+    {
+      "asset_id": "hmwv-041",
+      "platform_type": "utility_vehicle",
+      "readiness_state": "ready",
+      "next_service_due_hours": 72,
+      "priority": "routine"
+    }
+  ],
+  "maintenance_tasks": [
+    {
+      "task_id": "mt-8821",
+      "asset_id": "ifv-223",
+      "assigned_team": "maint-team-charlie",
+      "eta_completion_utc": "2026-04-10T18:20:00Z",
+      "status": "scheduled"
+    }
+  ]
+}

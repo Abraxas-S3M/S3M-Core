@@ -1,0 +1,12 @@
+name: "OpenXE-org/OpenXE"
+slug: "openxe-org-openxe"
+domain: "maintenance"
+source_url: "https://github.com/OpenXE-org/OpenXE"
+license: "Unknown"
+description: "Open-source ERP with procurement, inventory, and manufacturing modules."
+integration_type: "adapter"
+capabilities:
+  - "procurement_visibility"
+  - "inventory_maintenance_linking"
+  - "work_order_governance"
+airgapped_support: true

@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "nav2-sector-patrol-2026-04-10-02",
+  "robot_id": "ugv-bravo-2",
+  "operation": "plan_and_control_route",
+  "planner": {
+    "plugin": "smac_planner",
+    "path_cost": 71.3,
+    "waypoints": 46
+  },
+  "controller": {
+    "plugin": "regulated_pure_pursuit",
+    "max_velocity_mps": 1.8,
+    "obstacle_clearance_m": 1.2
+  },
+  "behavior_tree": {
+    "tree_id": "mission_patrol_recovery_tree",
+    "recoveries_triggered": 1,
+    "task_state": "completed"
+  },
+  "tactical_assessment": {
+    "corridor_security_score": "high",
+    "route_continuity": "maintained"
+  }
+}

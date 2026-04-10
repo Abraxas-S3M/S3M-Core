@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-04-10T09:40:00Z",
+  "operation_cell": "Joint Command Node Delta",
+  "personnel_status": {
+    "assigned": 96,
+    "active_on_shift": 84,
+    "reserve_on_call": 8,
+    "temporarily_unavailable": 4
+  },
+  "situational_awareness": {
+    "active_tracks": 27,
+    "high_priority_incidents": 3,
+    "comms_health": "stable"
+  },
+  "watch_sections": [
+    {
+      "section": "INTEL",
+      "manning_level": 0.88,
+      "qualification_coverage": 0.9,
+      "status": "amber"
+    },
+    {
+      "section": "OPS",
+      "manning_level": 0.95,
+      "qualification_coverage": 0.96,
+      "status": "green"
+    }
+  ],
+  "command_recommendations": [
+    "Assign one reserve analyst to INTEL watch to restore green posture.",
+    "Run contingency comms drill in next shift transition."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "mission_id": "quadrotor-control-check-2026-04-10-05",
+  "vehicle_id": "quad-charlie-6",
+  "operation": "validate_quadrotor_control_loop",
+  "controller_status": {
+    "attitude_controller": "stable",
+    "position_controller": "stable",
+    "loop_frequency_hz": 250
+  },
+  "tracking_metrics": {
+    "position_error_rmse_m": 0.18,
+    "attitude_error_deg": 1.4,
+    "overshoot_percent": 2.1
+  },
+  "tactical_assessment": {
+    "agility_rating": "high",
+    "formation_flight_ready": true,
+    "mission_readiness": "approved"
+  }
+}

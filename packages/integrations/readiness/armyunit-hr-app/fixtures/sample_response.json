@@ -1,0 +1,30 @@
+{
+  "report_id": "auhr-readiness-2026-04-10-01",
+  "unit_name": "21st Mechanized Brigade Support Company",
+  "generated_at": "2026-04-10T06:20:00Z",
+  "staffing": {
+    "authorized": 184,
+    "assigned": 179,
+    "deployable": 166,
+    "temporary_non_deployable": 9,
+    "on_leave": 4
+  },
+  "hr_flags": [
+    {
+      "type": "clearance_renewal_due",
+      "count": 6,
+      "priority": "high"
+    },
+    {
+      "type": "annual_medical_review_pending",
+      "count": 11,
+      "priority": "medium"
+    }
+  ],
+  "duty_status": {
+    "critical_roles_filled_pct": 94.1,
+    "unfilled_critical_roles": 3
+  },
+  "readiness_score": 0.89,
+  "command_note": "Personnel posture supports planned maintenance and convoy operations with minor admin risk."
+}

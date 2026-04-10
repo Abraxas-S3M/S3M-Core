@@ -1,0 +1,26 @@
+{
+  "command_center": "Joint Sustainment Operations Cell",
+  "snapshot_time": "2026-04-10T08:10:00Z",
+  "asset_dashboard": {
+    "tracked_assets": 512,
+    "mission_ready": 447,
+    "maintenance_required": 65
+  },
+  "maintenance_kpis": {
+    "mean_time_to_repair_hours": 14.2,
+    "first_time_fix_rate_pct": 79.5,
+    "repair_queue_aging_over_72h": 11
+  },
+  "custom_panels": [
+    {
+      "panel_id": "powertrain-health",
+      "status": "green",
+      "alerts": 1
+    },
+    {
+      "panel_id": "avionics-diagnostics",
+      "status": "amber",
+      "alerts": 4
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-04-10T09:35:00Z",
+  "theater_command": "Joint Operations West",
+  "personnel": {
+    "total_active": 2140,
+    "available_for_rotation": 1876,
+    "leave_or_medical": 264
+  },
+  "training_compliance": {
+    "weapons_qualification": 0.94,
+    "communications_security": 0.89,
+    "medical_response": 0.91
+  },
+  "companies": [
+    {
+      "company": "1st Armored Company",
+      "readiness_state": "green",
+      "critical_shortfalls": []
+    },
+    {
+      "company": "Recon Company B",
+      "readiness_state": "amber",
+      "critical_shortfalls": [
+        "night_vision_technician",
+        "signals_officer"
+      ]
+    }
+  ],
+  "next_actions": [
+    "Backfill two signal specialists before next 96-hour exercise window.",
+    "Run accelerated COMSEC refresh for Recon Company B."
+  ]
+}

@@ -1,0 +1,12 @@
+name: "Real-Time-Predictive-Maintenance-System-for-Aircraft"
+slug: "real-time-predictive-maintenance-system-"
+domain: "maintenance"
+source_url: "https://github.com/EkeminiThompson/Real-Time-Predictive-Maintenance-System-for-Aircraft"
+license: "Unknown"
+description: "Full-stack predictive maintenance for aircraft engines using Dash and Flask."
+integration_type: "adapter"
+capabilities:
+  - "aircraft_engine_failure_prediction"
+  - "real_time_condition_monitoring"
+  - "maintenance_alert_visualization"
+airgapped_support: true

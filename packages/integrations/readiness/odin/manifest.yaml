@@ -1,0 +1,12 @@
+name: "ODIN"
+slug: "odin"
+domain: "readiness"
+source_url: "https://github.com/syncpoint/ODIN"
+license: "Unknown"
+description: "Open-source Command & Control system with personnel/SA views"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "command_post_roster_visibility"
+  - "situational_awareness_panels"
+  - "personnel_readiness_briefing"

@@ -1,0 +1,12 @@
+name: "horilla"
+slug: "horilla"
+domain: "readiness"
+source_url: "https://github.com/horilla-opensource/horilla"
+license: "Unknown"
+description: "Modern open-source HRMS integration for multilingual personnel readiness management."
+integration_type: "adapter"
+capabilities:
+  - "multilingual_personnel_tracking"
+  - "attendance_readiness_monitoring"
+  - "certification_statusing"
+airgapped_support: true

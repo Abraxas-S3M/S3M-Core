@@ -1,0 +1,12 @@
+name: "ArmyScripts"
+slug: "armyscripts"
+domain: "readiness"
+source_url: "https://github.com/uplusion23/ArmyScripts"
+license: "Unknown"
+description: "Training and certification script integration for military readiness tracking."
+integration_type: "adapter"
+capabilities:
+  - "training_script_execution"
+  - "certification_rollup"
+  - "readiness_alerting"
+airgapped_support: true

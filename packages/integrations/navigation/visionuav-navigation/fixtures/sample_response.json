@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "mission_id": "visionuav-reloc-2026-04-10-04",
+  "vehicle_id": "uav-scout-4",
+  "operation": "match_uav_imagery_to_satellite_reference",
+  "matching_pipeline": {
+    "feature_extractor": "superpoint",
+    "matcher": "lightglue",
+    "inlier_ratio": 0.79
+  },
+  "localization_result": {
+    "estimated_pose_lat_lon": [24.7581, 46.6399],
+    "heading_deg": 187.4,
+    "reprojection_error_px": 1.84
+  },
+  "tactical_assessment": {
+    "gps_denied_reacquisition": "successful",
+    "area_relevance": "high",
+    "mission_readiness": "go"
+  }
+}
