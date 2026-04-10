@@ -1,0 +1,20 @@
+{
+  "report_id": "mxbridge-comms-2026-0410-001",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "bridge_id": "mxbridge-alpha-03",
+  "routing_health": "degraded",
+  "active_rooms": 28,
+  "mapped_identities": 146,
+  "relay_stats": {
+    "messages_forwarded_1h": 4821,
+    "retry_queue": 9,
+    "delivery_success_rate": 0.992
+  },
+  "priority_alerts": [
+    {
+      "channel": "ops/forward-observer",
+      "issue": "matrix_ack_timeout",
+      "severity": "medium"
+    }
+  ]
+}

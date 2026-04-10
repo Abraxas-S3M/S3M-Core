@@ -1,0 +1,18 @@
+{
+  "report_id": "libsignal-comms-2026-0410-001",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "device_profile": "squad-leader-handset-v4",
+  "prekey_inventory": {
+    "one_time_prekeys_available": 120,
+    "signed_prekey_age_hours": 14
+  },
+  "session_security": {
+    "double_ratchet_state": "synchronized",
+    "forward_secrecy": "enforced",
+    "post_compromise_security": "enabled"
+  },
+  "message_integrity_checks": {
+    "verified_last_24h": 918,
+    "failures": 0
+  }
+}

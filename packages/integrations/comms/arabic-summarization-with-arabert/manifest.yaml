@@ -1,0 +1,12 @@
+name: "arabic-summarization-with-araBert"
+slug: "arabic-summarization-with-arabert"
+domain: "comms"
+source_url: "https://github.com/aliasharf123/arabic-summarization-with-araBert"
+license: "Unknown"
+description: "AraBERT-based Arabic text summarization pipeline"
+integration_type: "adapter"
+capabilities:
+  - "arabic_intel_summarization"
+  - "bert_based_brief_generation"
+  - "linguistic_noise_reduction"
+airgapped_support: true

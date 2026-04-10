@@ -1,0 +1,22 @@
+{
+  "report_id": "prosody-comms-2026-0410-001",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "node": "orion-edge-comms-01",
+  "service_status": "active",
+  "encryption_profile": {
+    "c2s_tls": "TLSv1.3",
+    "s2s_tls": "TLSv1.3",
+    "cipher_suites": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLS_CHACHA20_POLY1305_SHA256"
+    ]
+  },
+  "federation": {
+    "trusted_domains": 12,
+    "denied_domains": 3
+  },
+  "queue_metrics": {
+    "pending_messages": 17,
+    "avg_delivery_ms": 62
+  }
+}

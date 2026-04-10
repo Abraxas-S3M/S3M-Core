@@ -1,0 +1,12 @@
+name: "NLP-Arabic-text-summarization-using-araBART"
+slug: "nlp-arabic-text-summarization-using-arab"
+domain: "comms"
+source_url: "https://github.com/asma-10/NLP-Arabic-text-summarization-using-araBART-"
+license: "Unknown"
+description: "AraBART abstractive summarization for Arabic text"
+integration_type: "adapter"
+capabilities:
+  - "arabic_abstractive_summarization"
+  - "briefing_generation"
+  - "sequence_to_sequence_inference"
+airgapped_support: true
