@@ -1,0 +1,12 @@
+name: "Procurement-Management-System"
+slug: "procurement-management-system"
+domain: "maintenance"
+source_url: "https://github.com/Piumikavindya/Procurement-Management-System"
+license: "Unknown"
+description: "Full procurement request tracking, approval workflows, and supplier management."
+integration_type: "adapter"
+capabilities:
+  - request_tracking
+  - approval_workflow
+  - supplier_management
+airgapped_support: true

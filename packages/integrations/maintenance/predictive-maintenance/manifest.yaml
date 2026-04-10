@@ -1,0 +1,12 @@
+name: "Predictive-Maintenance"
+slug: "predictive-maintenance"
+domain: "maintenance"
+source_url: "https://github.com/Sara-Esm/Predictive-Maintenance"
+license: "Unknown"
+description: "RUL prediction for aircraft engines using NASA turbofan data."
+integration_type: "adapter"
+capabilities:
+  - rul_estimation
+  - nasa_turbofan_modeling
+  - failure_risk_monitoring
+airgapped_support: true

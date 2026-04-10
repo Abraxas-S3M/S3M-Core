@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "proc-mgmt-2026-0410-0046",
+  "generated_at": "2026-04-10T10:44:00Z",
+  "theater_command": "northern-support-command",
+  "open_requests": [
+    {
+      "request_id": "PR-22041",
+      "item": "Engine vibration sensor kit",
+      "priority": "critical",
+      "approval_stage": "command-logistics-review",
+      "eta_days": 5
+    },
+    {
+      "request_id": "PR-22052",
+      "item": "Hydraulic actuator seal pack",
+      "priority": "high",
+      "approval_stage": "finance-clearance",
+      "eta_days": 11
+    }
+  ],
+  "supplier_status": {
+    "supplier_id": "SUP-ALPHA-09",
+    "on_time_delivery_rate": 0.93,
+    "quality_score": 0.9,
+    "security_clearance": "validated"
+  },
+  "overall_procurement_health": "stable"
+}

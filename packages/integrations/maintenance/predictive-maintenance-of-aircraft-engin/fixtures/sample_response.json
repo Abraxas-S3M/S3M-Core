@@ -1,0 +1,18 @@
+{
+  "analysis_id": "aft-eng-rul-2026-0410-0019",
+  "fleet_segment": "air-wing-east",
+  "generated_at": "2026-04-10T09:30:00Z",
+  "model_family": "lstm-ensemble",
+  "engine_unit": "TF-7821-ALPHA-14",
+  "predictions": {
+    "remaining_useful_life_cycles": 73,
+    "failure_risk_30_day": 0.19,
+    "anomaly_score": 0.67
+  },
+  "recommended_actions": [
+    "Schedule borescope inspection within next 12 sorties",
+    "Pre-stage compressor blade replacement kit at forward depot",
+    "Increase vibration telemetry sampling to every flight segment"
+  ],
+  "status": "monitor"
+}
