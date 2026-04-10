@@ -1,1 +1,1 @@
-"""Personnel and readiness integration wrappers for S3M mission support."""
+"""Readiness-domain integration wrappers for personnel mission readiness."""
