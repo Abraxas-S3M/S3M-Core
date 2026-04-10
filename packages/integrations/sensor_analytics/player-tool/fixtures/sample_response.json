@@ -1,0 +1,31 @@
+{
+  "operation": "simulate_maritime_surveillance",
+  "scenario_id": "strait-watch-26-0410",
+  "area_of_operations": "sector-delta-maritime",
+  "assets": {
+    "surface_radars": 3,
+    "patrol_uavs": 2,
+    "coastal_ais_feeds": 1
+  },
+  "fused_tracks": [
+    {
+      "track_id": "T-001",
+      "classification": "merchant_vessel",
+      "confidence": 0.97,
+      "risk_score": 0.12
+    },
+    {
+      "track_id": "T-009",
+      "classification": "unidentified_small_craft",
+      "confidence": 0.74,
+      "risk_score": 0.81,
+      "flagged_reason": "irregular_route_and_ais_gap"
+    }
+  ],
+  "decision_support": {
+    "priority_contact_track": "T-009",
+    "recommended_action": "dispatch_patrol_uav_for_visual_confirmation"
+  },
+  "status": "ok",
+  "generated_at": "2026-04-10T13:30:00Z"
+}
