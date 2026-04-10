@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "mission_id": "agentic-robotics-2026-04-10-05",
+  "task_group": "mixed-domain-echo",
+  "agent_framework": "rai",
+  "ros2_graph_summary": {
+    "nodes_active": 18,
+    "services_available": 27,
+    "action_servers_ready": 9
+  },
+  "orchestration_metrics": {
+    "task_assignment_success_rate": 0.95,
+    "mean_dispatch_latency_ms": 13.2,
+    "recovery_actions_triggered": 1
+  },
+  "platform_profile": {
+    "vendor_lock_in": false,
+    "deployment_mode": "offline-sovereign"
+  },
+  "tactical_assessment": {
+    "multi-domain_coordination": "effective",
+    "mission_readiness": "green"
+  }
+}
