@@ -1,0 +1,16 @@
+name: "AI-Driven-Threat-Detection-System"
+slug: "ai-driven-threat-detection-system"
+domain: "sensor_fusion"
+source_url: "https://github.com/melisa48/AI-Driven-Threat-Detection-System"
+license: "MIT"
+description: "Isolation Forest-based network traffic anomaly detection for tactical SOC fusion workflows."
+integration_type: "adapter"
+capabilities:
+  - "network_anomaly_detection"
+  - "traffic_baselining"
+  - "isolation_forest_scoring"
+pip_dependencies:
+  - "numpy"
+  - "pandas"
+  - "scikit-learn"
+airgapped_support: true

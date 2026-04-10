@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "assessment_id": "drone-wifi-anomaly-001",
+  "mission_phase": "perimeter_surveillance",
+  "anomaly_probability": 0.87,
+  "risk_level": "high",
+  "dominant_features": [
+    "channel_hopping_rate",
+    "management_frame_burst",
+    "signal_strength_variance"
+  ],
+  "recommended_action": "Escalate to counter-UAS watch team and maintain RF geolocation track.",
+  "model_family": "unsupervised_isolation_forest",
+  "timestamp_utc": "2026-04-10T09:15:00Z"
+}
