@@ -1,1 +1,1 @@
-"""Swarm integration domain for decentralized multi-robot mission wrappers."""
+"""Swarm integration domain for multi-agent mission orchestration wrappers."""

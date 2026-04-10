@@ -1,0 +1,12 @@
+name: "Autonomous_UAVs_Swarm_Mission"
+slug: "autonomous-uavs-swarm-mission"
+domain: "swarm"
+source_url: "https://github.com/AlexJinlei/Autonomous_UAVs_Swarm_Mission"
+license: "MIT"
+description: "Autonomous quadcopter swarm for cooperative missions with coordination, communication, and failure handling."
+integration_type: "adapter"
+capabilities:
+  - "cooperative_path_coordination"
+  - "swarm_communication_resilience"
+  - "failure_handling_retasking"
+airgapped_support: true

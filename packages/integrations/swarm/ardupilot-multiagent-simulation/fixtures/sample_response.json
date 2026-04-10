@@ -1,0 +1,32 @@
+{
+  "simulation_id": "ardu-sim-ma-209",
+  "status": "scenario_compiled",
+  "scenario": {
+    "map": "urban_corridor_alpha",
+    "duration_seconds": 900,
+    "sim_backend": "gazebo",
+    "autopilot": "ardupilot"
+  },
+  "agents": [
+    {
+      "vehicle_id": "quad-01",
+      "role": "lead",
+      "model": "iris"
+    },
+    {
+      "vehicle_id": "quad-02",
+      "role": "wingman-left",
+      "model": "iris"
+    },
+    {
+      "vehicle_id": "quad-03",
+      "role": "wingman-right",
+      "model": "iris"
+    }
+  ],
+  "readiness_checks": {
+    "ros2_bridge": "ready",
+    "gazebo_world": "loaded",
+    "autopilot_link": "connected"
+  }
+}
