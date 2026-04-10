@@ -1,0 +1,5 @@
+name: "fuse"
+slug: "fuse"
+domain: "sensor_fusion"
+source_url: "https://github.com/locusrobotics/fuse"
+license: "BSD"
