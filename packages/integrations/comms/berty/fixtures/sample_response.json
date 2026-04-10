@@ -1,0 +1,20 @@
+{
+  "snapshot_id": "berty-comms-2026-0410-1205z",
+  "generated_at": "2026-04-10T12:05:00Z",
+  "network_state": "degraded_contested",
+  "peer_summary": {
+    "known_peers": 26,
+    "authenticated_peers": 19,
+    "offline_cache_ready": true
+  },
+  "message_pipeline": {
+    "queued_messages": 14,
+    "delivered_last_hour": 63,
+    "delivery_success_rate": 0.952
+  },
+  "routing_profile": "zero_trust_peer_relay",
+  "alerts": [
+    "Relay peer BERTY-RELAY-07 intermittently unreachable.",
+    "Offline payload cache integrity check passed."
+  ]
+}

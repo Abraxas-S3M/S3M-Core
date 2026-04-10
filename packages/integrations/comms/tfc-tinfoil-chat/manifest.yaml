@@ -1,0 +1,15 @@
+name: "tfc (Tinfoil Chat)"
+slug: "tfc-tinfoil-chat"
+domain: "comms"
+source_url: "https://github.com/maqp/tfc"
+license: "Unknown"
+description: "Onion-routed, endpoint-secure messaging with data-diode relay."
+integration_type: "adapter"
+capabilities:
+  - "onion_routed_transport"
+  - "endpoint_hardening"
+  - "data_diode_relay_pattern"
+system_dependencies:
+  - "tfc"
+  - "tor"
+airgapped_support: true

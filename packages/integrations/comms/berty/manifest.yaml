@@ -1,0 +1,14 @@
+name: "berty"
+slug: "berty"
+domain: "comms"
+source_url: "https://github.com/berty/berty"
+license: "Unknown"
+description: "Secure peer-to-peer messaging app with offline-first, zero-trust routing."
+integration_type: "adapter"
+capabilities:
+  - "secure_p2p_messaging"
+  - "offline_first_delivery"
+  - "zero_trust_peer_discovery"
+system_dependencies:
+  - "berty"
+airgapped_support: true
