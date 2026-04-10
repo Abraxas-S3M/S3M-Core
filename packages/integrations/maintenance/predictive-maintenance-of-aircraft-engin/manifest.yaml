@@ -1,0 +1,12 @@
+name: "Predictive-Maintenance-of-Aircraft-Engines-Machine-Learning-Approaches-for-RUL"
+slug: "predictive-maintenance-of-aircraft-engin"
+domain: "maintenance"
+source_url: "https://github.com/Murari-10/Predictive-Maintenance-of-Aircraft-Engines-Machine-Learning-Approaches-for-RUL"
+license: "Unknown"
+description: "ML approaches for aircraft engine Remaining Useful Life estimation in maintenance pipelines."
+integration_type: "adapter"
+capabilities:
+  - "rul_estimation"
+  - "engine_health_projection"
+  - "maintenance_window_planning"
+airgapped_support: true

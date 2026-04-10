@@ -1,1 +1,1 @@
-"""Maintenance domain integration wrappers for S3M sustainment operations."""
+"""Maintenance-domain integration wrappers for S3M tactical sustainment."""
