@@ -1,0 +1,29 @@
+{
+  "simulation_id": "wg-2026-04-10-001",
+  "scenario_name": "Northern Corridor Card Engagement",
+  "status": "completed",
+  "turns": 18,
+  "forces": {
+    "blue": {
+      "initial_strength": 120,
+      "remaining_strength": 87,
+      "casualties": 33
+    },
+    "red": {
+      "initial_strength": 140,
+      "remaining_strength": 61,
+      "casualties": 79
+    }
+  },
+  "outcome": "blue_victory",
+  "statistics": {
+    "blue_win_probability": 0.64,
+    "expected_attrition_ratio": 1.9,
+    "resource_expenditure_index": 0.72
+  },
+  "tactical_notes": [
+    "Blue force gained initiative after turn 6 by concentrating maneuver cards on sector Bravo.",
+    "Red force logistics penalties increased casualty rate during final third of scenario.",
+    "Recommended action: reinforce reconnaissance card deck for contested flank openings."
+  ]
+}

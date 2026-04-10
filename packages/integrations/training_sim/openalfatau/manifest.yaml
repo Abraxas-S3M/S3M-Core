@@ -1,0 +1,12 @@
+name: "OpenAlfaTau"
+slug: "openalfatau"
+domain: "training_sim"
+source_url: "https://github.com/Vytek/OpenAlfaTau"
+license: "Unknown"
+description: "All-in-one tools and libraries for simulation game development."
+integration_type: "adapter"
+capabilities:
+  - "simulation_tooling"
+  - "scenario_pipeline_support"
+  - "game_mechanics_prototyping"
+airgapped_support: true

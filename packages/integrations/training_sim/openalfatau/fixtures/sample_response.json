@@ -1,0 +1,29 @@
+{
+  "simulation_id": "oat-combined-arms-2026-04-10-01",
+  "scenario_name": "Urban Entry Combined Arms Rehearsal",
+  "environment": {
+    "terrain": "dense_urban",
+    "weather": "overcast",
+    "visibility_m": 3500
+  },
+  "assets": {
+    "friendly_units": 14,
+    "opfor_units": 11,
+    "civilian_entities": 48
+  },
+  "timeline": {
+    "simulated_minutes": 75,
+    "ticks_processed": 9000,
+    "average_fps": 122.6
+  },
+  "assessment": {
+    "objective_completion": 0.79,
+    "force_survivability": 0.84,
+    "blue_red_exchange_ratio": 1.36
+  },
+  "recommendations": [
+    "Increase ISR cadence on eastern approach corridor.",
+    "Reposition reserve squad to reduce flank exposure during phase line BRAVO.",
+    "Adjust breaching sequence timing by +90 seconds to improve synchronization."
+  ]
+}

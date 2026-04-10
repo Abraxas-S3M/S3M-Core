@@ -1,0 +1,30 @@
+{
+  "exercise_id": "openbw-sim-2026-04-10-01",
+  "engine": "OpenBW",
+  "scenario": "combined_arms_assault_lane_7",
+  "faction_a": "blue_battlegroup",
+  "faction_b": "red_opfor_company",
+  "match_duration_seconds": 1640,
+  "result": "blue_battlegroup_victory",
+  "metrics": {
+    "resource_efficiency": {
+      "blue_battlegroup": 0.83,
+      "red_opfor_company": 0.71
+    },
+    "units_lost": {
+      "blue_battlegroup": 26,
+      "red_opfor_company": 41
+    },
+    "objective_capture_time_seconds": 1120,
+    "sim_tick_rate_hz": 24
+  },
+  "readiness_assessment": {
+    "micro_execution_grade": "B+",
+    "macro_planning_grade": "A-",
+    "recommended_drills": [
+      "supply_line_resilience",
+      "counter_push_timing"
+    ]
+  },
+  "airgapped": true
+}
