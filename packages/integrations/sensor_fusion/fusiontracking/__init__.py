@@ -1,0 +1,11 @@
+"""FusionTracking sensor-fusion integration wrapper for S3M."""
+
+from __future__ import annotations
+
+import importlib
+
+FusiontrackingAdapter = importlib.import_module(
+    "packages.integrations.sensor_fusion.fusiontracking.adapter"
+).FusiontrackingAdapter
+
+__all__ = ["FusiontrackingAdapter"]
