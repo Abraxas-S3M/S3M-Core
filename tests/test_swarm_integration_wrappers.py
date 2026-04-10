@@ -6,45 +6,42 @@ from typing import Any
 
 import pytest
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 CASES = [
     {
         "slug": "multi-robot-trainer",
-        "adapter_path": Path(
-            "/workspace/packages/integrations/swarm/multi-robot-trainer/adapter.py"
-        ),
+        "adapter_path": REPO_ROOT / "packages/integrations/swarm/multi-robot-trainer/adapter.py",
         "class_name": "MultiRobotTrainerAdapter",
         "logger_name": "s3m.integrations.swarm.multi-robot-trainer",
         "fixture_probe": ("mission_id", "swarm-train-2026-04-10-01"),
     },
     {
         "slug": "multi-agent-reinforcement-learning-activ",
-        "adapter_path": Path(
-            "/workspace/packages/integrations/swarm/multi-agent-reinforcement-learning-activ/adapter.py"
-        ),
+        "adapter_path": REPO_ROOT
+        / "packages/integrations/swarm/multi-agent-reinforcement-learning-activ/adapter.py",
         "class_name": "MultiAgentReinforcementLearningAdapter",
         "logger_name": "s3m.integrations.swarm.multi-agent-reinforcement-learning-activ",
         "fixture_probe": ("team_id", "scout-pack-4"),
     },
     {
         "slug": "open-dis",
-        "adapter_path": Path("/workspace/packages/integrations/swarm/open-dis/adapter.py"),
+        "adapter_path": REPO_ROOT / "packages/integrations/swarm/open-dis/adapter.py",
         "class_name": "OpenDisAdapter",
         "logger_name": "s3m.integrations.swarm.open-dis",
         "fixture_probe": ("exercise_id", "joint-federation-west-1"),
     },
     {
         "slug": "odin-c2is",
-        "adapter_path": Path("/workspace/packages/integrations/swarm/odin-c2is/adapter.py"),
+        "adapter_path": REPO_ROOT / "packages/integrations/swarm/odin-c2is/adapter.py",
         "class_name": "Odinc2isAdapter",
         "logger_name": "s3m.integrations.swarm.odin-c2is",
         "fixture_probe": ("headquarters", "joint-task-force-north"),
     },
     {
         "slug": "openc2sim---c2simartifacts",
-        "adapter_path": Path(
-            "/workspace/packages/integrations/swarm/openc2sim---c2simartifacts/adapter.py"
-        ),
+        "adapter_path": REPO_ROOT
+        / "packages/integrations/swarm/openc2sim---c2simartifacts/adapter.py",
         "class_name": "Openc2simC2simartifactsAdapter",
         "logger_name": "s3m.integrations.swarm.openc2sim---c2simartifacts",
         "fixture_probe": ("bundle_id", "brigade-rehearsal-bundle-22"),
