@@ -1,0 +1,24 @@
+{
+  "snapshot_id": "awesome-synthetic-data-2026-0410-0728z",
+  "catalog": "awesome-synthetic-data",
+  "status": "indexed",
+  "entry_count": 142,
+  "focus_areas": [
+    "tabular",
+    "time_series",
+    "privacy",
+    "evaluation"
+  ],
+  "recommended_for_mission_rehearsal": [
+    {
+      "tool": "CTGAN",
+      "fit": "tabular_force_structure_simulation",
+      "license": "MIT"
+    },
+    {
+      "tool": "DataSynthesizer",
+      "fit": "privacy_preserving_personnel_scenarios",
+      "license": "MIT"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "snapshot_id": "datasynthesizer-sim-2026-0410-0723z",
+  "generator": "datasynthesizer",
+  "dataset_profile": "personnel_rotation_roster",
+  "status": "generated",
+  "rows_generated": 2500,
+  "privacy_model": {
+    "mode": "differential_privacy",
+    "epsilon": 1.0,
+    "sensitive_fields": [
+      "operator_id",
+      "medical_flag"
+    ]
+  },
+  "utility_metrics": {
+    "distribution_similarity": 0.88,
+    "query_answer_error": 0.06
+  },
+  "sample_preview": [
+    {
+      "unit": "MECH-BN-04",
+      "rotation_cycle_days": 45,
+      "training_completion_pct": 0.84
+    },
+    {
+      "unit": "ENG-BN-09",
+      "rotation_cycle_days": 30,
+      "training_completion_pct": 0.91
+    }
+  ]
+}

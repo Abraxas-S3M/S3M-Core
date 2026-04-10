@@ -1,0 +1,12 @@
+name: "DoppelGANger"
+slug: "doppelganger"
+domain: "simulation"
+source_url: "https://github.com/fjxmlzn/DoppelGANger"
+license: "(Open)"
+description: "GAN framework for synthetic time-series data."
+integration_type: "adapter"
+capabilities:
+  - "synthetic_sequence_generation"
+  - "telemetry_timeline_rehearsal"
+  - "scenario_temporal_modeling"
+airgapped_support: true

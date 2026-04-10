@@ -1,0 +1,14 @@
+name: "DataSynthesizer"
+slug: "datasynthesizer"
+domain: "simulation"
+source_url: "https://github.com/DataResponsibly/DataSynthesizer"
+license: "MIT"
+description: "Synthetic data generator with differential privacy."
+integration_type: "adapter"
+capabilities:
+  - "differential_privacy_synthesis"
+  - "sensitive_attribute_protection"
+  - "synthetic_dataset_export"
+pip_dependencies:
+  - "DataSynthesizer"
+airgapped_support: true

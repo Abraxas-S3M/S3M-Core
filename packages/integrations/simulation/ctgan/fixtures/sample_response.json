@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "ctgan-sim-2026-0410-0705z",
+  "generator": "ctgan",
+  "dataset_profile": "force_readiness_logistics",
+  "status": "generated",
+  "rows_generated": 1200,
+  "conditional_columns": [
+    "theater_region",
+    "unit_type",
+    "supply_state"
+  ],
+  "quality_metrics": {
+    "statistical_fidelity_score": 0.93,
+    "nearest_neighbor_leakage_risk": 0.08
+  },
+  "sample_preview": [
+    {
+      "unit_id": "BDE-12-ALPHA",
+      "theater_region": "sector-north",
+      "fuel_days_remaining": 6.4,
+      "repair_backlog_items": 3
+    },
+    {
+      "unit_id": "BDE-18-BRAVO",
+      "theater_region": "sector-east",
+      "fuel_days_remaining": 4.9,
+      "repair_backlog_items": 5
+    }
+  ]
+}
