@@ -1,0 +1,12 @@
+name: "Wargame"
+slug: "wargame"
+domain: "training_sim"
+source_url: "https://github.com/Gornova/Wargame"
+license: "Unknown"
+description: "Open-source Java wargame integration with AI-controlled unit mechanics."
+integration_type: "adapter"
+capabilities:
+  - "java_battle_simulation"
+  - "ai_unit_control"
+  - "terrain_engagement_modeling"
+airgapped_support: true

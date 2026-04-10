@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "mission_id": "sim-interop-2026-04-10-03",
+  "operation": "encode_dis_pdu",
+  "exercise_id": "joint-federation-west-1",
+  "pdu_type": "EntityStatePdu",
+  "entity_id": {
+    "site": 12,
+    "application": 4,
+    "entity": 117
+  },
+  "encoded_length_bytes": 144,
+  "timestamp_ms": 48217340,
+  "network_profile": {
+    "multicast_group": "239.1.2.3",
+    "port": 3000,
+    "packet_loss_ratio": 0.01
+  },
+  "tactical_assessment": {
+    "blue_force_tracking_sync": "consistent",
+    "federation_latency_band": "green"
+  }
+}

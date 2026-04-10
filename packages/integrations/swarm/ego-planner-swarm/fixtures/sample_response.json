@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "sortie_id": "ego-formation-echo-3",
+  "planning_window_s": 24,
+  "planner_config": {
+    "agents": 10,
+    "voxel_resolution_m": 0.2,
+    "safety_buffer_m": 1.5
+  },
+  "trajectory_metrics": {
+    "plans_generated": 10,
+    "successful_plans": 10,
+    "mean_compute_time_ms": 43,
+    "near_miss_events": 0
+  },
+  "environment": {
+    "obstacle_density": "high",
+    "gps_quality": "intermittent"
+  },
+  "tactical_assessment": "Trajectory quality supports low-altitude ingress through dense structures."
+}

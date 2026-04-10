@@ -1,0 +1,12 @@
+name: "multi-agent-reinforcement-learning-active-slam"
+slug: "multi-agent-reinforcement-learning-activ"
+domain: "swarm"
+source_url: "https://github.com/i1Cps/multi-agent-reinforcement-learning-active-slam"
+license: "MIT"
+description: "ROS2 packages for decentralized multi-agent exploration and mapping with Active SLAM and DRL."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "active_slam"
+  - "decentralized_exploration"
+  - "multi_agent_mapping"

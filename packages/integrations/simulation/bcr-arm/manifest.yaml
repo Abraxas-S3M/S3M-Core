@@ -1,0 +1,15 @@
+name: "bcr_arm"
+slug: "bcr-arm"
+domain: "simulation"
+source_url: "https://github.com/blackcoffeerobotics/bcr_arm"
+license: "(Open)"
+description: "Open-source 7-DOF robotic arm simulation for ROS2, Gazebo, and Isaac Sim."
+integration_type: "adapter"
+capabilities:
+  - "robotic_arm_simulation"
+  - "trajectory_validation"
+  - "ros2_gazebo_isaac_interop"
+system_dependencies:
+  - "ros2"
+  - "gz"
+airgapped_support: true

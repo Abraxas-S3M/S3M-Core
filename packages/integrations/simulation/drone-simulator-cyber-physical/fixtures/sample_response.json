@@ -1,0 +1,21 @@
+{
+  "status": "ok",
+  "mission_id": "sim-cyber-drone-2026-04-10-03",
+  "scenario_name": "contested_border_patrol",
+  "swarm_units": 3,
+  "attack_vector": "gps_spoofing",
+  "defense_profile": {
+    "spoofing_detector": "enabled",
+    "fallback_navigation_mode": "vision_inertial",
+    "autonomy_degradation": "controlled"
+  },
+  "platform_health": {
+    "uav_alpha": "nominal",
+    "uav_bravo": "nominal",
+    "uav_charlie": "degraded_rtk"
+  },
+  "tactical_assessment": {
+    "mission_completion_probability": 0.88,
+    "operator_alert_level": "elevated"
+  }
+}

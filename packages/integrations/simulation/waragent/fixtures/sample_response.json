@@ -1,0 +1,36 @@
+{
+  "snapshot_id": "waragent-campaign-2026-0410-007",
+  "simulation": {
+    "name": "northern-front-escalation",
+    "turns_executed": 8,
+    "resolution": "6h"
+  },
+  "agents": [
+    {
+      "actor": "blue_coalition",
+      "strategy": "defensive_depth",
+      "resource_posture": "strained"
+    },
+    {
+      "actor": "red_coalition",
+      "strategy": "multi_axis_pressure",
+      "resource_posture": "stable"
+    },
+    {
+      "actor": "neutral_mediator",
+      "strategy": "deescalation_window",
+      "resource_posture": "limited"
+    }
+  ],
+  "outcomes": {
+    "territory_shift_km2": -18,
+    "civilian_risk_index": 0.63,
+    "escalation_probability_next_24h": 0.57
+  },
+  "recommended_actions": [
+    "prioritize_counter_battery_surveillance",
+    "preposition_medical_brigade_at_sector_delta",
+    "expand_signal_jamming_hardening"
+  ],
+  "confidence": 0.76
+}

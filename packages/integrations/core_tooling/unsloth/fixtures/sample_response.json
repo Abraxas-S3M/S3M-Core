@@ -1,0 +1,27 @@
+{
+  "run_id": "unsloth-lora-2026-04-10-0012",
+  "status": "completed",
+  "operation": "lora_finetune",
+  "training_profile": {
+    "base_model": "s3m-command-llm-13b",
+    "lora_rank": 64,
+    "lora_alpha": 128,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ]
+  },
+  "performance": {
+    "throughput_samples_per_second": 36.4,
+    "speedup_vs_baseline_x": 2.1,
+    "peak_vram_gb": 17.3,
+    "memory_reduction_percent": 69.4
+  },
+  "deployment_context": {
+    "gpu": "nvidia-jetson-agx-orin",
+    "mission_dataset": "saudi-command-dialogue-v3",
+    "adapter_artifact": "/opt/s3m/adapters/unsloth-lora-command-v3"
+  }
+}
