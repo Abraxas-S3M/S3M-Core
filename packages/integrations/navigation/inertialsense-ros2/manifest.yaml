@@ -1,0 +1,12 @@
+name: "inertialsense_ros2"
+slug: "inertialsense-ros2"
+domain: "navigation"
+source_url: "https://github.com/byu-magicc/inertialsense_ros2"
+license: "MIT"
+description: "ROS2 wrapper for InertialSense RTK-GPS-INS, adaptable for denied fusion."
+integration_type: "adapter"
+capabilities:
+  - "imu-gnss-fusion"
+  - "ros2-telemetry"
+  - "denied-navigation-readiness"
+airgapped_support: true
