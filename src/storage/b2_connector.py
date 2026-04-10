@@ -85,6 +85,16 @@ class B2Connector:
             region_name=self.region_name,
         )
 
+    @classmethod
+    def from_env(cls) -> "B2Connector":
+        """Construct connector using S3M_B2_* environment variables.
+
+        Tactical context:
+            Standardized environment bootstrap keeps vault transfer tooling
+            interoperable across Hetzner workers and operator laptops.
+        """
+        return cls()
+
     @staticmethod
     def _required_config(value: str | None, env_name: str) -> str:
         resolved = (value or os.getenv(env_name, "")).strip()
@@ -344,3 +354,37 @@ class B2Connector:
 
         self._with_retries(f"delete_file key={key}", _operation)
         logger.info("Deleted b2://%s/%s", self.bucket_name, key)
+
+    def get_file_size(self, remote_key: str) -> int:
+        """Return object size in bytes for one B2 key.
+
+        Tactical context:
+            Size telemetry supports transfer planning and mission cache
+            budgeting before edge deployments are synchronized.
+        """
+        key = self._normalize_key(remote_key)
+
+        def _operation() -> int:
+            metadata = self._client.head_object(Bucket=self.bucket_name, Key=key)
+            return int(metadata.get("ContentLength", 0))
+
+        return self._with_retries(f"get_file_size key={key}", _operation)
+
+    def get_file_sha256(self, remote_key: str) -> str | None:
+        """Return stored SHA-256 metadata for an object when available.
+
+        Tactical context:
+            Checksum retrieval allows independent integrity verification
+            after long-haul uploads in contested network conditions.
+        """
+        key = self._normalize_key(remote_key)
+
+        def _operation() -> str | None:
+            metadata = self._client.head_object(Bucket=self.bucket_name, Key=key)
+            user_meta = metadata.get("Metadata", {})
+            if not isinstance(user_meta, dict):
+                return None
+            checksum = user_meta.get("sha256")
+            return str(checksum) if checksum else None
+
+        return self._with_retries(f"get_file_sha256 key={key}", _operation)
