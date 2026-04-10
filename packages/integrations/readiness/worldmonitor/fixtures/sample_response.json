@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "brief_id": "wm-ready-2026-04-10-0600z",
+  "generated_at": "2026-04-10T06:00:00Z",
+  "readiness_summary": {
+    "overall_readiness_posture": "guarded",
+    "global_force_readiness_index": 78,
+    "high_priority_theaters": 3
+  },
+  "theater_signals": [
+    {
+      "theater": "Eastern Europe",
+      "personnel_stress": "high",
+      "rotation_pressure": "elevated",
+      "confidence": 0.84
+    },
+    {
+      "theater": "Red Sea Corridor",
+      "personnel_stress": "medium",
+      "rotation_pressure": "high",
+      "confidence": 0.79
+    },
+    {
+      "theater": "South China Sea",
+      "personnel_stress": "medium",
+      "rotation_pressure": "medium",
+      "confidence": 0.76
+    }
+  ],
+  "recommended_actions": [
+    "Prioritize medical and morale support for high-strain units.",
+    "Adjust leave cycles to protect critical staffing bands.",
+    "Issue commander brief on readiness impact from geopolitical escalation."
+  ]
+}
