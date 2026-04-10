@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "grex-sw-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_context": "joint-multi-domain-swarm-rehearsal",
+  "status": "nominal",
+  "metrics": {
+    "scenario_id": "urban-recon-alpha",
+    "active_agents": 12,
+    "coordination_latency_ms_p95": 42,
+    "formation_integrity": 0.97,
+    "contested_gnss_mode": true,
+    "mission_phase": "area_reconnaissance"
+  }
+}

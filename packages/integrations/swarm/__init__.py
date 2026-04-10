@@ -1,1 +1,1 @@
-"""Swarm integration domain for multi-agent mission orchestration wrappers."""
+"""Swarm integration domain for tactical multi-agent wrappers."""

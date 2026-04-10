@@ -1,0 +1,15 @@
+name: "MultiRobot_Search_and_Rescue"
+slug: "multirobot-search-and-rescue"
+domain: "swarm"
+source_url: "https://github.com/MayankD409/MultiRobot_Search_and_Rescue"
+license: "MIT"
+description: "Swarm robot simulation for search & rescue with autonomous navigation and object detection in ROS2."
+integration_type: "adapter"
+capabilities:
+  - "swarm_state_estimation"
+  - "multi_agent_coordination"
+  - "ros2_tactical_rehearsal"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+airgapped_support: true
