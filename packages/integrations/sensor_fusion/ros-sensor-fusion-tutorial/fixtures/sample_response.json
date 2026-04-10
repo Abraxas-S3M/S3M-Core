@@ -1,0 +1,29 @@
+{
+  "event_id": "ros-fusion-training-2026-04-10-002",
+  "mission_id": "recon-urban-sector-3",
+  "fusion_stack": "robot_localization_ekf_ukf",
+  "time_window_s": 5.0,
+  "tracks": [
+    {
+      "track_id": "trk-41",
+      "source_mix": [
+        "imu",
+        "wheel_odometry",
+        "gps"
+      ],
+      "state": {
+        "x_m": 218.2,
+        "y_m": -74.6,
+        "vx_mps": 2.8,
+        "vy_mps": 0.1
+      },
+      "covariance_trace": 0.42
+    }
+  ],
+  "filter_health": {
+    "ekf_status": "nominal",
+    "ukf_status": "nominal",
+    "outlier_rejections": 2
+  },
+  "confidence": 0.89
+}
