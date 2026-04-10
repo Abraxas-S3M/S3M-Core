@@ -1,0 +1,21 @@
+{
+  "job_id": "bitsandbytes-quant-2026-04-10-0007",
+  "status": "completed",
+  "operation": "quantize_model",
+  "configuration": {
+    "quantization": "nf4",
+    "compute_dtype": "bfloat16",
+    "double_quant": true
+  },
+  "metrics": {
+    "original_model_size_gb": 46.8,
+    "quantized_model_size_gb": 13.2,
+    "memory_reduction_percent": 71.79,
+    "perplexity_delta": 0.12
+  },
+  "deployment_context": {
+    "target_platform": "jetson-agx-orin",
+    "mission_profile": "edge-command-assistant",
+    "artifact_path": "/opt/s3m/models/grok1-quantized-nf4"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "run_id": "accelerate-train-2026-04-10-0001",
+  "status": "completed",
+  "plan": {
+    "operation": "distributed_training",
+    "num_processes": 8,
+    "mixed_precision": "bf16",
+    "gradient_accumulation_steps": 4
+  },
+  "telemetry": {
+    "global_batch_size": 256,
+    "steps_completed": 1200,
+    "tokens_processed": 78643200,
+    "effective_tflops": 131.2
+  },
+  "deployment_context": {
+    "node_profile": "jetson-cluster-sim",
+    "mission_tag": "offline-readiness-drill",
+    "checkpoint_path": "/opt/s3m/checkpoints/mission-llm-0001"
+  }
+}

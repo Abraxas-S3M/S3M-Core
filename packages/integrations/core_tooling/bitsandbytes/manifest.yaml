@@ -1,0 +1,12 @@
+name: "BitsAndBytes"
+slug: "bitsandbytes"
+domain: "core_tooling"
+source_url: "https://github.com/TimDettmers/bitsandbytes"
+license: "Unknown"
+description: "Quantization library for 4/8-bit models that reduces memory footprints for large LLM deployments."
+integration_type: "adapter"
+capabilities:
+  - "4bit-quantization"
+  - "8bit-quantization"
+  - "memory-optimization"
+airgapped_support: true
