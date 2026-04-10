@@ -1,0 +1,20 @@
+{
+  "analysis_id": "mor-recipes-2026-04-10-03",
+  "generated_at": "2026-04-10T08:25:00Z",
+  "scenario": "Multi-node sustainment routing under interdiction risk",
+  "model": {
+    "family": "mixed_integer_programming",
+    "objective": "minimize resupply delay and convoy exposure",
+    "constraints": [
+      "daily_fuel_demand",
+      "bridge_capacity",
+      "escort_availability"
+    ]
+  },
+  "solution_summary": {
+    "optimality_gap": 0.012,
+    "expected_daily_shortfall_tons": 6.8,
+    "highest_risk_route": "Route DELTA-7",
+    "recommended_action": "Shift 22 percent of convoy flow to ALTERNATE ECHO corridor during night windows."
+  }
+}
