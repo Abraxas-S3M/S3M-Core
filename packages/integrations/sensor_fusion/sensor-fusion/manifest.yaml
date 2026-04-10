@@ -1,0 +1,13 @@
+name: "sensor_fusion"
+slug: "sensor-fusion"
+domain: "sensor_fusion"
+source_url: "https://github.com/BDEvan5/sensor_fusion"
+license: "MIT"
+description: "Simple LKF, EKF, UKF, and particle-filter implementations for state estimation."
+integration_type: "adapter"
+capabilities:
+  - "linear-kalman-filter"
+  - "extended-kalman-filter"
+  - "unscented-kalman-filter"
+  - "particle-filter"
+airgapped_support: true

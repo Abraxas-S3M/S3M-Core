@@ -1,0 +1,12 @@
+name: "ros-sensor-fusion-tutorial"
+slug: "ros-sensor-fusion-tutorial"
+domain: "sensor_fusion"
+source_url: "https://github.com/methylDragon/ros-sensor-fusion-tutorial"
+license: "MIT"
+description: "In-depth tutorial and examples for sensor fusion with robot_localization EKF/UKF in ROS."
+integration_type: "adapter"
+capabilities:
+  - "ekf-state-estimation"
+  - "ukf-state-estimation"
+  - "ros-robot-localization"
+airgapped_support: true
