@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "pred-main-2026-0410-0033",
+  "analysis_window": "mission_week_15",
+  "fleet": "tactical-transport-group-bravo",
+  "generated_at": "2026-04-10T10:25:00Z",
+  "engine_predictions": [
+    {
+      "engine_id": "TF-2209-07",
+      "remaining_cycles": 64,
+      "failure_probability_14_day": 0.23,
+      "maintenance_band": "amber"
+    },
+    {
+      "engine_id": "TF-2209-11",
+      "remaining_cycles": 142,
+      "failure_probability_14_day": 0.08,
+      "maintenance_band": "green"
+    }
+  ],
+  "recommended_tasking": "Prioritize TF-2209-07 for line maintenance and sensor recalibration before next deployment.",
+  "status": "ready"
+}

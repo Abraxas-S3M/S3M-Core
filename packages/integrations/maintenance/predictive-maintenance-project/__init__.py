@@ -1,4 +1,4 @@
-"""S3M maintenance integration wrapper for aircraft engine predictive maintenance."""
+"""S3M maintenance integration wrapper for Predictive_Maintenance_Project."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 
-_CLASS_NAME = "PredictiveMaintenanceOfAircraftAdapter"
+_CLASS_NAME = "PredictiveMaintenanceProjectAdapter"
 
 
 def __getattr__(name: str) -> Any:

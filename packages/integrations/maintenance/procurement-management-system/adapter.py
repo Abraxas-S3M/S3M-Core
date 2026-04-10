@@ -1,8 +1,8 @@
-"""Adapter for aircraft engine predictive maintenance workflows.
+"""Adapter for procurement workflow and supplier management integration.
 
 Military/tactical context:
-This wrapper supports sovereign sustainment teams by exposing deterministic
-remaining-useful-life (RUL) assessment interfaces for mission aircraft fleets.
+This wrapper supports sustainment brigades by tracking approvals, supplier
+commitments, and fulfillment status for mission-critical spare parts.
 """
 
 from __future__ import annotations
@@ -19,22 +19,23 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
-    """S3M maintenance adapter for aircraft engine prognostics repositories."""
+class ProcurementManagementSystemAdapter(IntegrationAdapter):
+    """S3M maintenance adapter for procurement request lifecycle management."""
 
-    integration_id = "predictive-maintenance-of-aircraft-engin"
+    integration_id = "procurement-management-system"
     domain = "maintenance"
     _COMMAND_CANDIDATES = ("python3", "python")
-    _MODULE_CANDIDATES = ("numpy", "pandas", "sklearn", "tensorflow", "torch")
+    _MODULE_CANDIDATES = ("flask", "django", "sqlalchemy")
     _SUPPORTED_OPERATIONS = {
-        "rul_estimate",
-        "fleet_health_snapshot",
-        "maintenance_alerts",
+        "request_status",
+        "approval_queue",
+        "supplier_performance",
+        "fulfillment_snapshot",
     }
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
-        self.logger = logging.getLogger("s3m.integrations.maintenance.predictive-maintenance-of-aircraft-engin")
+        self.logger = logging.getLogger("s3m.integrations.maintenance.procurement-management-system")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -61,7 +62,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
 
     @staticmethod
     def _sanitize_params(params: dict[str, Any] | None) -> dict[str, Any]:
-        """Validate payloads so tactical maintenance workflows stay deterministic."""
+        """Validate procurement payload to reduce malformed workflow inputs."""
         if params is None:
             return {}
         if not isinstance(params, dict):
@@ -77,25 +78,24 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         return normalized
 
     def get_manifest(self) -> IntegrationManifest:
-        """Return integration metadata used by maintenance orchestrators."""
+        """Return procurement integration manifest metadata."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "Predictive-Maintenance-of-Aircraft-Engine"),
+            name=str(raw.get("name") or "Procurement-Management-System"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
             source_url=str(
-                raw.get("source_url")
-                or "https://github.com/archd3sai/Predictive-Maintenance-of-Aircraft-Engine"
+                raw.get("source_url") or "https://github.com/Piumikavindya/Procurement-Management-System"
             ),
             license=str(raw.get("license") or "Unknown"),
             description=str(
                 raw.get("description")
-                or "Aircraft turbofan failure prediction and remaining-useful-life estimation."
+                or "Procurement request tracking, approval workflows, and supplier management."
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
                 raw.get("capabilities")
-                or ["rul_estimation", "engine_health_scoring", "maintenance_prioritization"]
+                or ["request_tracking", "approval_workflow", "supplier_management"]
             ),
             pip_dependencies=self._coerce_list(raw.get("pip_dependencies")),
             system_dependencies=self._coerce_list(raw.get("system_dependencies")),
@@ -105,7 +105,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         )
 
     def validate_availability(self) -> bool:
-        """Validate local runtime dependencies without external API calls."""
+        """Validate local procurement tooling availability for sovereign runtime."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -123,9 +123,9 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         return module_available or command_available
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute maintenance prognostic wrapper with fixture fallback."""
+        """Execute procurement management wrapper with airgapped fixture mode."""
         safe_params = self._sanitize_params(params)
-        operation = str(safe_params.get("operation") or "rul_estimate").strip().lower()
+        operation = str(safe_params.get("operation") or "request_status").strip().lower()
         if operation not in self._SUPPORTED_OPERATIONS:
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
@@ -150,7 +150,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
                 "status": "unavailable",
                 "operation": operation,
                 "request": safe_params,
-                "message": "Local predictive-maintenance dependencies are not installed.",
+                "message": "Procurement management local runtime is not available.",
             }
 
         return {
@@ -161,5 +161,5 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
             "status": "accepted",
             "operation": operation,
             "request": safe_params,
-            "message": "Local predictive maintenance tooling detected for mission sustainment planning.",
+            "message": "Procurement workflow runtime detected for maintenance logistics coordination.",
         }

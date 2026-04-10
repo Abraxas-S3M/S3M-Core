@@ -1,8 +1,8 @@
-"""Adapter for aircraft engine predictive maintenance workflows.
+"""Adapter for aircraft engine RUL estimation workflows.
 
 Military/tactical context:
-This wrapper supports sovereign sustainment teams by exposing deterministic
-remaining-useful-life (RUL) assessment interfaces for mission aircraft fleets.
+The wrapper gives maintenance command cells deterministic RUL estimates to
+prioritize repairs and preserve sortie generation in austere theaters.
 """
 
 from __future__ import annotations
@@ -19,22 +19,18 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
-    """S3M maintenance adapter for aircraft engine prognostics repositories."""
+class PredictiveMaintenanceProjectAdapter(IntegrationAdapter):
+    """S3M wrapper for Predictive_Maintenance_Project capabilities."""
 
-    integration_id = "predictive-maintenance-of-aircraft-engin"
+    integration_id = "predictive-maintenance-project"
     domain = "maintenance"
     _COMMAND_CANDIDATES = ("python3", "python")
-    _MODULE_CANDIDATES = ("numpy", "pandas", "sklearn", "tensorflow", "torch")
-    _SUPPORTED_OPERATIONS = {
-        "rul_estimate",
-        "fleet_health_snapshot",
-        "maintenance_alerts",
-    }
+    _MODULE_CANDIDATES = ("numpy", "pandas", "sklearn")
+    _SUPPORTED_OPERATIONS = {"rul_estimate", "degradation_trend", "mission_readiness"}
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
-        self.logger = logging.getLogger("s3m.integrations.maintenance.predictive-maintenance-of-aircraft-engin")
+        self.logger = logging.getLogger("s3m.integrations.maintenance.predictive-maintenance-project")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -61,7 +57,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
 
     @staticmethod
     def _sanitize_params(params: dict[str, Any] | None) -> dict[str, Any]:
-        """Validate payloads so tactical maintenance workflows stay deterministic."""
+        """Validate payloads before mission sustainment decision support."""
         if params is None:
             return {}
         if not isinstance(params, dict):
@@ -77,25 +73,24 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         return normalized
 
     def get_manifest(self) -> IntegrationManifest:
-        """Return integration metadata used by maintenance orchestrators."""
+        """Return manifest metadata for orchestrator discovery."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "Predictive-Maintenance-of-Aircraft-Engine"),
+            name=str(raw.get("name") or "Predictive_Maintenance_Project"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
             source_url=str(
-                raw.get("source_url")
-                or "https://github.com/archd3sai/Predictive-Maintenance-of-Aircraft-Engine"
+                raw.get("source_url") or "https://github.com/SureshAthanti/Predictive_Maintenance_Project"
             ),
             license=str(raw.get("license") or "Unknown"),
             description=str(
                 raw.get("description")
-                or "Aircraft turbofan failure prediction and remaining-useful-life estimation."
+                or "Remaining Useful Life prediction workflows for turbofan engines."
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
                 raw.get("capabilities")
-                or ["rul_estimation", "engine_health_scoring", "maintenance_prioritization"]
+                or ["rul_estimation", "degradation_tracking", "maintenance_window_planning"]
             ),
             pip_dependencies=self._coerce_list(raw.get("pip_dependencies")),
             system_dependencies=self._coerce_list(raw.get("system_dependencies")),
@@ -105,7 +100,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         )
 
     def validate_availability(self) -> bool:
-        """Validate local runtime dependencies without external API calls."""
+        """Check for local predictive-maintenance runtime availability."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -123,7 +118,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
         return module_available or command_available
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute maintenance prognostic wrapper with fixture fallback."""
+        """Execute predictive-maintenance project wrapper safely offline."""
         safe_params = self._sanitize_params(params)
         operation = str(safe_params.get("operation") or "rul_estimate").strip().lower()
         if operation not in self._SUPPORTED_OPERATIONS:
@@ -150,7 +145,7 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
                 "status": "unavailable",
                 "operation": operation,
                 "request": safe_params,
-                "message": "Local predictive-maintenance dependencies are not installed.",
+                "message": "Predictive_Maintenance_Project dependencies are not installed.",
             }
 
         return {
@@ -161,5 +156,5 @@ class PredictiveMaintenanceOfAircraftAdapter(IntegrationAdapter):
             "status": "accepted",
             "operation": operation,
             "request": safe_params,
-            "message": "Local predictive maintenance tooling detected for mission sustainment planning.",
+            "message": "Local RUL tooling detected; orchestrator may proceed with mission sustainment analysis.",
         }

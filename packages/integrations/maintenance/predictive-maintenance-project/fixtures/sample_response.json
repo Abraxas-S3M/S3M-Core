@@ -1,0 +1,18 @@
+{
+  "assessment_id": "rul-proj-2026-0410-0028",
+  "mission_unit": "carrier-air-wing-3",
+  "generated_at": "2026-04-10T10:05:00Z",
+  "engine_id": "CFM56-7B-21",
+  "rul_prediction": {
+    "remaining_cycles": 118,
+    "confidence": 0.88,
+    "health_index": 0.74
+  },
+  "degradation_signals": {
+    "fan_speed_residual": 0.18,
+    "exhaust_gas_temp_margin": -14.2,
+    "fuel_flow_drift": 0.11
+  },
+  "maintenance_recommendation": "Plan depot-level module swap within next 30 mission cycles.",
+  "priority": "medium"
+}

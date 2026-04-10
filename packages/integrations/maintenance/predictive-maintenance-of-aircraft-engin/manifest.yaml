@@ -1,12 +1,16 @@
-name: "Predictive-Maintenance-of-Aircraft-Engines-Machine-Learning-Approaches-for-RUL"
+name: "Predictive-Maintenance-of-Aircraft-Engine"
 slug: "predictive-maintenance-of-aircraft-engin"
 domain: "maintenance"
-source_url: "https://github.com/Murari-10/Predictive-Maintenance-of-Aircraft-Engines-Machine-Learning-Approaches-for-RUL"
+source_url: "https://github.com/archd3sai/Predictive-Maintenance-of-Aircraft-Engine"
 license: "Unknown"
-description: "ML approaches for aircraft engine Remaining Useful Life estimation in maintenance pipelines."
+description: "Various ML techniques for aircraft turbofan failure prediction and RUL forecasting."
 integration_type: "adapter"
 capabilities:
-  - "rul_estimation"
-  - "engine_health_projection"
-  - "maintenance_window_planning"
+  - rul_estimation
+  - engine_health_scoring
+  - maintenance_prioritization
+related_sources:
+  - "https://github.com/AjiteshMahalingam/Predictive-Maintenance-of-Aircraft-engine-using-LSTM-networks"
+related_names:
+  - "Predictive-Maintenance-of-Aircraft-engine-using-LSTM-networks"
 airgapped_support: true

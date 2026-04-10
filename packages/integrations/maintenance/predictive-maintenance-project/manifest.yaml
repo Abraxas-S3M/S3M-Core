@@ -1,0 +1,12 @@
+name: "Predictive_Maintenance_Project"
+slug: "predictive-maintenance-project"
+domain: "maintenance"
+source_url: "https://github.com/SureshAthanti/Predictive_Maintenance_Project"
+license: "Unknown"
+description: "Remaining Useful Life (RUL) estimation for aircraft engines."
+integration_type: "adapter"
+capabilities:
+  - rul_estimation
+  - degradation_tracking
+  - maintenance_window_planning
+airgapped_support: true
