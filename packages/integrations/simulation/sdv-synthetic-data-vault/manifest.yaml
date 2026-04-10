@@ -1,0 +1,14 @@
+name: "SDV (Synthetic Data Vault)"
+slug: "sdv-synthetic-data-vault"
+domain: "simulation"
+source_url: "https://github.com/sdv-dev/SDV"
+license: "MIT"
+description: "Python library for generating synthetic tabular, relational, and time-series data."
+integration_type: "adapter"
+capabilities:
+  - "synthetic_tabular_data"
+  - "synthetic_relational_data"
+  - "synthetic_time_series_data"
+pip_dependencies:
+  - "sdv"
+airgapped_support: true
