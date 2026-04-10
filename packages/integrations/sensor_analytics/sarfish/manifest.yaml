@@ -1,0 +1,12 @@
+name: "SARFish"
+slug: "sarfish"
+domain: "sensor_analytics"
+source_url: "https://github.com/DIUx-xView/SARFish"
+license: "Unknown"
+description: "SAR imagery dataset and models for space-based maritime surveillance."
+integration_type: "adapter"
+capabilities:
+  - "sar_imagery_ingestion"
+  - "ship_detection"
+  - "scene_triage"
+airgapped_support: true

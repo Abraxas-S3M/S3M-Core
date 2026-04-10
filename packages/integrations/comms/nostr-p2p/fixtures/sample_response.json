@@ -1,0 +1,10 @@
+{
+  "snapshot_id": "nostr-p2p-2026-0410-1900z",
+  "generated_at": "2026-04-10T19:00:00Z",
+  "relay": "wss://relay-alpha.local",
+  "delivery_status": "delivered",
+  "message_id": "nostr-msg-7f4c2b91",
+  "recipient_pubkey": "02b4f6d7d3a1c9e0f11223344556677889900aabbccddeeff0011223344556677",
+  "latency_ms": 138,
+  "tactical_note": "Short-burst field update propagated across sovereign relay mesh without internet dependency."
+}

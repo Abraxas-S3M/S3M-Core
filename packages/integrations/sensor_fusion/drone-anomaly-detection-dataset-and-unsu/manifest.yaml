@@ -1,0 +1,16 @@
+name: "Drone-Anomaly-Detection-Dataset-and-Unsupervised-Machine-Learning"
+slug: "drone-anomaly-detection-dataset-and-unsu"
+domain: "sensor_fusion"
+source_url: "https://github.com/isot-lab/Drone-Anomaly-Detection-Dataset-and-Unsupervised-Machine-Learning"
+license: "MIT"
+description: "Wi-Fi-based drone anomaly detection dataset with unsupervised analytics for sovereign signal monitoring."
+integration_type: "adapter"
+capabilities:
+  - "wifi_anomaly_detection"
+  - "unsupervised_clustering"
+  - "signal_baselining"
+pip_dependencies:
+  - "numpy"
+  - "pandas"
+  - "scikit-learn"
+airgapped_support: true

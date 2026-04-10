@@ -1,0 +1,12 @@
+name: "FYP-Maritime_Surveillance"
+slug: "fyp-maritime-surveillance"
+domain: "sensor_analytics"
+source_url: "https://github.com/sakunaharinda/FYP-Maritime_Surveillance"
+license: "Unknown"
+description: "Thermal + object detection/tracking for maritime surveillance."
+integration_type: "adapter"
+capabilities:
+  - "thermal_detection"
+  - "vessel_tracking"
+  - "maritime_intrusion_monitoring"
+airgapped_support: true

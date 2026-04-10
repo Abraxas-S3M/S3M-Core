@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "mission_id": "sf-fusiontracking-ops-21",
+  "pipeline": "FusionTracking",
+  "sensor_modalities": ["radar", "camera", "lidar"],
+  "track_summary": {
+    "active_tracks": 6,
+    "new_tracks": 2,
+    "dropped_tracks": 1
+  },
+  "top_tracks": [
+    {
+      "track_id": "ft-301",
+      "classification": "tracked_vehicle",
+      "position_m": [522.1, -116.4],
+      "velocity_mps": [9.6, 0.4],
+      "association_score": 0.95
+    },
+    {
+      "track_id": "ft-288",
+      "classification": "utility_truck",
+      "position_m": [477.5, -92.8],
+      "velocity_mps": [6.2, -0.7],
+      "association_score": 0.9
+    }
+  ],
+  "tactical_assessment": {
+    "fusion_quality": "high",
+    "ekf_consistency": true,
+    "comment": "Cross-modal association remained stable through temporary camera occlusion."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "run_id": "fyp-maritime-thermal-2026-04-10-09",
+  "operation": "thermal_vessel_tracking",
+  "surveillance_zone": "southern_littoral_corridor",
+  "detections": [
+    {
+      "track_id": "thm-781",
+      "sensor_mode": "thermal_ir",
+      "classification": "fast_attack_craft",
+      "confidence": 0.88,
+      "position": [20.9042, 39.2359],
+      "velocity_knots": 24.2
+    },
+    {
+      "track_id": "thm-784",
+      "sensor_mode": "thermal_ir",
+      "classification": "fishing_vessel",
+      "confidence": 0.81,
+      "position": [20.8963, 39.2441],
+      "velocity_knots": 7.1
+    }
+  ],
+  "tactical_assessment": {
+    "anomaly_tracks": ["thm-781"],
+    "recommended_action": "shadow_and_identify_high_speed_contact",
+    "operator_alert_state": "elevated"
+  }
+}

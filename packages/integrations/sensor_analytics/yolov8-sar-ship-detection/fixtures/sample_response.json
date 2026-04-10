@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "yolov8-sar-ship-detection-2026-0410-1205z",
+  "generated_at": "2026-04-10T12:05:00Z",
+  "mission_ref": "strait-surveillance-lane-c",
+  "preprocessing": {
+    "lee_filter_applied": true,
+    "window_size": 5,
+    "polarization": "VV"
+  },
+  "detections": [
+    {
+      "track_id": "OBB-0041",
+      "center_xy": [721.2, 198.4],
+      "width_height": [62.5, 21.7],
+      "angle_deg": 31.4,
+      "class": "merchant_vessel",
+      "confidence": 0.91
+    },
+    {
+      "track_id": "OBB-0042",
+      "center_xy": [184.9, 612.7],
+      "width_height": [35.3, 14.2],
+      "angle_deg": 201.8,
+      "class": "fast_attack_craft",
+      "confidence": 0.86
+    }
+  ],
+  "tactical_assessment": {
+    "contacts_total": 2,
+    "high_priority_tracks": ["OBB-0042"],
+    "note": "Fast craft orientation aligns with approach vector toward restricted offshore platform."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "status": "ok",
+  "mission_id": "sf-tracking-corridor-11",
+  "pipeline": "smart_track",
+  "fusion_inputs": {
+    "rgb_frames": 420,
+    "depth_frames": 420,
+    "lidar_scans": 420
+  },
+  "tracks": [
+    {
+      "track_id": "trk-101",
+      "classification": "light_armored_vehicle",
+      "state_vector": {
+        "x_m": 312.5,
+        "y_m": -84.2,
+        "vx_mps": 7.9,
+        "vy_mps": 0.6
+      },
+      "covariance_trace": 1.42,
+      "confidence": 0.91
+    },
+    {
+      "track_id": "trk-109",
+      "classification": "support_truck",
+      "state_vector": {
+        "x_m": 281.7,
+        "y_m": -42.1,
+        "vx_mps": 4.2,
+        "vy_mps": 1.1
+      },
+      "covariance_trace": 1.87,
+      "confidence": 0.87
+    }
+  ],
+  "tactical_assessment": {
+    "track_continuity": "stable",
+    "fusion_ready": true,
+    "comment": "Kalman-gated association remained robust under intermittent depth dropout."
+  }
+}

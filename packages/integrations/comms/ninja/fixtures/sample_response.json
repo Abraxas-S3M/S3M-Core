@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "snapshot_id": "ninja-c2-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "channel_health": {
+    "active_sessions": 5,
+    "encrypted_tunnels": 9,
+    "jitter_ms_p95": 41
+  },
+  "beacon_summary": [
+    {
+      "node_id": "alpha-21",
+      "last_seen": "2026-04-10T11:58:31Z",
+      "link_quality": "stable",
+      "encryption": "AES-256"
+    },
+    {
+      "node_id": "echo-07",
+      "last_seen": "2026-04-10T11:57:52Z",
+      "link_quality": "degraded",
+      "encryption": "AES-256"
+    }
+  ],
+  "tactical_note": "Maintain low-signature beacon cadence to preserve comms concealment near contested sectors."
+}
