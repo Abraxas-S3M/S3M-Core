@@ -1,27 +1,29 @@
 {
-  "operation": "terrain_force_simulation",
-  "status": "success",
-  "exercise_id": "wargames-ts-2026-0410-1005",
-  "terrain_profile": {
-    "type": "mixed_hills_and_urban_edges",
-    "visibility_km": 2.4,
-    "mobility_penalty_percent": 18
-  },
-  "force_summary": {
+  "simulation_id": "wg-2026-04-10-001",
+  "scenario_name": "Northern Corridor Card Engagement",
+  "status": "completed",
+  "turns": 18,
+  "forces": {
     "blue": {
-      "infantry": 9,
-      "armor": 4,
-      "artillery": 2
+      "initial_strength": 120,
+      "remaining_strength": 87,
+      "casualties": 33
     },
     "red": {
-      "infantry": 11,
-      "armor": 3,
-      "artillery": 3
+      "initial_strength": 140,
+      "remaining_strength": 61,
+      "casualties": 79
     }
   },
-  "simulation_result": {
-    "winning_side": "blue",
-    "decisive_factor": "terrain-aware flanking maneuver",
-    "remaining_combat_power_ratio": 1.18
-  }
+  "outcome": "blue_victory",
+  "statistics": {
+    "blue_win_probability": 0.64,
+    "expected_attrition_ratio": 1.9,
+    "resource_expenditure_index": 0.72
+  },
+  "tactical_notes": [
+    "Blue force gained initiative after turn 6 by concentrating maneuver cards on sector Bravo.",
+    "Red force logistics penalties increased casualty rate during final third of scenario.",
+    "Recommended action: reinforce reconnaissance card deck for contested flank openings."
+  ]
 }

@@ -1,1 +1,1 @@
-"""Training and simulation integration domain wrappers for S3M."""
+"""Training and simulation integration wrappers for S3M."""

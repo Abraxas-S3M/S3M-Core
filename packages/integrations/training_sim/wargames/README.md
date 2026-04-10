@@ -1,10 +1,10 @@
-# Wargames Integration
+# wargames Integration
 
 ## Purpose
 
-This adapter wraps the upstream **Wargames** repository for S3M training and simulation workflows.
+This adapter wraps the `wargames` repository for S3M training and simulation workflows.
 
-Military/tactical context: it provides deterministic terrain and unit-mechanics simulation outputs for mission rehearsal in disconnected sovereign operations centers.
+Military/tactical context: command staffs can rehearse card-based engagements and evaluate expected loss/expenditure distributions while disconnected from external networks.
 
 ## Adapter Class
 
@@ -14,9 +14,9 @@ Military/tactical context: it provides deterministic terrain and unit-mechanics 
 
 ## Operational Modes
 
-- **Airgapped mode**: returns fixture data from `fixtures/sample_response.json`
-- **Online mode**: validates local Java/runtime dependencies and returns readiness state
+- **Airgapped mode**: returns deterministic fixture output from `fixtures/sample_response.json`
+- **Online mode**: validates local binary/path availability and reports readiness
 
 ## Manifest
 
-Metadata is stored in `manifest.yaml` and loaded by `get_manifest()`.
+`get_manifest()` reads metadata from `manifest.yaml`.

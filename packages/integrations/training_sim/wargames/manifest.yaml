@@ -1,12 +1,12 @@
-name: "Wargames"
+name: "wargames"
 slug: "wargames"
 domain: "training_sim"
-source_url: "https://github.com/thomsen85/Wargames"
+source_url: "https://github.com/gruen/wargames"
 license: "Unknown"
-description: "Java war simulation integration with terrain and unit-mechanics training support."
+description: "War card game simulator with statistics and customizable parameters."
 integration_type: "adapter"
 capabilities:
-  - "terrain_simulation"
-  - "unit_mechanics"
-  - "mission_rehearsal"
+  - "battle_simulation"
+  - "statistical_analysis"
+  - "parameterized_wargaming"
 airgapped_support: true

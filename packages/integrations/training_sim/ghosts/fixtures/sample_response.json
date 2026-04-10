@@ -1,0 +1,29 @@
+{
+  "exercise_id": "ghosts-range-2026-04-10-03",
+  "scenario_name": "Joint Cyber-Range Rehearsal",
+  "status": "completed",
+  "objective_assessment": {
+    "detect_intrusion": "achieved",
+    "contain_lateral_movement": "partially_achieved",
+    "restore_services": "achieved"
+  },
+  "blue_team": {
+    "participants": 14,
+    "mean_detection_seconds": 97,
+    "containment_success_rate": 0.78
+  },
+  "red_team": {
+    "attack_chains_executed": 6,
+    "successful_objectives": 2
+  },
+  "range_telemetry": {
+    "simulated_hosts": 120,
+    "network_segments": 9,
+    "events_processed": 48211
+  },
+  "recommendations": [
+    "Increase SOC triage staffing during early exercise phases.",
+    "Tune endpoint isolation playbooks for faster lateral movement suppression.",
+    "Re-run exercise with degraded communications inject for C2 stress testing."
+  ]
+}

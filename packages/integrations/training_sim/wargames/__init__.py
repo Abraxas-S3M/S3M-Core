@@ -1,11 +1,5 @@
-"""S3M training_sim integration wrapper for Wargames."""
+"""wargames training_sim integration wrapper for S3M."""
 
-from __future__ import annotations
-
-import importlib
-
-WargamesAdapter = importlib.import_module(
-    "packages.integrations.training_sim.wargames.adapter"
-).WargamesAdapter
+from .adapter import WargamesAdapter
 
 __all__ = ["WargamesAdapter"]

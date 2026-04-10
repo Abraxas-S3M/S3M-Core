@@ -1,9 +1,9 @@
-"""Adapter for wargames tactical training simulation workflows.
+"""Adapter for openbw tactical simulation workflows.
 
 Military/tactical context:
-This wrapper helps planners rehearse force-on-force card-based outcomes and
-compare casualty/expenditure statistics while operating in sovereign airgapped
-networks.
+This wrapper provides a deterministic bridge to StarCraft-like combat
+simulation loops for force-on-force rehearsal, AI doctrine tuning, and mission
+planning under airgapped sovereign constraints.
 """
 
 from __future__ import annotations
@@ -19,21 +19,22 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class WargamesAdapter(IntegrationAdapter):
-    """S3M integration adapter for wargames training simulation workflows."""
+class OpenbwAdapter(IntegrationAdapter):
+    """S3M integration adapter for OpenBW training and simulation workflows."""
 
-    integration_id = "wargames"
+    integration_id = "openbw"
     domain = "training_sim"
-    _COMMAND_CANDIDATES = ("wargames", "python3", "python")
+    _COMMAND_CANDIDATES = ("openbw", "bwapi", "python3")
     _SUPPORTED_OPERATIONS = {
-        "simulate_battle",
-        "batch_statistics",
-        "parameter_sweep",
+        "scenario_playback",
+        "micro_benchmark",
+        "battle_replay",
+        "run_match",
     }
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
-        self.logger = logging.getLogger("s3m.integrations.training_sim.wargames")
+        self.logger = logging.getLogger("s3m.integrations.training_sim.openbw")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -63,40 +64,38 @@ class WargamesAdapter(IntegrationAdapter):
 
     @staticmethod
     def _sanitize_params(params: dict[str, Any] | None) -> dict[str, Any]:
-        """Validate mission inputs before simulation execution."""
+        """Validate simulation request payloads before mission rehearsal."""
         if params is None:
             return {}
         if not isinstance(params, dict):
             raise TypeError("params must be a dictionary")
         if any(not isinstance(key, str) for key in params):
             raise ValueError("all params keys must be strings")
-
         try:
             normalized = json.loads(json.dumps(params))
         except (TypeError, ValueError) as exc:
             raise ValueError("params must be JSON-serializable") from exc
-
         if len(json.dumps(normalized)) > 20000:
             raise ValueError("params payload exceeds maximum size")
         return normalized
 
     def get_manifest(self) -> IntegrationManifest:
-        """Load integration metadata from manifest.yaml for orchestrator discovery."""
+        """Load adapter metadata from manifest.yaml for cataloging."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "wargames"),
+            name=str(raw.get("name") or "openbw"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/gruen/wargames"),
+            source_url=str(raw.get("source_url") or "https://github.com/OpenBW/openbw"),
             license=str(raw.get("license") or "Unknown"),
             description=str(
                 raw.get("description")
-                or "War card game simulator with statistics and customizable parameters."
+                or "OpenBW free and open-source wargame engine for deterministic battle simulation."
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
                 raw.get("capabilities")
-                or ["battle_simulation", "statistical_analysis", "parameterized_wargaming"]
+                or ["combat_replay", "scenario_simulation", "ai_benchmarking"]
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
             pip_dependencies=self._coerce_list(raw.get("pip_dependencies")),
@@ -106,7 +105,7 @@ class WargamesAdapter(IntegrationAdapter):
         )
 
     def validate_availability(self) -> bool:
-        """Validate local simulator availability with no external API calls."""
+        """Validate local engine/tool availability in sovereign deployments."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -122,9 +121,9 @@ class WargamesAdapter(IntegrationAdapter):
         return any(shutil.which(command) for command in self._COMMAND_CANDIDATES)
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute tactical simulation request with deterministic fixture fallback."""
+        """Execute simulation operation with deterministic airgapped fixture."""
         request = self._sanitize_params(params)
-        operation = str(request.get("operation") or "simulate_battle").strip().lower()
+        operation = str(request.get("operation") or "scenario_playback").strip().lower()
         if operation not in self._SUPPORTED_OPERATIONS:
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
@@ -149,7 +148,7 @@ class WargamesAdapter(IntegrationAdapter):
                 "source": "runtime",
                 "operation": operation,
                 "request": request,
-                "message": "wargames simulator is not installed or configured on this node.",
+                "message": "openbw toolchain is not installed or configured on this node.",
             }
 
         return {
@@ -160,5 +159,5 @@ class WargamesAdapter(IntegrationAdapter):
             "source": "runtime",
             "operation": operation,
             "request": request,
-            "message": "Local wargames toolchain detected; execution remains fully offline.",
+            "message": "Local OpenBW runtime detected; execution remains offline and sovereign.",
         }

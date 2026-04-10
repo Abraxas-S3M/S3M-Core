@@ -1,0 +1,12 @@
+name: "ghosts"
+slug: "ghosts"
+domain: "training_sim"
+source_url: "https://github.com/cmu-sei/ghosts (related cyber-range tools)"
+license: "Unknown"
+description: "Tools for realistic cyber ranges and joint exercise simulation."
+integration_type: "adapter"
+capabilities:
+  - "cyber_range_scenario_emulation"
+  - "joint_exercise_training"
+  - "adversary_behavior_rehearsal"
+airgapped_support: true

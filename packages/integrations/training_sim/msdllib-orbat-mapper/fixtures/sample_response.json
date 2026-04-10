@@ -1,0 +1,30 @@
+{
+  "exercise_id": "msdllib-orbat-2026-04-10-03",
+  "timestamp": "2026-04-10T07:15:00Z",
+  "scenario": {
+    "name": "Coalition Defensive Belt Conversion",
+    "classification": "UNCLASSIFIED // TRAINING USE",
+    "theater": "Synthetic Joint Operations Grid"
+  },
+  "msdl_parse_summary": {
+    "documents_processed": 3,
+    "units_parsed": 28,
+    "equipment_records": 116,
+    "invalid_records": 0
+  },
+  "orbat_projection": {
+    "brigade_groups": 3,
+    "combat_units": 18,
+    "support_units": 10,
+    "strength_percent": 83.4
+  },
+  "interoperability_flags": [
+    "msdl_schema_v1_0_validated",
+    "joint_force_structure_ready",
+    "offline_conversion_successful"
+  ],
+  "recommended_actions": [
+    "Review two support battalion logistics codes for alignment with theater standard.",
+    "Run follow-on ORBAT synchronization before red-force inject at H+6."
+  ]
+}

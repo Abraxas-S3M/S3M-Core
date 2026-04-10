@@ -1,0 +1,12 @@
+name: "msdllib (orbat-mapper)"
+slug: "msdllib-orbat-mapper"
+domain: "training_sim"
+source_url: "Related orbat-mapper components"
+license: "Unknown"
+description: "Library components for parsing Military Scenario Definition Language in simulation pipelines."
+integration_type: "adapter"
+capabilities:
+  - "msdl_parsing"
+  - "scenario_validation"
+  - "order_of_battle_mapping"
+airgapped_support: true

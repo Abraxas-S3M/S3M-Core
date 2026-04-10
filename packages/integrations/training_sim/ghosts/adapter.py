@@ -1,9 +1,8 @@
-"""Adapter for wargames tactical training simulation workflows.
+"""Adapter for GHOSTS tactical cyber-range training simulation workflows.
 
 Military/tactical context:
-This wrapper helps planners rehearse force-on-force card-based outcomes and
-compare casualty/expenditure statistics while operating in sovereign airgapped
-networks.
+This wrapper supports mission rehearsal through realistic cyber-range scenarios
+for joint-force exercises while preserving sovereign airgapped execution paths.
 """
 
 from __future__ import annotations
@@ -19,21 +18,22 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class WargamesAdapter(IntegrationAdapter):
-    """S3M integration adapter for wargames training simulation workflows."""
+class GhostsAdapter(IntegrationAdapter):
+    """S3M integration adapter for GHOSTS cyber-range simulation workflows."""
 
-    integration_id = "wargames"
+    integration_id = "ghosts"
     domain = "training_sim"
-    _COMMAND_CANDIDATES = ("wargames", "python3", "python")
+    _COMMAND_CANDIDATES = ("ghosts", "dotnet", "python3")
     _SUPPORTED_OPERATIONS = {
-        "simulate_battle",
-        "batch_statistics",
-        "parameter_sweep",
+        "run_exercise",
+        "range_exercise_run",
+        "inject_events",
+        "evaluate_after_action",
     }
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
-        self.logger = logging.getLogger("s3m.integrations.training_sim.wargames")
+        self.logger = logging.getLogger("s3m.integrations.training_sim.ghosts")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -63,7 +63,7 @@ class WargamesAdapter(IntegrationAdapter):
 
     @staticmethod
     def _sanitize_params(params: dict[str, Any] | None) -> dict[str, Any]:
-        """Validate mission inputs before simulation execution."""
+        """Validate cyber-range requests before exercise orchestration."""
         if params is None:
             return {}
         if not isinstance(params, dict):
@@ -84,19 +84,22 @@ class WargamesAdapter(IntegrationAdapter):
         """Load integration metadata from manifest.yaml for orchestrator discovery."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "wargames"),
+            name=str(raw.get("name") or "ghosts"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/gruen/wargames"),
+            source_url=str(
+                raw.get("source_url")
+                or "https://github.com/cmu-sei/ghosts (related cyber-range tools)"
+            ),
             license=str(raw.get("license") or "Unknown"),
             description=str(
                 raw.get("description")
-                or "War card game simulator with statistics and customizable parameters."
+                or "Tools for realistic cyber ranges and joint exercise simulation."
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
                 raw.get("capabilities")
-                or ["battle_simulation", "statistical_analysis", "parameterized_wargaming"]
+                or ["cyber_range_orchestration", "joint_exercise_injection", "after_action_analysis"]
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
             pip_dependencies=self._coerce_list(raw.get("pip_dependencies")),
@@ -122,9 +125,9 @@ class WargamesAdapter(IntegrationAdapter):
         return any(shutil.which(command) for command in self._COMMAND_CANDIDATES)
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute tactical simulation request with deterministic fixture fallback."""
+        """Execute cyber-range request with deterministic fixture fallback."""
         request = self._sanitize_params(params)
-        operation = str(request.get("operation") or "simulate_battle").strip().lower()
+        operation = str(request.get("operation") or "run_exercise").strip().lower()
         if operation not in self._SUPPORTED_OPERATIONS:
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
@@ -149,7 +152,7 @@ class WargamesAdapter(IntegrationAdapter):
                 "source": "runtime",
                 "operation": operation,
                 "request": request,
-                "message": "wargames simulator is not installed or configured on this node.",
+                "message": "GHOSTS simulator is not installed or configured on this node.",
             }
 
         return {
@@ -160,5 +163,5 @@ class WargamesAdapter(IntegrationAdapter):
             "source": "runtime",
             "operation": operation,
             "request": request,
-            "message": "Local wargames toolchain detected; execution remains fully offline.",
+            "message": "Local GHOSTS toolchain detected; execution remains fully offline.",
         }

@@ -1,9 +1,9 @@
-"""Adapter for wargames tactical training simulation workflows.
+"""Adapter for msdllib-orbat-mapper tactical training simulation workflows.
 
 Military/tactical context:
-This wrapper helps planners rehearse force-on-force card-based outcomes and
-compare casualty/expenditure statistics while operating in sovereign airgapped
-networks.
+This wrapper parses MSDL-oriented force structure data so planners can run
+offline rehearsal and joint-exercise preparation workflows in sovereign
+airgapped command environments.
 """
 
 from __future__ import annotations
@@ -19,21 +19,22 @@ import yaml
 from packages.integrations.base import IntegrationAdapter, IntegrationManifest
 
 
-class WargamesAdapter(IntegrationAdapter):
-    """S3M integration adapter for wargames training simulation workflows."""
+class MsdlliborbatMapperAdapter(IntegrationAdapter):
+    """S3M integration adapter for msdllib-orbat-mapper workflows."""
 
-    integration_id = "wargames"
+    integration_id = "msdllib-orbat-mapper"
     domain = "training_sim"
-    _COMMAND_CANDIDATES = ("wargames", "python3", "python")
+    _COMMAND_CANDIDATES = ("python3", "python", "msdllib")
     _SUPPORTED_OPERATIONS = {
-        "simulate_battle",
-        "batch_statistics",
-        "parameter_sweep",
+        "parse_msdl",
+        "validate_orbat_schema",
+        "generate_force_layout",
+        "parse_military_scenario",
     }
 
     def __init__(self, mode: str | None = None) -> None:
         super().__init__(mode=mode)
-        self.logger = logging.getLogger("s3m.integrations.training_sim.wargames")
+        self.logger = logging.getLogger("s3m.integrations.training_sim.msdllib-orbat-mapper")
 
     def _manifest_path(self) -> Path:
         return Path(__file__).resolve().parent / "manifest.yaml"
@@ -63,7 +64,7 @@ class WargamesAdapter(IntegrationAdapter):
 
     @staticmethod
     def _sanitize_params(params: dict[str, Any] | None) -> dict[str, Any]:
-        """Validate mission inputs before simulation execution."""
+        """Validate MSDL parsing requests before simulation execution."""
         if params is None:
             return {}
         if not isinstance(params, dict):
@@ -84,19 +85,19 @@ class WargamesAdapter(IntegrationAdapter):
         """Load integration metadata from manifest.yaml for orchestrator discovery."""
         raw = self._load_manifest_dict()
         return IntegrationManifest(
-            name=str(raw.get("name") or "wargames"),
+            name=str(raw.get("name") or "msdllib (orbat-mapper)"),
             slug=str(raw.get("slug") or self.integration_id),
             domain=str(raw.get("domain") or self.domain),
-            source_url=str(raw.get("source_url") or "https://github.com/gruen/wargames"),
+            source_url=str(raw.get("source_url") or "Related orbat-mapper components"),
             license=str(raw.get("license") or "Unknown"),
             description=str(
                 raw.get("description")
-                or "War card game simulator with statistics and customizable parameters."
+                or "Library workflows for parsing Military Scenario Definition Language and ORBAT components."
             ),
             integration_type=str(raw.get("integration_type") or "adapter"),
             capabilities=self._coerce_list(
                 raw.get("capabilities")
-                or ["battle_simulation", "statistical_analysis", "parameterized_wargaming"]
+                or ["msdl_parsing", "schema_validation", "orbat_mapping_preparation"]
             ),
             airgapped_support=bool(raw.get("airgapped_support", True)),
             pip_dependencies=self._coerce_list(raw.get("pip_dependencies")),
@@ -106,7 +107,7 @@ class WargamesAdapter(IntegrationAdapter):
         )
 
     def validate_availability(self) -> bool:
-        """Validate local simulator availability with no external API calls."""
+        """Validate local parser availability with no external API calls."""
         if self.is_airgapped:
             return bool(self._read_fixture("sample_response.json"))
 
@@ -122,9 +123,9 @@ class WargamesAdapter(IntegrationAdapter):
         return any(shutil.which(command) for command in self._COMMAND_CANDIDATES)
 
     def execute(self, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Execute tactical simulation request with deterministic fixture fallback."""
+        """Execute MSDL parsing request with deterministic fixture fallback."""
         request = self._sanitize_params(params)
-        operation = str(request.get("operation") or "simulate_battle").strip().lower()
+        operation = str(request.get("operation") or "parse_msdl").strip().lower()
         if operation not in self._SUPPORTED_OPERATIONS:
             raise ValueError(f"Unsupported operation '{operation}' for {self.integration_id}")
 
@@ -149,7 +150,7 @@ class WargamesAdapter(IntegrationAdapter):
                 "source": "runtime",
                 "operation": operation,
                 "request": request,
-                "message": "wargames simulator is not installed or configured on this node.",
+                "message": "msdllib-orbat-mapper tooling is not installed or configured on this node.",
             }
 
         return {
@@ -160,5 +161,5 @@ class WargamesAdapter(IntegrationAdapter):
             "source": "runtime",
             "operation": operation,
             "request": request,
-            "message": "Local wargames toolchain detected; execution remains fully offline.",
+            "message": "Local MSDL parsing toolchain detected; execution remains fully offline.",
         }
