@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "operation_id": "bss-variant-342",
+  "sector": "Sector-Delta-14",
+  "alerts": [
+    {
+      "alert_id": "ALRT-991",
+      "type": "unauthorized_movement",
+      "confidence": 0.91,
+      "grid_ref": "42RXT128594",
+      "recommended_action": "dispatch_recon_uav"
+    },
+    {
+      "alert_id": "ALRT-992",
+      "type": "thermal_signature_cluster",
+      "confidence": 0.84,
+      "grid_ref": "42RXT132601",
+      "recommended_action": "increase_patrol_density"
+    }
+  ],
+  "fused_sources": [
+    "cctv",
+    "ground_sensor",
+    "satellite_tile"
+  ],
+  "generated_at": "2026-04-10T00:00:00Z"
+}
