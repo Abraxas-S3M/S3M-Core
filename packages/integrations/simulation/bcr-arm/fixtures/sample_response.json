@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "mission_id": "sim-bcr-arm-2026-04-10-05",
+  "task_profile": "ordnance_disarm_sequence",
+  "arm_model": "bcr_arm_7dof",
+  "trajectory_plan": {
+    "waypoints": 18,
+    "max_joint_velocity_rad_s": 1.2,
+    "collision_free": true
+  },
+  "manipulation_outcome": {
+    "grasp_success_rate": 0.96,
+    "mean_end_effector_error_mm": 1.7
+  },
+  "tactical_assessment": {
+    "operator_exposure_reduction": "high",
+    "mission_risk_posture": "improved"
+  }
+}

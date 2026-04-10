@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "dataset_id": "sdv-sim-2026-04-10-02",
+  "generation_profile": "theater-logistics-tabular",
+  "record_count": 50000,
+  "schema": {
+    "tables": 3,
+    "relationships": 4,
+    "time_series_channels": 2
+  },
+  "privacy_metrics": {
+    "nearest_neighbor_distance_mean": 0.74,
+    "disclosure_risk": "low"
+  },
+  "quality_metrics": {
+    "distribution_similarity_score": 0.92,
+    "constraint_satisfaction_rate": 0.99
+  },
+  "tactical_assessment": {
+    "training_data_readiness": "high",
+    "sensitive_data_exposure": "none"
+  }
+}

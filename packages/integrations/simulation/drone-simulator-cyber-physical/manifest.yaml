@@ -1,0 +1,15 @@
+name: "drone_simulator (cyber-physical)"
+slug: "drone-simulator-cyber-physical"
+domain: "simulation"
+source_url: "https://github.com/patilunmesh/drone_simulator"
+license: "(Open)"
+description: "ROS2-based UAV simulator for cyber-physical security attacks/defenses with Gazebo integration."
+integration_type: "adapter"
+capabilities:
+  - "cyber_attack_emulation"
+  - "uav_defense_drills"
+  - "ros2_gazebo_scenario_control"
+system_dependencies:
+  - "ros2"
+  - "gz"
+airgapped_support: true

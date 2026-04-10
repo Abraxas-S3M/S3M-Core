@@ -1,0 +1,15 @@
+name: "gz-sim (Gazebo Sim)"
+slug: "gz-sim-gazebo-sim"
+domain: "simulation"
+source_url: "https://github.com/gazebosim/gz-sim"
+license: "Apache 2.0"
+description: "Modern open-source robotics simulator with high-fidelity physics, rendering, and sensor models (ROS2)."
+integration_type: "adapter"
+capabilities:
+  - "physics_simulation"
+  - "sensor_emulation"
+  - "ros2_world_execution"
+system_dependencies:
+  - "gz"
+  - "ros2"
+airgapped_support: true
