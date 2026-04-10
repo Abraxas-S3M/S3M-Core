@@ -1,0 +1,12 @@
+name: "Smart.LMS"
+slug: "smart.lms"
+domain: "readiness"
+source_url: "https://github.com/rcarubbi/Smart.LMS"
+license: "Unknown"
+description: "Open-source learning management integration for military training and certification tracking."
+integration_type: "adapter"
+capabilities:
+  - "course_progress_tracking"
+  - "certification_audit"
+  - "training_gap_detection"
+airgapped_support: true

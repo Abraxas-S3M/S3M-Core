@@ -1,0 +1,12 @@
+name: "orangehrm/orangehrm"
+slug: "orangehrm-orangehrm"
+domain: "maintenance"
+source_url: "https://github.com/orangehrm/orangehrm"
+license: "Unknown"
+description: "Open-source HRMS with modules adaptable to asset and training tracking."
+integration_type: "adapter"
+capabilities:
+  - "technician_readiness"
+  - "training_compliance"
+  - "crew_rotation_tracking"
+airgapped_support: true

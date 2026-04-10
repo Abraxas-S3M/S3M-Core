@@ -1,0 +1,12 @@
+name: "Arab_OSC"
+slug: "arab-osc"
+domain: "readiness"
+source_url: "https://github.com/Link-/Arab_OSC"
+license: "Unknown"
+description: "Curated Arab open-source contributors and localization resources."
+integration_type: "adapter"
+capabilities:
+  - "localization_resource_index"
+  - "contributor_discovery"
+  - "language_readiness_support"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "orbat-mapper"
+slug: "orbat-mapper"
+domain: "readiness"
+source_url: "https://github.com/orbat-mapper/orbat-mapper"
+license: "Unknown"
+description: "Military unit mapping and ORBAT dashboard adapted for personnel readiness analytics."
+integration_type: "adapter"
+capabilities:
+  - "orbat_readiness_projection"
+  - "unit_staffing_visibility"
+  - "formation_gap_detection"
+airgapped_support: true

@@ -1,0 +1,33 @@
+{
+  "event_id": "mid-nav-2026-04-10-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "contested-border-recon",
+  "selected_runtime": "tensorrt",
+  "runtime_candidates": [
+    {
+      "name": "tensorrt",
+      "status": "ready",
+      "latency_ms_p95": 6.4
+    },
+    {
+      "name": "onnxruntime",
+      "status": "ready",
+      "latency_ms_p95": 8.1
+    },
+    {
+      "name": "tvm",
+      "status": "degraded",
+      "latency_ms_p95": 11.7
+    },
+    {
+      "name": "openvino",
+      "status": "unavailable",
+      "reason": "intel-runtime-missing"
+    }
+  ],
+  "deployment_decision": {
+    "policy": "lowest-latency-under-15ms",
+    "approved": true,
+    "operator": "autonomy-cell-alpha"
+  }
+}

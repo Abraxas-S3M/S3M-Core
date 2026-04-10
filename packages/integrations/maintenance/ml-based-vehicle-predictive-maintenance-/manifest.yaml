@@ -1,0 +1,12 @@
+name: "ML-Based-Vehicle-Predictive-Maintenance-System-with-Real-Time-Visualization"
+slug: "ml-based-vehicle-predictive-maintenance-"
+domain: "maintenance"
+source_url: "https://github.com/iDharshan/ML-Based-Vehicle-Predictive-Maintenance-System-with-Real-Time-Visualization"
+license: "Unknown"
+description: "GBM models for vehicle predictive maintenance with real-time visualization."
+integration_type: "adapter"
+capabilities:
+  - "vehicle-health-prediction"
+  - "fault-alerting"
+  - "maintenance-priority-ranking"
+airgapped_support: true

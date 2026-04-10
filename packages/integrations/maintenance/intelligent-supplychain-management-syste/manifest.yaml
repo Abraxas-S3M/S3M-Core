@@ -1,0 +1,12 @@
+name: "Intelligent-Supplychain-Management-System"
+slug: "intelligent-supplychain-management-syste"
+domain: "maintenance"
+source_url: "https://github.com/akhil888binoy/Intelligent-Supplychain-Management-System"
+license: "Unknown"
+description: "Blockchain-powered supply chain with predictive inventory management for sustainment operations."
+integration_type: "adapter"
+capabilities:
+  - "predictive_inventory_management"
+  - "supply_chain_traceability"
+  - "resupply_readiness_monitoring"
+airgapped_support: true

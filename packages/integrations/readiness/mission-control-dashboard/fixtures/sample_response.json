@@ -1,0 +1,35 @@
+{
+  "status": "ok",
+  "dashboard_snapshot_id": "mcd-ready-2026-04-10-0730z",
+  "generated_at": "2026-04-10T07:30:00Z",
+  "command_kpis": {
+    "personnel_ready_pct": 86,
+    "training_currency_pct": 81,
+    "critical_roles_filled_pct": 89
+  },
+  "role_panels": [
+    {
+      "role": "Operations Commander",
+      "priority": "high",
+      "status": "ready",
+      "blocking_issue_count": 0
+    },
+    {
+      "role": "Medical Readiness Officer",
+      "priority": "high",
+      "status": "attention",
+      "blocking_issue_count": 2
+    },
+    {
+      "role": "Personnel Sustainment Lead",
+      "priority": "medium",
+      "status": "attention",
+      "blocking_issue_count": 1
+    }
+  ],
+  "recommended_actions": [
+    "Address medical clearance backlog before next deployment window.",
+    "Cross-level personnel for critical roles with low bench depth.",
+    "Publish command readiness dashboard update to brigade staff."
+  ]
+}

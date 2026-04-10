@@ -1,0 +1,12 @@
+name: "nav2 (ROS2 Navigation)"
+slug: "nav2-ros2-navigation"
+domain: "navigation"
+source_url: "https://github.com/ros-planning/navigation2"
+license: "BSD"
+description: "ROS2 navigation stack with planners, controllers, and behavior trees."
+integration_type: "adapter"
+capabilities:
+  - "global_planning"
+  - "local_control"
+  - "behavior_tree_navigation"
+airgapped_support: true

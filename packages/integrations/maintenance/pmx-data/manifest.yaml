@@ -1,0 +1,12 @@
+name: "pmx_data"
+slug: "pmx-data"
+domain: "maintenance"
+source_url: "https://github.com/autonlab/pmx_data"
+license: "Unknown"
+description: "Documentation and code for predictive maintenance datasets and scripts."
+integration_type: "adapter"
+capabilities:
+  - "dataset-ingest"
+  - "sensor-signal-profiling"
+  - "failure-label-analysis"
+airgapped_support: true

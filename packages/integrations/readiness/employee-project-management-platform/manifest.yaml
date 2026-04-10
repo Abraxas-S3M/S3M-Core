@@ -1,0 +1,12 @@
+name: "Employee-Project-Management-Platform"
+slug: "employee-project-management-platform"
+domain: "readiness"
+source_url: "https://github.com/arnobt78/Employee-Project-Management-Platform--Angular-FullStack"
+license: "Unknown"
+description: "Angular full-stack employee management with real-time dashboards"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "personnel_readiness_tracking"
+  - "project_staffing_overview"
+  - "attendance_monitoring"

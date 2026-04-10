@@ -1,0 +1,12 @@
+name: "Smart.LMS extensions"
+slug: "smart.lms-extensions"
+domain: "readiness"
+source_url: "Related forks of Smart.LMS / learnhouse"
+license: "Unknown"
+description: "LMS extension stack for personnel certification and readiness tracking."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "certification_tracking"
+  - "training_progress"
+  - "qualification_readiness"

@@ -1,0 +1,12 @@
+name: "Predictive_Maintenance_With_MLops"
+slug: "predictive-maintenance-with-mlops"
+domain: "maintenance"
+source_url: "https://github.com/Sengarofficial/Predictive_Maintenance_With_MLops"
+license: "Unknown"
+description: "MLOps framework for aircraft predictive maintenance and RUL."
+integration_type: "adapter"
+capabilities:
+  - "rul-estimation"
+  - "mlops-pipeline-validation"
+  - "maintenance-risk-monitoring"
+airgapped_support: true
