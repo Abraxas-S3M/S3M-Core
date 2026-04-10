@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "delta3d-references-forks-2026-0410-0730z",
+  "generated_at": "2026-04-10T07:30:00Z",
+  "engine_baseline": "Delta3D",
+  "reference_catalog": [
+    {
+      "project": "delta3d-core",
+      "focus": "terrain_and_entity_simulation",
+      "readiness": "operational"
+    },
+    {
+      "project": "delta3d-extended-render-pipeline",
+      "focus": "visual_fidelity_for_training_ranges",
+      "readiness": "evaluation"
+    }
+  ],
+  "training_use_cases": [
+    "combined-arms maneuver rehearsal",
+    "urban operations route familiarization",
+    "command post mission replay"
+  ]
+}

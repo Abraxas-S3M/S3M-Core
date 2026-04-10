@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "wargamesai-extensions-2026-0410-0710z",
+  "generated_at": "2026-04-10T07:10:00Z",
+  "scenario_request": {
+    "theater": "coastal-littoral",
+    "blue_force": "joint_task_group_7",
+    "adversary_profile": "peer_denial_network"
+  },
+  "generated_variants": [
+    {
+      "variant_id": "coa-a",
+      "objective": "secure_port_entry",
+      "estimated_duration_min": 95,
+      "risk_level": "medium"
+    },
+    {
+      "variant_id": "coa-b",
+      "objective": "decoy_and_flank",
+      "estimated_duration_min": 120,
+      "risk_level": "high"
+    }
+  ],
+  "analysis": {
+    "logistics_strain_index": 0.37,
+    "civilian_collateral_risk_pct": 4.5,
+    "recommended_variant": "coa-a"
+  }
+}
