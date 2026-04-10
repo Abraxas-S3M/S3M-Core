@@ -1,0 +1,12 @@
+name: "patternfly"
+slug: "patternfly"
+domain: "readiness"
+source_url: "https://github.com/patternfly (mission-control examples)"
+license: "Unknown"
+description: "Defense-oriented UI components for mission control dashboards"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "mission_dashboard_ui"
+  - "component_baseline_tracking"
+  - "tactical_theme_compliance"

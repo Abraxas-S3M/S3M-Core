@@ -1,0 +1,38 @@
+{
+  "generated_at": "2026-04-10T09:32:00Z",
+  "brigade": "Northern Response Brigade",
+  "training_cycle": "Q2-2026",
+  "attendance": {
+    "enrolled": 420,
+    "completed": 368,
+    "in_progress": 41,
+    "absent": 11
+  },
+  "courses": [
+    {
+      "course_code": "COMMS-SEC-101",
+      "title": "Secure Battlefield Communications",
+      "completion_rate": 0.92,
+      "average_score": 87.4,
+      "status": "green"
+    },
+    {
+      "course_code": "MED-TACT-220",
+      "title": "Tactical Combat Casualty Care",
+      "completion_rate": 0.79,
+      "average_score": 81.1,
+      "status": "amber"
+    }
+  ],
+  "critical_gaps": [
+    {
+      "skill": "EW threat identification",
+      "qualified_personnel": 14,
+      "required_personnel": 20
+    }
+  ],
+  "recommendations": [
+    "Schedule remedial MED-TACT-220 sessions for 2nd Battalion.",
+    "Prioritize EW modules for recon platoons within next 72 hours."
+  ]
+}

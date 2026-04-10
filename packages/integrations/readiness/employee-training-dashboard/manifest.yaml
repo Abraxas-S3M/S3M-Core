@@ -1,0 +1,12 @@
+name: "Employee_Training_Dashboard"
+slug: "employee-training-dashboard"
+domain: "readiness"
+source_url: "https://github.com/Hari-Vijayaraghavan96/Employee_Training_Dashboard"
+license: "Unknown"
+description: "Power BI-style training attendance and performance dashboard"
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "training_attendance_tracking"
+  - "course_performance_monitoring"
+  - "readiness_gap_detection"
