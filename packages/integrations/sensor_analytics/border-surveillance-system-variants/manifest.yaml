@@ -1,0 +1,13 @@
+name: "Border-Surveillance-System (variants)"
+slug: "border-surveillance-system-variants"
+domain: "sensor_analytics"
+source_url: "Related forks of subhayudas/Border-Surveillance-System"
+license: "Unknown"
+description: "Variant wrappers for AI-powered border anomaly detection workflows with map and remote-sensing extensions."
+integration_type: "adapter"
+capabilities:
+  - perimeter_anomaly_detection
+  - map_overlay_generation
+  - cross_sensor_alert_fusion
+
+airgapped_support: true

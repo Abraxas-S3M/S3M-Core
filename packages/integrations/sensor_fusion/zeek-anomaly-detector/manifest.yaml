@@ -1,0 +1,12 @@
+name: "zeek_anomaly_detector"
+slug: "zeek-anomaly-detector"
+domain: "sensor_fusion"
+source_url: "https://github.com/stratosphereips/zeek_anomaly_detector"
+license: "MIT"
+description: "Automated anomaly detection on Zeek conn.log using pyod models."
+integration_type: "adapter"
+capabilities:
+  - "conn_log_anomaly_scoring"
+  - "network_behavior_baselining"
+  - "threat_triage"
+airgapped_support: true

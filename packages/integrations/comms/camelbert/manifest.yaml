@@ -1,0 +1,12 @@
+name: "CAMeLBERT"
+slug: "camelbert"
+domain: "comms"
+source_url: "https://github.com/CAMeL-Lab/CAMeLBERT"
+license: "Unknown"
+description: "Collection of Arabic pre-trained models for multiple NLP tasks."
+integration_type: "adapter"
+capabilities:
+  - "arabic_intent_classification"
+  - "topic_detection"
+  - "offline_fixture_replay"
+airgapped_support: true

@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "snapshot_id": "ejabberd-comms-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "service": {
+    "name": "ejabberd",
+    "cluster": "alpha-comms",
+    "nodes_online": 3,
+    "federation_links_active": 6
+  },
+  "message_security": {
+    "omemo_enabled": true,
+    "s2s_tls_required": true,
+    "stanza_signing_policy": "strict"
+  },
+  "routing_summary": {
+    "priority_channels": [
+      "ops-command",
+      "air-support",
+      "medevac"
+    ],
+    "queued_messages": 19,
+    "delivery_success_rate_15m": 0.997
+  },
+  "commander_note": "Maintain OMEMO and strict TLS posture for coalition-grade secure relay."
+}

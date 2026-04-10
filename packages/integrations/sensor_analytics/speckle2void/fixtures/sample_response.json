@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "sar-image-enhance-2026-04-10-09",
+  "operation": "denoise_sar_speckle_for_maritime_imagery",
+  "input_scene": {
+    "scene_id": "speckle2void-scene-901",
+    "polarization": "hh",
+    "resolution_m": 3.0
+  },
+  "denoising_summary": {
+    "method": "self_supervised_speckle2void",
+    "estimated_enl_before": 5.4,
+    "estimated_enl_after": 13.1,
+    "edge_preservation_score": 0.88
+  },
+  "downstream_effects": {
+    "ship_detection_recall_gain": 0.12,
+    "false_alarm_reduction": 0.18
+  },
+  "tactical_assessment": {
+    "imagery_quality": "improved",
+    "analyst_confidence": "high",
+    "mission_readiness": "go"
+  }
+}

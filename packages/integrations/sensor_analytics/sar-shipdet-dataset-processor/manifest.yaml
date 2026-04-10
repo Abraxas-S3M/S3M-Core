@@ -1,0 +1,13 @@
+name: "SAR-ShipDet-Dataset-Processor"
+slug: "sar-shipdet-dataset-processor"
+domain: "sensor_analytics"
+source_url: "https://github.com/egshkim/SAR-ShipDet-Dataset-Processor"
+license: "Unknown"
+description: "Unified preprocessing pipeline for multiple SAR ship-detection datasets used in maritime ISR model training."
+integration_type: "adapter"
+capabilities:
+  - dataset_schema_unification
+  - sar_annotation_normalization
+  - train_val_split_generation
+
+airgapped_support: true

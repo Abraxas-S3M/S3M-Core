@@ -1,0 +1,40 @@
+{
+  "status": "ok",
+  "analysis_id": "planet-shipdet-7721",
+  "tile_id": "PL-31TDG-20260410-1045",
+  "cloud_cover_pct": 4.1,
+  "detections": [
+    {
+      "id": "SHP-01",
+      "confidence": 0.93,
+      "bbox_xyxy": [
+        225,
+        446,
+        310,
+        489
+      ]
+    },
+    {
+      "id": "SHP-02",
+      "confidence": 0.88,
+      "bbox_xyxy": [
+        801,
+        553,
+        874,
+        589
+      ]
+    },
+    {
+      "id": "SHP-03",
+      "confidence": 0.81,
+      "bbox_xyxy": [
+        1199,
+        364,
+        1264,
+        401
+      ]
+    }
+  ],
+  "port_proximity_km": 12.6,
+  "generated_at": "2026-04-10T00:00:00Z"
+}

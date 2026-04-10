@@ -1,0 +1,12 @@
+name: "segment-geospatial"
+slug: "segment-geospatial"
+domain: "sensor_analytics"
+source_url: "https://github.com/opengeos/segment-geospatial"
+license: "Unknown"
+description: "Segment Anything Model workflows for geospatial and satellite imagery."
+integration_type: "adapter"
+capabilities:
+  - "geospatial_segmentation"
+  - "satellite_mask_generation"
+  - "area_of_interest_extraction"
+airgapped_support: true

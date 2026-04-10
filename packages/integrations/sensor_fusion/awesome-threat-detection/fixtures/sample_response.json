@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "mission_id": "cyber-watchfloor-echo-21",
+  "dataset": "awesome-threat-detection",
+  "query_summary": {
+    "focus_area": "suricata_zeek_ml_extensions",
+    "matched_entries": 18,
+    "confidence": 0.91
+  },
+  "recommended_stack": [
+    {
+      "tool_family": "suricata",
+      "candidate": "eve.json anomaly scoring pipeline",
+      "tactical_use": "Detect low-and-slow lateral movement in enclave sensor mesh."
+    },
+    {
+      "tool_family": "zeek",
+      "candidate": "behavioral ML notice triage",
+      "tactical_use": "Prioritize reconnaissance signatures near ISR relay nodes."
+    }
+  ],
+  "commander_brief": "Reference package aligns with mission requirement for fully offline threat hunting support."
+}

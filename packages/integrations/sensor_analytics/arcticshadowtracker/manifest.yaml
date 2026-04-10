@@ -1,0 +1,12 @@
+name: "ArcticShadowTracker"
+slug: "arcticshadowtracker"
+domain: "sensor_analytics"
+source_url: "https://github.com/henrfo/ArcticShadowTracker"
+license: "Unknown"
+description: "Maritime surveillance analytics using AIS and satellite evidence to detect dark vessels."
+integration_type: "adapter"
+capabilities:
+  - "ais_satellite_correlation"
+  - "dark_vessel_flagging"
+  - "maritime_threat_scoring"
+airgapped_support: true

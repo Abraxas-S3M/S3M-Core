@@ -1,0 +1,26 @@
+{
+  "fusion_id": "m2s2-2026-04-10-001",
+  "mission_id": "border-watch-sector-11",
+  "platform_id": "mast-node-bravo-4",
+  "sensor_health": {
+    "rgb_camera": "online",
+    "depth_camera": "online",
+    "mmwave_radar": "online",
+    "thermal_camera": "online",
+    "lidar": "online",
+    "audio": "degraded"
+  },
+  "fusion_summary": {
+    "detected_tracks": 5,
+    "high_confidence_tracks": 3,
+    "cross_sensor_consistency_score": 0.92
+  },
+  "alerts": [
+    {
+      "track_id": "trk-019",
+      "type": "possible_vehicle",
+      "priority": "high",
+      "confidence": 0.95
+    }
+  ]
+}

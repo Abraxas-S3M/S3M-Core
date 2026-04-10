@@ -1,0 +1,13 @@
+name: "lidar_radar_fusion_ekf_ukf"
+slug: "lidar-radar-fusion-ekf-ukf"
+domain: "sensor_fusion"
+source_url: "https://github.com/cggos/lidar_radar_fusion_ekf_ukf"
+license: "MIT"
+description: "LiDAR + Radar fusion using EKF and UKF in C++."
+integration_type: "adapter"
+capabilities:
+  - "lidar-radar-fusion"
+  - "ekf-tracking"
+  - "ukf-tracking"
+  - "trajectory-estimation"
+airgapped_support: true

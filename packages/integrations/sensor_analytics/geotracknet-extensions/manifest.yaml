@@ -1,0 +1,12 @@
+name: "GeoTrackNet extensions"
+slug: "geotracknet-extensions"
+domain: "sensor_analytics"
+source_url: "Extensions of CIA-Oceanix/GeoTrackNet"
+license: "Unknown"
+description: "AIS track anomaly detection with satellite augmentation."
+integration_type: "adapter"
+capabilities:
+  - "ais-anomaly-detection"
+  - "satellite-augmentation"
+  - "maritime-pattern-analysis"
+airgapped_support: true
