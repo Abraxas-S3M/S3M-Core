@@ -1,0 +1,43 @@
+{
+  "report_id": "lms-rdy-2026-04-10-001",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "unit": "Task Force Falcon",
+  "certification_summary": {
+    "total_personnel": 184,
+    "fully_certified": 161,
+    "expiring_within_30_days": 13,
+    "overdue_recurring_training": 10
+  },
+  "critical_roles": [
+    {
+      "role": "UAS Mission Commander",
+      "required": 12,
+      "certified": 11,
+      "readiness_status": "watch"
+    },
+    {
+      "role": "Signals Intelligence Analyst",
+      "required": 24,
+      "certified": 24,
+      "readiness_status": "ready"
+    }
+  ],
+  "course_pipeline": [
+    {
+      "course_id": "EW-201",
+      "title": "Electronic Warfare Countermeasures",
+      "enrolled": 32,
+      "completion_rate": 0.91
+    },
+    {
+      "course_id": "C2-117",
+      "title": "Tactical C2 Battle Rhythm",
+      "enrolled": 28,
+      "completion_rate": 0.86
+    }
+  ],
+  "recommendations": [
+    "Prioritize recertification slots for overdue recurring training cohort.",
+    "Allocate two additional simulator sessions for UAS Mission Commander candidates."
+  ]
+}
