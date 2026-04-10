@@ -1,0 +1,16 @@
+{
+  "snapshot_id": "ar-cls-sum-2026-0410-1210z",
+  "pipeline": "arabic-text-classification-summarization",
+  "task": "classify_and_summarize",
+  "input": {
+    "message_id": "C2-AR-22317",
+    "language": "ar"
+  },
+  "output": {
+    "label": "operations_update",
+    "label_confidence": 0.87,
+    "summary_ar": "الوحدة أكملت إعادة الانتشار وتطلب تحديثا لجدول الإمداد.",
+    "summary_en": "Unit completed repositioning and requests a logistics schedule update."
+  },
+  "generated_at": "2026-04-10T12:10:00Z"
+}

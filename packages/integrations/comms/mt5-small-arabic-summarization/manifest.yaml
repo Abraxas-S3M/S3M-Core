@@ -1,0 +1,12 @@
+name: "mt5-small-Arabic-Summarization"
+slug: "mt5-small-arabic-summarization"
+domain: "comms"
+source_url: "https://github.com/yalsaffar/mt5-small-Arabic-Summarization"
+license: "Unknown"
+description: "mT5 fine-tuned for Arabic news and article summarization."
+integration_type: "adapter"
+capabilities:
+  - "arabic_summarization"
+  - "priority_report_condensing"
+  - "offline_fixture_replay"
+airgapped_support: true

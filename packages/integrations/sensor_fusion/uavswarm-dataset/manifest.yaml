@@ -1,0 +1,12 @@
+name: "UAVSwarm-dataset"
+slug: "uavswarm-dataset"
+domain: "sensor_fusion"
+source_url: "https://github.com/UAVSwarm/UAVSwarm-dataset"
+license: "MIT"
+description: "Annotated dataset and tools for UAV swarm detection and tracking."
+integration_type: "dataset"
+capabilities:
+  - "dataset_inventory"
+  - "annotation_quality_checks"
+  - "training_set_curations"
+airgapped_support: true

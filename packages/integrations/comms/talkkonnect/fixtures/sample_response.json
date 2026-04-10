@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "snapshot_id": "talkkonnect-comms-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_voice_net": {
+    "channel": "brigade-command",
+    "mode": "ptt",
+    "codec": "opus",
+    "encryption_profile": "mumble-tls-pinned",
+    "participants_online": 14,
+    "priority_speakers": 2
+  },
+  "radio_bridge_health": {
+    "latency_ms_p95": 87,
+    "packet_loss_percent": 0.6,
+    "jitter_ms": 21
+  },
+  "notes": [
+    "Headless push-to-talk bridge operational for dismounted platoon relays.",
+    "Apply stricter mic-activation timeout during contested EW windows."
+  ]
+}

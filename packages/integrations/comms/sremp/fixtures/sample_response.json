@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "sremp-status-2026-0410-1220z",
+  "platform": "SREMP",
+  "operation": "secure_relay_status",
+  "relay": {
+    "node_id": "relay-alpha-07",
+    "session_state": "active",
+    "cipher_suite": "X25519+AES-256-GCM",
+    "forward_secrecy": true,
+    "queued_messages": 3,
+    "delivery_success_rate": 0.997
+  },
+  "generated_at": "2026-04-10T12:20:00Z"
+}

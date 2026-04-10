@@ -1,0 +1,37 @@
+{
+  "analysis_id": "military-detect-op-2026-04-10t091500z",
+  "theater": "southern-maritime-corridor",
+  "as_of_utc": "2026-04-10T09:15:00Z",
+  "source_imagery": {
+    "platform": "uav-isr",
+    "sensor": "eo-ir",
+    "tile_id": "tile-19qf-7741",
+    "resolution_mpp": 0.35
+  },
+  "detections": [
+    {
+      "class": "airbase",
+      "confidence": 0.94,
+      "bbox": [233, 118, 471, 296],
+      "priority": "high"
+    },
+    {
+      "class": "warship",
+      "confidence": 0.91,
+      "bbox": [612, 404, 788, 561],
+      "priority": "critical"
+    },
+    {
+      "class": "bridge",
+      "confidence": 0.88,
+      "bbox": [102, 516, 318, 622],
+      "priority": "medium"
+    }
+  ],
+  "risk_summary": {
+    "critical_targets": 1,
+    "high_value_targets": 2,
+    "recommended_action": "escalate_to_joint_fires_cell"
+  },
+  "status": "ok"
+}

@@ -1,0 +1,20 @@
+{
+  "snapshot_id": "camelbert-comms-2026-0410-1205z",
+  "model_family": "CAMeLBERT",
+  "task": "intent_classification",
+  "input": {
+    "message_id": "COMMS-AR-55812",
+    "language": "ar"
+  },
+  "output": {
+    "predicted_intent": "logistics_request",
+    "confidence": 0.91,
+    "threat_relevance": "medium",
+    "entities": [
+      "المحور الشرقي",
+      "الوقود",
+      "قافلة"
+    ]
+  },
+  "generated_at": "2026-04-10T12:05:00Z"
+}

@@ -1,0 +1,12 @@
+name: "WSC2"
+slug: "wsc2"
+domain: "comms"
+source_url: "https://github.com/Arno0x/WSC2"
+license: "Unknown"
+description: "WebSocket-based C2 tool for secure command routing."
+integration_type: "adapter"
+capabilities:
+  - "websocket_c2_routing"
+  - "command_channel_status"
+  - "relay_path_inspection"
+airgapped_support: true
