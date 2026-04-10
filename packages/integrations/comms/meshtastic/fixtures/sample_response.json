@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "meshtastic-comms-2026-0410-1115z",
+  "generated_at": "2026-04-10T11:15:00Z",
+  "mesh_name": "northern-corridor-lora-mesh",
+  "region": "AO-NORTH",
+  "nodes": [
+    {
+      "node_id": "!e1f0",
+      "callsign": "RAVEN-1",
+      "battery_pct": 82,
+      "snr_db": 9.6,
+      "last_seen_sec": 12
+    },
+    {
+      "node_id": "!e2a5",
+      "callsign": "RAVEN-2",
+      "battery_pct": 74,
+      "snr_db": 8.1,
+      "last_seen_sec": 19
+    }
+  ],
+  "routing": {
+    "avg_hops": 2.3,
+    "max_hops": 5,
+    "delivery_success_rate": 0.94
+  },
+  "status": "ok"
+}

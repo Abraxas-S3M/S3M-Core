@@ -1,0 +1,12 @@
+name: "awesome-threat-detection"
+slug: "awesome-threat-detection"
+domain: "sensor_fusion"
+source_url: "https://github.com/0x4D31/awesome-threat-detection"
+license: "MIT"
+description: "Curated threat detection and hunting resources including Suricata/Zeek ML extensions."
+integration_type: "adapter"
+capabilities:
+  - "threat-hunting-catalog-curation"
+  - "suricata-zeek-ml-reference-discovery"
+  - "sensor-fusion-detection-playbook-support"
+airgapped_support: true

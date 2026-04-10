@@ -1,0 +1,12 @@
+name: "detectron2"
+slug: "detectron2"
+domain: "sensor_fusion"
+source_url: "https://github.com/facebookresearch/detectron2"
+license: "Apache 2.0"
+description: "Next-gen library for object detection, segmentation, and visual recognition tasks."
+integration_type: "adapter"
+capabilities:
+  - "object_detection"
+  - "instance_segmentation"
+  - "vision_model_validation"
+airgapped_support: true

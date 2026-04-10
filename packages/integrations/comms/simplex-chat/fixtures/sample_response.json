@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "simplex-chat-comms-2026-0410-1115z",
+  "generated_at": "2026-04-10T11:15:00Z",
+  "node_group": "task-force-signal",
+  "channels": [
+    {
+      "channel_id": "simplex://relay-alpha/fleet-sitrep",
+      "participants": 9,
+      "delivery_mode": "store_and_forward",
+      "relay_hops": 2,
+      "queue_depth": 3
+    },
+    {
+      "channel_id": "simplex://relay-bravo/medical-evac",
+      "participants": 4,
+      "delivery_mode": "direct_when_available",
+      "relay_hops": 1,
+      "queue_depth": 0
+    }
+  ],
+  "session_integrity": {
+    "authenticated_peers": 13,
+    "metadata_exposure_score": "minimal",
+    "cipher_suite": "X3DH+DoubleRatchet"
+  },
+  "status": "ok"
+}

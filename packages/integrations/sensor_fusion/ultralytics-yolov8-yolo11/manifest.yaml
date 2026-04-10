@@ -1,0 +1,12 @@
+name: "ultralytics (YOLOv8/YOLO11)"
+slug: "ultralytics-yolov8-yolo11"
+domain: "sensor_fusion"
+source_url: "https://github.com/ultralytics/ultralytics"
+license: "AGPL-3.0"
+description: "State-of-the-art real-time object detection (YOLO series) with easy fine-tuning."
+integration_type: "adapter"
+capabilities:
+  - "real_time_object_detection"
+  - "mission_dataset_fine_tuning"
+  - "edge_inference_readiness"
+airgapped_support: true

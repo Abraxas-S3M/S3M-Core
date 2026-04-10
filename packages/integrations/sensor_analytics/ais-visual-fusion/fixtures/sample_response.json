@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "fusion_run_id": "ais-visual-fusion-2026-04-10-11",
+  "operation": "fuse_ais_and_video_tracks",
+  "waterway": "coastal_approach_lane_delta",
+  "tracks": [
+    {
+      "video_track_id": "camtrk-331",
+      "ais_mmsi": "403556129",
+      "association_confidence": 0.94,
+      "vessel_type": "cargo",
+      "position": [26.5154, 50.1982],
+      "speed_knots": 10.7
+    },
+    {
+      "video_track_id": "camtrk-337",
+      "ais_mmsi": null,
+      "association_confidence": 0.21,
+      "vessel_type": "unknown_small_craft",
+      "position": [26.5211, 50.2048],
+      "speed_knots": 18.9,
+      "flag": "non_cooperative_target"
+    }
+  ],
+  "tactical_assessment": {
+    "common_operating_picture_quality": "high",
+    "suspicious_targets": ["camtrk-337"],
+    "recommended_action": "task_coastal_patrol_sensor_retasking"
+  }
+}

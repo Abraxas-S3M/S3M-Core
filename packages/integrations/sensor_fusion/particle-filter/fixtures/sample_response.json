@@ -1,0 +1,26 @@
+{
+  "event_id": "pf-localization-2026-04-10-001",
+  "mission_id": "border-patrol-sector-17",
+  "platform_id": "ugv-scout-04",
+  "operation_mode": "gps-denied",
+  "state_estimate": {
+    "pose_xy_m": [
+      142.83,
+      57.19
+    ],
+    "heading_deg": 273.4,
+    "velocity_mps": 4.1
+  },
+  "particle_filter_health": {
+    "particle_count": 1500,
+    "effective_sample_size": 984.2,
+    "resample_performed": true,
+    "converged": true
+  },
+  "sensor_inputs": {
+    "wheel_odometry": "nominal",
+    "imu": "nominal",
+    "lidar_scan_match": "degraded-smoke"
+  },
+  "confidence": 0.91
+}

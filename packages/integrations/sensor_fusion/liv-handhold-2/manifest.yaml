@@ -1,0 +1,12 @@
+name: "LIV_handhold_2"
+slug: "liv-handhold-2"
+domain: "sensor_fusion"
+source_url: "https://github.com/hku-mars/LIV_handhold_2"
+license: "MIT"
+description: "Low-cost LiDAR-Inertial-Visual fusion 3D sensor kit with open software"
+integration_type: "adapter"
+capabilities:
+  - "lidar-inertial-visual-fusion"
+  - "handheld-3d-mapping"
+  - "edge-deployment-readiness"
+airgapped_support: true

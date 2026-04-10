@@ -1,0 +1,12 @@
+name: "eo-learn"
+slug: "eo-learn"
+domain: "sensor_analytics"
+source_url: "https://github.com/sentinel-hub/eo-learn"
+license: "Unknown"
+description: "Earth observation processing pipelines for Sentinel satellite data."
+integration_type: "adapter"
+capabilities:
+  - "eo_pipeline_orchestration"
+  - "multitemporal_processing"
+  - "change_detection_support"
+airgapped_support: true

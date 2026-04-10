@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "awesome-xmpp-2026-0410-1910z",
+  "generated_at": "2026-04-10T19:10:00Z",
+  "recommended_extensions": [
+    {
+      "xep": "XEP-0198",
+      "title": "Stream Management",
+      "role": "Session resilience"
+    },
+    {
+      "xep": "XEP-0384",
+      "title": "OMEMO Encryption",
+      "role": "End-to-end confidentiality"
+    },
+    {
+      "xep": "XEP-0368",
+      "title": "SRV records for XMPP over TLS",
+      "role": "Transport hardening"
+    }
+  ],
+  "validated_clients": [
+    "Gajim",
+    "Conversations",
+    "Dino"
+  ],
+  "tactical_note": "Reference list assists secure comms stack selection for sovereign enclave deployments."
+}

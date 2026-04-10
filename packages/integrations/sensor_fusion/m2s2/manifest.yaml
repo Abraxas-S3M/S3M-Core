@@ -1,0 +1,12 @@
+name: "M2S2"
+slug: "m2s2"
+domain: "sensor_fusion"
+source_url: "https://github.com/African-Robotics-Unit/M2S2"
+license: "MIT"
+description: "Multi-modal ROS2 sensor suite for RGB, depth, radar, thermal, LiDAR, and audio fusion."
+integration_type: "adapter"
+capabilities:
+  - "multimodal-sensor-ingestion"
+  - "synchronized-fusion-pipelines"
+  - "cross-sensor-fault-detection"
+airgapped_support: true
