@@ -1,0 +1,12 @@
+name: "Ship-Detection-Using-Satellite-Imagery"
+slug: "ship-detection-using-satellite-imagery"
+domain: "sensor_analytics"
+source_url: "https://github.com/Dhruvisha29/Ship-Detection-Using-Satellite-Imagery"
+license: "Unknown"
+description: "Deep learning ship detection from Planet and other satellite optical imagery."
+integration_type: "adapter"
+capabilities:
+  - "optical_ship_detection"
+  - "eo_scene_screening"
+  - "cross_sensor_contact_cueing"
+airgapped_support: true
