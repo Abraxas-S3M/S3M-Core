@@ -1,0 +1,22 @@
+{
+  "mission_id": "swarm-slam-recon-17",
+  "timestamp_utc": "2026-04-10T09:42:15Z",
+  "map_status": "stable",
+  "active_agents": [
+    "ugv-alpha-1",
+    "ugv-bravo-2",
+    "uav-charlie-1"
+  ],
+  "pose_graph": {
+    "keyframes": 4821,
+    "loop_closures": 146,
+    "cross_robot_constraints": 39
+  },
+  "coverage": {
+    "mapped_area_m2": 13250.4,
+    "unknown_area_m2": 915.8
+  },
+  "latency_ms": 71,
+  "confidence": 0.94,
+  "notes": "Decentralized sparse map fusion maintained shared situational awareness under intermittent comms."
+}
