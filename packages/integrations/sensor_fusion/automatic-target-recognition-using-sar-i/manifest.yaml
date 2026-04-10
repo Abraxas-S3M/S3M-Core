@@ -1,0 +1,13 @@
+name: "Automatic-Target-Recognition-using-SAR-Imagery"
+slug: "automatic-target-recognition-using-sar-i"
+domain: "sensor_fusion"
+source_url: "https://github.com/KhadijaKamran/Automatic-Target-Recognition-using-SAR-Imagery"
+license: "MIT"
+description: "SAR imagery automatic target recognition for military ground vehicles on MSTAR-like datasets."
+integration_type: "adapter"
+capabilities:
+  - "sar_target_recognition"
+  - "ground_vehicle_classification"
+  - "all_weather_surveillance"
+
+airgapped_support: true

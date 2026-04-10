@@ -1,0 +1,37 @@
+{
+  "mission_id": "sf-sar-atr-2026-0410-002",
+  "scene_id": "mstar-sector-bravo-17",
+  "sensor_mode": "X-band SAR",
+  "detections": [
+    {
+      "label": "T72",
+      "confidence": 0.92,
+      "bbox_xyxy": [
+        118,
+        224,
+        301,
+        402
+      ],
+      "heading_degrees": 74
+    },
+    {
+      "label": "BMP2",
+      "confidence": 0.87,
+      "bbox_xyxy": [
+        402,
+        263,
+        561,
+        421
+      ],
+      "heading_degrees": 129
+    }
+  ],
+  "environment": {
+    "visibility": "degraded",
+    "weather": "dust"
+  },
+  "summary": {
+    "total_detections": 2,
+    "recommended_action": "queue high-confidence armored tracks for cross-sensor fusion"
+  }
+}

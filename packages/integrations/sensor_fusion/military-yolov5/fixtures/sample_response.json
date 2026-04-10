@@ -1,0 +1,55 @@
+{
+  "mission_id": "sf-my5-2026-0410-003",
+  "clip_id": "uav-recon-clip-33",
+  "timestamp_utc": "2026-04-10T11:02:14Z",
+  "tracks": [
+    {
+      "track_id": "trk-1001",
+      "label": "personnel",
+      "confidence": 0.95,
+      "bbox_xyxy": [
+        211,
+        319,
+        274,
+        507
+      ]
+    },
+    {
+      "track_id": "trk-1002",
+      "label": "weapon",
+      "confidence": 0.9,
+      "bbox_xyxy": [
+        238,
+        368,
+        272,
+        430
+      ]
+    },
+    {
+      "track_id": "trk-1003",
+      "label": "tank",
+      "confidence": 0.89,
+      "bbox_xyxy": [
+        912,
+        420,
+        1428,
+        877
+      ]
+    },
+    {
+      "track_id": "trk-1004",
+      "label": "aircraft",
+      "confidence": 0.85,
+      "bbox_xyxy": [
+        1544,
+        164,
+        1841,
+        322
+      ]
+    }
+  ],
+  "summary": {
+    "active_tracks": 4,
+    "threat_index": 0.81
+  }
+}

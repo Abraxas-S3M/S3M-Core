@@ -1,0 +1,13 @@
+name: "UAV-tracking-tank"
+slug: "uav-tracking-tank"
+domain: "sensor_fusion"
+source_url: "https://github.com/adityachintala/UAV-tracking-tank"
+license: "MIT"
+description: "YOLOv7-based UAV pipeline for tank detection and persistent tracking."
+integration_type: "adapter"
+capabilities:
+  - "tank_detection"
+  - "uav_tracking"
+  - "persistent_target_lock"
+
+airgapped_support: true

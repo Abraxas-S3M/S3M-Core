@@ -1,0 +1,13 @@
+name: "AircraftDetectionYolov5"
+slug: "aircraftdetectionyolov5"
+domain: "sensor_fusion"
+source_url: "https://github.com/pHorvat/AircraftDetectionYolov5"
+license: "MIT"
+description: "Military aircraft detection using YOLOv5 for airspace awareness and interception support."
+integration_type: "adapter"
+capabilities:
+  - "aircraft_detection"
+  - "airspace_monitoring"
+  - "sortie_alerting"
+
+airgapped_support: true
