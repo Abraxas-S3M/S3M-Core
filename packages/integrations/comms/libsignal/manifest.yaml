@@ -1,0 +1,12 @@
+name: "libsignal"
+slug: "libsignal"
+domain: "comms"
+source_url: "https://github.com/signalapp/libsignal"
+license: "Unknown"
+description: "Official Signal Protocol library for end-to-end encryption"
+integration_type: "adapter"
+capabilities:
+  - "signal_protocol_sessions"
+  - "forward_secrecy_key_rotation"
+  - "sealed_sender_workflows"
+airgapped_support: true

@@ -1,0 +1,20 @@
+{
+  "snapshot_id": "detectron2-s3m-2026-04-10T122000Z",
+  "operation": "instance_segmentation_readiness",
+  "mission_profile": "urban_compound_overwatch",
+  "model": {
+    "config": "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
+    "weights": "model_final.pth",
+    "quantization": "int8"
+  },
+  "scene_assessment": {
+    "objects_detected": 11,
+    "segmented_regions": 14,
+    "high_interest_regions": 4
+  },
+  "performance": {
+    "latency_ms": 31.8,
+    "throughput_fps": 28.4
+  },
+  "confidence": 0.89
+}

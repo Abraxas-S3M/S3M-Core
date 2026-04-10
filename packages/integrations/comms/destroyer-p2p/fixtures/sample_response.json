@@ -1,0 +1,15 @@
+{
+  "snapshot_id": "destroyer-p2p-comms-2026-0410-1320z",
+  "generated_at": "2026-04-10T13:20:00Z",
+  "crypto_posture": {
+    "hybrid_key_exchanges": 31,
+    "cipher_layers_enabled": 3,
+    "forward_secrecy": true
+  },
+  "mesh_integrity": {
+    "active_nodes": 19,
+    "suspected_tamper_events": 0,
+    "self_healed_routes": 4
+  },
+  "tactical_note": "Quantum-resistant mesh healthy; continue periodic key rotation for forward units."
+}

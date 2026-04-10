@@ -1,0 +1,12 @@
+name: "GeoTrackNet"
+slug: "geotracknet"
+domain: "sensor_analytics"
+source_url: "https://github.com/CIA-Oceanix/GeoTrackNet"
+license: "Unknown"
+description: "Probabilistic neural network for maritime anomaly detection from AIS tracks."
+integration_type: "adapter"
+capabilities:
+  - "ais_track_ingestion"
+  - "anomaly_scoring"
+  - "maritime_monitoring"
+airgapped_support: true

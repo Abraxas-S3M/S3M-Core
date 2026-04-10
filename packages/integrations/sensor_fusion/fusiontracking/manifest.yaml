@@ -1,0 +1,15 @@
+name: "FusionTracking"
+slug: "fusiontracking"
+domain: "sensor_fusion"
+source_url: "https://github.com/TUMFTM/FusionTracking"
+license: "(Research)"
+description: "Multi-Modal Sensor Fusion and Object Tracking with EKF for autonomous systems."
+integration_type: "adapter"
+capabilities:
+  - "multi_modal_object_tracking"
+  - "ekf_based_track_fusion"
+  - "track_management"
+system_dependencies:
+  - "python3"
+  - "ros2"
+airgapped_support: true

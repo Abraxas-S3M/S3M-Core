@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "catalog_version": "2026.04",
+  "models_indexed": 216,
+  "top_recommendations": [
+    {
+      "model": "Prithvi-EO",
+      "task_fit": [
+        "land_cover",
+        "change_detection"
+      ],
+      "edge_readiness": "medium"
+    },
+    {
+      "model": "SatMAE",
+      "task_fit": [
+        "representation_learning",
+        "few_shot_detection"
+      ],
+      "edge_readiness": "medium"
+    },
+    {
+      "model": "Clay",
+      "task_fit": [
+        "multispectral_segmentation"
+      ],
+      "edge_readiness": "high"
+    }
+  ],
+  "selection_notes": "Prioritize quantized checkpoints for Jetson AGX Orin deployment.",
+  "generated_at": "2026-04-10T00:00:00Z"
+}

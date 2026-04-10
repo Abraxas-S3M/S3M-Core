@@ -1,0 +1,12 @@
+name: "chitchatter"
+slug: "chitchatter"
+domain: "comms"
+source_url: "https://github.com/jeremyckahn/chitchatter"
+license: "Unknown"
+description: "Serverless P2P encrypted chat with WebRTC routing."
+integration_type: "adapter"
+capabilities:
+  - "serverless_p2p_chat"
+  - "webrtc_route_negotiation"
+  - "mesh_node_failover"
+airgapped_support: true

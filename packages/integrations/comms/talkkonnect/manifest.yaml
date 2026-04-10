@@ -1,0 +1,12 @@
+name: "talkkonnect"
+slug: "talkkonnect"
+domain: "comms"
+source_url: "https://github.com/talkkonnect/talkkonnect"
+license: "Unknown"
+description: "Headless Mumble push-to-talk client for tactical radio-style comms."
+integration_type: "adapter"
+capabilities:
+  - "mumble_ptt_link_status"
+  - "voice_channel_health"
+  - "field_relay_configuration_check"
+airgapped_support: true

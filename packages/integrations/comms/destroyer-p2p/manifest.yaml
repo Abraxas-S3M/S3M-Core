@@ -1,0 +1,12 @@
+name: "Destroyer_P2P"
+slug: "destroyer-p2p"
+domain: "comms"
+source_url: "https://github.com/Destroyer-official/Destroyer_P2P"
+license: "Unknown"
+description: "Quantum-resistant P2P chat with multi-layered encryption."
+integration_type: "adapter"
+capabilities:
+  - "quantum_resistant_handshake"
+  - "layered_message_encryption"
+  - "p2p_resilience_monitoring"
+airgapped_support: true

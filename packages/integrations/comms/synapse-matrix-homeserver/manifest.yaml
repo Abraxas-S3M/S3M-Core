@@ -1,0 +1,14 @@
+name: "synapse (Matrix homeserver)"
+slug: "synapse-matrix-homeserver"
+domain: "comms"
+source_url: "https://github.com/element-hq/synapse"
+license: "Unknown"
+description: "Scalable Matrix homeserver for end-to-end encrypted federated messaging and routing."
+integration_type: "adapter"
+capabilities:
+  - "e2ee_federated_messaging"
+  - "homeserver_room_routing"
+  - "federation_health_monitoring"
+system_dependencies:
+  - "synapse_homeserver"
+airgapped_support: true

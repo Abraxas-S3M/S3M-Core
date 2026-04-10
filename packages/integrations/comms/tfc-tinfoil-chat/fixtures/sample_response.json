@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "tfc-comms-2026-0410-1115z",
+  "generated_at": "2026-04-10T11:15:00Z",
+  "cell_id": "special-comms-cell-07",
+  "relay_profile": {
+    "transport": "onion-routed",
+    "data_diode_mode": "enabled",
+    "egress_channel": "one-way-outbound",
+    "return_path": "separate-controlled-ingress"
+  },
+  "session_security": {
+    "endpoint_attestation": "verified",
+    "key_rotation_interval_minutes": 15,
+    "compromise_window_estimate_minutes": 5
+  },
+  "message_flow": {
+    "queued_outbound": 4,
+    "delivered_last_hour": 37,
+    "failed_last_hour": 1
+  },
+  "status": "ok"
+}

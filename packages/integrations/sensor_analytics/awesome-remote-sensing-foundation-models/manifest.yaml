@@ -1,0 +1,13 @@
+name: "Awesome-Remote-Sensing-Foundation-Models"
+slug: "awesome-remote-sensing-foundation-models"
+domain: "sensor_analytics"
+source_url: "https://github.com/Jack-bo1220/Awesome-Remote-Sensing-Foundation-Models"
+license: "Unknown"
+description: "Curated index of remote-sensing foundation models for planning sovereign SATINT model selection pipelines."
+integration_type: "adapter"
+capabilities:
+  - model_catalog_discovery
+  - task_capability_mapping
+  - deployment_readiness_tagging
+
+airgapped_support: true

@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "assessment_id": "ros-perception-013",
+  "mission_phase": "robotic_recon",
+  "pipeline_health": "nominal",
+  "available_components": [
+    "image_pipeline",
+    "perception_pcl",
+    "vision_opencv"
+  ],
+  "sensor_sync_state": "stable",
+  "recommended_action": "Proceed with onboard perception fusion and continue periodic node health checks.",
+  "timestamp_utc": "2026-04-10T09:25:00Z"
+}

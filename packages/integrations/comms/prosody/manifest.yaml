@@ -1,0 +1,12 @@
+name: "prosody"
+slug: "prosody"
+domain: "comms"
+source_url: "https://github.com/prosody/prosody (core)"
+license: "Unknown"
+description: "Lightweight XMPP server with strong encryption support"
+integration_type: "adapter"
+capabilities:
+  - "xmpp_server_coordination"
+  - "tls_encrypted_messaging"
+  - "federated_comms_hardening"
+airgapped_support: true
