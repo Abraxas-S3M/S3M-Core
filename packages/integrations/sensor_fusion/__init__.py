@@ -1,1 +1,1 @@
-"""Sensor fusion domain integration wrappers for S3M."""
+"""Sensor fusion integration domain for tactical multi-source signal wrappers."""
