@@ -1,0 +1,36 @@
+{
+  "sortie_id": "uav-orch-sierra-2026-04-10-004",
+  "mission_profile": "persistent-overwatch-with-charging",
+  "status": "completed",
+  "uavs": [
+    {
+      "uav_id": "hawk-11",
+      "task": "sector-overwatch",
+      "battery_state": 0.42,
+      "recharge_cycles": 1
+    },
+    {
+      "uav_id": "hawk-12",
+      "task": "wireless-charging-relay",
+      "battery_state": 0.55,
+      "energy_transferred_wh": 126
+    },
+    {
+      "uav_id": "hawk-13",
+      "task": "target-reacquisition",
+      "battery_state": 0.48,
+      "recharge_cycles": 1
+    }
+  ],
+  "orchestration_metrics": {
+    "task_replan_events": 3,
+    "coverage_ratio": 0.93,
+    "mean_command_latency_ms": 37
+  },
+  "contested_link_handling": {
+    "degraded_windows": 2,
+    "autonomy_fallback_triggered": true
+  },
+  "after_action_assessment": "UAV team sustained coverage while balancing energy and relay requirements."
+}
+

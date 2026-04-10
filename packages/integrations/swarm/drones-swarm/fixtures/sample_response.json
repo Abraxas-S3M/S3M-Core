@@ -1,0 +1,36 @@
+{
+  "mission_id": "drones-swarm-delta-grid-2026-04-10-006",
+  "mission_profile": "adaptive-exploration-target-tracking",
+  "status": "completed",
+  "coverage": {
+    "grid_cells_total": 240,
+    "grid_cells_visited": 229,
+    "coverage_ratio": 0.954
+  },
+  "detections": [
+    {
+      "track_id": "trk-031",
+      "classification": "simulated-vehicle",
+      "confidence": 0.93,
+      "tracking_uavs": [
+        "echo-01",
+        "echo-03"
+      ]
+    },
+    {
+      "track_id": "trk-047",
+      "classification": "simulated-personnel-group",
+      "confidence": 0.89,
+      "tracking_uavs": [
+        "echo-02"
+      ]
+    }
+  ],
+  "swarm_metrics": {
+    "mean_replan_interval_s": 14.2,
+    "target_track_continuity": 0.91,
+    "packet_loss_tolerance": "maintained"
+  },
+  "after_action_assessment": "Swarm maintained detection continuity while adapting exploration frontiers."
+}
+

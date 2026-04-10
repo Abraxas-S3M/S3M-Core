@@ -1,0 +1,38 @@
+{
+  "event_id": "mavsdk-show-kilo-2026-04-10-008",
+  "mission_profile": "leader-follower-sar-overlay",
+  "status": "completed",
+  "fleet": {
+    "vehicle_count": 12,
+    "leader_id": "nova-lead-01",
+    "followers_active": 11
+  },
+  "formation_timeline": [
+    {
+      "phase": "takeoff-staggered",
+      "duration_s": 52
+    },
+    {
+      "phase": "pattern-execution",
+      "duration_s": 486
+    },
+    {
+      "phase": "sar-grid-overlay",
+      "duration_s": 238
+    }
+  ],
+  "control_metrics": {
+    "max_inter_vehicle_error_m": 0.41,
+    "leader_follower_sync_score": 0.96,
+    "failsafe_interventions": 0
+  },
+  "sar_contacts": [
+    {
+      "contact_id": "poi-21",
+      "classification": "simulated-survivor",
+      "handoff_status": "reported"
+    }
+  ],
+  "after_action_assessment": "Formation precision and SAR overlay objectives met without command desynchronization."
+}
+

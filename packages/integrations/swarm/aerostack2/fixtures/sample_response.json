@@ -1,0 +1,20 @@
+{
+  "status": "ok",
+  "mission_id": "as2-swarm-night-watch",
+  "fleet": {
+    "vehicles_total": 8,
+    "vehicles_online": 8,
+    "autonomy_mode": "distributed"
+  },
+  "formation": {
+    "pattern": "expanding-diamond",
+    "altitude_m_agl": 120,
+    "inter_vehicle_spacing_m": 35
+  },
+  "telemetry_quality": {
+    "link_quality_mean": 0.94,
+    "state_sync_jitter_ms_p95": 18,
+    "topic_drop_rate": 0.008
+  },
+  "tactical_note": "Fleet stability acceptable for perimeter reconnaissance in GPS-contested conditions."
+}

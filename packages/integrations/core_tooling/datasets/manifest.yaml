@@ -1,0 +1,12 @@
+name: "Datasets"
+slug: "datasets"
+domain: "core_tooling"
+source_url: "https://github.com/huggingface/datasets"
+license: "Unknown"
+description: "Library for loading, processing, and validating large-scale training datasets for sovereign pipelines."
+integration_type: "adapter"
+capabilities:
+  - "dataset-loading"
+  - "dataset-processing"
+  - "offline-caching"
+airgapped_support: true

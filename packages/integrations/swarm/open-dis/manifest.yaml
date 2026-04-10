@@ -1,0 +1,12 @@
+name: "open-dis"
+slug: "open-dis"
+domain: "swarm"
+source_url: "https://github.com/open-dis"
+license: "BSD"
+description: "Open-source implementation of IEEE-1278.1 Distributed Interactive Simulation (DIS) protocol."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "dis_protocol"
+  - "entity_state_exchange"
+  - "simulation_interop"

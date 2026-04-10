@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_tag": "px4-lf-ridge-ops",
+  "swarm": {
+    "leader_id": "uav-01",
+    "followers": [
+      "uav-02",
+      "uav-03",
+      "uav-04",
+      "uav-05"
+    ],
+    "mode": "leader-follower"
+  },
+  "control_metrics": {
+    "formation_tracking_error_m": 1.2,
+    "command_loop_rate_hz": 40,
+    "failsafe_events": 0
+  },
+  "sim_runtime": {
+    "gazebo_backend": "gz-sim",
+    "sim_speed_factor": 1.0,
+    "cpu_load_pct": 61
+  },
+  "recommendation": "Controller readiness is acceptable for coordinated convoy overwatch drills."
+}
