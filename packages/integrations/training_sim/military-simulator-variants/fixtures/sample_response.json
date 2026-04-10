@@ -1,0 +1,24 @@
+{
+  "snapshot_id": "military-simulator-variants-2026-0410-0720z",
+  "generated_at": "2026-04-10T07:20:00Z",
+  "exercise_name": "brigade_turn_based_readiness",
+  "turn_summary": [
+    {
+      "turn": 1,
+      "blue_force_action": "secure_supply_route_alpha",
+      "opfor_action": "artillery_harassment",
+      "mission_effectiveness_score": 0.78
+    },
+    {
+      "turn": 2,
+      "blue_force_action": "counter_battery_and_disperse",
+      "opfor_action": "mechanized_probe_east",
+      "mission_effectiveness_score": 0.83
+    }
+  ],
+  "after_action_review": {
+    "friendly_losses": 12,
+    "supply_convoys_protected_pct": 91.0,
+    "priority_lesson": "Improve ISR cueing before committing reserve armor."
+  }
+}
