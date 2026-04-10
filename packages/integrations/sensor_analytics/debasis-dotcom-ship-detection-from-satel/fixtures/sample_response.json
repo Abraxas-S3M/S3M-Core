@@ -1,0 +1,27 @@
+{
+  "event_id": "yolov4-ship-sa-2026-04-10-004",
+  "mission_id": "strait-overwatch-09",
+  "image_asset": "orbital-pass-4412_tile_18_07.tif",
+  "model": {
+    "name": "yolov4-ship-detector-int8",
+    "input_size": [608, 608],
+    "confidence_threshold": 0.42
+  },
+  "detections": [
+    {
+      "class": "cargo_vessel",
+      "confidence": 0.95,
+      "bbox_xywh": [1242, 881, 148, 52]
+    },
+    {
+      "class": "fast_attack_craft",
+      "confidence": 0.87,
+      "bbox_xywh": [988, 741, 74, 31]
+    }
+  ],
+  "summary": {
+    "total_detections": 2,
+    "high_priority_contacts": 1
+  },
+  "status": "forwarded_to_maritime_ops"
+}

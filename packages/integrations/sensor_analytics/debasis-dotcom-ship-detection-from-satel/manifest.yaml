@@ -1,0 +1,12 @@
+name: "debasis-dotcom/Ship-Detection-from-Satellite-Images-using-YOLOV4"
+slug: "debasis-dotcom-ship-detection-from-satel"
+domain: "sensor_analytics"
+source_url: "https://github.com/debasis-dotcom/Ship-Detection-from-Satellite-Images-using-YOLOV4"
+license: "Unknown"
+description: "YOLOv4 ship detection from satellite imagery."
+integration_type: "adapter"
+capabilities:
+  - "ship-detection"
+  - "satellite-image-inference"
+  - "maritime-surveillance"
+airgapped_support: true
