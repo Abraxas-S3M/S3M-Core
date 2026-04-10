@@ -1,0 +1,12 @@
+name: "Ardupilot_Multiagent_Simulation"
+slug: "ardupilot-multiagent-simulation"
+domain: "swarm"
+source_url: "https://github.com/aau-cns/Ardupilot_Multiagent_Simulation"
+license: "GPL-3.0"
+description: "Simulation environment for multi-agent drone systems using ArduPilot, ROS2, and Gazebo."
+integration_type: "adapter"
+capabilities:
+  - "multiagent_simulation"
+  - "ardupilot_ros2_gazebo_integration"
+  - "pre_mission_rehearsal_validation"
+airgapped_support: true
