@@ -1,0 +1,12 @@
+name: "lms"
+slug: "lms"
+domain: "readiness"
+source_url: "https://github.com/frappe/lms"
+license: "Unknown"
+description: "Frappe Learning Management System for military training certification workflows."
+integration_type: "adapter"
+capabilities:
+  - "training_catalog"
+  - "certification_tracking"
+  - "readiness_course_compliance"
+airgapped_support: true

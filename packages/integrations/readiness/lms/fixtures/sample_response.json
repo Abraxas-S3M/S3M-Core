@@ -1,0 +1,27 @@
+{
+  "report_id": "lms-readiness-2026-0410-002",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "unit": "training-command-east",
+  "summary": {
+    "assigned_personnel": 780,
+    "compliant_personnel": 701,
+    "compliance_rate": 0.899,
+    "expiring_certifications_30d": 56
+  },
+  "critical_courses": [
+    {
+      "course_code": "C4ISR-OPS-201",
+      "completion_rate": 0.84,
+      "required": true
+    },
+    {
+      "course_code": "MED-EVAC-110",
+      "completion_rate": 0.91,
+      "required": true
+    }
+  ],
+  "recommended_actions": [
+    "Schedule accelerated C4ISR recertification sessions for signal platoons.",
+    "Prioritize commanders with certifications expiring in under 14 days."
+  ]
+}

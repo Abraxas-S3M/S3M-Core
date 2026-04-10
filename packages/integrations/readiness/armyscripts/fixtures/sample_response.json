@@ -1,0 +1,28 @@
+{
+  "snapshot_id": "armyscripts-rd-2026-0410-0900z",
+  "brigade": "12th Combined Arms Brigade",
+  "as_of_utc": "2026-04-10T09:00:00Z",
+  "training_cycles": {
+    "current_cycle": "Q2-2026",
+    "scripts_executed": 47,
+    "failed_runs": 2
+  },
+  "certification_rollup": {
+    "qualified": 1184,
+    "expiring_within_45_days": 96,
+    "critical_shortfall": 19
+  },
+  "critical_courses": [
+    {
+      "name": "Mounted Patrol ISR Procedures",
+      "qualified": 221,
+      "required": 240
+    },
+    {
+      "name": "Secure Tactical Communications",
+      "qualified": 189,
+      "required": 200
+    }
+  ],
+  "status": "stable"
+}

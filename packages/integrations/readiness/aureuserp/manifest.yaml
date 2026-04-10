@@ -1,0 +1,12 @@
+name: "aureuserp"
+slug: "aureuserp"
+domain: "readiness"
+source_url: "https://github.com/aureuserp/aureuserp"
+license: "Unknown"
+description: "Open-source ERP integration for HR and personnel readiness oversight."
+integration_type: "adapter"
+capabilities:
+  - "personnel_roster_sync"
+  - "hr_case_management"
+  - "readiness_finance_alignment"
+airgapped_support: true
