@@ -1,0 +1,12 @@
+name: "erpnext"
+slug: "erpnext"
+domain: "readiness"
+source_url: "https://github.com/frappe/erpnext"
+license: "Unknown"
+description: "Enterprise-grade ERP with a powerful HR module for manning and readiness."
+integration_type: "adapter"
+capabilities:
+  - "manning_overview"
+  - "leave_readiness"
+  - "force_structure_reporting"
+airgapped_support: true

@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "hrms-laravel-readiness-2026-0410-0640z",
+  "battalion": "Support Battalion East",
+  "generated_at": "2026-04-10T06:40:00Z",
+  "locale_status": {
+    "primary": "ar",
+    "secondary": "en",
+    "rtl_enabled": true
+  },
+  "personnel_metrics": {
+    "authorized": 430,
+    "assigned": 421,
+    "deployable": 404,
+    "pending_clearance": 7
+  },
+  "leave_management": {
+    "approved": 22,
+    "awaiting_review": 11
+  },
+  "alerts": [
+    {
+      "type": "localization_gap",
+      "detail": "3 readiness forms pending Arabic translation validation."
+    }
+  ]
+}

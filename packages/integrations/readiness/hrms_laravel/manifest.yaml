@@ -1,0 +1,12 @@
+name: "HRMS"
+slug: "hrms_laravel"
+domain: "readiness"
+source_url: "https://github.com/amralsaleeh/HRMS"
+license: "Unknown"
+description: "Laravel + Livewire HR with Arabic/English localization and RTL support."
+integration_type: "adapter"
+capabilities:
+  - "bilingual_personnel_records"
+  - "rtl_dashboard_support"
+  - "leave_and_payroll_status"
+airgapped_support: true

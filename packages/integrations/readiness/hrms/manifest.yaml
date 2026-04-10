@@ -1,0 +1,12 @@
+name: "hrms"
+slug: "hrms"
+domain: "readiness"
+source_url: "https://github.com/frappe/hrms"
+license: "Unknown"
+description: "Open-source HR and payroll with modules for employee management, training, and attendance."
+integration_type: "adapter"
+capabilities:
+  - "personnel_roster"
+  - "attendance_snapshot"
+  - "training_status"
+airgapped_support: true
