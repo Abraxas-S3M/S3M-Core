@@ -1,0 +1,25 @@
+{
+  "dataset_snapshot_id": "uavswarm-dataset-2026-04-10t100500z",
+  "as_of_utc": "2026-04-10T10:05:00Z",
+  "inventory": {
+    "total_images": 12437,
+    "annotated_frames": 11892,
+    "sequence_count": 86,
+    "classes": ["micro-uav", "fixed-wing-uav", "decoy", "background-air-object"]
+  },
+  "split": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "quality_metrics": {
+    "label_consistency_score": 0.93,
+    "missing_bbox_rate": 0.011,
+    "occlusion_tag_coverage": 0.88
+  },
+  "recommended_use": {
+    "mission_profile": "swarm_detection_over_urban_littoral",
+    "priority_subset": "night-and-low-altitude-sequences"
+  },
+  "status": "ok"
+}
