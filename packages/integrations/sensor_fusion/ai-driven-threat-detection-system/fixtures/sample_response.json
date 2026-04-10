@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "assessment_id": "net-threat-anomaly-017",
+  "mission_phase": "forward-network-screening",
+  "anomaly_probability": 0.81,
+  "risk_level": "high",
+  "suspect_flows": [
+    {
+      "flow_id": "flow-2291",
+      "src": "10.44.21.13",
+      "dst": "10.44.8.77",
+      "reason": "outlier_packet_interarrival"
+    },
+    {
+      "flow_id": "flow-2302",
+      "src": "10.44.21.18",
+      "dst": "10.44.9.101",
+      "reason": "unexpected_port_entropy"
+    }
+  ],
+  "recommended_action": "Isolate flagged subnet and initiate host-level inspection.",
+  "model_family": "isolation_forest",
+  "timestamp_utc": "2026-04-10T09:20:00Z"
+}
