@@ -1,1 +1,1 @@
-"""Simulation integration domain for sovereign war-gaming adapters."""
+"""Simulation-domain integration wrappers for S3M."""

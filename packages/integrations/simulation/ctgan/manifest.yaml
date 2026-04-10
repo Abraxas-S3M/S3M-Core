@@ -1,0 +1,14 @@
+name: "CTGAN"
+slug: "ctgan"
+domain: "simulation"
+source_url: "https://github.com/sdv-dev/CTGAN"
+license: "MIT"
+description: "Conditional tabular GAN for realistic synthetic data generation."
+integration_type: "adapter"
+capabilities:
+  - "conditional_tabular_generation"
+  - "class_balanced_sampling"
+  - "privacy_preserving_simulation_data"
+pip_dependencies:
+  - "ctgan"
+airgapped_support: true

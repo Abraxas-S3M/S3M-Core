@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "tgan-sim-2026-0410-0719z",
+  "generator": "tgan",
+  "dataset_profile": "multi_domain_operational_table",
+  "status": "generated",
+  "rows_generated": 800,
+  "feature_count": 64,
+  "quality_metrics": {
+    "correlation_preservation_score": 0.9,
+    "attribute_disclosure_risk": 0.07
+  },
+  "sample_preview": [
+    {
+      "mission_id": "MSN-44021",
+      "unit_readiness_score": 0.82,
+      "resupply_eta_hours": 5.5,
+      "terrain_band": "urban_littoral"
+    },
+    {
+      "mission_id": "MSN-44022",
+      "unit_readiness_score": 0.76,
+      "resupply_eta_hours": 7.1,
+      "terrain_band": "desert_open"
+    }
+  ]
+}

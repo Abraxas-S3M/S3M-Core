@@ -1,0 +1,14 @@
+name: "TGAN"
+slug: "tgan"
+domain: "simulation"
+source_url: "https://github.com/sdv-dev/TGAN"
+license: "MIT"
+description: "Tabular GAN for high-dimensional synthetic data."
+integration_type: "adapter"
+capabilities:
+  - "high_dimensional_tabular_generation"
+  - "synthetic_force_planning_records"
+  - "disconnected_data_rehearsal"
+pip_dependencies:
+  - "tgan"
+airgapped_support: true
