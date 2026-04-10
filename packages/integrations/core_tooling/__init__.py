@@ -1,1 +1,1 @@
-"""Core tooling integration wrappers for local sovereign AI infrastructure."""
+"""Core tooling integration domain for sovereign model lifecycle wrappers."""

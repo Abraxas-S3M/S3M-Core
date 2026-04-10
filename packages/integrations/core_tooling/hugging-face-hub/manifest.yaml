@@ -1,0 +1,12 @@
+name: "Hugging Face Hub"
+slug: "hugging-face-hub"
+domain: "core_tooling"
+source_url: "https://github.com/huggingface/huggingface_hub"
+license: "Unknown"
+description: "CLI and library for downloading and caching models on sovereign infrastructure."
+integration_type: "adapter"
+capabilities:
+  - "snapshot-download"
+  - "local-cache-management"
+  - "artifact-staging"
+airgapped_support: true
