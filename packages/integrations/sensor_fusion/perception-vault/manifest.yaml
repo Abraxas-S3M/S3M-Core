@@ -1,0 +1,12 @@
+name: "perception_vault"
+slug: "perception-vault"
+domain: "sensor_fusion"
+source_url: "https://github.com/peakyquest/perception_vault"
+license: "MIT"
+description: "ROS2 collection for multi-sensor processing pipelines and fusion in autonomous systems."
+integration_type: "adapter"
+capabilities:
+  - "ros2_pipeline_orchestration"
+  - "multi_sensor_fusion"
+  - "perception_health_monitoring"
+airgapped_support: true

@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "perception-vault-s3m-2026-04-10T120500Z",
+  "operation": "fusion_pipeline_health_check",
+  "mission_profile": "urban_route_clearance_convoy_support",
+  "pipeline_status": {
+    "camera_eo": "nominal",
+    "camera_ir": "nominal",
+    "lidar": "nominal",
+    "radar": "degraded_multipath"
+  },
+  "fusion_outputs": {
+    "tracked_objects": 17,
+    "priority_contacts": 3,
+    "free_space_ratio": 0.74
+  },
+  "latency_ms": {
+    "sensor_ingest": 12.1,
+    "fusion_stage": 21.4,
+    "end_to_end": 43.5
+  },
+  "pipeline_confidence": 0.9
+}
