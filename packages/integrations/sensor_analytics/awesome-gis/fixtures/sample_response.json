@@ -1,0 +1,25 @@
+{
+  "operation": "query_gis_resources",
+  "catalog_snapshot": "awesome-gis-2026-04-10",
+  "query": "maritime_surveillance_and_coastal_monitoring",
+  "ranked_resources": [
+    {
+      "title": "QGIS ecosystem",
+      "category": "desktop_gis",
+      "relevance": 0.92
+    },
+    {
+      "title": "PostGIS stack",
+      "category": "geospatial_database",
+      "relevance": 0.89
+    },
+    {
+      "title": "GDAL/OGR tools",
+      "category": "data_transformation",
+      "relevance": 0.87
+    }
+  ],
+  "recommended_next_action": "stage_top_10_resources_into_offline_knowledge_base",
+  "status": "ok",
+  "generated_at": "2026-04-10T13:15:00Z"
+}

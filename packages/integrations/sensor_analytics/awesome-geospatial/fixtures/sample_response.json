@@ -1,0 +1,24 @@
+{
+  "operation": "list_geospatial_resources",
+  "catalog_version": "2026.04.10",
+  "mission_profile": "remote_sensing_stack_selection",
+  "recommended_toolchains": [
+    {
+      "name": "imagery-segmentation-stack",
+      "tools": ["segment-geospatial", "rasterio", "geopandas"],
+      "fit_score": 0.93
+    },
+    {
+      "name": "change-detection-stack",
+      "tools": ["eo-learn", "xarray", "dask"],
+      "fit_score": 0.88
+    }
+  ],
+  "reference_counts": {
+    "remote_sensing": 142,
+    "gis_platforms": 97,
+    "data_sources": 58
+  },
+  "status": "ok",
+  "generated_at": "2026-04-10T13:00:00Z"
+}

@@ -1,0 +1,15 @@
+name: "Military-Detect"
+slug: "military-detect"
+domain: "sensor_fusion"
+source_url: "https://github.com/Erichen911/Military-Detect"
+license: "MIT"
+description: "Remote sensing military target detection for airbase, bridge, missile, and warship classes."
+integration_type: "adapter"
+capabilities:
+  - "airbase_detection"
+  - "bridge_detection"
+  - "warship_detection"
+  - "missile_site_detection"
+system_dependencies:
+  - "python3"
+airgapped_support: true

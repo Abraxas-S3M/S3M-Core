@@ -1,0 +1,14 @@
+name: "perception_interfaces"
+slug: "perception-interfaces"
+domain: "sensor_fusion"
+source_url: "https://github.com/ika-rwth-aachen/perception_interfaces"
+license: "MIT"
+description: "ROS/ROS2 common messages and tools for automated-driving perception interoperability."
+integration_type: "adapter"
+capabilities:
+  - "message_interface_validation"
+  - "ros2_tooling_probe"
+  - "perception_contract_checks"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "ultralytics-s3m-2026-04-10T121000Z",
+  "operation": "real_time_threat_screening",
+  "mission_profile": "perimeter_surveillance_day_night",
+  "model": {
+    "family": "YOLO11",
+    "weights": "yolo11n.pt",
+    "quantization": "int8"
+  },
+  "frame_summary": {
+    "frame_id": 4821,
+    "detections": 9,
+    "high_priority": 2,
+    "classes": {
+      "person": 4,
+      "vehicle": 3,
+      "drone": 2
+    }
+  },
+  "performance": {
+    "fps": 42.7,
+    "latency_ms": 23.4,
+    "gpu_utilization_pct": 61
+  },
+  "confidence": 0.92
+}

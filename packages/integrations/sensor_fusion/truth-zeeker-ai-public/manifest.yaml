@@ -1,0 +1,17 @@
+name: "Truth-Zeeker-AI-Public"
+slug: "truth-zeeker-ai-public"
+domain: "sensor_fusion"
+source_url: "https://github.com/dr-rakshith-truth-zeeker/Truth-Zeeker-AI-Public"
+license: "MIT"
+description: "AI-driven Zeek log parsing and anomaly detection for tactical cyber sensor fusion."
+integration_type: "adapter"
+capabilities:
+  - "zeek_log_parsing"
+  - "session_anomaly_detection"
+  - "threat_signal_correlation"
+system_dependencies:
+  - "zeek"
+pip_dependencies:
+  - "numpy"
+  - "pandas"
+airgapped_support: true

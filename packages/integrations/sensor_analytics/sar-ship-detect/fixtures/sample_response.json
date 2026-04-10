@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "sar-ship-detect-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_ref": "gulf-watch-sector-7",
+  "scene": {
+    "sensor": "Sentinel-1 SAR",
+    "resolution_m": 10,
+    "chip_count": 3
+  },
+  "detections": [
+    {
+      "track_id": "S1-TRK-0194",
+      "bbox_xywh": [412, 286, 48, 22],
+      "class": "cargo_vessel",
+      "confidence": 0.94,
+      "estimated_length_m": 116.8,
+      "heading_deg": 73
+    },
+    {
+      "track_id": "S1-TRK-0195",
+      "bbox_xywh": [139, 501, 33, 18],
+      "class": "patrol_craft",
+      "confidence": 0.88,
+      "estimated_length_m": 44.1,
+      "heading_deg": 251
+    }
+  ],
+  "threat_summary": {
+    "contacts_total": 2,
+    "high_interest_contacts": 1,
+    "note": "One cargo vessel deviates from declared shipping lane by 4.2 nautical miles."
+  }
+}

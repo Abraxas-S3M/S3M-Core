@@ -1,0 +1,12 @@
+name: "Awesome-Remote-Sensing"
+slug: "awesome-remote-sensing"
+domain: "sensor_analytics"
+source_url: "Search related awesome lists"
+license: "Unknown"
+description: "Curated remote sensing and satellite processing resources."
+integration_type: "adapter"
+capabilities:
+  - "curated-resource-discovery"
+  - "remote-sensing-tool-reference"
+  - "workflow-pattern-catalog"
+airgapped_support: true

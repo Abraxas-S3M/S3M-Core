@@ -1,0 +1,12 @@
+name: "Arabic-Resources"
+slug: "arabic-resources"
+domain: "comms"
+source_url: "https://github.com/NNLP-IL/Arabic-Resources"
+license: "Unknown"
+description: "Comprehensive Arabic NLP resources and model listings."
+integration_type: "adapter"
+capabilities:
+  - "resource_cataloging"
+  - "dataset_discovery"
+  - "offline_fixture_replay"
+airgapped_support: true

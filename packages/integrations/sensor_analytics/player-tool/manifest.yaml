@@ -1,0 +1,12 @@
+name: "player-tool"
+slug: "player-tool"
+domain: "sensor_analytics"
+source_url: "https://github.com/alvarolb/player-tool"
+license: "Unknown"
+description: "Open-source tool for maritime surveillance simulation and data fusion."
+integration_type: "adapter"
+capabilities:
+  - "maritime_surveillance_simulation"
+  - "sensor_data_fusion"
+  - "anomaly_detection_support"
+airgapped_support: true

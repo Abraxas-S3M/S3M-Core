@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "ship-detection-remote-sensing-synthet-2026-0410-1210z",
+  "generated_at": "2026-04-10T12:10:00Z",
+  "mission_ref": "littoral-defense-grid-b2",
+  "models": {
+    "primary_detector": "faster_rcnn",
+    "secondary_detector": "yolov5",
+    "fusion_policy": "consensus_or_high_confidence"
+  },
+  "detections": [
+    {
+      "track_id": "HYB-301",
+      "class": "container_ship",
+      "confidence": 0.9,
+      "bbox_xywh": [288, 364, 84, 31],
+      "source_models": ["faster_rcnn", "yolov5"]
+    },
+    {
+      "track_id": "HYB-302",
+      "class": "small_boat",
+      "confidence": 0.82,
+      "bbox_xywh": [641, 129, 26, 12],
+      "source_models": ["yolov5"]
+    }
+  ],
+  "command_note": "Track HYB-302 flagged for additional EO/IR confirmation due rapid heading change near exclusion zone."
+}
