@@ -1,0 +1,12 @@
+name: "dolibarr/dolibarr"
+slug: "dolibarr-dolibarr"
+domain: "maintenance"
+source_url: "https://github.com/dolibarr/dolibarr"
+license: "Unknown"
+description: "Modular ERP/CRM with procurement, inventory, and maintenance modules."
+integration_type: "adapter"
+capabilities:
+  - "procurement_tracking"
+  - "inventory_visibility"
+  - "maintenance_work_orders"
+airgapped_support: true
