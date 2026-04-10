@@ -1,0 +1,8 @@
+name: "Swarm-Formation"
+slug: "swarm-formation"
+domain: "swarm"
+source_url: "https://github.com/ZJU-FAST-Lab/Swarm-Formation"
+license: "GPLv3"
+description: "Distributed swarm trajectory optimization for formation flight in dense environments."
+integration_type: "adapter"
+airgapped_support: true

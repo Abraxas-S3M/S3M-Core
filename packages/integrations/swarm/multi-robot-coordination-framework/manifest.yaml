@@ -1,0 +1,13 @@
+name: "Multi-Robot-Coordination-Framework"
+slug: "multi-robot-coordination-framework"
+domain: "swarm"
+source_url: "https://github.com/JayDS22/Multi-Robot-Coordination-Framework"
+license: "MIT"
+description: "Distributed RL framework for multi-robot task allocation with fault-tolerant ROS2 architecture."
+integration_type: "adapter"
+capabilities:
+  - "distributed_task_allocation"
+  - "fault_tolerant_coordination"
+  - "multi_robot_rl"
+airgapped_support: true
+

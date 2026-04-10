@@ -1,0 +1,14 @@
+name: "heterogeneous-swarm-robotics"
+slug: "heterogeneous-swarm-robotics"
+domain: "swarm"
+source_url: "https://github.com/nema-oss/heterogeneous-swarm-robotics"
+license: "MIT"
+description: "Collection for analyzing resilience of heterogeneous robot swarms."
+integration_type: "adapter"
+capabilities:
+  - "swarm_resilience_analysis"
+  - "heterogeneous_asset_modeling"
+  - "attrition_simulation"
+system_dependencies:
+  - "python3"
+airgapped_support: true

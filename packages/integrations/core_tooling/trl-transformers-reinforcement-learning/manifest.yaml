@@ -1,0 +1,12 @@
+name: "TRL (Transformers Reinforcement Learning)"
+slug: "trl-transformers-reinforcement-learning"
+domain: "core_tooling"
+source_url: "https://github.com/huggingface/trl"
+license: "Unknown"
+description: "Library for supervised fine-tuning and alignment workflows in model training pipelines."
+integration_type: "adapter"
+capabilities:
+  - "supervised-fine-tuning"
+  - "alignment"
+  - "policy-optimization"
+airgapped_support: true

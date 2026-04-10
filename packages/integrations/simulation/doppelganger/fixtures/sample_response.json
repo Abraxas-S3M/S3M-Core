@@ -1,0 +1,38 @@
+{
+  "snapshot_id": "doppelganger-sim-2026-0410-0712z",
+  "generator": "doppelganger",
+  "sequence_domain": "uav_patrol_telemetry",
+  "status": "generated",
+  "sequences_generated": 320,
+  "sequence_length": 180,
+  "condition_fields": [
+    "platform_type",
+    "mission_phase",
+    "weather_band"
+  ],
+  "quality_metrics": {
+    "dynamic_time_warping_distance": 0.11,
+    "discriminator_confidence_mean": 0.52
+  },
+  "sample_preview": {
+    "platform_type": "quadrotor",
+    "mission_phase": "route_patrol",
+    "timeline": [
+      {
+        "t_sec": 0,
+        "battery_pct": 100.0,
+        "airspeed_mps": 0.0
+      },
+      {
+        "t_sec": 60,
+        "battery_pct": 93.6,
+        "airspeed_mps": 12.8
+      },
+      {
+        "t_sec": 120,
+        "battery_pct": 87.9,
+        "airspeed_mps": 13.2
+      }
+    ]
+  }
+}

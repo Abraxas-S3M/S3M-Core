@@ -1,0 +1,12 @@
+name: "Mergekit"
+slug: "mergekit"
+domain: "core_tooling"
+source_url: "https://github.com/arcee-ai/mergekit"
+license: "Unknown"
+description: "Tool for merging LLMs and constructing sovereign composite models."
+integration_type: "adapter"
+capabilities:
+  - "ties-merging"
+  - "moe-conversion"
+  - "merge-plan-validation"
+airgapped_support: true

@@ -1,0 +1,22 @@
+{
+  "mission_id": "dsgpt-multimodal-302",
+  "status": "nl_command_compiled",
+  "input_command": "Establish perimeter scan over sector delta and prioritize thermal anomalies.",
+  "compiled_plan": {
+    "formation": "concentric-perimeter",
+    "tasking_layers": [
+      "outer_visual_scan",
+      "inner_thermal_confirmation",
+      "relay_backhaul_overwatch"
+    ],
+    "rules": {
+      "no_fly_zones_enforced": true,
+      "geo_fence_id": "sector-delta-fence-7"
+    }
+  },
+  "safety": {
+    "collision_avoidance": "active",
+    "command_confidence": 0.93,
+    "human_override_required": false
+  }
+}

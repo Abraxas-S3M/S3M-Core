@@ -1,0 +1,36 @@
+{
+  "mission_id": "uav-swarm-coop-117",
+  "status": "swarm_plan_generated",
+  "formation": "adaptive_v",
+  "agents": [
+    {
+      "uav_id": "uav-01",
+      "role": "lead",
+      "waypoint_queue": 12,
+      "health": "nominal"
+    },
+    {
+      "uav_id": "uav-02",
+      "role": "flank-left",
+      "waypoint_queue": 10,
+      "health": "nominal"
+    },
+    {
+      "uav_id": "uav-03",
+      "role": "flank-right",
+      "waypoint_queue": 10,
+      "health": "degraded-link"
+    },
+    {
+      "uav_id": "uav-04",
+      "role": "relay",
+      "waypoint_queue": 8,
+      "health": "nominal"
+    }
+  ],
+  "fault_tolerance": {
+    "lost_agent_policy": "nearest_neighbor_retask",
+    "comms_dropout_seconds": 20,
+    "fallback_mode": "loiter_and_reconnect"
+  }
+}
