@@ -1,0 +1,32 @@
+{
+  "mission_id": "recce-platoon-east-04",
+  "event_id": "liv-handhold-2-sf-2026-04-10-001",
+  "operator": "team-bravo-scout-2",
+  "kit_profile": "LIV_handhold_2",
+  "capture_window": {
+    "start_utc": "2026-04-10T00:01:30Z",
+    "end_utc": "2026-04-10T00:12:05Z",
+    "duration_s": 635
+  },
+  "fusion_output": {
+    "pointcloud_frames": 228,
+    "imu_frames": 7641,
+    "keyframes": 112,
+    "final_map_points": 1482037,
+    "tracking_state": "stable"
+  },
+  "position_estimate": {
+    "local_frame_m": [
+      -18.4,
+      66.2,
+      2.3
+    ],
+    "yaw_deg": 274.6,
+    "estimated_uncertainty_m": 0.42
+  },
+  "tactical_assessment": {
+    "route_recon_complete": true,
+    "sensor_health": "green",
+    "notes": "Handheld mapping confirms alleyway traversability for follow-on squad maneuver."
+  }
+}
