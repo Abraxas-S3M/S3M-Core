@@ -1,0 +1,8 @@
+name: "vswarm"
+slug: "vswarm"
+domain: "swarm"
+source_url: "https://github.com/lis-epfl/vswarm"
+license: "MIT"
+description: "Decentralized vision-based control of drone swarms without inter-agent communication or markers."
+integration_type: "adapter"
+airgapped_support: true
