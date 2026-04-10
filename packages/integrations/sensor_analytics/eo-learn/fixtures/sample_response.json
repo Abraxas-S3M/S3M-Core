@@ -1,0 +1,33 @@
+{
+  "mission_id": "eo-pipeline-2026-04-10-1230z",
+  "operation": "run_eo_pipeline",
+  "aoi": "sector-bravo-17",
+  "time_window": {
+    "start": "2026-03-01T00:00:00Z",
+    "end": "2026-04-10T00:00:00Z"
+  },
+  "inputs": {
+    "satellite": "sentinel-2",
+    "bands": ["B02", "B03", "B04", "B08"],
+    "cloud_cover_threshold": 0.15
+  },
+  "derived_products": {
+    "ndvi_mean": 0.41,
+    "water_index_mean": 0.08,
+    "change_hotspots": 6
+  },
+  "alerts": [
+    {
+      "type": "terrain_change",
+      "severity": "medium",
+      "grid_ref": "38RLT452781"
+    },
+    {
+      "type": "possible_new_earthworks",
+      "severity": "high",
+      "grid_ref": "38RLT459775"
+    }
+  ],
+  "status": "ok",
+  "generated_at": "2026-04-10T12:30:00Z"
+}
