@@ -1,0 +1,24 @@
+{
+  "event_id": "peft-ct-2026-04-10-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "secure-lora-adapter-training",
+  "training_job": {
+    "base_model": "s3m/phi3-mini-defense-quantized",
+    "adapter_type": "lora",
+    "rank": 16,
+    "target_modules": [
+      "q_proj",
+      "v_proj"
+    ]
+  },
+  "execution": {
+    "operation": "lora_finetune_probe",
+    "estimated_trainable_params": 9437184,
+    "status": "precheck_passed"
+  },
+  "tactical_assessment": {
+    "recommended_action": "proceed_with_local_finetune",
+    "confidence": 0.9,
+    "audit_tag": "adapter-lineage-tracked"
+  }
+}

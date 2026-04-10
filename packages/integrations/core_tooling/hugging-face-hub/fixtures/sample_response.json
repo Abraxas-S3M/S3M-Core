@@ -1,0 +1,21 @@
+{
+  "event_id": "hf-hub-ct-2026-04-10-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "airgapped-model-cache-sync",
+  "cache": {
+    "root": "/opt/s3m/hf-cache",
+    "model_repo": "s3m/mixtral-8x7b-instruct-quantized",
+    "revision": "main",
+    "cached_files": 42
+  },
+  "transfer": {
+    "operation": "snapshot_download_probe",
+    "status": "simulated_success",
+    "bytes_prepositioned": 13200984576
+  },
+  "tactical_assessment": {
+    "recommended_action": "retain_cache_state",
+    "confidence": 0.91,
+    "audit_tag": "offline-cache-ready"
+  }
+}

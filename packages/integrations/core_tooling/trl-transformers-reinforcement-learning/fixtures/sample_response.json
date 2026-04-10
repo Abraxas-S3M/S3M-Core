@@ -1,0 +1,20 @@
+{
+  "event_id": "trl-ct-2026-04-10-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "sft-alignment-predeployment",
+  "training_pipeline": {
+    "base_model": "s3m/mixtral-8x7b-quantized",
+    "algorithm": "sft",
+    "dataset_classification": "mission-internal-approved"
+  },
+  "execution": {
+    "operation": "sft_alignment_probe",
+    "estimated_steps": 1200,
+    "status": "precheck_passed"
+  },
+  "tactical_assessment": {
+    "recommended_action": "execute_offline_sft_batch",
+    "confidence": 0.92,
+    "audit_tag": "alignment-pipeline-ready"
+  }
+}
