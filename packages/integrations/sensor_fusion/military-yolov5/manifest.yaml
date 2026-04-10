@@ -1,0 +1,13 @@
+name: "military-yolov5"
+slug: "military-yolov5"
+domain: "sensor_fusion"
+source_url: "https://github.com/devavinothm/military-yolov5"
+license: "MIT"
+description: "YOLOv5 model family for military objects in surveillance video streams."
+integration_type: "adapter"
+capabilities:
+  - "video_object_detection"
+  - "weapon_detection"
+  - "vehicle_detection"
+
+airgapped_support: true

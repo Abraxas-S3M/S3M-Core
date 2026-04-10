@@ -1,1 +1,1 @@
-"""Sensor fusion integration domain for tactical multi-sensor state estimation."""
+"""Sensor-fusion integration wrappers for tactical detection pipelines."""

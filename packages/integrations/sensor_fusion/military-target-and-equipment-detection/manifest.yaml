@@ -1,0 +1,13 @@
+name: "Military-Target-and-Equipment-Detection"
+slug: "military-target-and-equipment-detection"
+domain: "sensor_fusion"
+source_url: "https://github.com/KarthikPrabhu2541/Military-Target-and-Equipment-Detection"
+license: "MIT"
+description: "YOLO-based detection of rifles, pistols, tanks, jets, soldiers, and other battlefield entities."
+integration_type: "adapter"
+capabilities:
+  - "object_detection"
+  - "equipment_classification"
+  - "tactical_scene_tagging"
+
+airgapped_support: true

@@ -1,0 +1,23 @@
+{
+  "mission_id": "sf-uav-tank-2026-0410-004",
+  "feed_id": "uav-alpha-02",
+  "timestamp_utc": "2026-04-10T11:06:51Z",
+  "primary_track": {
+    "track_id": "tank-track-77",
+    "label": "tank",
+    "confidence": 0.94,
+    "bbox_xyxy": [
+      731,
+      402,
+      1138,
+      819
+    ],
+    "velocity_mps": 9.7,
+    "heading_degrees": 201
+  },
+  "track_history_points": 23,
+  "summary": {
+    "lock_quality": "stable",
+    "handoff_recommended": false
+  }
+}

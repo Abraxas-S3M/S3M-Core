@@ -1,0 +1,62 @@
+{
+  "mission_id": "sf-mte-2026-0410-001",
+  "frame_id": 842,
+  "image_size": {
+    "width": 1920,
+    "height": 1080
+  },
+  "detections": [
+    {
+      "label": "soldier",
+      "confidence": 0.96,
+      "bbox_xyxy": [
+        221,
+        341,
+        309,
+        546
+      ],
+      "threat_level": "medium"
+    },
+    {
+      "label": "rifle",
+      "confidence": 0.93,
+      "bbox_xyxy": [
+        247,
+        388,
+        302,
+        471
+      ],
+      "threat_level": "high"
+    },
+    {
+      "label": "tank",
+      "confidence": 0.91,
+      "bbox_xyxy": [
+        1098,
+        460,
+        1662,
+        924
+      ],
+      "threat_level": "critical"
+    },
+    {
+      "label": "jet",
+      "confidence": 0.88,
+      "bbox_xyxy": [
+        1532,
+        101,
+        1874,
+        266
+      ],
+      "threat_level": "high"
+    }
+  ],
+  "summary": {
+    "total_detections": 4,
+    "priority_targets": [
+      "tank",
+      "jet"
+    ],
+    "recommended_action": "prioritize armored and air-threat tracking channels"
+  }
+}

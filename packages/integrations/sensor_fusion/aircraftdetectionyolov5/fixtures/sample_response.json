@@ -1,0 +1,34 @@
+{
+  "mission_id": "sf-air-y5-2026-0410-005",
+  "radar_cue_id": "cue-ax-51",
+  "timestamp_utc": "2026-04-10T11:12:03Z",
+  "detections": [
+    {
+      "label": "fighter_jet",
+      "confidence": 0.93,
+      "bbox_xyxy": [
+        1412,
+        129,
+        1736,
+        293
+      ],
+      "range_km_est": 17.4
+    },
+    {
+      "label": "transport_aircraft",
+      "confidence": 0.82,
+      "bbox_xyxy": [
+        990,
+        188,
+        1274,
+        348
+      ],
+      "range_km_est": 24.1
+    }
+  ],
+  "summary": {
+    "total_detections": 2,
+    "air_threat_level": "elevated",
+    "recommended_action": "escalate to air-defense fusion node for interceptor tasking"
+  }
+}
