@@ -1,0 +1,12 @@
+name: "nocobase/nocobase"
+slug: "nocobase-nocobase"
+domain: "maintenance"
+source_url: "https://github.com/nocobase/nocobase"
+license: "Unknown"
+description: "No-code/low-code platform for building custom asset management dashboards."
+integration_type: "adapter"
+capabilities:
+  - "maintenance_dashboarding"
+  - "asset_workflow_composition"
+  - "kpi_reporting"
+airgapped_support: true

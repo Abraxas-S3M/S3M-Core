@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "openxe-maint-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "procurement_alignment": {
+    "open_work_orders": 64,
+    "parts_shortage_items": 11,
+    "expedite_recommendations": 4
+  },
+  "inventory_watchlist": [
+    {
+      "part_number": "ACTUATOR-MK4",
+      "on_hand": 2,
+      "minimum_required": 6,
+      "linked_work_orders": 5,
+      "priority": "critical"
+    },
+    {
+      "part_number": "THERMAL-SENSOR-T9",
+      "on_hand": 14,
+      "minimum_required": 10,
+      "linked_work_orders": 3,
+      "priority": "monitor"
+    }
+  ],
+  "maintenance_planning_note": "Expedite actuator procurement to preserve armored mobility platform readiness."
+}

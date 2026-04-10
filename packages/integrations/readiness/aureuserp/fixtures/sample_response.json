@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "aureuserp-rd-2026-0410-0845z",
+  "command": "expeditionary-logistics-group",
+  "as_of_utc": "2026-04-10T08:45:00Z",
+  "personnel_records": {
+    "total_profiles": 3914,
+    "active_assignments": 3662,
+    "vacancy_slots": 252
+  },
+  "training_finance_alignment": {
+    "approved_training_budget_usd": 1840000,
+    "committed_usd": 1612000,
+    "high_priority_unfunded_courses": 4
+  },
+  "critical_positions": [
+    {
+      "role": "UAS Maintenance Technician",
+      "required": 96,
+      "qualified": 88,
+      "gap": 8
+    },
+    {
+      "role": "Signal Intelligence Analyst",
+      "required": 54,
+      "qualified": 49,
+      "gap": 5
+    }
+  ],
+  "status": "stable"
+}

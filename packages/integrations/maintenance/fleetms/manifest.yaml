@@ -1,0 +1,12 @@
+name: "fleetms"
+slug: "fleetms"
+domain: "maintenance"
+source_url: "https://github.com/jmnda-dev/fleetms"
+license: "Unknown"
+description: "Open-source fleet maintenance and management software for scheduling and tracking."
+integration_type: "adapter"
+capabilities:
+  - "fleet_maintenance_scheduling"
+  - "vehicle_service_tracking"
+  - "parts_and_work_order_management"
+airgapped_support: true

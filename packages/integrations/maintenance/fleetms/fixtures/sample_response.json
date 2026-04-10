@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "fleetms-20260410-013",
+  "generated_at": "2026-04-10T08:40:00Z",
+  "region": "western-mobility-group",
+  "maintenance_backlog": {
+    "open_work_orders": 92,
+    "critical_work_orders": 11,
+    "scheduled_today": 27
+  },
+  "vehicle_status": [
+    {
+      "vehicle_id": "trk-204",
+      "platform": "heavy_transport_truck",
+      "state": "scheduled_service",
+      "next_service_due_km": 120
+    },
+    {
+      "vehicle_id": "apc-088",
+      "platform": "armored_personnel_carrier",
+      "state": "repair_in_progress",
+      "fault_code": "HYD-17"
+    }
+  ],
+  "parts_constraints": [
+    {
+      "part_number": "FLT-9A-992",
+      "description": "Fuel filtration module",
+      "stock_on_hand": 4,
+      "minimum_required": 10,
+      "severity": "high"
+    }
+  ]
+}

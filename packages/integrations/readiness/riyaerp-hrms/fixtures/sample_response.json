@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "snapshot_id": "riya-ready-2026-04-10-0800z",
+  "generated_at": "2026-04-10T08:00:00Z",
+  "personnel_registry": {
+    "active_personnel": 4820,
+    "deployable_personnel": 4312,
+    "restricted_duty_personnel": 178
+  },
+  "payroll_readiness": {
+    "on_time_payroll_rate": 0.98,
+    "unresolved_pay_issues": 24,
+    "critical_pay_blocks": 3
+  },
+  "regional_support": {
+    "primary_locale": "ar-IQ",
+    "localized_records_pct": 0.94
+  },
+  "recommended_actions": [
+    "Resolve critical payroll blocks for deployable personnel within 24 hours.",
+    "Prioritize medical and admin clearance for restricted-duty cases nearing rotation.",
+    "Audit localization gaps for units with cross-border staffing assignments."
+  ]
+}

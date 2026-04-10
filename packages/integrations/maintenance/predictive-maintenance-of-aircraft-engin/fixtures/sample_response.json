@@ -1,0 +1,30 @@
+{
+  "snapshot_id": "rul-aircraft-engine-2026-0410-1100z",
+  "model_name": "xgboost_rul_estimator_v3_quantized",
+  "fleet": "uav-turbofan-squadron-7",
+  "generated_at": "2026-04-10T11:00:00Z",
+  "predictions": [
+    {
+      "engine_id": "TF-00071",
+      "estimated_rul_cycles": 162,
+      "health_score": 0.84,
+      "maintenance_priority": "monitor"
+    },
+    {
+      "engine_id": "TF-00088",
+      "estimated_rul_cycles": 43,
+      "health_score": 0.47,
+      "maintenance_priority": "high"
+    },
+    {
+      "engine_id": "TF-00102",
+      "estimated_rul_cycles": 18,
+      "health_score": 0.29,
+      "maintenance_priority": "critical"
+    }
+  ],
+  "recommended_actions": [
+    "Schedule borescope inspection for TF-00088 within next 8 flight cycles.",
+    "Ground TF-00102 and replace turbine stage module before next mission window."
+  ]
+}
