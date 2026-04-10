@@ -1,5 +1,8 @@
 """drone_simulator (cyber-physical) simulation integration package."""
 
-from .adapter import DroneSimulatorcyberPhysicalAdapter
+try:
+    from .adapter import DroneSimulatorcyberPhysicalAdapter
+except ImportError:  # pragma: no cover - supports direct file collection contexts
+    DroneSimulatorcyberPhysicalAdapter = None  # type: ignore[assignment]
 
 __all__ = ["DroneSimulatorcyberPhysicalAdapter"]

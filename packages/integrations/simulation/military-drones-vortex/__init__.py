@@ -1,5 +1,8 @@
 """Military_Drones (VorteX) simulation integration package."""
 
-from .adapter import MilitaryDronesvortexAdapter
+try:
+    from .adapter import MilitaryDronesvortexAdapter
+except ImportError:  # pragma: no cover - supports direct file collection contexts
+    MilitaryDronesvortexAdapter = None  # type: ignore[assignment]
 
 __all__ = ["MilitaryDronesvortexAdapter"]

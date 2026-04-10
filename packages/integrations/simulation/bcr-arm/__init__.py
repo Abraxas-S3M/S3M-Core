@@ -1,5 +1,8 @@
 """bcr_arm simulation integration package."""
 
-from .adapter import BcrArmAdapter
+try:
+    from .adapter import BcrArmAdapter
+except ImportError:  # pragma: no cover - supports direct file collection contexts
+    BcrArmAdapter = None  # type: ignore[assignment]
 
 __all__ = ["BcrArmAdapter"]
