@@ -1,0 +1,12 @@
+name: "chatmail/relay"
+slug: "chatmail-relay"
+domain: "comms"
+source_url: "https://github.com/chatmail/relay"
+license: "Unknown"
+description: "Encrypted chatmail relay wrapper for metadata-minimized message routing in contested environments."
+integration_type: "adapter"
+capabilities:
+  - "encrypted_relay_status"
+  - "metadata_minimized_routing"
+  - "offline_fixture_replay"
+airgapped_support: true

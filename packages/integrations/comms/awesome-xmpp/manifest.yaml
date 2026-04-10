@@ -1,0 +1,12 @@
+name: "awesome-xmpp"
+slug: "awesome-xmpp"
+domain: "comms"
+source_url: "https://github.com/bluszcz/awesome-xmpp"
+license: "Unknown"
+description: "Curated XMPP ecosystem reference for selecting hardened messaging stacks and extensions."
+integration_type: "adapter"
+capabilities:
+  - "xmpp_stack_reference"
+  - "secure_extension_catalog"
+  - "airgapped_reference_lookup"
+airgapped_support: true
