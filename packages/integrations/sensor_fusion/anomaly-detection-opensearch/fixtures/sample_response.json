@@ -1,0 +1,28 @@
+{
+  "detector_run_id": "opensearch-ad-2026-04-10t101500z",
+  "as_of_utc": "2026-04-10T10:15:00Z",
+  "index": "mission-observability-*",
+  "detector": {
+    "id": "detector-mission-health-07",
+    "algorithm": "random_cut_forest",
+    "interval_minutes": 5
+  },
+  "anomalies": [
+    {
+      "entity": "uav-control-cluster-a",
+      "feature": "auth_failures_per_minute",
+      "grade": 0.92,
+      "confidence": 0.89,
+      "severity": "high"
+    },
+    {
+      "entity": "relay-node-k12",
+      "feature": "ingress_latency_ms",
+      "grade": 0.87,
+      "confidence": 0.85,
+      "severity": "medium"
+    }
+  ],
+  "recommended_action": "initiate_incident_playbook_network_degradation",
+  "status": "ok"
+}

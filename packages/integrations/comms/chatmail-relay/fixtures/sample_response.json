@@ -1,0 +1,10 @@
+{
+  "snapshot_id": "chatmail-relay-2026-0410-1915z",
+  "generated_at": "2026-04-10T19:15:00Z",
+  "relay_cluster": "relay-sierra",
+  "active_relays": 3,
+  "queue_depth": 12,
+  "delivery_window_seconds": 45,
+  "metadata_exposure": "minimal",
+  "tactical_note": "Relay set preserved covert message flow while minimizing traffic attribution indicators."
+}

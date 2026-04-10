@@ -1,0 +1,12 @@
+name: "Ship-Detection-on-Remote-Sensing-Synthetic-Aperture-Radar-Data"
+slug: "ship-detection-on-remote-sensing-synthet"
+domain: "sensor_analytics"
+source_url: "https://github.com/jasonmanesis/Ship-Detection-on-Remote-Sensing-Synthetic-Aperture-Radar-Data"
+license: "Unknown"
+description: "Faster R-CNN + YOLOv5 for maritime vessel detection in SAR satellite data."
+integration_type: "adapter"
+capabilities:
+  - "hybrid_model_inference"
+  - "sar_target_detection"
+  - "maritime_contact_screening"
+airgapped_support: true

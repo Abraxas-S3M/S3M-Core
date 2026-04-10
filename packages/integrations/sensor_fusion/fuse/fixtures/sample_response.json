@@ -1,0 +1,34 @@
+{
+  "snapshot_id": "fuse-s3m-2026-04-10T120000Z",
+  "operation": "nonlinear_state_estimation_cycle",
+  "mission_profile": "uav_border_reconnaissance_gps_degraded",
+  "fused_state": {
+    "position_m": {
+      "x": 124.32,
+      "y": -38.41,
+      "z": 1120.77
+    },
+    "velocity_mps": {
+      "x": 8.1,
+      "y": -1.6,
+      "z": 0.2
+    },
+    "attitude_deg": {
+      "roll": 0.8,
+      "pitch": -1.2,
+      "yaw": 73.4
+    }
+  },
+  "sensor_health": {
+    "imu": "nominal",
+    "gnss": "jammed_partial",
+    "lidar_odometry": "nominal",
+    "wheel_odometry": "degraded"
+  },
+  "estimator_metrics": {
+    "residual_rms": 0.037,
+    "solver_iterations": 6,
+    "update_rate_hz": 20
+  },
+  "confidence": 0.93
+}

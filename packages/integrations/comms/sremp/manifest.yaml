@@ -1,0 +1,12 @@
+name: "SREMP"
+slug: "sremp"
+domain: "comms"
+source_url: "https://github.com/PlexSheep/SREMP"
+license: "Unknown"
+description: "Secure Relay-Enhanced Messaging Platform with modern cryptography."
+integration_type: "adapter"
+capabilities:
+  - "secure_message_relay"
+  - "crypto_status_check"
+  - "offline_fixture_replay"
+airgapped_support: true

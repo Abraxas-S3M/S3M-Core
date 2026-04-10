@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "synapse-comms-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "homeserver": "matrix.command.local",
+  "federation_status": "healthy",
+  "rooms_monitored": 128,
+  "encrypted_rooms": 122,
+  "message_queue_depth": 9,
+  "active_relays": [
+    "relay-north",
+    "relay-east",
+    "relay-mobile-2"
+  ],
+  "alerts": [
+    "Two federation peers show intermittent latency above tactical threshold.",
+    "One non-encrypted room flagged for policy remediation."
+  ],
+  "status": "ok"
+}

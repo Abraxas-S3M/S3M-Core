@@ -1,0 +1,17 @@
+{
+  "event_id": "sfusion-2026-04-10-004",
+  "mission_id": "counter-battery-tracking-44",
+  "fusion_pipeline": "lkf_ekf_ukf_particle",
+  "state_vector": {
+    "position_m": [624.4, -181.2],
+    "velocity_mps": [31.7, -4.1],
+    "heading_deg": 352.6
+  },
+  "filter_metrics": {
+    "lkf_rmse_m": 2.9,
+    "ekf_rmse_m": 1.8,
+    "ukf_rmse_m": 1.5,
+    "particle_rmse_m": 1.3
+  },
+  "recommendation": "particle_filter_selected_for_terminal_guidance_support"
+}

@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "ship-detection-using-satellite-imagery-2026-0410-1220z",
+  "generated_at": "2026-04-10T12:20:00Z",
+  "mission_ref": "coastal-watch-optical-sector-e",
+  "scene": {
+    "sensor": "PlanetScope",
+    "cloud_cover_pct": 7.1,
+    "sun_elevation_deg": 42.5
+  },
+  "detections": [
+    {
+      "track_id": "OPT-9901",
+      "bbox_xywh": [512, 247, 44, 16],
+      "class": "cargo_ship",
+      "confidence": 0.89
+    },
+    {
+      "track_id": "OPT-9902",
+      "bbox_xywh": [287, 640, 18, 9],
+      "class": "small_boat",
+      "confidence": 0.84
+    }
+  ],
+  "tactical_assessment": {
+    "contacts_total": 2,
+    "needs_sar_confirmation": ["OPT-9902"],
+    "note": "Small craft detected near coastal infrastructure; queue SAR follow-up on next overpass."
+  }
+}

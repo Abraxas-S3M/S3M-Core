@@ -1,0 +1,25 @@
+{
+  "snapshot_id": "rt-detr-s3m-2026-04-10T121500Z",
+  "operation": "transformer_detection_pass",
+  "mission_profile": "counter_uas_screening_checkpoint",
+  "model": {
+    "variant": "rtdetr_r50vd",
+    "precision": "fp16",
+    "deployment": "jetson_optimized"
+  },
+  "frame_summary": {
+    "frame_id": 9012,
+    "detections": 6,
+    "threat_objects": 2,
+    "classes": {
+      "drone": 2,
+      "vehicle": 2,
+      "person": 2
+    }
+  },
+  "performance": {
+    "fps": 36.2,
+    "latency_ms": 27.6
+  },
+  "confidence": 0.91
+}

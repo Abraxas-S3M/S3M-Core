@@ -1,0 +1,25 @@
+{
+  "snapshot_id": "rocketchat-comms-2026-0410-1305z",
+  "generated_at": "2026-04-10T13:05:00Z",
+  "deployment_posture": "self-hosted-airgapped-cluster",
+  "channels": [
+    {
+      "room": "ops-command",
+      "classification": "restricted",
+      "members_online": 18,
+      "e2ee": true
+    },
+    {
+      "room": "sustainment-logistics",
+      "classification": "confidential",
+      "members_online": 11,
+      "e2ee": true
+    }
+  ],
+  "federation_links": {
+    "active_links": 2,
+    "degraded_links": 1,
+    "queued_cross_domain_messages": 9
+  },
+  "tactical_note": "Command rooms stable; investigate degraded federation link to allied node bravo."
+}

@@ -1,0 +1,24 @@
+{
+  "snapshot_id": "enchat-comms-2026-0410-1310z",
+  "generated_at": "2026-04-10T13:10:00Z",
+  "relay_mesh": {
+    "active_blind_relays": 5,
+    "standby_relays": 2,
+    "route_rekey_interval_seconds": 300
+  },
+  "sessions": [
+    {
+      "session_tag": "ops-north-grid",
+      "ttl_seconds": 900,
+      "participants": 6,
+      "cipher_suite": "x25519-chacha20-poly1305"
+    },
+    {
+      "session_tag": "recon-forward-node",
+      "ttl_seconds": 600,
+      "participants": 4,
+      "cipher_suite": "x25519-chacha20-poly1305"
+    }
+  ],
+  "tactical_note": "Ephemeral channels healthy; rotate relay node delta to reduce path correlation risk."
+}

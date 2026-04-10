@@ -1,0 +1,12 @@
+name: "geoai"
+slug: "geoai"
+domain: "sensor_analytics"
+source_url: "https://github.com/opengeos/geoai"
+license: "Unknown"
+description: "AI for geospatial data (satellite processing, segmentation, fusion)."
+integration_type: "adapter"
+capabilities:
+  - "satellite_processing"
+  - "semantic_segmentation"
+  - "geospatial_fusion"
+airgapped_support: true

@@ -1,0 +1,16 @@
+name: "kinematic_arbiter"
+slug: "kinematic-arbiter"
+domain: "sensor_fusion"
+source_url: "https://github.com/riscmaster/kinematic_arbiter"
+license: "MIT"
+description: "ROS2 sensor fusion package using mediated Extended Kalman Filter for state estimation."
+integration_type: "adapter"
+capabilities:
+  - "mediated_ekf_state_estimation"
+  - "multi_sensor_state_arbitration"
+  - "ros2_state_fusion"
+system_dependencies:
+  - "ros2"
+  - "python3"
+  - "colcon"
+airgapped_support: true

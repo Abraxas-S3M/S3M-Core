@@ -1,0 +1,14 @@
+name: "simplex-chat"
+slug: "simplex-chat"
+domain: "comms"
+source_url: "https://github.com/simplex-chat/simplex-chat"
+license: "Unknown"
+description: "Metadata-free, serverless encrypted messaging with relay support."
+integration_type: "adapter"
+capabilities:
+  - "metadata_resistant_messaging"
+  - "relay_route_selection"
+  - "store_and_forward_delivery"
+system_dependencies:
+  - "simplex-chat"
+airgapped_support: true

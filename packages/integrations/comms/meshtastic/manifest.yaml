@@ -1,0 +1,14 @@
+name: "meshtastic"
+slug: "meshtastic"
+domain: "comms"
+source_url: "https://github.com/meshtastic/meshtastic"
+license: "Unknown"
+description: "LoRa-based mesh networking for long-range, off-grid encrypted text comms."
+integration_type: "adapter"
+capabilities:
+  - "lora_mesh_messaging"
+  - "off_grid_routing"
+  - "node_health_beaconing"
+system_dependencies:
+  - "meshtastic"
+airgapped_support: true

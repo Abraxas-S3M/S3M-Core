@@ -1,0 +1,12 @@
+name: "awesome-radar-perception"
+slug: "awesome-radar-perception"
+domain: "sensor_fusion"
+source_url: "https://github.com/ZHOUYI1023/awesome-radar-perception"
+license: "MIT"
+description: "Curated list of radar datasets, detection, tracking, and fusion resources"
+integration_type: "adapter"
+capabilities:
+  - "radar-dataset-discovery"
+  - "perception-reference-curation"
+  - "fusion-benchmark-planning"
+airgapped_support: true

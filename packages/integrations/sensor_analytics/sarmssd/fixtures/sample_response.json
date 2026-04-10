@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "mission_id": "sar-ship-screen-2026-04-10-22",
+  "operation": "detect_ships_in_sar_frames",
+  "model": {
+    "name": "sarmssd_yolo11_variant",
+    "input_size": 1024,
+    "enhancement_pipeline": "contrast_balance_plus_patch_aug"
+  },
+  "scene": {
+    "tile_id": "sarmssd-tile-118",
+    "sea_state": "moderate",
+    "incidence_angle_deg": 34.2
+  },
+  "detections": [
+    {
+      "track_label": "surface_contact_alpha",
+      "bbox": [422, 301, 66, 31],
+      "confidence": 0.89
+    },
+    {
+      "track_label": "surface_contact_bravo",
+      "bbox": [731, 545, 48, 24],
+      "confidence": 0.77
+    }
+  ],
+  "tactical_assessment": {
+    "contacts_flagged": 2,
+    "priority_contact": "surface_contact_alpha",
+    "mission_readiness": "go"
+  }
+}

@@ -1,0 +1,12 @@
+name: "Covert-C2"
+slug: "covert-c2"
+domain: "comms"
+source_url: "https://github.com/efchatz/Covert-C2"
+license: "Unknown"
+description: "Covert C2 using browser Native Messaging channels for secure routing."
+integration_type: "adapter"
+capabilities:
+  - "native_messaging_transport"
+  - "covert_channel_tasking"
+  - "endpoint_relay_monitoring"
+airgapped_support: true

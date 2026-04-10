@@ -1,0 +1,12 @@
+name: "RT-DETR"
+slug: "rt-detr"
+domain: "sensor_fusion"
+source_url: "https://github.com/lyuwenyu/RT-DETR"
+license: "Apache 2.0"
+description: "Official Real-Time Detection Transformer (DETRs beat YOLOs in speed/accuracy)."
+integration_type: "adapter"
+capabilities:
+  - "real_time_transformer_detection"
+  - "precision_latency_optimization"
+  - "edge_deployment_readiness"
+airgapped_support: true
