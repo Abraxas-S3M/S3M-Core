@@ -1,1 +1,1 @@
-"""S3M Sensor / Remote Sensing Analytics integration domain."""
+"""Sensor and remote-sensing analytics integration wrappers for S3M."""
