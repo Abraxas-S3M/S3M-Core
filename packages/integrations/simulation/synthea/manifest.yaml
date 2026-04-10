@@ -1,0 +1,12 @@
+name: "Synthea"
+slug: "synthea"
+domain: "simulation"
+source_url: "https://github.com/synthetichealth/synthea"
+license: "MIT"
+description: "Synthetic patient and medical data generator adaptable to battlefield casualty and medical logistics modeling."
+integration_type: "adapter"
+capabilities:
+  - "casualty_generation"
+  - "medical_logistics_forecast"
+  - "scenario_population_modeling"
+airgapped_support: true
