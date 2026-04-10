@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "smartlms-rd-2026-0410-0800z",
+  "theater": "western-readiness-command",
+  "as_of_utc": "2026-04-10T08:00:00Z",
+  "catalog": {
+    "active_courses": 128,
+    "critical_courses": 18,
+    "expired_courses": 6
+  },
+  "unit_readiness": [
+    {
+      "unit": "1st Signals Brigade",
+      "qualified_personnel": 412,
+      "pending_recertification": 27,
+      "readiness_score": 0.93
+    },
+    {
+      "unit": "5th ISR Battalion",
+      "qualified_personnel": 268,
+      "pending_recertification": 41,
+      "readiness_score": 0.87
+    }
+  ],
+  "risk_flags": [
+    {
+      "course_code": "EW-401",
+      "title": "Electronic Warfare Countermeasures",
+      "days_until_lapse": 9,
+      "priority": "high"
+    }
+  ],
+  "status": "stable"
+}
