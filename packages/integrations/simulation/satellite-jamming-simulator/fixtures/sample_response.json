@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "sat-jam-2026-0410-003",
+  "scenario": {
+    "name": "geo-uplink-disruption-drill",
+    "window": "2026-04-10T03:00:00Z/2026-04-10T03:45:00Z",
+    "satellite": "SATCOM-GEO-17",
+    "ground_station": "forward-node-bravo"
+  },
+  "jammer_profile": {
+    "platform": "mobile-ew-truck",
+    "eirp_dbw": 38.5,
+    "center_frequency_ghz": 14.25,
+    "bandwidth_mhz": 36
+  },
+  "effects": {
+    "snr_drop_db": 17.1,
+    "packet_loss_rate": 0.42,
+    "link_status": "degraded",
+    "estimated_blackout_seconds": 312
+  },
+  "countermeasure_recommendations": [
+    "shift_to_alternate_transponder",
+    "enable_adaptive_coding_and_modulation",
+    "cue_direction_finding_for_jammer_geolocation"
+  ],
+  "confidence": 0.79
+}
