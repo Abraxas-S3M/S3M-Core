@@ -1,0 +1,27 @@
+{
+  "mission_id": "air-defense-sector-west-03",
+  "event_id": "awesome-radar-perception-sf-2026-04-10-001",
+  "query_profile": "multi-target-tracking-fusion",
+  "resource_summary": {
+    "datasets_indexed": 42,
+    "detection_papers_indexed": 118,
+    "tracking_papers_indexed": 73,
+    "fusion_resources_indexed": 56
+  },
+  "recommended_stack": {
+    "dataset": "RADIATE",
+    "detector_family": "4D-radar-pointpillars",
+    "tracker_family": "JPDA-IMM",
+    "fusion_strategy": "radar-camera late fusion"
+  },
+  "confidence_notes": {
+    "coverage_score": 0.89,
+    "recent_updates_within_180d": 21,
+    "offline_curation_ready": true
+  },
+  "tactical_assessment": {
+    "mission_relevance": "high",
+    "integration_ready": true,
+    "notes": "Resource set supports rapid baseline selection for low-visibility perimeter surveillance."
+  }
+}

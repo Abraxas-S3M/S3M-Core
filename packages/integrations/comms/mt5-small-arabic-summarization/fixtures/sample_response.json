@@ -1,0 +1,18 @@
+{
+  "snapshot_id": "mt5-ar-sum-2026-0410-1200z",
+  "model": "mt5-small-Arabic-Summarization",
+  "task": "arabic_summarization",
+  "input": {
+    "channel": "field-intel-news",
+    "language": "ar",
+    "document_id": "INTREP-AR-77421"
+  },
+  "output": {
+    "summary_ar": "القوات المعادية أعادت تموضعها قرب المحور الشمالي مع نشاط لوجستي محدود.",
+    "summary_en": "Adversary units repositioned near the northern axis with limited logistics activity.",
+    "compression_ratio": 0.23,
+    "priority": "high"
+  },
+  "confidence": 0.89,
+  "generated_at": "2026-04-10T12:00:00Z"
+}

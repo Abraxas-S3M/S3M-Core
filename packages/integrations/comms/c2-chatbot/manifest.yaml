@@ -1,0 +1,12 @@
+name: "c2_chatbot"
+slug: "c2-chatbot"
+domain: "comms"
+source_url: "https://github.com/traiannicula/c2_chatbot"
+license: "Unknown"
+description: "C2 chatbot wrapper for extracting structured command intent from natural-language mission traffic."
+integration_type: "adapter"
+capabilities:
+  - "command_intent_extraction"
+  - "rule_based_order_parsing"
+  - "offline_fixture_replay"
+airgapped_support: true

@@ -1,0 +1,12 @@
+name: "Satellite-Imagery-Datasets-Containing-Ships"
+slug: "satellite-imagery-datasets-containing-sh"
+domain: "sensor_analytics"
+source_url: "https://github.com/jasonmanesis/Satellite-Imagery-Datasets-Containing-Ships"
+license: "Unknown"
+description: "Curated list of radar and optical satellite datasets for ship detection."
+integration_type: "adapter"
+capabilities:
+  - "dataset_cataloguing"
+  - "ship_detection_dataset_selection"
+  - "sensor_modality_coverage_review"
+airgapped_support: true

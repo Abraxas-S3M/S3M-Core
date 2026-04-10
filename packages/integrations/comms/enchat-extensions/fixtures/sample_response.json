@@ -1,0 +1,35 @@
+{
+  "snapshot_id": "enchat-comms-2026-04-10-0600z",
+  "captured_at": "2026-04-10T06:00:00Z",
+  "theater": "northern-sector",
+  "net_id": "VHF-BLIND-RELAY-07",
+  "session_status": "active",
+  "encryption": {
+    "algorithm": "xchacha20-poly1305",
+    "ephemeral_key_rotation_seconds": 30,
+    "forward_secrecy": true
+  },
+  "relay_path": [
+    "relay-node-bravo",
+    "relay-node-kilo",
+    "relay-node-sierra"
+  ],
+  "message_queue": {
+    "pending_outbound": 2,
+    "pending_inbound": 1,
+    "delivery_success_rate": 0.997
+  },
+  "last_message_digest": {
+    "session_id": "session-tf-spear-19",
+    "sender_callsign": "SPEAR-ACTUAL",
+    "classification": "SECRET",
+    "size_bytes": 184,
+    "relay_hops": 3,
+    "delivered": true,
+    "timestamp": "2026-04-10T05:59:41Z"
+  },
+  "alerts": [
+    "Relay node bravo jitter increased above nominal threshold for 12 seconds.",
+    "No key exchange anomalies observed in current reporting window."
+  ]
+}

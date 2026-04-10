@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "analysis_id": "dark-vessel-2026-04-10-arkt-03",
+  "operation": "detect_dark_vessel_activity",
+  "region": "barents_sea_corridor",
+  "suspected_dark_vessels": [
+    {
+      "track_ref": "dv-0041",
+      "last_known_mmsi": "257884000",
+      "ais_gap_minutes": 173,
+      "satellite_contact_confidence": 0.91,
+      "estimated_position": [74.1027, 33.4481],
+      "risk_level": "high"
+    },
+    {
+      "track_ref": "dv-0044",
+      "last_known_mmsi": "257219300",
+      "ais_gap_minutes": 88,
+      "satellite_contact_confidence": 0.79,
+      "estimated_position": [73.9619, 34.0204],
+      "risk_level": "medium"
+    }
+  ],
+  "tactical_assessment": {
+    "interdiction_priority": ["dv-0041"],
+    "recommended_action": "task_sar_and_patrol_assets_for_reacquisition",
+    "confidence_summary": "high"
+  }
+}

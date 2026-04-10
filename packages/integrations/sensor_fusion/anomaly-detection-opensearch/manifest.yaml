@@ -1,0 +1,12 @@
+name: "anomaly-detection (OpenSearch)"
+slug: "anomaly-detection-opensearch"
+domain: "sensor_fusion"
+source_url: "https://github.com/opensearch-project/anomaly-detection"
+license: "Apache 2.0"
+description: "ML-based anomaly detection plugin for logs and metrics using random cut forest."
+integration_type: "adapter"
+capabilities:
+  - "log_anomaly_detection"
+  - "metric_anomaly_detection"
+  - "rcf_based_scoring"
+airgapped_support: true

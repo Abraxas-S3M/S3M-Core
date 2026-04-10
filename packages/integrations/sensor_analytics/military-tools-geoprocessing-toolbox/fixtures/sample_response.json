@@ -1,0 +1,22 @@
+{
+  "event_id": "mtgt-sa-2026-04-10-001",
+  "mission_id": "northern-sector-recon-17",
+  "analysis_type": "geospatial_intelligence_overlay",
+  "area_of_interest": {
+    "crs": "EPSG:4326",
+    "bbox": [44.1831, 33.2019, 44.2972, 33.2988]
+  },
+  "products": [
+    {
+      "layer": "mobility_corridor",
+      "suitability_score": 0.88,
+      "risk_factors": ["floodplain", "line_of_sight_exposure"]
+    },
+    {
+      "layer": "observation_post_candidates",
+      "candidate_count": 6,
+      "top_candidate_grid": "38SMB4217"
+    }
+  ],
+  "status": "ready_for_staff_review"
+}

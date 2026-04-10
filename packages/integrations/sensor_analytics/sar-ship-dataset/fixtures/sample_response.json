@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "sar-ship-dataset-2026-0410-1215z",
+  "generated_at": "2026-04-10T12:15:00Z",
+  "dataset_name": "SAR-Ship-Dataset",
+  "total_labeled_chips": 39729,
+  "sensor_sources": ["Gaofen-3", "Sentinel-1"],
+  "label_distribution": {
+    "cargo": 14320,
+    "tanker": 8921,
+    "fishing": 7340,
+    "small_craft": 9148
+  },
+  "coverage_assessment": {
+    "gulf_relevance_score": 0.89,
+    "night_operation_coverage": 0.93,
+    "monsoon_season_bias": 0.17
+  },
+  "command_note": "Dataset mix is sufficient for baseline Gulf patrol detector fine-tuning with additional fast-craft sampling recommended."
+}

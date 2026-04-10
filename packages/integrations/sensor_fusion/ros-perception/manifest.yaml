@@ -1,0 +1,14 @@
+name: "ros-perception"
+slug: "ros-perception"
+domain: "sensor_fusion"
+source_url: "https://github.com/ros-perception"
+license: "BSD"
+description: "Official ROS Perception stack wrappers for image and point-cloud sensor fusion on edge nodes."
+integration_type: "adapter"
+capabilities:
+  - "image_pipeline_readiness"
+  - "pointcloud_processing"
+  - "ros_message_fusion"
+system_dependencies:
+  - "ros2"
+airgapped_support: true
