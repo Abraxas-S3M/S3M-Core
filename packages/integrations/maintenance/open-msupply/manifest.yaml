@@ -1,0 +1,12 @@
+name: "open-msupply"
+slug: "open-msupply"
+domain: "maintenance"
+source_url: "https://github.com/msupply-foundation/open-msupply"
+license: "Unknown"
+description: "Logistics Management Information System (LMIS) for supply chain and assets."
+integration_type: "adapter"
+capabilities:
+  - "inventory-posture"
+  - "asset-serviceability"
+  - "resupply-forecasting"
+airgapped_support: true

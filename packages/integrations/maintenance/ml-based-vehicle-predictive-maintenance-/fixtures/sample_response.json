@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "generated_at": "2026-04-10T09:44:00Z",
+  "unit": "ground-mobility-brigade-3",
+  "model": {
+    "family": "gradient-boosting",
+    "version": "gbm_vehicle_risk_int8_v6",
+    "quantization": "int8"
+  },
+  "vehicle_health": [
+    {
+      "vehicle_id": "LTV-204",
+      "predicted_failure_risk": 0.81,
+      "dominant_factor": "coolant_temperature_spike",
+      "recommended_action": "inspect_cooling_system_within_6h"
+    },
+    {
+      "vehicle_id": "APC-119",
+      "predicted_failure_risk": 0.34,
+      "dominant_factor": "normal_vibration_profile",
+      "recommended_action": "routine_maintenance_cycle"
+    }
+  ],
+  "maintenance_priority": [
+    "LTV-204",
+    "REC-088",
+    "MRAP-072"
+  ]
+}

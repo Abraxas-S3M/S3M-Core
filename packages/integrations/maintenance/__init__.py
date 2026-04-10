@@ -1,1 +1,1 @@
-"""Maintenance-domain integration adapters for sustainment and readiness workflows."""
+"""Maintenance-domain integration adapters for procurement and sustainment."""

@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "generated_at": "2026-04-10T09:41:00Z",
+  "distribution_hub": "forward-depot-gamma",
+  "stock_summary": {
+    "tracked_items": 924,
+    "critical_shortages": 12,
+    "reorder_alerts": 31
+  },
+  "asset_serviceability": [
+    {
+      "asset_type": "field-ambulance",
+      "ready": 18,
+      "down_for_maintenance": 3
+    },
+    {
+      "asset_type": "engineering-dozer",
+      "ready": 11,
+      "down_for_maintenance": 2
+    }
+  ],
+  "resupply_projection": {
+    "window_days": 7,
+    "high_risk_nsn": [
+      "8415-01-687-1120",
+      "9150-00-985-7066"
+    ],
+    "recommended_convoys": 4
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "status": "ok",
+  "generated_at": "2026-04-10T09:42:00Z",
+  "dataset": "pmx_data_reference_bundle",
+  "records": 184320,
+  "platform_types": [
+    "fixed-wing",
+    "rotorcraft",
+    "ground-vehicle"
+  ],
+  "sensor_channels": [
+    "vibration_rms",
+    "oil_temperature_c",
+    "engine_torque_pct",
+    "hydraulic_pressure_kpa"
+  ],
+  "label_distribution": {
+    "normal": 145720,
+    "warning": 29510,
+    "critical": 9110
+  },
+  "estimated_rul_hours": {
+    "p10": 11.4,
+    "p50": 37.8,
+    "p90": 86.2
+  }
+}
