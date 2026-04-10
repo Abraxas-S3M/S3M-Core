@@ -1,0 +1,28 @@
+{
+  "unit": "2nd Expeditionary Maintenance Battalion",
+  "snapshot_time": "2026-04-10T08:05:00Z",
+  "technician_readiness": {
+    "total_personnel": 142,
+    "available_for_tasking": 119,
+    "restricted_duty": 8
+  },
+  "training_pipeline": [
+    {
+      "course": "Armored powertrain overhaul",
+      "qualified": 34,
+      "in_training": 11,
+      "expiring_within_30_days": 3
+    },
+    {
+      "course": "Secure avionics diagnostics",
+      "qualified": 27,
+      "in_training": 6,
+      "expiring_within_30_days": 2
+    }
+  ],
+  "crew_assignment_health": {
+    "scheduled_shift_slots": 96,
+    "filled_shift_slots": 91,
+    "critical_skill_gaps": 2
+  }
+}
