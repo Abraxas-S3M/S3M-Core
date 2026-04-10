@@ -1,0 +1,22 @@
+{
+  "simulation_id": "military-simulator-opfor-2026-04-10-01",
+  "generated_at": "2026-04-10T08:10:00Z",
+  "scenario": "Forward defense line hold under constrained fuel and artillery reserves",
+  "turn": 12,
+  "friendly_force": {
+    "brigades_committed": 3,
+    "combat_power_index": 0.78,
+    "fuel_days_remaining": 2.4,
+    "morale": "stable"
+  },
+  "resource_status": {
+    "artillery_rounds_remaining": 1640,
+    "medical_capacity_utilization": 0.71,
+    "engineering_assets_available": 9
+  },
+  "outcome_projection": {
+    "hold_probability": 0.69,
+    "expected_attrition_rate": 0.13,
+    "recommended_action": "Reallocate one reserve battalion to sector CHARLIE and defer offensive maneuver for one turn."
+  }
+}

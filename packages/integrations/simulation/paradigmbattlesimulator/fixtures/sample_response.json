@@ -1,0 +1,26 @@
+{
+  "simulation_id": "paradigm-battle-2026-04-10-02",
+  "generated_at": "2026-04-10T08:18:00Z",
+  "scenario": "Mechanized assault with anti-armor screen and indirect fire support",
+  "force_setup": {
+    "blue_units": 42,
+    "red_units": 38,
+    "blue_weapon_profiles": [
+      "ifv-30mm",
+      "atgm",
+      "self-propelled-artillery"
+    ],
+    "red_weapon_profiles": [
+      "mbt-125mm",
+      "mlrs",
+      "air-defense-short-range"
+    ]
+  },
+  "engagement_metrics": {
+    "blue_win_probability": 0.57,
+    "time_to_decisive_point_minutes": 94,
+    "estimated_blue_losses_pct": 0.21,
+    "estimated_red_losses_pct": 0.29
+  },
+  "recommended_action": "Suppress red MLRS batteries in opening phase to improve assault lane survivability."
+}
