@@ -1,0 +1,12 @@
+name: "sar-ship-detect"
+slug: "sar-ship-detect"
+domain: "sensor_analytics"
+source_url: "https://github.com/armkhudinyan/sar-ship-detect"
+license: "Unknown"
+description: "Deep neural network for ship classification and characterization from Sentinel-1 SAR data."
+integration_type: "adapter"
+capabilities:
+  - "sar_ship_detection"
+  - "vessel_characterization"
+  - "sentinel1_chip_inference"
+airgapped_support: true
