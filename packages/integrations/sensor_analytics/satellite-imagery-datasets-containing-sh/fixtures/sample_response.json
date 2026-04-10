@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "catalog_id": "ship-datasets-catalog-2026-04-10",
+  "operation": "enumerate_ship_detection_datasets",
+  "theater": "gulf_and_red_sea",
+  "datasets": [
+    {
+      "dataset_name": "SAR-ShipDet-12K",
+      "sensor_type": "synthetic_aperture_radar",
+      "resolution_m": 3,
+      "night_compatible": true,
+      "target_classes": ["cargo_ship", "patrol_craft", "small_boat"]
+    },
+    {
+      "dataset_name": "Optical-Harbor-Vessels-8K",
+      "sensor_type": "optical_multispectral",
+      "resolution_m": 0.5,
+      "night_compatible": false,
+      "target_classes": ["container_ship", "tugboat", "fishing_vessel"]
+    },
+    {
+      "dataset_name": "AIS-Linked-Maritime-Imaging-5K",
+      "sensor_type": "fused_optical_radar",
+      "resolution_m": 1,
+      "night_compatible": true,
+      "target_classes": ["vessel_presence", "dark_target_candidate"]
+    }
+  ],
+  "tactical_assessment": {
+    "coverage_score": "high",
+    "polarization_diversity": "medium",
+    "recommended_use": "baseline_training_for_ship_detection_models"
+  }
+}
