@@ -1,0 +1,10 @@
+{
+  "snapshot_id": "destroyer-p2p-ext-2026-0410-1920z",
+  "generated_at": "2026-04-10T19:20:00Z",
+  "session_id": "pq-session-a91c44",
+  "cipher_suite": "KYBER1024+AES256-GCM",
+  "handshake_status": "verified",
+  "relay_fallback": true,
+  "peers_connected": 6,
+  "tactical_note": "Post-quantum transport profile validated for command survivability against advanced interception."
+}

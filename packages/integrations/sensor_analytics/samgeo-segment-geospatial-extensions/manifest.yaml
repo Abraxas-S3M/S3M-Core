@@ -1,0 +1,12 @@
+name: "SamGeo (segment-geospatial extensions)"
+slug: "samgeo-segment-geospatial-extensions"
+domain: "sensor_analytics"
+source_url: "Extensions of opengeos/segment-geospatial"
+license: "Unknown"
+description: "SAM for satellite/geospatial segmentation."
+integration_type: "adapter"
+capabilities:
+  - "satellite-segmentation"
+  - "mask-generation"
+  - "geospatial-feature-extraction"
+airgapped_support: true

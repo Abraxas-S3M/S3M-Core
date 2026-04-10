@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "geoai-fusion-2026-04-10-14",
+  "operation": "run_geospatial_segmentation_and_fusion",
+  "inputs": {
+    "aoi": "coastal_corridor_delta",
+    "satellite_scenes": 4,
+    "auxiliary_layers": ["dem", "coastline_mask"]
+  },
+  "processing_summary": {
+    "segmentation_model": "unet_transformer_hybrid",
+    "fusion_mode": "multisource_feature_level",
+    "processing_time_s": 42.6
+  },
+  "outputs": {
+    "land_cover_classes": ["water", "port_infrastructure", "vessel_cluster"],
+    "detected_vessel_clusters": 3,
+    "change_alerts": 2
+  },
+  "tactical_assessment": {
+    "priority_zone": "pier_sector_3",
+    "analyst_review_required": true,
+    "mission_readiness": "go"
+  }
+}

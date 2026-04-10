@@ -1,0 +1,12 @@
+name: "YOLOV8_SAR_SHIP_DETECTION"
+slug: "yolov8-sar-ship-detection"
+domain: "sensor_analytics"
+source_url: "https://github.com/sethubolt7/YOLOV8_SAR_SHIP_DETECTION"
+license: "Unknown"
+description: "Production-grade YOLOv8-OBB with Lee speckle filtering for SAR ship detection."
+integration_type: "adapter"
+capabilities:
+  - "sar_obb_detection"
+  - "speckle_filtered_inference"
+  - "vessel_heading_estimation"
+airgapped_support: true

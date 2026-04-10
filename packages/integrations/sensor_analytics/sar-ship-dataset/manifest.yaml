@@ -1,0 +1,12 @@
+name: "SAR-Ship-Dataset"
+slug: "sar-ship-dataset"
+domain: "sensor_analytics"
+source_url: "https://github.com/CAESAR-Radi/SAR-Ship-Dataset"
+license: "Unknown"
+description: "39,729 labeled SAR ship chips from Gaofen-3 and Sentinel-1 for maritime model training."
+integration_type: "dataset"
+capabilities:
+  - "dataset_metadata_query"
+  - "label_distribution_audit"
+  - "chip_inventory_summary"
+airgapped_support: true
