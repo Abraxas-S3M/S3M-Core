@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "mission_id": "sf-ekf-arbiter-03",
+  "pipeline": "kinematic_arbiter",
+  "fusion_cycle": {
+    "inputs": ["imu", "wheel_odometry", "gnss", "lidar_odometry"],
+    "delta_t_s": 0.05,
+    "cycles_processed": 1200
+  },
+  "state_estimate": {
+    "position_m": {
+      "x": 1482.3,
+      "y": -231.6,
+      "z": 1.7
+    },
+    "velocity_mps": {
+      "x": 11.4,
+      "y": -0.8,
+      "z": 0.0
+    },
+    "yaw_rad": 1.42,
+    "covariance_trace": 0.96
+  },
+  "tactical_assessment": {
+    "state_solution_valid": true,
+    "arbitration_mode": "nominal",
+    "comment": "Mediated EKF sustained bounded covariance despite GNSS intermittency."
+  }
+}

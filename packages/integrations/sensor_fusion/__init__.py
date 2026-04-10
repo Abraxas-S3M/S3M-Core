@@ -1,1 +1,1 @@
-"""Sensor fusion integration domain for tactical multi-source signal wrappers."""
+"""Sensor-fusion integration adapters for S3M contested-environment tracking."""

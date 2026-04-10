@@ -1,0 +1,16 @@
+name: "smart_track"
+slug: "smart-track"
+domain: "sensor_fusion"
+source_url: "https://github.com/mzahana/smart_track"
+license: "MIT"
+description: "Kalman Filter-Guided Sensor Fusion for robust object tracking using RGB-Depth-LiDAR in ROS2."
+integration_type: "adapter"
+capabilities:
+  - "rgb_depth_lidar_fusion"
+  - "kalman_filter_tracking"
+  - "ros2_object_tracking"
+system_dependencies:
+  - "ros2"
+  - "python3"
+  - "colcon"
+airgapped_support: true

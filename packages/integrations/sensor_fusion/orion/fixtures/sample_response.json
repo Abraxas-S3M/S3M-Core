@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "mission_id": "sf-atr-eval-04",
+  "pipeline": "orion",
+  "video_stream": {
+    "source": "uav_sector_bravo_feed",
+    "frames_processed": 540,
+    "fps": 30
+  },
+  "detections": [
+    {
+      "track_id": "veh-014",
+      "class": "main_battle_tank",
+      "confidence": 0.93,
+      "bbox_xywh": [482, 226, 104, 76],
+      "frame_index": 511
+    },
+    {
+      "track_id": "veh-019",
+      "class": "armored_personnel_carrier",
+      "confidence": 0.89,
+      "bbox_xywh": [244, 310, 86, 62],
+      "frame_index": 517
+    }
+  ],
+  "tactical_assessment": {
+    "atr_ready": true,
+    "confidence_band": "high",
+    "comment": "Model confidence remained stable during low-light convoy pass."
+  }
+}
