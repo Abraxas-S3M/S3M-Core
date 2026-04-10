@@ -1,0 +1,31 @@
+{
+  "mission_id": "langostino-ros2-044",
+  "status": "flight_control_graph_ready",
+  "swarm_size": 5,
+  "control_stack": {
+    "middleware": "ros2",
+    "planner": "ai-assisted-local-planner",
+    "failsafe": "autonomous_rth_on_signal_loss"
+  },
+  "link_health": {
+    "mesh_backbone": "stable",
+    "edge_agents_degraded": 1
+  },
+  "agent_states": [
+    {
+      "uav_id": "lg-01",
+      "mode": "leader-track",
+      "battery_pct": 88
+    },
+    {
+      "uav_id": "lg-02",
+      "mode": "wing-left",
+      "battery_pct": 82
+    },
+    {
+      "uav_id": "lg-03",
+      "mode": "wing-right",
+      "battery_pct": 79
+    }
+  ]
+}

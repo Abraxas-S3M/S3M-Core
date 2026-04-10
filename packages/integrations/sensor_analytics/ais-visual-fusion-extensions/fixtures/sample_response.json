@@ -1,0 +1,30 @@
+{
+  "status": "ok",
+  "event_id": "ais-vf-ext-sa-2026-04-10-003",
+  "operation": "fuse_multi_view_vessel_tracks",
+  "fusion_area": "strait_western_corridor",
+  "tracks": [
+    {
+      "fusion_track_id": "fusion-401",
+      "ais_mmsi": "419773842",
+      "video_track_id": "uav-22-188",
+      "satellite_detection_id": "s2-det-91",
+      "fused_confidence": 0.93,
+      "classification": "patrol_vessel"
+    },
+    {
+      "fusion_track_id": "fusion-407",
+      "ais_mmsi": null,
+      "video_track_id": "uav-22-194",
+      "satellite_detection_id": "s1-det-17",
+      "fused_confidence": 0.67,
+      "classification": "unknown_fast_craft",
+      "alert": "non_cooperative_target"
+    }
+  ],
+  "tactical_assessment": {
+    "priority_track": "fusion-407",
+    "recommended_action": "retask_coastal_radar_and_intercept_asset",
+    "cop_update": "issued"
+  }
+}

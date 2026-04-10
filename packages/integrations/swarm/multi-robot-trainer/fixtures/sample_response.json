@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "mission_id": "swarm-train-2026-04-10-01",
+  "operation": "train_multi_robot_policy",
+  "training_mode": "asynchronous",
+  "robots": [
+    "ugv-alpha-1",
+    "ugv-alpha-2",
+    "uav-bravo-1"
+  ],
+  "episodes_completed": 4800,
+  "policy_snapshot": "checkpoint_ep4800.pt",
+  "metrics": {
+    "mean_reward": 83.4,
+    "collision_rate": 0.02,
+    "task_completion_rate": 0.91
+  },
+  "tactical_assessment": {
+    "formation_integrity": "stable",
+    "recon_coverage": "broad",
+    "operator_alerts": 1
+  }
+}

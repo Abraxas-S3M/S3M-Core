@@ -1,0 +1,15 @@
+name: "crazyswarm (extensions)"
+slug: "crazyswarm-extensions"
+domain: "swarm"
+source_url: "https://github.com/USC-ACTLab/crazyswarm"
+license: "MIT"
+description: "Control framework for Crazyflie drone swarms with ROS2-compatible extension wrappers."
+integration_type: "adapter"
+capabilities:
+  - "swarm_state_estimation"
+  - "multi_agent_coordination"
+  - "ros2_tactical_rehearsal"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+airgapped_support: true

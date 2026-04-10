@@ -1,0 +1,28 @@
+{
+  "simulation_id": "python-battlesim-2026-04-10-05",
+  "generated_at": "2026-04-10T08:40:00Z",
+  "scenario": "Border escalation with mixed-quality battlegroups and degraded weather",
+  "inputs": {
+    "friendly_tier_distribution": {
+      "tier_1": 0.18,
+      "tier_2": 0.46,
+      "tier_3": 0.36
+    },
+    "opposition_tier_distribution": {
+      "tier_1": 0.24,
+      "tier_2": 0.41,
+      "tier_3": 0.35
+    },
+    "terrain": "hilly_urban_fringe",
+    "morale_index": {
+      "friendly": 0.72,
+      "opposition": 0.64
+    }
+  },
+  "projection": {
+    "friendly_success_probability": 0.61,
+    "expected_conflict_duration_hours": 14.5,
+    "geopolitical_escalation_risk": "medium",
+    "recommended_action": "Prioritize precision fires against tier-1 opposition assets before urban push."
+  }
+}

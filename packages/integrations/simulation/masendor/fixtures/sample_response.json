@@ -1,0 +1,16 @@
+{
+  "replay_id": "masendor-2026-04-10-04",
+  "generated_at": "2026-04-10T08:32:00Z",
+  "scenario": "Defensive line re-enactment with cavalry flank pressure",
+  "battle_state": {
+    "phase": "mid-engagement",
+    "formation_integrity_blue": 0.74,
+    "formation_integrity_red": 0.67,
+    "terrain_advantage": "blue-high-ground"
+  },
+  "command_insights": {
+    "breakthrough_risk": 0.28,
+    "counterattack_window_minutes": 17,
+    "recommended_action": "Commit reserve pike units to anchor left flank before cavalry encirclement matures."
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "formation-opt-2026-04-10-03",
+  "swarm_id": "formation-charlie",
+  "optimizer": "distributed-minimum-snap",
+  "agent_count": 10,
+  "environment": {
+    "type": "dense-urban-canyon",
+    "static_obstacles": 57
+  },
+  "trajectory_metrics": {
+    "total_path_length_m": 1284.5,
+    "mean_clearance_m": 2.7,
+    "formation_deviation_m": 0.41,
+    "replan_events": 2
+  },
+  "constraint_summary": {
+    "collision_free": true,
+    "dynamic_limits_satisfied": true
+  },
+  "tactical_assessment": {
+    "corridor_penetration_viability": "high",
+    "formation_cohesion": "stable"
+  }
+}

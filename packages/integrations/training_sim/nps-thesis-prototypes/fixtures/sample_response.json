@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "nps-thesis-prototypes-2026-0410-0700z",
+  "schoolhouse": "NPS MOVES Officer Simulation Lab",
+  "generated_at": "2026-04-10T07:00:00Z",
+  "scenario_type": "submarine-periscope-watch",
+  "cohort": {
+    "officers_evaluated": 24,
+    "platform": "diesel-electric submarine bridge trainer"
+  },
+  "kpis": {
+    "target_identification_accuracy_pct": 89.2,
+    "engagement_decision_time_sec_p50": 18.4,
+    "blue_force_deconfliction_errors": 1
+  },
+  "recommended_actions": [
+    "Increase low-visibility recognition drills for periscope teams.",
+    "Re-run Rules of Engagement decision tree exercises for watch officers."
+  ]
+}

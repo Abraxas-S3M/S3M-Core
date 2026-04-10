@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "mrsar-sw-2026-0410-1215z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_context": "joint-multi-domain-swarm-rehearsal",
+  "status": "nominal",
+  "metrics": {
+    "search_grid_id": "sector-delta-7",
+    "victim_detections": 4,
+    "false_positive_detections": 1,
+    "average_localization_error_m": 0.28,
+    "robots_deployed": 10,
+    "mission_phase": "rescue_objective"
+  }
+}

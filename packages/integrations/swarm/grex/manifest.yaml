@@ -1,0 +1,15 @@
+name: "grex"
+slug: "grex"
+domain: "swarm"
+source_url: "https://github.com/NU-IDEAS-Lab/grex"
+license: "MIT"
+description: "Multi-agent framework for ROS 2 enabling plug-and-play simulation of complex agents in MAS."
+integration_type: "adapter"
+capabilities:
+  - "swarm_state_estimation"
+  - "multi_agent_coordination"
+  - "ros2_tactical_rehearsal"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+airgapped_support: true

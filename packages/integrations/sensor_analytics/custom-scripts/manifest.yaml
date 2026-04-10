@@ -1,0 +1,12 @@
+name: "custom-scripts"
+slug: "custom-scripts"
+domain: "sensor_analytics"
+source_url: "https://github.com/sentinel-hub/custom-scripts"
+license: "Unknown"
+description: "Custom scripts for Sentinel-1/2 satellite processing."
+integration_type: "adapter"
+capabilities:
+  - "sentinel1_sar_processing"
+  - "sentinel2_multispectral_processing"
+  - "scripted_scene_analytics"
+airgapped_support: true

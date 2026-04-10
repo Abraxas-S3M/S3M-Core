@@ -1,0 +1,29 @@
+{
+  "status": "ok",
+  "event_id": "sumo-sa-2026-04-10-002",
+  "operation": "detect_sar_maritime_objects",
+  "scene_id": "S1A_IW_GRDH_1SDV_20260410T053821_20260410T053846_053229_066AA1_5D21",
+  "detections": [
+    {
+      "track_id": "sumo-track-017",
+      "lat": 24.9843,
+      "lon": 52.1032,
+      "estimated_length_m": 88,
+      "radar_cross_section": 0.82,
+      "risk_label": "monitor"
+    },
+    {
+      "track_id": "sumo-track-021",
+      "lat": 24.9989,
+      "lon": 52.1274,
+      "estimated_length_m": 41,
+      "radar_cross_section": 0.59,
+      "risk_label": "inspect"
+    }
+  ],
+  "tactical_assessment": {
+    "priority_contacts": ["sumo-track-021"],
+    "recommended_action": "queue_coastal_patrol_intercept",
+    "processing_confidence": "high"
+  }
+}

@@ -1,0 +1,8 @@
+name: "multi_robot_ros2"
+slug: "multi-robot-ros2"
+domain: "swarm"
+source_url: "https://github.com/anhbantre/multi_robot_ros2"
+license: "MIT"
+description: "Fundamental multi-robot system support in ROS2 with unique namespaces."
+integration_type: "adapter"
+airgapped_support: true

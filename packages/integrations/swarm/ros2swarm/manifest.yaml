@@ -1,0 +1,15 @@
+
+name: "ROS2swarm"
+slug: "ros2swarm"
+domain: "swarm"
+source_url: "https://github.com/ROS2swarm/ROS2swarm"
+license: "(ROS2-style)"
+description: "ROS 2 swarm behavior framework with reusable collective behavior primitives."
+integration_type: "adapter"
+capabilities:
+  - "behavior_pattern_execution"
+  - "collective_motion_control"
+  - "distributed_swarm_validation"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

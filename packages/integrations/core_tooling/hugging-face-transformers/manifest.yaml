@@ -1,0 +1,13 @@
+name: "Hugging Face Transformers"
+slug: "hugging-face-transformers"
+domain: "core_tooling"
+source_url: "https://github.com/huggingface/transformers"
+license: "Unknown"
+description: "Core library for loading, running, and fine-tuning LLMs; handles tokenization."
+integration_type: "adapter"
+capabilities:
+  - "model-loading"
+  - "tokenization"
+  - "inference"
+  - "fine-tuning"
+airgapped_support: true

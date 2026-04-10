@@ -1,0 +1,25 @@
+{
+  "operation": "unit_level_engagement",
+  "status": "success",
+  "exercise_id": "wargame-ts-2026-0410-1004",
+  "battlefield": "river_crossing_delta",
+  "unit_states": [
+    {
+      "unit_id": "blue-infantry-1",
+      "position_grid": "D4",
+      "health_percent": 76,
+      "morale": "steady"
+    },
+    {
+      "unit_id": "red-armor-2",
+      "position_grid": "F5",
+      "health_percent": 52,
+      "morale": "degraded"
+    }
+  ],
+  "engagement_outcome": {
+    "objective_secured": true,
+    "time_to_secure_min": 19,
+    "remaining_effective_force_ratio": 0.67
+  }
+}
