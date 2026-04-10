@@ -1,0 +1,12 @@
+name: "VisionUAV-Navigation"
+slug: "visionuav-navigation"
+domain: "navigation"
+source_url: "https://github.com/sidharthmohannair/VisionUAV-Navigation"
+license: "MIT"
+description: "Vision-based localization for UAVs in GPS-denied areas via satellite image matching."
+integration_type: "adapter"
+capabilities:
+  - "vision_localization"
+  - "satellite_image_matching"
+  - "gps_denied_relocalization"
+airgapped_support: true
