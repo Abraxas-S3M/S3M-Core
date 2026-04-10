@@ -1,0 +1,12 @@
+name: "SARMSSD"
+slug: "sarmssd"
+domain: "sensor_analytics"
+source_url: "https://github.com/buyukkanber/SARMSSD"
+license: "Unknown"
+description: "YOLO11-based SAR ship detection with data enhancement."
+integration_type: "adapter"
+capabilities:
+  - "sar_ship_detection"
+  - "yolo_inference"
+  - "enhanced_training_data"
+airgapped_support: true

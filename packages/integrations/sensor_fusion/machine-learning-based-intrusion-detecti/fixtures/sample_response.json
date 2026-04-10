@@ -1,0 +1,31 @@
+{
+  "analysis_id": "ml-uav-ids-op-2026-04-10t094500z",
+  "as_of_utc": "2026-04-10T09:45:00Z",
+  "swarm_operation": "border_recon_delta_sector",
+  "telemetry_window_seconds": 180,
+  "model_ensemble": {
+    "svm": 0.91,
+    "dnn": 0.89,
+    "random_forest": 0.87
+  },
+  "intrusion_findings": [
+    {
+      "threat_type": "command_link_spoofing",
+      "confidence": 0.93,
+      "affected_uavs": ["uav-07", "uav-11"],
+      "severity": "critical"
+    },
+    {
+      "threat_type": "dos_flood_pattern",
+      "confidence": 0.86,
+      "affected_uavs": ["uav-03"],
+      "severity": "high"
+    }
+  ],
+  "recommended_countermeasures": [
+    "rotate_encryption_keys_immediately",
+    "switch_to_fallback_frequency_plan",
+    "isolate_compromised_nodes"
+  ],
+  "status": "ok"
+}

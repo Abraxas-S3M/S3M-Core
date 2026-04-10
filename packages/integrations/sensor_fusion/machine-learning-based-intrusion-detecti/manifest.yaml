@@ -1,0 +1,12 @@
+name: "Machine-Learning-Based-Intrusion-Detection-System"
+slug: "machine-learning-based-intrusion-detecti"
+domain: "sensor_fusion"
+source_url: "https://github.com/uamughal/Machine-Learning-Based-Intrusion-Detection-System"
+license: "MIT"
+description: "ML and DL-based IDS for UAV swarm cyber threats (SVM and neural network approaches)."
+integration_type: "adapter"
+capabilities:
+  - "uav_swarm_ids"
+  - "model_assisted_alerting"
+  - "command_link_anomaly_detection"
+airgapped_support: true

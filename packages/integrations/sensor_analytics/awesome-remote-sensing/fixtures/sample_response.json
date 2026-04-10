@@ -1,0 +1,24 @@
+{
+  "event_id": "ars-sa-2026-04-10-005",
+  "curation_snapshot": "2026-04-10T06:00:00Z",
+  "focus_area": "satellite_change_detection_for_force_protection",
+  "recommended_resources": [
+    {
+      "title": "Change Detection in Remote Sensing",
+      "category": "papers",
+      "priority": "high"
+    },
+    {
+      "title": "Open Satellite Data Processing Toolchains",
+      "category": "toolkits",
+      "priority": "high"
+    },
+    {
+      "title": "SAR Interpretation Guides",
+      "category": "training_materials",
+      "priority": "medium"
+    }
+  ],
+  "analyst_notes": "Use SAR-focused entries for low-visibility maritime surveillance tasks.",
+  "status": "resource_packet_ready"
+}

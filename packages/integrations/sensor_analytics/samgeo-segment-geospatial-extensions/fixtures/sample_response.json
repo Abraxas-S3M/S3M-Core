@@ -1,0 +1,20 @@
+{
+  "event_id": "samgeo-sa-2026-04-10-002",
+  "mission_id": "coastal-watch-03",
+  "sensor_source": "satellite-optical-l2a",
+  "aoi_grid": "37RDU",
+  "segmentation_summary": {
+    "model": "samgeo-vit-h-quantized-int8",
+    "pixel_resolution_m": 0.5,
+    "detected_features": {
+      "vessels": 14,
+      "dock_structures": 9,
+      "vehicle_clusters": 5
+    }
+  },
+  "confidence": {
+    "mean_mask_confidence": 0.91,
+    "low_confidence_tiles": 3
+  },
+  "status": "intel_packet_generated"
+}

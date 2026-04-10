@@ -1,0 +1,37 @@
+{
+  "status": "ok",
+  "mission_id": "border-watch-2026-04-10-02",
+  "operation": "detect_border_anomalies",
+  "sector": "northwest_frontier_sector_7",
+  "detections": [
+    {
+      "track_id": "trk-10091",
+      "object_type": "intruder",
+      "confidence": 0.93,
+      "coordinates": [29.4821, 36.1027],
+      "speed_mps": 1.8,
+      "threat_level": "medium"
+    },
+    {
+      "track_id": "trk-10092",
+      "object_type": "drone",
+      "confidence": 0.89,
+      "coordinates": [29.4874, 36.0951],
+      "speed_mps": 12.6,
+      "threat_level": "high"
+    },
+    {
+      "track_id": "trk-10093",
+      "object_type": "small_vessel",
+      "confidence": 0.84,
+      "coordinates": [29.4658, 36.1184],
+      "speed_mps": 7.2,
+      "threat_level": "medium"
+    }
+  ],
+  "tactical_assessment": {
+    "priority_queue": ["trk-10092", "trk-10091"],
+    "recommended_action": "dispatch_quick_reaction_team_and_ew_monitoring",
+    "command_readiness": "go"
+  }
+}

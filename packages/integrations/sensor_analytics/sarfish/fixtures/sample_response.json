@@ -1,0 +1,34 @@
+{
+  "status": "ok",
+  "mission_id": "sar-maritime-watch-2026-04-10-11",
+  "operation": "analyze_sar_imagery_for_ship_activity",
+  "sensor": {
+    "platform": "spaceborne_sar",
+    "scene_id": "sarfish-scene-0048",
+    "polarization": "vv_vh"
+  },
+  "model_summary": {
+    "detector_family": "sarfish_baseline",
+    "confidence_threshold": 0.55,
+    "tiles_processed": 36
+  },
+  "detections": [
+    {
+      "object_id": "ship-204",
+      "bbox": [612, 338, 84, 46],
+      "class": "cargo_vessel",
+      "confidence": 0.91
+    },
+    {
+      "object_id": "ship-205",
+      "bbox": [120, 429, 41, 23],
+      "class": "small_boat",
+      "confidence": 0.73
+    }
+  ],
+  "tactical_assessment": {
+    "priority_tracks": 1,
+    "suspected_dark_targets": 1,
+    "mission_readiness": "go"
+  }
+}
