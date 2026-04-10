@@ -1,0 +1,12 @@
+name: "Clermont"
+slug: "clermont"
+domain: "readiness"
+source_url: "https://github.com/SageHourihan/clermont"
+license: "Unknown"
+description: "Cold-war style command center dashboard with multi-view operational displays."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "multi_view_dashboard"
+  - "operational_timeline"
+  - "status_wallboard"

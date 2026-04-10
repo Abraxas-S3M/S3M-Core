@@ -1,0 +1,41 @@
+{
+  "dashboard_id": "clermont-main-hall-02",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "theater": "Northern Sector",
+  "views": [
+    {
+      "name": "command_overview",
+      "status": "green",
+      "active_alerts": 2
+    },
+    {
+      "name": "readiness_wall",
+      "status": "amber",
+      "active_alerts": 5
+    },
+    {
+      "name": "logistics_lane",
+      "status": "green",
+      "active_alerts": 1
+    }
+  ],
+  "readiness_indicators": {
+    "personnel_ready_percent": 91.8,
+    "critical_posts_filled_percent": 96.4,
+    "drill_compliance_percent": 88.2
+  },
+  "priority_events": [
+    {
+      "event_id": "EVT-20411",
+      "severity": "high",
+      "summary": "Night-shift command desk shortfall detected",
+      "recommended_action": "Reallocate two certified controllers from reserve roster."
+    },
+    {
+      "event_id": "EVT-20415",
+      "severity": "medium",
+      "summary": "Quarterly CBRN refresher completion below threshold",
+      "recommended_action": "Trigger mandatory catch-up module for affected personnel."
+    }
+  ]
+}
