@@ -1,1 +1,2 @@
-"""Swarm domain integration wrappers for S3M."""
+"""S3M swarm-domain integration wrappers."""
+
