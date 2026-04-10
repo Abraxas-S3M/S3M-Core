@@ -1,0 +1,12 @@
+name: "AIS-Visual-Fusion extensions"
+slug: "ais-visual-fusion-extensions"
+domain: "sensor_analytics"
+source_url: "Extensions of QuJX/AIS-Visual-Fusion"
+license: "Unknown"
+description: "Multi-view vessel fusion (video + AIS + satellite)."
+integration_type: "adapter"
+capabilities:
+  - "multi_view_track_fusion"
+  - "ais_video_satellite_alignment"
+  - "maritime_common_operating_picture_updates"
+airgapped_support: true

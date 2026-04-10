@@ -1,0 +1,12 @@
+name: "sumo (Search for Unidentified Maritime Objects)"
+slug: "sumo-search-for-unidentified-maritime-ob"
+domain: "sensor_analytics"
+source_url: "Related EC-Europa SUMO tools"
+license: "Unknown"
+description: "SUMO algorithm for ship detection in SAR imagery."
+integration_type: "adapter"
+capabilities:
+  - "sar_ship_candidate_detection"
+  - "maritime_object_screening"
+  - "target_prioritization_for_patrol_assets"
+airgapped_support: true
