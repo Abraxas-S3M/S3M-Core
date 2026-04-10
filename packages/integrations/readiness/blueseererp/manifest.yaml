@@ -1,0 +1,12 @@
+name: "blueseerERP"
+slug: "blueseererp"
+domain: "readiness"
+source_url: "https://github.com/blueseerERP/blueseer"
+license: "Unknown"
+description: "Multilingual ERP (including Arabic) with HR and personnel modules."
+integration_type: "adapter"
+capabilities:
+  - "multilingual_personnel_records"
+  - "shift_readiness"
+  - "regional_reporting"
+airgapped_support: true

@@ -1,1 +1,1 @@
-"""Readiness-domain integration adapters for personnel and force preparation."""
+"""Personnel and readiness domain integration wrappers for S3M."""

@@ -1,0 +1,24 @@
+{
+  "snapshot_id": "hrms-readiness-2026-0410-0600z",
+  "unit": "2nd Brigade Personnel Cell",
+  "generated_at": "2026-04-10T06:00:00Z",
+  "personnel_totals": {
+    "authorized": 820,
+    "assigned": 801,
+    "present_for_duty": 772,
+    "medical_hold": 11,
+    "on_leave": 18
+  },
+  "training_readiness": {
+    "weapons_qualified_pct": 94.8,
+    "cbnr_certified_pct": 88.2,
+    "first_aid_current_pct": 96.1
+  },
+  "attendance_alerts": [
+    {
+      "type": "critical_specialty_gap",
+      "specialty": "signals_maintainer",
+      "missing_count": 3
+    }
+  ]
+}

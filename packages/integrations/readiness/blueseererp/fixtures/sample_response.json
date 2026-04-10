@@ -1,0 +1,24 @@
+{
+  "snapshot_id": "blueseererp-readiness-2026-0410-0620z",
+  "command": "Western Sustainment Group",
+  "generated_at": "2026-04-10T06:20:00Z",
+  "language_mode": "ar-en-bilingual",
+  "personnel_summary": {
+    "authorized": 540,
+    "assigned": 527,
+    "night_shift_ready": 498,
+    "translation_required_posts": 14
+  },
+  "training_currency": {
+    "logistics_systems_pct": 91.3,
+    "maintenance_certified_pct": 89.7
+  },
+  "alerts": [
+    {
+      "code": "ARABIC_UI_OPERATOR_SHORTAGE",
+      "severity": "medium",
+      "required": 8,
+      "available": 6
+    }
+  ]
+}

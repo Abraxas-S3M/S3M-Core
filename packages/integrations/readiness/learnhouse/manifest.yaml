@@ -1,0 +1,12 @@
+name: "learnhouse"
+slug: "learnhouse"
+domain: "readiness"
+source_url: "https://github.com/learnhouse/learnhouse"
+license: "Unknown"
+description: "Modern open-source LMS for courses, certifications, and training tracking."
+integration_type: "adapter"
+capabilities:
+  - "course_progress"
+  - "certification_tracking"
+  - "training_compliance"
+airgapped_support: true

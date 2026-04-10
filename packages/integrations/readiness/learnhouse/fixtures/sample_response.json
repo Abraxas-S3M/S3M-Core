@@ -1,0 +1,22 @@
+{
+  "snapshot_id": "learnhouse-training-2026-0410-0630z",
+  "school": "Joint Readiness Academy",
+  "generated_at": "2026-04-10T06:30:00Z",
+  "enrolled_personnel": 690,
+  "course_completion": {
+    "urban_ops_level_2_pct": 87.1,
+    "drone_identification_pct": 92.4,
+    "communications_security_pct": 95.0
+  },
+  "certification_status": {
+    "expiring_within_30_days": 48,
+    "expired": 9
+  },
+  "priority_courses": [
+    {
+      "course_id": "EH-INT-331",
+      "title": "Electronic Warfare Fundamentals",
+      "completion_pct": 63.5
+    }
+  ]
+}
