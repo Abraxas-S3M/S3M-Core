@@ -1,0 +1,31 @@
+{
+  "analysis_id": "hetero-swarm-resilience-23",
+  "timestamp_utc": "2026-04-10T10:03:12Z",
+  "scenario": "mixed_uav_ugv_perimeter_security",
+  "fleet_composition": {
+    "uav": 6,
+    "ugv": 9,
+    "sensor_masts": 3
+  },
+  "attrition_case": {
+    "lost_uav": 2,
+    "lost_ugv": 1
+  },
+  "resilience_score": 0.87,
+  "mission_continuity_probability": 0.9,
+  "critical_gaps": [
+    "reduced_thermal_overwatch_sector_north",
+    "path_clearance_rate_degraded_12_percent"
+  ],
+  "recommended_retasking": [
+    {
+      "unit": "ugv-logistics-2",
+      "new_role": "sensor_relay"
+    },
+    {
+      "unit": "uav-scout-5",
+      "new_role": "north_sector_overwatch"
+    }
+  ],
+  "notes": "Heterogeneous swarm retained perimeter mission viability after simulated partial losses."
+}

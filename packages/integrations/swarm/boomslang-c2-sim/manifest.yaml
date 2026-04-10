@@ -1,0 +1,15 @@
+
+name: "boomslang-c2-sim"
+slug: "boomslang-c2-sim"
+domain: "swarm"
+source_url: "https://github.com/kabartsjc/boomslang-c2-sim"
+license: "MIT"
+description: "Military C2 simulator for testing doctrine and command-post exercises via a pub-sub architecture."
+integration_type: "adapter"
+capabilities:
+  - "c2_doctrine_simulation"
+  - "exercise_event_pubsub"
+  - "force_posture_experimentation"
+system_dependencies:
+  - "python3"
+airgapped_support: true

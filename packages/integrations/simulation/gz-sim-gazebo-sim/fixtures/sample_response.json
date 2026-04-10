@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "sim-gz-world-2026-04-10-01",
+  "world_name": "urban_recon_sector_7",
+  "simulation_step_rate_hz": 1000,
+  "real_time_factor": 0.98,
+  "assets_loaded": [
+    "uav_scout_alpha",
+    "ground_convoy_red",
+    "forward_observer_team"
+  ],
+  "sensor_summary": {
+    "rgb_cameras": 4,
+    "lidar_units": 2,
+    "thermal_imagers": 1
+  },
+  "threat_injection": {
+    "gps_jamming_enabled": true,
+    "rf_interference_level": "moderate"
+  },
+  "tactical_assessment": {
+    "route_visibility": "degraded",
+    "target_tracking_confidence": 0.93
+  }
+}

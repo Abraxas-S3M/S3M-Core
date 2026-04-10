@@ -1,0 +1,13 @@
+name: "remroc"
+slug: "remroc"
+domain: "swarm"
+source_url: "https://github.com/boschresearch/remroc"
+license: "MIT"
+description: "Realistic Multi-Robot Coordination simulation and benchmark framework using ROS2 and Gazebo."
+integration_type: "adapter"
+capabilities:
+  - "ros2_simulation"
+  - "coordination_benchmarking"
+  - "multi_robot_tasking"
+airgapped_support: true
+

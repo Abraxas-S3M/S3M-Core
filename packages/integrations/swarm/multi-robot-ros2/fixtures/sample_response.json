@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "mission_id": "ros2-namespace-check-2026-04-10-04",
+  "control_group": "wolfpack-delta",
+  "namespace_registry": [
+    "/uav_01",
+    "/uav_02",
+    "/uav_03",
+    "/ugv_01"
+  ],
+  "topic_health": {
+    "publishers_online": 22,
+    "subscribers_online": 31,
+    "cross_namespace_collisions": 0
+  },
+  "latency_profile_ms": {
+    "p50": 9.1,
+    "p95": 18.4,
+    "p99": 25.7
+  },
+  "tactical_assessment": {
+    "c2_namespace_integrity": "verified",
+    "deployment_posture": "ready"
+  }
+}

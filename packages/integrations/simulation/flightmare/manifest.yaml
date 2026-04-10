@@ -1,0 +1,12 @@
+name: "flightmare"
+slug: "flightmare"
+domain: "simulation"
+source_url: "https://github.com/uzh-rpg/flightmare"
+license: "(BSD-style)"
+description: "GPU-accelerated physics/RL simulator for drone training."
+integration_type: "adapter"
+capabilities:
+  - "gpu_batch_rollout"
+  - "drone_policy_training"
+  - "physics_stress_testing"
+airgapped_support: true

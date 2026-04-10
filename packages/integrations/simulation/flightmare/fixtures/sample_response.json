@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "training_run_id": "fm-gpu-swarm-009",
+  "generated_at": "2026-04-10T08:35:00Z",
+  "batch_config": {
+    "num_envs": 1024,
+    "policy": "sac-quad-v3",
+    "physics_dt_ms": 5
+  },
+  "performance": {
+    "sim_steps_per_second": 184000,
+    "episode_return_mean": 12.7,
+    "crash_rate": 0.06
+  },
+  "constraint_checks": {
+    "max_roll_deg_violation_rate": 0.01,
+    "no_fly_zone_breaches": 2,
+    "collision_events": 11
+  },
+  "recommended_actions": [
+    "Increase obstacle randomization to improve policy robustness.",
+    "Apply stronger penalty for no-fly-zone incursions.",
+    "Schedule validation set replay before deployment gate review."
+  ]
+}

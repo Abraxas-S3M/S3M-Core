@@ -1,0 +1,12 @@
+name: "rotors_simulator"
+slug: "rotors-simulator"
+domain: "simulation"
+source_url: "https://github.com/ethz-asl/rotors_simulator"
+license: "(BSD-style)"
+description: "Research-grade UAV simulator for ROS (extendable to ROS2)."
+integration_type: "adapter"
+capabilities:
+  - "uav_dynamics_simulation"
+  - "ros_topic_replay"
+  - "controller_validation"
+airgapped_support: true

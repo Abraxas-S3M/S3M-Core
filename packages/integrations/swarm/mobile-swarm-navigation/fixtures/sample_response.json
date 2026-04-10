@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "mobile-swarm-nav-sw-2026-0410-1210z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_context": "joint-multi-domain-swarm-rehearsal",
+  "status": "nominal",
+  "metrics": {
+    "mapped_area_sq_km": 3.4,
+    "semantic_landmarks_confirmed": 57,
+    "frontier_cells_pending": 18,
+    "robots_online": 8,
+    "route_conflicts_resolved": 11,
+    "mission_phase": "semantic_mapping"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "run_id": "mrcf-foxtrot-sector-2026-04-10-003",
+  "mission_profile": "distributed-task-allocation",
+  "status": "completed",
+  "coordination_cycle": {
+    "episodes": 120,
+    "policy_version": "drl-v2.4.1",
+    "converged": true
+  },
+  "robot_assignments": [
+    {
+      "robot_id": "mr-01",
+      "assigned_task": "checkpoint-surveillance",
+      "fault_events": 0,
+      "reward_score": 0.91
+    },
+    {
+      "robot_id": "mr-02",
+      "assigned_task": "supply-relay",
+      "fault_events": 1,
+      "recovery_action": "task-reallocated",
+      "reward_score": 0.87
+    },
+    {
+      "robot_id": "mr-03",
+      "assigned_task": "signal-gateway",
+      "fault_events": 0,
+      "reward_score": 0.9
+    }
+  ],
+  "resilience_metrics": {
+    "mean_reallocation_time_ms": 63,
+    "task_success_rate": 0.95,
+    "network_partition_tolerance": "verified"
+  },
+  "after_action_assessment": "Framework preserved mission continuity despite single-node degradation."
+}
+

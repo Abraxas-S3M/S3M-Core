@@ -1,0 +1,15 @@
+name: "swarm_intelligence_ros2"
+slug: "swarm-intelligence-ros2"
+domain: "swarm"
+source_url: "https://github.com/tasada038/swarm_intelligence_ros2"
+license: "MIT"
+description: "ROS2 package implementing swarm intelligence algorithms."
+integration_type: "adapter"
+capabilities:
+  - "swarm_state_estimation"
+  - "multi_agent_coordination"
+  - "ros2_tactical_rehearsal"
+system_dependencies:
+  - "ros2"
+  - "colcon"
+airgapped_support: true

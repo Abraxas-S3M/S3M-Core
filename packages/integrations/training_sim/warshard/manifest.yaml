@@ -1,0 +1,12 @@
+name: "warshard"
+slug: "warshard"
+domain: "training_sim"
+source_url: "https://github.com/qferre/warshard"
+license: "Unknown"
+description: "Simplified modern wargame integration for AI tactical modeling with custom API handoff."
+integration_type: "adapter"
+capabilities:
+  - "scenario_modeling"
+  - "tactical_simulation"
+  - "custom_api_handoff"
+airgapped_support: true

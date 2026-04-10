@@ -1,0 +1,25 @@
+{
+  "snapshot_id": "awesome-wargaming-military-sim-2026-0410-0740z",
+  "generated_at": "2026-04-10T07:40:00Z",
+  "curated_sources": [
+    {
+      "collection": "awesome-wargaming",
+      "entries_indexed": 58,
+      "focus": "tabletop_and_digital_wargame_frameworks"
+    },
+    {
+      "collection": "military-sim-topic-list",
+      "entries_indexed": 41,
+      "focus": "military_training_simulation_projects"
+    }
+  ],
+  "recommended_shortlist": [
+    "open tactical map simulators with offline map packs",
+    "turn-based brigade-level rehearsal engines",
+    "combined-arms 3D mission replay systems"
+  ],
+  "compliance": {
+    "airgapped_ready_entries": 27,
+    "manual_license_review_required": 16
+  }
+}

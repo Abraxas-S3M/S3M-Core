@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "event_id": "custom-scripts-sa-2026-04-10-001",
+  "operation": "process_sentinel_scene",
+  "scene_id": "S2B_MSIL2A_20260410T081559_N0510_R121_T39QWU_20260410T103212",
+  "script_profile": "coastal_change_detection",
+  "products": [
+    {
+      "layer": "ndwi",
+      "mean_value": 0.43,
+      "max_value": 0.91
+    },
+    {
+      "layer": "backscatter_vv",
+      "mean_db": -13.2,
+      "anomaly_cells": 6
+    }
+  ],
+  "tactical_assessment": {
+    "priority_sector": "delta_coastline_sector_2",
+    "recommendation": "task_uav_confirmation_sortie",
+    "confidence": "medium_high"
+  }
+}

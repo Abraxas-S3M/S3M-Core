@@ -1,0 +1,37 @@
+{
+  "status": "ok",
+  "mission_id": "urban-isr-lane-17",
+  "generated_at": "2026-04-10T08:25:00Z",
+  "vehicle": {
+    "type": "quadrotor",
+    "callsign": "Raven-21",
+    "position_ned_m": [312.4, -88.1, -74.0],
+    "velocity_mps": [11.2, 1.5, -0.3],
+    "battery_percent": 57
+  },
+  "sensors": {
+    "rgb_camera_online": true,
+    "depth_camera_online": true,
+    "imu_health": "nominal",
+    "gps_hdop": 0.9
+  },
+  "threat_markers": [
+    {
+      "id": "trk-0041",
+      "type": "manpad_signature",
+      "confidence": 0.69,
+      "range_m": 860
+    },
+    {
+      "id": "trk-0042",
+      "type": "armored_vehicle",
+      "confidence": 0.88,
+      "range_m": 1210
+    }
+  ],
+  "recommended_actions": [
+    "Increase altitude by 15m to reduce MANPADS threat envelope.",
+    "Re-route ISR orbit to maintain visual on tracked armored vehicle.",
+    "Schedule relief platform in 11 minutes due to battery trend."
+  ]
+}

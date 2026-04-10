@@ -1,0 +1,12 @@
+name: "ODIN (C2IS)"
+slug: "odin-c2is"
+domain: "swarm"
+source_url: "https://github.com/syncpoint/ODIN"
+license: "(Archived)"
+description: "Open-source Command and Control Information System (C2IS) alternative."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "c2is_interop"
+  - "track_management"
+  - "operational_picture"

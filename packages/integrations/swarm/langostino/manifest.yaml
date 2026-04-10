@@ -1,0 +1,12 @@
+name: "Langostino"
+slug: "langostino"
+domain: "swarm"
+source_url: "https://github.com/swarm-subnet/Langostino"
+license: "MIT"
+description: "Open-source autonomous drone platform with ROS2 and AI-powered flight control."
+integration_type: "adapter"
+capabilities:
+  - "ros2_drone_coordination"
+  - "ai_flight_control_assist"
+  - "mission_telemetry_fusion"
+airgapped_support: true

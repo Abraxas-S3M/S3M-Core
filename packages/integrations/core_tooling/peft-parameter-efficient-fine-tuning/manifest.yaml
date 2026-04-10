@@ -1,0 +1,12 @@
+name: "PEFT (Parameter-Efficient Fine-Tuning)"
+slug: "peft-parameter-efficient-fine-tuning"
+domain: "core_tooling"
+source_url: "https://github.com/huggingface/peft"
+license: "Unknown"
+description: "Library for efficient fine-tuning (for example LoRA adapters) on proprietary datasets."
+integration_type: "adapter"
+capabilities:
+  - "lora-adapters"
+  - "parameter-efficient-training"
+  - "adapter-checkpointing"
+airgapped_support: true
