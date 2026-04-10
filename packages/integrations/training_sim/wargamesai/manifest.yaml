@@ -1,0 +1,12 @@
+name: "WargamesAI"
+slug: "wargamesai"
+domain: "training_sim"
+source_url: "https://github.com/user1342/WargamesAI"
+license: "Unknown"
+description: "Toolkit integration for creating and validating LLM-agent professional wargames."
+integration_type: "adapter"
+capabilities:
+  - "llm_agent_wargaming"
+  - "scenario_execution"
+  - "after_action_evaluation"
+airgapped_support: true
