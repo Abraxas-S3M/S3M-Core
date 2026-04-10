@@ -1,0 +1,12 @@
+name: "speckle2void"
+slug: "speckle2void"
+domain: "sensor_analytics"
+source_url: "https://github.com/Swarno-Coder/speckle2void"
+license: "Unknown"
+description: "Self-supervised SAR speckle removal for clearer maritime imagery."
+integration_type: "adapter"
+capabilities:
+  - "sar_denoising"
+  - "self_supervised_enhancement"
+  - "image_preprocessing"
+airgapped_support: true
