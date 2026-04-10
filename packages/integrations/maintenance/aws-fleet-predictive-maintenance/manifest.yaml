@@ -1,0 +1,12 @@
+name: "aws-fleet-predictive-maintenance"
+slug: "aws-fleet-predictive-maintenance"
+domain: "maintenance"
+source_url: "https://github.com/awslabs/aws-fleet-predictive-maintenance"
+license: "Unknown"
+description: "Deep learning predictive maintenance for automotive fleets to forecast failures and reduce downtime."
+integration_type: "adapter"
+capabilities:
+  - "predictive_failure_scoring"
+  - "downtime_risk_estimation"
+  - "maintenance_priority_ranking"
+airgapped_support: true

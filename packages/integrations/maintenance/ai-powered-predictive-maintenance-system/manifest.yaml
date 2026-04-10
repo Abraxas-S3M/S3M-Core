@@ -1,0 +1,12 @@
+name: "AI-Powered-Predictive-Maintenance-System-for-Vehicles"
+slug: "ai-powered-predictive-maintenance-system"
+domain: "maintenance"
+source_url: "https://github.com/Siddhartha80/AI-Powered-Predictive-Maintenance-System-for-Vehicles"
+license: "Unknown"
+description: "Gradient Boosting Models for real-time vehicle predictive maintenance with visualization."
+integration_type: "adapter"
+capabilities:
+  - "vehicle_failure_prediction"
+  - "health_score_monitoring"
+  - "maintenance_decision_support"
+airgapped_support: true
