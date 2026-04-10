@@ -1,0 +1,12 @@
+name: "pycmo"
+slug: "pycmo"
+domain: "simulation"
+source_url: "https://github.com/duyminh1998/pycmo"
+license: "MIT"
+description: "Reinforcement learning environment for Command: Modern Operations wargame."
+integration_type: "adapter"
+capabilities:
+  - "scenario_rollout"
+  - "rl_environment_step"
+  - "wargame_state_observation"
+airgapped_support: true
