@@ -1,0 +1,27 @@
+{
+  "operation": "terrain_force_simulation",
+  "status": "success",
+  "exercise_id": "wargames-ts-2026-0410-1005",
+  "terrain_profile": {
+    "type": "mixed_hills_and_urban_edges",
+    "visibility_km": 2.4,
+    "mobility_penalty_percent": 18
+  },
+  "force_summary": {
+    "blue": {
+      "infantry": 9,
+      "armor": 4,
+      "artillery": 2
+    },
+    "red": {
+      "infantry": 11,
+      "armor": 3,
+      "artillery": 3
+    }
+  },
+  "simulation_result": {
+    "winning_side": "blue",
+    "decisive_factor": "terrain-aware flanking maneuver",
+    "remaining_combat_power_ratio": 1.18
+  }
+}

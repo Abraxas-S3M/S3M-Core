@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "operation_id": "r2s-sector-screening-14",
+  "behavior_profile": {
+    "selected_pattern": "flocking_with_obstacle_avoidance",
+    "agents": 16,
+    "map_type": "urban-canyon"
+  },
+  "performance": {
+    "coverage_ratio": 0.91,
+    "collision_incidents": 0,
+    "average_path_efficiency": 0.87
+  },
+  "communications": {
+    "mesh_health": "degraded-but-stable",
+    "packet_delivery_ratio": 0.93
+  },
+  "commander_guidance": "Maintain current behavior profile and rotate scout leaders every 12 minutes."
+}

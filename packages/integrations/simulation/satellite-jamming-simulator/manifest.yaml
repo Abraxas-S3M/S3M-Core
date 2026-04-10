@@ -1,0 +1,12 @@
+name: "satellite-jamming-simulator"
+slug: "satellite-jamming-simulator"
+domain: "simulation"
+source_url: "https://github.com/deptofdefense/satellite-jamming-simulator(archived"
+license: "MIT"
+description: "Simple simulator for earth-to-space radio-frequency interference and jamming attacks."
+integration_type: "adapter"
+capabilities:
+  - "rfi_attack_modeling"
+  - "uplink_resilience_assessment"
+  - "satcom_disruption_rehearsal"
+airgapped_support: true

@@ -1,0 +1,13 @@
+name: "drones-swarm"
+slug: "drones-swarm"
+domain: "swarm"
+source_url: "https://github.com/mlpi-unipi/drones-swarm"
+license: "MIT"
+description: "Adaptive exploration and distributed target detection/tracking with UAV swarms."
+integration_type: "adapter"
+capabilities:
+  - "adaptive_exploration"
+  - "distributed_target_detection"
+  - "target_tracking"
+airgapped_support: true
+

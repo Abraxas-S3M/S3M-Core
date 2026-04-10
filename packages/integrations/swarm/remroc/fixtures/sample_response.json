@@ -1,0 +1,39 @@
+{
+  "scenario_id": "remroc-urban-corridor-2026-04-10-001",
+  "mission_profile": "ground-route-clearance",
+  "status": "completed",
+  "robots": [
+    {
+      "robot_id": "ugv-alpha",
+      "role": "lead-scout",
+      "task": "corridor-mapping",
+      "completion_rate": 0.97
+    },
+    {
+      "robot_id": "ugv-bravo",
+      "role": "flank-security",
+      "task": "obstacle-screening",
+      "completion_rate": 0.94
+    },
+    {
+      "robot_id": "ugv-charlie",
+      "role": "relay",
+      "task": "link-maintenance",
+      "completion_rate": 0.99
+    }
+  ],
+  "coordination_metrics": {
+    "task_allocation_latency_ms_p95": 41,
+    "inter_robot_conflicts": 0,
+    "mission_time_seconds": 743
+  },
+  "threat_contacts": [
+    {
+      "contact_id": "sim-threat-014",
+      "type": "obstacle",
+      "disposition": "bypassed"
+    }
+  ],
+  "after_action_assessment": "Swarm maintained formation timing and route security under intermittent comms."
+}
+

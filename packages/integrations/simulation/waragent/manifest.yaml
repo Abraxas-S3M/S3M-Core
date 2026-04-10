@@ -1,0 +1,12 @@
+name: "WarAgent"
+slug: "waragent"
+domain: "simulation"
+source_url: "https://github.com/agiresearch/WarAgent"
+license: "Apache 2.0"
+description: "LLM-based multi-agent simulation for world-war and international conflict rehearsal."
+integration_type: "adapter"
+capabilities:
+  - "multi_agent_wargaming"
+  - "campaign_turn_simulation"
+  - "strategic_outcome_projection"
+airgapped_support: true
