@@ -1,0 +1,12 @@
+name: "Border-Surveillance-System"
+slug: "border-surveillance-system"
+domain: "sensor_analytics"
+source_url: "https://github.com/subhayudas/Border-Surveillance-System"
+license: "Unknown"
+description: "AI-powered border anomaly detection with geospatial incident context."
+integration_type: "adapter"
+capabilities:
+  - "multi_target_detection"
+  - "border_anomaly_flagging"
+  - "map_based_incident_context"
+airgapped_support: true

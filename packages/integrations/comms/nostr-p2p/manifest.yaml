@@ -1,0 +1,12 @@
+name: "nostr-p2p"
+slug: "nostr-p2p"
+domain: "comms"
+source_url: "https://github.com/cmdruid/nostr-p2p"
+license: "Unknown"
+description: "Peer-to-peer messaging protocol over Nostr relays for resilient tactical communications."
+integration_type: "adapter"
+capabilities:
+  - "relay_routed_messaging"
+  - "peer_identity_exchange"
+  - "disconnected_fixture_replay"
+airgapped_support: true

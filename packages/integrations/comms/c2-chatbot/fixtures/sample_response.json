@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "c2-chatbot-2026-0410-1905z",
+  "generated_at": "2026-04-10T19:05:00Z",
+  "input_utterance": "Bravo squad hold ridge line echo and prepare smoke screen at 0430.",
+  "extracted_command": {
+    "unit": "bravo_squad",
+    "task": "hold_position",
+    "location": "ridge_line_echo",
+    "support_action": "prepare_smoke_screen",
+    "execution_time": "04:30Z"
+  },
+  "confidence": 0.93,
+  "tactical_note": "Parsed intent provides deterministic C2 structure for downstream tasking in disconnected operations."
+}

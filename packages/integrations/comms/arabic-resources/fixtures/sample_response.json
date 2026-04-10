@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "arabic-resources-2026-0410-1215z",
+  "catalog": "Arabic-Resources",
+  "query": {
+    "domain": "secure_comms",
+    "language": "ar"
+  },
+  "resources": [
+    {
+      "name": "AraBERT family",
+      "type": "model",
+      "recommended_use": "classification and contextual encoding"
+    },
+    {
+      "name": "Arabic corpora index",
+      "type": "dataset",
+      "recommended_use": "domain adaptation and fine-tuning"
+    },
+    {
+      "name": "Arabic lexicon references",
+      "type": "knowledge_base",
+      "recommended_use": "entity normalization in message pipelines"
+    }
+  ],
+  "generated_at": "2026-04-10T12:15:00Z"
+}
