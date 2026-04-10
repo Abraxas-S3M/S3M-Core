@@ -1,0 +1,28 @@
+{
+  "pipeline_id": "datasets-pipeline-2026-04-10-0020",
+  "status": "completed",
+  "operation": "dataset_pipeline",
+  "input": {
+    "dataset_name": "saudi-defense-corpus-v5",
+    "splits": [
+      "train",
+      "validation"
+    ],
+    "transforms": [
+      "normalize_arabic",
+      "deduplicate",
+      "label_safety_filters"
+    ]
+  },
+  "output": {
+    "train_examples": 1250040,
+    "validation_examples": 48211,
+    "cache_path": "/opt/s3m/data/cache/saudi-defense-corpus-v5",
+    "format": "parquet"
+  },
+  "security": {
+    "pii_scan": "passed",
+    "schema_validation": "passed",
+    "classification_level": "restricted-defense-training"
+  }
+}

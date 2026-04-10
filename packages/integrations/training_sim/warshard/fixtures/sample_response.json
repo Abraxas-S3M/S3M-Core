@@ -1,0 +1,28 @@
+{
+  "operation": "combined_arms_engagement",
+  "status": "success",
+  "exercise_id": "warshard-ts-2026-0410-1003",
+  "map_sector": "eastern_ridge_line",
+  "force_posture": {
+    "blue_units": 14,
+    "red_units": 16,
+    "civilian_presence_level": "low"
+  },
+  "turn_summary": [
+    {
+      "turn": 1,
+      "event": "blue mechanized platoon secured forward observation point",
+      "control_shift_percent": 12
+    },
+    {
+      "turn": 2,
+      "event": "red indirect fire disrupted blue supply route",
+      "control_shift_percent": -8
+    }
+  ],
+  "adjudication": {
+    "mission_status": "contested_advantage_blue",
+    "estimated_time_to_objective_min": 42,
+    "attrition_projection": "moderate"
+  }
+}

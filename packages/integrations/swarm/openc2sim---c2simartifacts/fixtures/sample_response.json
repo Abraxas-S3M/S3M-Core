@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "mission_id": "c2sim-interop-2026-04-10-15",
+  "operation": "validate_c2sim_message_bundle",
+  "bundle_id": "brigade-rehearsal-bundle-22",
+  "messages_validated": 38,
+  "schema_profile": "C2SIM_v1.0.1",
+  "validation_summary": {
+    "passed": 36,
+    "warnings": 2,
+    "failed": 0
+  },
+  "interop_targets": [
+    "sim-node-east",
+    "c2-node-main",
+    "replay-node-archive"
+  ],
+  "tactical_assessment": {
+    "battle_drill_interop": "validated",
+    "coalition_message_readiness": "high"
+  }
+}

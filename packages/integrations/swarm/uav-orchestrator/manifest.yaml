@@ -1,0 +1,13 @@
+name: "UAV-orchestrator"
+slug: "uav-orchestrator"
+domain: "swarm"
+source_url: "https://github.com/wcipAUTH/UAV-orchestrator"
+license: "MIT"
+description: "Orchestration of intelligent UAV swarms for tasks like wireless charging."
+integration_type: "adapter"
+capabilities:
+  - "uav_swarm_orchestration"
+  - "wireless_charging_coordination"
+  - "task_scheduling"
+airgapped_support: true
+
