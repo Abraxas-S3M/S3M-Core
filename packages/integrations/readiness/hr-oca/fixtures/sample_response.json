@@ -1,0 +1,29 @@
+{
+  "snapshot_id": "hr-oca-rd-2026-0410-0815z",
+  "theater": "joint-readiness-district-4",
+  "as_of_utc": "2026-04-10T08:15:00Z",
+  "personnel": {
+    "total_active": 2841,
+    "deployable": 2617,
+    "medical_hold": 73,
+    "leave_or_detached": 151
+  },
+  "training_compliance": {
+    "mandatory_modules_complete_pct": 92.4,
+    "expiring_within_30_days": 119
+  },
+  "payroll_readiness": {
+    "cycle": "2026-04",
+    "records_validated": 2810,
+    "records_pending_review": 31
+  },
+  "high_priority_alerts": [
+    {
+      "unit": "3rd Engineer Regiment",
+      "alert": "CBRN refresher overdue",
+      "affected_personnel": 22,
+      "priority": "high"
+    }
+  ],
+  "status": "stable"
+}

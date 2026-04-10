@@ -1,0 +1,12 @@
+name: "OSINT-War-Room"
+slug: "osint-war-room"
+domain: "readiness"
+source_url: "https://github.com/Hue-Jhan/OSINT-War-Room"
+license: "Unknown"
+description: "Tactical war-room dashboard adapted for personnel readiness and force health monitoring."
+integration_type: "adapter"
+capabilities:
+  - "war_room_readiness_monitoring"
+  - "shift_fatigue_tracking"
+  - "alert_prioritization"
+airgapped_support: true

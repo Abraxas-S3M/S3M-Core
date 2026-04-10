@@ -1,0 +1,22 @@
+{
+  "report_id": "opspp-readiness-2026-0410-001",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "unit": "joint-task-force-north",
+  "summary": {
+    "personnel_total": 1420,
+    "personnel_available": 1312,
+    "availability_rate": 0.924,
+    "beneficiaries_tracked": 3865
+  },
+  "alerts": [
+    {
+      "severity": "medium",
+      "code": "DOC-EXPIRY-WAVE",
+      "message": "47 personnel records require renewed certifications within 14 days."
+    }
+  ],
+  "recommendations": [
+    "Prioritize recertification slots for logistics battalion medics.",
+    "Audit inactive beneficiary entries to improve roster confidence."
+  ]
+}
