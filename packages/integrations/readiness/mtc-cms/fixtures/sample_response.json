@@ -1,0 +1,24 @@
+{
+  "report_id": "mtc-readiness-2026-04-10-01",
+  "training_center": "Regional Combat Training Center - East",
+  "generated_at": "2026-04-10T06:40:00Z",
+  "certification_status": {
+    "personnel_tracked": 914,
+    "current_certifications": 831,
+    "expiring_within_30_days": 47,
+    "expired": 36
+  },
+  "course_pipeline": {
+    "scheduled_cycles_next_14_days": 12,
+    "seat_utilization_pct": 91.4,
+    "critical_course_gaps": [
+      "advanced-comms-maintainer",
+      "cbnr-response-team-lead"
+    ]
+  },
+  "readiness_impact": {
+    "units_at_risk_due_to_training_lapse": 3,
+    "estimated_deployability_delta_pct": -4.8
+  },
+  "staff_recommendation": "Prioritize recertification blocks for CBRN and communications personnel before next deployment window."
+}
