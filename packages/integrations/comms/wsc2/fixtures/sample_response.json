@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "snapshot_id": "wsc2-route-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "route_integrity": {
+    "active_websocket_relays": 14,
+    "healthy_routes": 12,
+    "degraded_routes": 2
+  },
+  "channel_summary": [
+    {
+      "channel": "alpha-east",
+      "latency_ms_p95": 138,
+      "encryption": "tls-ws",
+      "state": "healthy"
+    },
+    {
+      "channel": "foxtrot-urban",
+      "latency_ms_p95": 261,
+      "encryption": "tls-ws",
+      "state": "degraded"
+    }
+  ],
+  "tactical_note": "Reroute foxtrot-urban traffic through hardened relay nodes before high-tempo tasking."
+}

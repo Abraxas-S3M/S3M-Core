@@ -1,1 +1,1 @@
-"""Secure communications integration wrappers for sovereign S3M operations."""
+"""Secure communications integration wrappers for S3M."""

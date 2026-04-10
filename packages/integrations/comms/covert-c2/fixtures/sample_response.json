@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "snapshot_id": "covert-c2-bridge-2026-0410-1200z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "relay_posture": {
+    "active_native_channels": 6,
+    "stealth_routes_nominal": 5,
+    "reroute_required": 1
+  },
+  "route_events": [
+    {
+      "route_id": "nm-alpha-02",
+      "state": "nominal",
+      "detection_surface": "low"
+    },
+    {
+      "route_id": "nm-charlie-07",
+      "state": "degraded",
+      "detection_surface": "medium"
+    }
+  ],
+  "tactical_note": "Rotate charlie-07 bridge endpoint after mission phase to reduce traffic correlation risk."
+}
