@@ -1,1 +1,1 @@
-"""Swarm integration domain for multi-robot tactical coordination wrappers."""
+"""Swarm domain integration wrappers for S3M."""
