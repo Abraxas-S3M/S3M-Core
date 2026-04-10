@@ -1,0 +1,12 @@
+name: "RelaySMS-Android"
+slug: "relaysms-android"
+domain: "comms"
+source_url: "https://github.com/smswithoutborders/SMSwithoutBorders-Android"
+license: "Unknown"
+description: "Secure SMS-based relay for messaging without internet."
+integration_type: "adapter"
+capabilities:
+  - "sms_relay_delivery"
+  - "low_bandwidth_fallback"
+  - "offline_message_queuing"
+airgapped_support: true

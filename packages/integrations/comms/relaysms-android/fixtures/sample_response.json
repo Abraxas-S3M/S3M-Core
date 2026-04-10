@@ -1,0 +1,25 @@
+{
+  "snapshot_id": "relaysms-comms-2026-0410-1300z",
+  "generated_at": "2026-04-10T13:00:00Z",
+  "network_posture": "denied-internet",
+  "relay_status": {
+    "queued_messages": 7,
+    "delivered_messages": 42,
+    "delivery_success_rate": 0.92
+  },
+  "priority_channels": [
+    {
+      "unit": "alpha-platoon",
+      "route": "gsm-fallback-1",
+      "status": "active",
+      "pending": 2
+    },
+    {
+      "unit": "bravo-platoon",
+      "route": "gsm-fallback-2",
+      "status": "degraded",
+      "pending": 3
+    }
+  ],
+  "tactical_note": "SMS relay queue stable; monitor bravo route for intermittent carrier latency."
+}
