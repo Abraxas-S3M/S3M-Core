@@ -1,0 +1,13 @@
+name: "mavsdk_drone_show"
+slug: "mavsdk-drone-show"
+domain: "swarm"
+source_url: "https://github.com/alireza787b/mavsdk_drone_show"
+license: "MIT"
+description: "All-in-one PX4 framework for drone shows, smart swarms, and SAR with leader-follower."
+integration_type: "adapter"
+capabilities:
+  - "leader_follower_control"
+  - "px4_show_mission"
+  - "sar_swarm_coordination"
+airgapped_support: true
+

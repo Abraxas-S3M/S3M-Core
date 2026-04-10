@@ -1,0 +1,33 @@
+{
+  "operation": "mission_course_of_action_analysis",
+  "status": "success",
+  "exercise_id": "llmwargaming-ts-2026-0410-1001",
+  "scenario": "contested_littoral_corridor",
+  "friendly_force": "joint_task_group_17",
+  "adversary_force": "peer_red_team_delta",
+  "recommended_coa": "COA-2",
+  "coas": [
+    {
+      "name": "COA-1",
+      "summary": "Direct thrust to seize chokepoint with high tempo armored push.",
+      "probability_of_success": 0.61,
+      "projected_casualty_index": "high"
+    },
+    {
+      "name": "COA-2",
+      "summary": "Deception feint north, precision fires south, delayed mechanized breach.",
+      "probability_of_success": 0.78,
+      "projected_casualty_index": "medium"
+    },
+    {
+      "name": "COA-3",
+      "summary": "Defensive hold and attrition over 48 hours to force adversary overextension.",
+      "probability_of_success": 0.55,
+      "projected_casualty_index": "low"
+    }
+  ],
+  "risk_assessment": {
+    "highest_risk": "adversary_uav_swarm_disruption",
+    "mitigation": "deploy layered SHORAD and EW jamming windows"
+  }
+}

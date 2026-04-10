@@ -1,0 +1,12 @@
+name: "amos-autonomous_mission_orchestration_system"
+slug: "amos-autonomous-mission-orchestration-sy"
+domain: "swarm"
+source_url: "https://github.com/merkuriddg/amos-autonomous_mission_orchestration_system"
+license: "Apache 2.0"
+description: "Multi-domain command-and-control for autonomous robotic systems across air, ground, maritime, cyber, and space."
+integration_type: "adapter"
+capabilities:
+  - "multi_domain_tasking"
+  - "autonomous_mission_orchestration"
+  - "distributed_swarm_coordination"
+airgapped_support: true

@@ -1,0 +1,21 @@
+{
+  "event_id": "hf-transformers-ct-2026-04-10-001",
+  "platform": "jetson-agx-orin",
+  "mission_profile": "airgapped-llm-mission-briefing",
+  "model": {
+    "name": "s3m-phi3-mini-instruct",
+    "tokenizer": "AutoTokenizer",
+    "quantization": "int8"
+  },
+  "runtime": {
+    "framework": "transformers",
+    "operation": "inference_probe",
+    "latency_ms_p95": 28.7,
+    "max_input_tokens": 4096
+  },
+  "tactical_assessment": {
+    "recommended_action": "approve_local_inference",
+    "confidence": 0.94,
+    "audit_tag": "deterministic-fixture-replay"
+  }
+}

@@ -1,0 +1,12 @@
+name: "OpenC2SIM / C2SIMArtifacts"
+slug: "openc2sim---c2simartifacts"
+domain: "swarm"
+source_url: "https://github.com/OpenC2SIM"
+license: "(SISO)"
+description: "Artifacts and reference implementations for Command and Control - Simulation Interoperation (C2SIM)."
+integration_type: "adapter"
+airgapped_support: true
+capabilities:
+  - "c2sim_interoperability"
+  - "schema_validation"
+  - "reference_artifact_processing"

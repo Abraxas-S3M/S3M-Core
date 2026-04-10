@@ -1,0 +1,23 @@
+{
+  "status": "ok",
+  "exercise_id": "bx-27-red-spear",
+  "sim_time_utc": "2026-04-10T06:30:00Z",
+  "scenario": {
+    "theater": "contested border sector",
+    "objective": "stress-test decentralized C2 doctrine under EW degradation",
+    "friendly_units": 14,
+    "opfor_units": 11
+  },
+  "pubsub_metrics": {
+    "events_published": 842,
+    "events_delivered": 829,
+    "event_loss_rate": 0.0154,
+    "mean_delivery_latency_ms": 74
+  },
+  "command_outcomes": {
+    "orders_issued": 116,
+    "orders_acknowledged": 110,
+    "execution_success_rate": 0.88
+  },
+  "recommendation": "Increase relay node density on eastern flank to preserve command continuity."
+}

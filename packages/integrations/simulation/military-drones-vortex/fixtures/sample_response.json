@@ -1,0 +1,26 @@
+{
+  "status": "ok",
+  "mission_id": "sim-vortex-2026-04-10-04",
+  "scenario_name": "coastal_surveillance_grid",
+  "drone_count": 5,
+  "active_formations": [
+    "wedge",
+    "line_abreast"
+  ],
+  "coverage_summary": {
+    "sector_a_percent": 97.2,
+    "sector_b_percent": 94.8,
+    "sector_c_percent": 92.4
+  },
+  "threat_contacts": [
+    {
+      "contact_id": "trk-771",
+      "classification": "fast_surface_vehicle",
+      "confidence": 0.91
+    }
+  ],
+  "tactical_assessment": {
+    "surveillance_continuity": "high",
+    "handoff_latency_ms": 138
+  }
+}

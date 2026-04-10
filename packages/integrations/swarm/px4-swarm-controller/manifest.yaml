@@ -1,0 +1,15 @@
+
+name: "PX4_Swarm_Controller"
+slug: "px4-swarm-controller"
+domain: "swarm"
+source_url: "https://github.com/artastier/PX4_Swarm_Controller"
+license: "MIT"
+description: "ROS2 package for scalable multi-drone simulation and control in Gazebo using leader-follower patterns."
+integration_type: "adapter"
+capabilities:
+  - "leader_follower_control"
+  - "gazebo_swarm_simulation"
+  - "px4_fleet_command_validation"
+system_dependencies:
+  - "ros2"
+airgapped_support: true

@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "mission_id": "coop-eval-2026-04-10-02",
+  "swarm_id": "coflyers-bravo",
+  "scenario": "urban-corridor-crossing",
+  "agent_count": 8,
+  "algorithm_profile": "cooperative-velocity-obstacle",
+  "evaluation_metrics": {
+    "success_rate": 0.97,
+    "mean_time_to_goal_s": 42.6,
+    "near_miss_events": 1,
+    "collisions": 0
+  },
+  "resource_profile": {
+    "mean_cpu_percent": 54.2,
+    "mean_memory_mb": 812
+  },
+  "tactical_assessment": {
+    "formation_integrity": "stable",
+    "mission_readiness": "approved"
+  }
+}
