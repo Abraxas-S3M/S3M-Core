@@ -1,0 +1,35 @@
+{
+  "report_id": "mms-readiness-2026-04-10-01",
+  "formation": "Northern Theater Joint Support Group",
+  "generated_at": "2026-04-10T06:30:00Z",
+  "personnel": {
+    "authorized": 2480,
+    "assigned": 2392,
+    "available_for_operations": 2210,
+    "training_pipeline": 96,
+    "medical_or_admin_hold": 86
+  },
+  "readiness_by_unit": [
+    {
+      "unit": "HQ Battalion",
+      "readiness_level": "C1",
+      "critical_shortfalls": 1
+    },
+    {
+      "unit": "Logistics Battalion",
+      "readiness_level": "C2",
+      "critical_shortfalls": 3
+    },
+    {
+      "unit": "Medical Battalion",
+      "readiness_level": "C2",
+      "critical_shortfalls": 2
+    }
+  ],
+  "overall_readiness_level": "C2",
+  "recommended_actions": [
+    "Prioritize cross-training for convoy dispatch cells.",
+    "Accelerate onboarding for communications technicians.",
+    "Rebalance medical support teams for forward operations."
+  ]
+}
