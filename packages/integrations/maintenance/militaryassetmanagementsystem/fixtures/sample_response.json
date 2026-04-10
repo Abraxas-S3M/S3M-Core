@@ -1,0 +1,33 @@
+{
+  "snapshot_id": "mams-snap-20260410-001",
+  "theater": "northern-logistics-command",
+  "generated_at": "2026-04-10T08:30:00Z",
+  "asset_summary": {
+    "total_assets": 2841,
+    "mission_ready": 2610,
+    "under_maintenance": 187,
+    "critical_out_of_service": 44
+  },
+  "priority_maintenance_queue": [
+    {
+      "asset_id": "ifv-3312",
+      "asset_type": "infantry_fighting_vehicle",
+      "issue": "powertrain_overheat",
+      "priority": "critical",
+      "eta_to_restore_hours": 9
+    },
+    {
+      "asset_id": "uav-781",
+      "asset_type": "recon_uav",
+      "issue": "gimbal_stabilization_fault",
+      "priority": "high",
+      "eta_to_restore_hours": 6
+    }
+  ],
+  "role_alerts": [
+    {
+      "role": "maintenance_commander",
+      "message": "Two armored units require immediate drivetrain inspection before next sortie window."
+    }
+  ]
+}
