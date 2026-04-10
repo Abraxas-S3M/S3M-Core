@@ -1,1 +1,1 @@
-"""Readiness integration domain for personnel training and force preparedness."""
+"""Personnel and readiness integration wrappers for S3M mission support."""

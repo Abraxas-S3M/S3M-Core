@@ -1,0 +1,23 @@
+{
+  "report_id": "headcount-readiness-2026-0410-005",
+  "generated_at": "2026-04-10T00:00:00Z",
+  "formation": "rapid-response-command",
+  "summary": {
+    "employees_total": 963,
+    "active_today": 886,
+    "approved_time_off": 42,
+    "pending_time_off_requests": 19,
+    "readiness_rate": 0.92
+  },
+  "critical_coverage_gaps": [
+    {
+      "role": "communications-specialist",
+      "gap_count": 6,
+      "priority": "high"
+    }
+  ],
+  "recommended_actions": [
+    "Reassign cross-trained operators to communications roles for the next 72 hours.",
+    "Expedite pending time-off decisions for mission-critical teams."
+  ]
+}
