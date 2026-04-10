@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "crazyswarm-ext-sw-2026-0410-1220z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_context": "joint-multi-domain-swarm-rehearsal",
+  "status": "nominal",
+  "metrics": {
+    "air_vehicles_active": 16,
+    "formation_pattern": "diamond-layered",
+    "trajectory_updates_per_sec": 20,
+    "link_quality_percent": 93,
+    "failover_nodes": 2,
+    "mission_phase": "airborne_overwatch"
+  }
+}

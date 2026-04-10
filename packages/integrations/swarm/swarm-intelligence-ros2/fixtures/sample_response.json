@@ -1,0 +1,14 @@
+{
+  "snapshot_id": "swarm-intel-ros2-sw-2026-0410-1205z",
+  "generated_at": "2026-04-10T12:00:00Z",
+  "mission_context": "joint-multi-domain-swarm-rehearsal",
+  "status": "nominal",
+  "metrics": {
+    "algorithm": "boids_with_obstacle_repulsion",
+    "robot_count": 20,
+    "task_completion_ratio": 0.94,
+    "collision_count": 0,
+    "energy_budget_percent_remaining": 31,
+    "mission_phase": "perimeter_screening"
+  }
+}
