@@ -2,9 +2,28 @@
 
 from __future__ import annotations
 
+import sys
+import types
 from pathlib import Path
 
 import pytest
+
+# Tactical test isolation: provide lightweight boto stubs so sync-manager tests
+# can run in offline CI images where cloud SDK packages are intentionally absent.
+if "boto3" not in sys.modules:
+    boto3_stub = types.ModuleType("boto3")
+    boto3_stub.client = lambda *args, **kwargs: None
+    sys.modules["boto3"] = boto3_stub
+if "botocore" not in sys.modules:
+    sys.modules["botocore"] = types.ModuleType("botocore")
+if "botocore.exceptions" not in sys.modules:
+    botocore_exceptions = types.ModuleType("botocore.exceptions")
+
+    class _ClientError(Exception):
+        pass
+
+    botocore_exceptions.ClientError = _ClientError
+    sys.modules["botocore.exceptions"] = botocore_exceptions
 
 from src.distributed.sync_manager import WeightSyncManager
 from src.storage.vault_paths import VaultPaths
