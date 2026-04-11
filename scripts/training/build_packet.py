@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--upload",
         action="store_true",
-        help="Upload validated generated packets to BackBlaze after creation.",
+        help="Upload validated generated packets to Hetzner Object Storage after creation.",
     )
     return parser.parse_args()
 

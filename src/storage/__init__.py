@@ -7,16 +7,28 @@ Tactical context:
     recover combat-ready runtimes without internet dependency.
 """
 
-from .b2_connector import (
-    B2ChecksumError,
-    B2ConfigurationError,
-    B2Connector,
-    B2ConnectorError,
-    B2OperationError,
+from .object_storage import (
+    ObjectStorageChecksumError,
+    ObjectStorageConfigError,
+    ObjectStorageConnector,
+    ObjectStorageError,
+    ObjectStorageOperationError,
 )
 from .vault_paths import VAULT_PATHS
 
+# Backward-compatible aliases for transition from legacy storage naming.
+B2Connector = ObjectStorageConnector
+B2ConnectorError = ObjectStorageError
+B2ConfigurationError = ObjectStorageConfigError
+B2OperationError = ObjectStorageOperationError
+B2ChecksumError = ObjectStorageChecksumError
+
 __all__ = [
+    "ObjectStorageChecksumError",
+    "ObjectStorageConfigError",
+    "ObjectStorageConnector",
+    "ObjectStorageError",
+    "ObjectStorageOperationError",
     "B2ChecksumError",
     "B2ConfigurationError",
     "B2Connector",

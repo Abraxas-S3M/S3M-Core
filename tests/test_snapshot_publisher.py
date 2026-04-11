@@ -7,7 +7,7 @@ from pathlib import Path
 from src.api.gui_bridge.snapshot_publisher import SnapshotPublisher
 
 
-class _FakeB2Connector:
+class _FakeObjectStorageConnector:
     def __init__(self) -> None:
         self.uploaded: list[dict] = []
 
@@ -80,7 +80,7 @@ def test_training_status_snapshot_schema(tmp_path) -> None:
     )
 
     publisher = SnapshotPublisher(
-        b2_connector=_FakeB2Connector(),
+        object_storage_connector=_FakeObjectStorageConnector(),
         metrics_dir=metrics_dir,
         training_state_root=tmp_path / "state" / "training" / "cloud_cpu",
     )
@@ -108,10 +108,10 @@ def test_training_status_snapshot_schema(tmp_path) -> None:
     assert payload["gpu_sessions"]["last_session"]["loss"] == 0.38
 
 
-def test_publish_to_b2_writes_workspace_files_and_manifest(tmp_path) -> None:
-    connector = _FakeB2Connector()
+def test_publish_to_object_storage_writes_workspace_files_and_manifest(tmp_path) -> None:
+    connector = _FakeObjectStorageConnector()
     publisher = SnapshotPublisher(
-        b2_connector=connector,
+        object_storage_connector=connector,
         metrics_dir=tmp_path / "state" / "training" / "cloud_cpu" / "metrics",
         training_state_root=tmp_path / "state" / "training" / "cloud_cpu",
     )
@@ -121,7 +121,7 @@ def test_publish_to_b2_writes_workspace_files_and_manifest(tmp_path) -> None:
         "system_status": {"type": "backend.snapshot", "payload": {"status": "operational"}, "timestamp": "2026-04-09T00:00:00+00:00"},
         "training_status": {"type": "backend.snapshot", "payload": {"tracks": {}}, "timestamp": "2026-04-09T00:00:00+00:00"},
     }
-    manifest = publisher.publish_to_b2(snapshots)
+    manifest = publisher.publish_to_object_storage(snapshots)
 
     uploaded_keys = {row["object_key"] for row in connector.uploaded}
     assert "gui-snapshots/command.json" in uploaded_keys

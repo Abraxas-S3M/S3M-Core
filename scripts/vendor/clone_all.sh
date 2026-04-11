@@ -83,12 +83,12 @@ repo_root = Path(sys.argv[1]).resolve()
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from src.storage.b2_connector import B2Connector  # noqa: F401
+from src.storage.object_storage import ObjectStorageConnector  # noqa: F401
 print("import-ok")
 PY
 }
 
-b2_connection_check() {
+object_storage_connection_check() {
   python3 - "${REPO_ROOT}" <<'PY'
 import sys
 from pathlib import Path
@@ -97,11 +97,11 @@ repo_root = Path(sys.argv[1]).resolve()
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
-connector = B2Connector()
+connector = ObjectStorageConnector()
 connector.list_keys("vendor/")
-print("b2-ok")
+print("object-storage-ok")
 PY
 }
 
@@ -116,10 +116,10 @@ marker = str(sys.argv[2])
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
 try:
-    exists = B2Connector().file_exists(marker)
+    exists = ObjectStorageConnector().file_exists(marker)
 except Exception:
     raise
 sys.exit(0 if exists else 1)
@@ -139,9 +139,9 @@ remote_prefix = str(sys.argv[3])
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
-B2Connector().sync_up(local_dir, remote_prefix)
+ObjectStorageConnector().sync_up(local_dir, remote_prefix)
 print("sync-up-ok")
 PY
 }
@@ -159,9 +159,9 @@ remote_key = str(sys.argv[3])
 if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
-B2Connector().upload_file(marker_file, remote_key)
+ObjectStorageConnector().upload_file(marker_file, remote_key)
 print("marker-ok")
 PY
 }
@@ -255,7 +255,7 @@ process_one() {
 
   if marker_exists "${marker_key}" >/dev/null 2>&1; then
     echo "[${index}/${total}] ${domain}/${slug} (skipped)"
-    log_line "[SKIP] ${domain}/${slug} marker exists in B2"
+    log_line "[SKIP] ${domain}/${slug} marker exists in object storage"
     write_status "SKIP" "0"
     return 0
   fi
@@ -431,10 +431,10 @@ main() {
 
   require_cmd git
   require_cmd python3
-  require_env S3M_B2_KEY_ID
-  require_env S3M_B2_APP_KEY
-  require_env S3M_B2_BUCKET_NAME
-  require_env S3M_B2_ENDPOINT
+  require_env S3M_STORAGE_ACCESS_KEY
+  require_env S3M_STORAGE_SECRET_KEY
+  require_env S3M_STORAGE_BUCKET_NAME
+  require_env S3M_STORAGE_ENDPOINT
   check_tmp_space
 
   if [[ ! -s "${REPOS_FILE}" ]]; then
@@ -443,12 +443,12 @@ main() {
   fi
 
   if ! python_import_check >/dev/null 2>&1; then
-    log_line "[FATAL] Cannot import src.storage.b2_connector"
+    log_line "[FATAL] Cannot import src.storage.object_storage"
     return 2
   fi
 
-  if ! b2_connection_check >/dev/null 2>&1; then
-    log_line "[FATAL] Cannot connect to BackBlaze B2"
+  if ! object_storage_connection_check >/dev/null 2>&1; then
+    log_line "[FATAL] Cannot connect to Hetzner Object Storage"
     return 2
   fi
 

@@ -14,7 +14,7 @@ from src.training.gpu.eval_harness import EvalResult
 from src.training.gpu.session_manager import GPUSessionManager, GrokTrainingBlockedError
 
 
-class FakeB2Connector:
+class FakeObjectStorageConnector:
     def __init__(self, remote_root: Path) -> None:
         self.remote_root = remote_root
         self.pulls: list[str] = []
@@ -141,8 +141,12 @@ def test_launch_session_runs_full_lifecycle_and_uploads(tmp_path: Path, monkeypa
     existing_ckpt.mkdir(parents=True, exist_ok=True)
     (existing_ckpt / "trainer_state.json").write_text("{}", encoding="utf-8")
 
-    fake_b2 = FakeB2Connector(remote_root=remote_root)
-    monkeypatch.setattr(session_manager_mod.GPUSessionManager, "_load_b2_connector", lambda self: fake_b2)
+    fake_connector = FakeObjectStorageConnector(remote_root=remote_root)
+    monkeypatch.setattr(
+        session_manager_mod.GPUSessionManager,
+        "_load_object_storage_connector",
+        lambda self: fake_connector,
+    )
     monkeypatch.setattr(session_manager_mod, "S3MLoRATrainer", FakeTrainer)
     monkeypatch.setattr(session_manager_mod, "S3MEvalHarness", FakeEvalHarness)
     monkeypatch.setattr(session_manager_mod.sys.stdin, "isatty", lambda: False)
@@ -153,7 +157,7 @@ def test_launch_session_runs_full_lifecycle_and_uploads(tmp_path: Path, monkeypa
 
     assert result.engine_id == "phi3-medium"
     assert result.track == "saudi_mod"
-    assert result.uploaded_to_b2 is True
+    assert result.uploaded_to_object_storage is True
     assert result.eval_scores["structured_output"] == pytest.approx(0.91)
     assert "checkpoint-000000100" in str(FakeTrainer.last_call["resume_from"])
     assert FakeTrainer.last_call["max_runtime_seconds"] == pytest.approx(5400.0)
@@ -178,8 +182,12 @@ def test_grok_engine_is_hard_blocked_at_multiple_entry_points(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     remote_root = tmp_path / "remote"
-    fake_b2 = FakeB2Connector(remote_root=remote_root)
-    monkeypatch.setattr(session_manager_mod.GPUSessionManager, "_load_b2_connector", lambda self: fake_b2)
+    fake_connector = FakeObjectStorageConnector(remote_root=remote_root)
+    monkeypatch.setattr(
+        session_manager_mod.GPUSessionManager,
+        "_load_object_storage_connector",
+        lambda self: fake_connector,
+    )
     monkeypatch.setattr(session_manager_mod, "S3MEvalHarness", FakeEvalHarness)
 
     manager = GPUSessionManager()
@@ -188,7 +196,7 @@ def test_grok_engine_is_hard_blocked_at_multiple_entry_points(
     with pytest.raises(GrokTrainingBlockedError):
         manager.launch_session(engine_id="grok-300b", track="saudi_mod")
     with pytest.raises(GrokTrainingBlockedError):
-        manager.sync_from_b2(engine_id="grok-300b", track="saudi_mod")
+        manager.sync_from_object_storage(engine_id="grok-300b", track="saudi_mod")
     with pytest.raises(GrokTrainingBlockedError):
-        manager.sync_to_b2(engine_id="grok-300b", track="saudi_mod", adapter_dir=tmp_path)
+        manager.sync_to_object_storage(engine_id="grok-300b", track="saudi_mod", adapter_dir=tmp_path)
 

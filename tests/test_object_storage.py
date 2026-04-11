@@ -1,4 +1,4 @@
-"""Tests for BackBlaze B2 connector mission-storage operations."""
+"""Tests for Hetzner Object Storage connector mission-storage operations."""
 
 from __future__ import annotations
 
@@ -9,35 +9,35 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from botocore.exceptions import ClientError
 
-from src.storage.b2_connector import (
-    B2ConfigurationError,
-    B2Connector,
-    B2OperationError,
+from src.storage.object_storage import (
+    ObjectStorageConfigError,
+    ObjectStorageConnector,
+    ObjectStorageOperationError,
 )
 
 
 @pytest.fixture
-def b2_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Provide isolated environment variables for B2 connector bootstrap."""
-    monkeypatch.setenv("S3M_B2_KEY_ID", "unit-test-key-id")
-    monkeypatch.setenv("S3M_B2_APP_KEY", "unit-test-app-key")
-    monkeypatch.setenv("S3M_B2_BUCKET_NAME", "unit-test-vault")
-    monkeypatch.setenv("S3M_B2_ENDPOINT", "https://s3.test.backblazeb2.com")
+def object_storage_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Provide isolated environment variables for object storage bootstrap."""
+    monkeypatch.setenv("S3M_STORAGE_ACCESS_KEY", "unit-test-key-id")
+    monkeypatch.setenv("S3M_STORAGE_SECRET_KEY", "unit-test-app-key")
+    monkeypatch.setenv("S3M_STORAGE_BUCKET_NAME", "unit-test-vault")
+    monkeypatch.setenv("S3M_STORAGE_ENDPOINT", "https://s3.test.objectstorage.com")
 
 
 @pytest.fixture
 def mocked_client() -> tuple[MagicMock, MagicMock]:
     """Patch boto3 client construction and return a controllable mock client."""
-    with patch("src.storage.b2_connector.boto3.client") as client_factory:
+    with patch("src.storage.object_storage.boto3.client") as client_factory:
         client = MagicMock()
         client_factory.return_value = client
         yield client, client_factory
 
 
 @pytest.fixture
-def connector(b2_env: None, mocked_client: tuple[MagicMock, MagicMock]) -> B2Connector:
-    """Create B2 connector with zero sleep delay for deterministic tests."""
-    return B2Connector(retry_base_seconds=0.0)
+def connector(object_storage_env: None, mocked_client: tuple[MagicMock, MagicMock]) -> ObjectStorageConnector:
+    """Create object storage connector with zero sleep delay for deterministic tests."""
+    return ObjectStorageConnector(retry_base_seconds=0.0)
 
 
 def _client(mocked_client: tuple[MagicMock, MagicMock]) -> MagicMock:
@@ -49,18 +49,18 @@ def _client_factory(mocked_client: tuple[MagicMock, MagicMock]) -> MagicMock:
 
 
 def test_init_reads_environment_and_builds_s3_client(
-    b2_env: None,
+    object_storage_env: None,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
-    """Connector bootstraps from S3M_B2_* variables with hardened defaults."""
-    B2Connector(retry_base_seconds=0.0)
+    """Connector bootstraps from S3M_STORAGE_* variables with hardened defaults."""
+    ObjectStorageConnector(retry_base_seconds=0.0)
 
     _client_factory(mocked_client).assert_called_once_with(
         "s3",
-        endpoint_url="https://s3.test.backblazeb2.com",
+        endpoint_url="https://s3.test.objectstorage.com",
         aws_access_key_id="unit-test-key-id",
         aws_secret_access_key="unit-test-app-key",
-        region_name="us-west-004",
+        region_name="fsn1",
     )
 
 
@@ -69,18 +69,18 @@ def test_init_requires_mandatory_environment_values(
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """Missing credential variables fail fast before transport begins."""
-    monkeypatch.delenv("S3M_B2_KEY_ID", raising=False)
-    monkeypatch.delenv("S3M_B2_APP_KEY", raising=False)
-    monkeypatch.delenv("S3M_B2_ENDPOINT", raising=False)
+    monkeypatch.delenv("S3M_STORAGE_ACCESS_KEY", raising=False)
+    monkeypatch.delenv("S3M_STORAGE_SECRET_KEY", raising=False)
+    monkeypatch.delenv("S3M_STORAGE_ENDPOINT", raising=False)
 
-    with pytest.raises(B2ConfigurationError, match="S3M_B2_KEY_ID"):
-        B2Connector(retry_base_seconds=0.0)
+    with pytest.raises(ObjectStorageConfigError, match="S3M_STORAGE_ACCESS_KEY"):
+        ObjectStorageConnector(retry_base_seconds=0.0)
 
     _client_factory(mocked_client).assert_not_called()
 
 
 def test_upload_file_writes_metadata_and_verifies_sha256(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
     tmp_path: Path,
 ) -> None:
@@ -106,7 +106,7 @@ def test_upload_file_writes_metadata_and_verifies_sha256(
 
 
 def test_upload_file_raises_after_checksum_mismatch_retries(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
     tmp_path: Path,
 ) -> None:
@@ -115,7 +115,7 @@ def test_upload_file_raises_after_checksum_mismatch_retries(
     local_file.write_bytes(b"critical-adapter")
     _client(mocked_client).head_object.return_value = {"Metadata": {"sha256": "invalid"}}
 
-    with pytest.raises(B2OperationError, match="upload_file"):
+    with pytest.raises(ObjectStorageOperationError, match="upload_file"):
         connector.upload_file(local_file, "adapters/phi3-medium/track-a/adapter.bin")
 
     assert _client(mocked_client).upload_file.call_count == connector.max_retries
@@ -123,7 +123,7 @@ def test_upload_file_raises_after_checksum_mismatch_retries(
 
 
 def test_download_file_creates_parent_directory_and_downloads(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
     tmp_path: Path,
 ) -> None:
@@ -141,7 +141,7 @@ def test_download_file_creates_parent_directory_and_downloads(
 
 
 def test_download_file_retries_transient_errors(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
     tmp_path: Path,
 ) -> None:
@@ -156,7 +156,7 @@ def test_download_file_retries_transient_errors(
 
 
 def test_list_keys_returns_all_keys_under_prefix(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """Prefix inventory call aggregates keys across paginated responses."""
@@ -178,7 +178,7 @@ def test_list_keys_returns_all_keys_under_prefix(
 
 
 def test_sync_down_downloads_all_non_directory_keys(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     tmp_path: Path,
 ) -> None:
     """Bulk pull maps remote key layout into local operational cache tree."""
@@ -204,7 +204,7 @@ def test_sync_down_downloads_all_non_directory_keys(
 
 
 def test_sync_up_uploads_all_local_files_with_prefix(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     tmp_path: Path,
 ) -> None:
     """Bulk push preserves local relative layout under remote mission prefix."""
@@ -230,7 +230,7 @@ def test_sync_up_uploads_all_local_files_with_prefix(
 
 
 def test_file_exists_returns_true_on_head_success(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """Positive head lookup confirms object readiness for downstream pulls."""
@@ -240,7 +240,7 @@ def test_file_exists_returns_true_on_head_success(
 
 
 def test_file_exists_returns_false_for_missing_object(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """NotFound/404 response is treated as absent object, not hard failure."""
@@ -254,7 +254,7 @@ def test_file_exists_returns_false_for_missing_object(
 
 
 def test_file_exists_raises_for_repeated_non_404_errors(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """Persistent non-404 failures bubble up with connector context."""
@@ -263,12 +263,12 @@ def test_file_exists_raises_for_repeated_non_404_errors(
         "HeadObject",
     )
 
-    with pytest.raises(B2OperationError, match="file_exists"):
+    with pytest.raises(ObjectStorageOperationError, match="file_exists"):
         connector.file_exists("base-weights/phi3-medium/weights.gguf")
 
 
 def test_delete_file_invokes_delete_object(
-    connector: B2Connector,
+    connector: ObjectStorageConnector,
     mocked_client: tuple[MagicMock, MagicMock],
 ) -> None:
     """Deletion call routes directly to object store key removal operation."""

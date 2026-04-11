@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
 DEFAULT_SNAPSHOT_PREFIX = "gui-snapshots/"
 
@@ -76,7 +76,7 @@ def _load_metrics_store_class():
 
 
 class SnapshotPublisher:
-    """Generates and publishes GUI data snapshots to BackBlaze B2.
+    """Generates and publishes GUI data snapshots to Hetzner Object Storage.
 
     Military/tactical context:
     Snapshots provide the CloudFlare Pages frontend with pre-rendered
@@ -102,18 +102,18 @@ class SnapshotPublisher:
 
     def __init__(
         self,
-        b2_connector: B2Connector,
+        object_storage_connector: ObjectStorageConnector,
         *,
         metrics_dir: Path | str = "state/training/cloud_cpu/metrics",
         training_state_root: Path | str = "state/training/cloud_cpu",
-        b2_snapshot_prefix: str = DEFAULT_SNAPSHOT_PREFIX,
+        snapshot_prefix: str = DEFAULT_SNAPSHOT_PREFIX,
     ) -> None:
-        self._b2_connector = b2_connector
+        self._object_storage_connector = object_storage_connector
         self._metrics_dir = Path(metrics_dir)
         self._training_state_root = Path(training_state_root)
         metrics_store_class = _load_metrics_store_class()
         self._metrics_store = metrics_store_class(self._metrics_dir)
-        self._b2_snapshot_prefix = self._normalize_prefix(b2_snapshot_prefix)
+        self._snapshot_prefix = self._normalize_prefix(snapshot_prefix)
 
     def generate_all_snapshots(self) -> Dict[str, Any]:
         """Generate snapshot JSON for every GUI workspace.
@@ -168,8 +168,8 @@ class SnapshotPublisher:
             "timestamp": _now_iso(),
         }
 
-    def publish_to_b2(self, snapshots: Dict[str, Any]) -> Dict[str, Any]:
-        """Upload all snapshots to gui-snapshots/ in BackBlaze.
+    def publish_to_object_storage(self, snapshots: Dict[str, Any]) -> Dict[str, Any]:
+        """Upload all snapshots to gui-snapshots/ in Hetzner Object Storage.
 
         Each workspace gets its own JSON file:
         - gui-snapshots/command.json
@@ -186,7 +186,7 @@ class SnapshotPublisher:
         for workspace, snapshot_payload in snapshots.items():
             normalized = self._validate_workspace(workspace)
             safe_payload = _as_dict(snapshot_payload)
-            key = f"{self._b2_snapshot_prefix}{_workspace_filename(normalized)}.json"
+            key = f"{self._snapshot_prefix}{_workspace_filename(normalized)}.json"
             result = self._upload_json(key=key, payload=safe_payload)
             manifest_entries[normalized] = self._manifest_entry(
                 workspace=normalized,
@@ -200,7 +200,7 @@ class SnapshotPublisher:
             "type": "backend.snapshot.manifest",
             "snapshots": manifest_entries,
         }
-        manifest_key = f"{self._b2_snapshot_prefix}manifest.json"
+        manifest_key = f"{self._snapshot_prefix}manifest.json"
         manifest_result = self._upload_json(key=manifest_key, payload=manifest_payload)
         manifest_payload["etag"] = str(manifest_result.get("etag", _compute_etag(manifest_payload)))
         manifest_payload["uploaded_at"] = str(manifest_result.get("uploaded_at", _now_iso()))
@@ -213,10 +213,10 @@ class SnapshotPublisher:
         and generates training-status.json with:
         - Per-track: current step, loss, samples processed, last eval scores
         - Per-engine: adapter versions, promotion history
-        - System: Hetzner health, last sync time, BackBlaze usage
+        - System: Hetzner health, last sync time, object storage usage
         """
         snapshot = self.generate_workspace_snapshot("training_status")
-        self.publish_to_b2({"training_status": snapshot})
+        self.publish_to_object_storage({"training_status": snapshot})
         return snapshot
 
     def write_local_snapshots(self, snapshots: Dict[str, Any], output_dir: Path | str) -> Dict[str, Any]:
@@ -268,20 +268,20 @@ class SnapshotPublisher:
         }
 
     def _upload_json(self, *, key: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        if hasattr(self._b2_connector, "upload_json"):
-            result = self._b2_connector.upload_json(key, payload)
+        if hasattr(self._object_storage_connector, "upload_json"):
+            result = self._object_storage_connector.upload_json(key, payload)
             if isinstance(result, dict):
                 return result
         encoded = _json_bytes(payload)
-        if hasattr(self._b2_connector, "upload_bytes"):
-            result = self._b2_connector.upload_bytes(key, encoded, "application/json")
+        if hasattr(self._object_storage_connector, "upload_bytes"):
+            result = self._object_storage_connector.upload_bytes(key, encoded, "application/json")
             if isinstance(result, dict):
                 return result
-        if hasattr(self._b2_connector, "put_object"):
-            result = self._b2_connector.put_object(key, encoded, "application/json")
+        if hasattr(self._object_storage_connector, "put_object"):
+            result = self._object_storage_connector.put_object(key, encoded, "application/json")
             if isinstance(result, dict):
                 return result
-        raise RuntimeError("Configured B2 connector does not expose a JSON upload method")
+        raise RuntimeError("Configured object storage connector does not expose a JSON upload method")
 
     def _build_command_snapshot(self) -> Dict[str, Any]:
         from src.api.gui_bridge.adapters.agent_adapter import AgentAdapter
@@ -526,7 +526,7 @@ class SnapshotPublisher:
         return engines
 
     def _collect_training_system_status(self) -> Dict[str, Any]:
-        mirror_root = Path("state/gui_bridge/b2_mirror")
+        mirror_root = Path("state/gui_bridge/object_storage_mirror")
         object_count = 0
         total_bytes = 0
         if mirror_root.exists():
@@ -538,11 +538,12 @@ class SnapshotPublisher:
         return {
             "hetzner_health": "degraded" if not self._collect_engine_status_safe() else "operational",
             "last_sync_time": _now_iso(),
-            "backblaze_usage": {
+            "object_storage_usage": {
                 "objects": object_count,
                 "bytes": total_bytes,
             },
         }
+
 
     @staticmethod
     def _collect_engine_status_safe() -> Dict[str, Any]:

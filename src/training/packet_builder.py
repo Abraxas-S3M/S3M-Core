@@ -255,7 +255,7 @@ class PacketBuilder:
         return True
 
     def upload_packs(self, pack_dirs: List[Path], track: str) -> List[str]:
-        """Upload validated packs to BackBlaze under datasets/{track}/scenarios/."""
+        """Upload validated packs to Hetzner Object Storage under datasets/{track}/scenarios/."""
         self._validate_track(track)
         uploaded_prefixes: List[str] = []
         for raw_dir in pack_dirs:
@@ -357,7 +357,7 @@ class PacketBuilder:
         return normalized
 
     @staticmethod
-    def _upload_file_with_b2_connector(connector: Any, local_path: Path, remote_key: str) -> bool:
+    def _upload_file_with_object_storage_connector(connector: Any, local_path: Path, remote_key: str) -> bool:
         methods = ("upload_file", "upload_path", "upload")
         for method_name in methods:
             method = getattr(connector, method_name, None)
@@ -381,30 +381,30 @@ class PacketBuilder:
 
     def _upload_file(self, local_path: Path, remote_key: str) -> None:
         try:
-            from src.storage.b2_connector import B2Connector  # type: ignore
+            from src.storage.object_storage import ObjectStorageConnector  # type: ignore
         except Exception:
-            B2Connector = None
+            ObjectStorageConnector = None
 
-        if B2Connector is not None:
-            connector = B2Connector()
-            if self._upload_file_with_b2_connector(connector, local_path=local_path, remote_key=remote_key):
+        if ObjectStorageConnector is not None:
+            connector = ObjectStorageConnector()
+            if self._upload_file_with_object_storage_connector(connector, local_path=local_path, remote_key=remote_key):
                 return
 
         try:
             import boto3
         except ImportError as exc:
             raise RuntimeError(
-                "boto3 is required for BackBlaze upload when src.storage.b2_connector is unavailable"
+                "boto3 is required for object storage upload when src.storage.object_storage is unavailable"
             ) from exc
 
-        bucket = os.getenv("B2_BUCKET", "").strip()
-        key_id = os.getenv("B2_KEY_ID", "").strip() or os.getenv("B2_APPLICATION_KEY_ID", "").strip()
-        application_key = os.getenv("B2_APPLICATION_KEY", "").strip()
-        endpoint_url = os.getenv("B2_ENDPOINT_URL", "").strip() or None
+        bucket = os.getenv("S3M_STORAGE_BUCKET_NAME", "").strip()
+        key_id = os.getenv("S3M_STORAGE_ACCESS_KEY", "").strip()
+        application_key = os.getenv("S3M_STORAGE_SECRET_KEY", "").strip()
+        endpoint_url = os.getenv("S3M_STORAGE_ENDPOINT", "").strip() or None
         if not bucket or not key_id or not application_key:
             raise RuntimeError(
-                "Missing BackBlaze credentials; set B2_BUCKET, B2_KEY_ID (or B2_APPLICATION_KEY_ID), "
-                "and B2_APPLICATION_KEY."
+                "Missing object storage credentials; set S3M_STORAGE_BUCKET_NAME, "
+                "S3M_STORAGE_ACCESS_KEY, S3M_STORAGE_SECRET_KEY, and S3M_STORAGE_ENDPOINT."
             )
 
         client = boto3.client(

@@ -5,7 +5,7 @@ set -euo pipefail
 # Tactical context: this script hardens each transient GPU pod into a
 # deterministic training node for rapid adapter generation in contested links.
 
-for required_key in S3M_B2_KEY_ID S3M_B2_APP_KEY S3M_B2_BUCKET_NAME S3M_B2_ENDPOINT; do
+for required_key in S3M_STORAGE_ACCESS_KEY S3M_STORAGE_SECRET_KEY S3M_STORAGE_BUCKET_NAME S3M_STORAGE_ENDPOINT; do
   if [[ -z "${!required_key:-}" ]]; then
     echo "ERROR: ${required_key} is required." >&2
     exit 1
@@ -26,7 +26,7 @@ case "${S3M_TARGET_ENGINE}" in
 esac
 
 if [[ "$(printf '%s' "${S3M_TARGET_ENGINE}" | tr '[:upper:]' '[:lower:]')" == *grok* ]]; then
-  echo "ERROR: Grok-family engines are blocked from RunPod B2 sync policy." >&2
+  echo "ERROR: Grok-family engines are blocked from RunPod object storage sync policy." >&2
   exit 1
 fi
 
@@ -94,7 +94,7 @@ build_llama_cpp_cuda() {
 }
 
 sync_from_vault() {
-  banner "Syncing base weights and datasets from BackBlaze B2"
+  banner "Syncing base weights and datasets from Hetzner Object Storage"
   if [[ "$(printf '%s' "${S3M_TARGET_ENGINE}" | tr '[:upper:]' '[:lower:]')" == *grok* ]]; then
     echo "ERROR: Grok-family engine sync is blocked by policy." >&2
     exit 1
@@ -108,18 +108,18 @@ sync_from_vault() {
   python - <<'PY'
 import os
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.storage.vault_paths import VaultPaths
 
 engine = os.environ["S3M_TARGET_ENGINE"].strip()
 if "grok" in engine.lower():
     raise SystemExit("Grok-family engine sync is blocked by policy.")
 
-connector = B2Connector(
-    key_id=os.environ["S3M_B2_KEY_ID"],
-    app_key=os.environ["S3M_B2_APP_KEY"],
-    bucket_name=os.environ["S3M_B2_BUCKET_NAME"],
-    endpoint_url=os.environ["S3M_B2_ENDPOINT"],
+connector = ObjectStorageConnector(
+    access_key=os.environ["S3M_STORAGE_ACCESS_KEY"],
+    secret_key=os.environ["S3M_STORAGE_SECRET_KEY"],
+    bucket_name=os.environ["S3M_STORAGE_BUCKET_NAME"],
+    endpoint=os.environ["S3M_STORAGE_ENDPOINT"],
 )
 
 base_root = os.environ["BASE_ROOT"]
@@ -137,12 +137,12 @@ for track in tracks:
         prefix=VaultPaths.adapters(engine, track=track),
         local_dir=f"{adapter_root}/{track}",
     )
-print("BackBlaze B2 pull complete.")
+print("Hetzner Object Storage pull complete.")
 PY
 }
 
 push_to_vault() {
-  banner "Pushing training artifacts to BackBlaze B2"
+  banner "Pushing training artifacts to Hetzner Object Storage"
   if [[ "$(printf '%s' "${S3M_TARGET_ENGINE}" | tr '[:upper:]' '[:lower:]')" == *grok* ]]; then
     echo "ERROR: Grok-family engine push is blocked by policy." >&2
     exit 1
@@ -154,18 +154,18 @@ push_to_vault() {
   python - <<'PY'
 import os
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.storage.vault_paths import VaultPaths
 
 engine = os.environ["S3M_TARGET_ENGINE"].strip()
 if "grok" in engine.lower():
     raise SystemExit("Grok-family engine push is blocked by policy.")
 
-connector = B2Connector(
-    key_id=os.environ["S3M_B2_KEY_ID"],
-    app_key=os.environ["S3M_B2_APP_KEY"],
-    bucket_name=os.environ["S3M_B2_BUCKET_NAME"],
-    endpoint_url=os.environ["S3M_B2_ENDPOINT"],
+connector = ObjectStorageConnector(
+    access_key=os.environ["S3M_STORAGE_ACCESS_KEY"],
+    secret_key=os.environ["S3M_STORAGE_SECRET_KEY"],
+    bucket_name=os.environ["S3M_STORAGE_BUCKET_NAME"],
+    endpoint=os.environ["S3M_STORAGE_ENDPOINT"],
 )
 
 adapter_root = os.environ["ADAPTER_ROOT"]
@@ -176,7 +176,7 @@ connector.sync_local_to_prefix(
     local_dir=checkpoint_root,
     prefix=VaultPaths.checkpoints("runpod", engine_id=engine),
 )
-print("BackBlaze B2 push complete.")
+print("Hetzner Object Storage push complete.")
 PY
 }
 
@@ -195,8 +195,8 @@ run_training_and_push() {
 print_ready() {
   banner "RunPod 4090 node ready"
   echo "Target engine: ${S3M_TARGET_ENGINE}"
-  echo "BackBlaze bucket: ${S3M_B2_BUCKET_NAME}"
-  echo "BackBlaze endpoint: ${S3M_B2_ENDPOINT}"
+  echo "Object storage bucket: ${S3M_STORAGE_BUCKET_NAME}"
+  echo "Object storage endpoint: ${S3M_STORAGE_ENDPOINT}"
   echo "Python venv: ${VENV_PATH}"
   echo "Base weights path: ${BASE_ROOT}"
   echo "Datasets path: ${DATASET_ROOT}"

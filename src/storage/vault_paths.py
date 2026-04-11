@@ -1,5 +1,5 @@
 """
-Canonical vault key templates for B2-backed artifact storage.
+Canonical vault key templates for object-storage-backed artifact storage.
 
 Tactical context:
     Stable key conventions guarantee that operators, training pipelines, and
@@ -12,7 +12,7 @@ from typing import Final
 
 
 class VaultPaths:
-    """Structured B2 object key templates for sovereign artifact placement.
+    """Structured object storage key templates for sovereign artifact placement.
 
     Tactical context:
         Consistent key derivation is required so model promotion, restore,

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Seed S3M BackBlaze vault tiers: models, datasets, and vendor repositories.
+"""Seed S3M Hetzner Object Storage vault tiers: models, datasets, and vendor repositories.
 
 Military/tactical context:
     This orchestration script supports sovereign artifact pre-positioning so
-    operators can rehydrate tactical AI capabilities from BackBlaze vault
+    operators can rehydrate tactical AI capabilities from Hetzner Object Storage
     storage during contested or disconnected operations.
 """
 
@@ -29,7 +29,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.storage.precision_manager import PrecisionManager
 from src.storage.vault_paths import VaultPaths
 
@@ -216,7 +216,7 @@ def _select_models(catalog: dict[str, ModelSource], requested: list[str]) -> lis
     return ordered
 
 
-def _seed_models(connector: B2Connector, model_sources: list[ModelSource], *, force_grok: bool) -> int:
+def _seed_models(connector: ObjectStorageConnector, model_sources: list[ModelSource], *, force_grok: bool) -> int:
     if not model_sources:
         LOGGER.warning("No model sources found; skipping model seeding")
         return 0
@@ -395,7 +395,7 @@ def _download_dataset_once(entry: DatasetDefinition, staging_dir: Path) -> tuple
     return True, "ok"
 
 
-def _seed_datasets(connector: B2Connector, datasets: list[DatasetDefinition]) -> int:
+def _seed_datasets(connector: ObjectStorageConnector, datasets: list[DatasetDefinition]) -> int:
     failures = 0
     with tempfile.TemporaryDirectory(prefix="s3m-seed-datasets-") as tmp_dir_name:
         tmp_root = Path(tmp_dir_name)
@@ -487,7 +487,7 @@ def _seed_vendor(repo_root: Path, *, domain: str, parallel: int, dry_run: bool) 
     return int(process.returncode)
 
 
-def _read_marker(connector: B2Connector, key: str) -> dict[str, str]:
+def _read_marker(connector: ObjectStorageConnector, key: str) -> dict[str, str]:
     with tempfile.TemporaryDirectory(prefix="s3m-marker-read-") as tmp_dir_name:
         tmp_path = Path(tmp_dir_name) / "marker.txt"
         connector.download_file(key, tmp_path)
@@ -524,7 +524,7 @@ def _format_missing(ids: list[str], *, max_items: int = 10) -> str:
     return f"{shown}, ... ({len(ids) - max_items} more)"
 
 
-def _inventory_report(connector: B2Connector, repo_root: Path, datasets_registry: list[DatasetDefinition]) -> str:
+def _inventory_report(connector: ObjectStorageConnector, repo_root: Path, datasets_registry: list[DatasetDefinition]) -> str:
     manager = PrecisionManager(connector)
     model_inventory = manager.get_model_inventory()
     model_lines = [_format_engine_line(engine_id, model_inventory.get(engine_id, {})) for engine_id in MODEL_CANONICAL_ORDER]
@@ -590,7 +590,7 @@ def _inventory_report(connector: B2Connector, repo_root: Path, datasets_registry
     usage_pct = (total_usage_gb / capacity_gb) * 100.0 if capacity_gb > 0 else 0.0
 
     lines = [
-        "S3M BACKBLAZE VAULT INVENTORY",
+        "S3M HETZNER OBJECT STORAGE VAULT INVENTORY",
         "═══════════════════════════════════════════",
         "MODELS (FP16 + Q4):",
         *model_lines,
@@ -615,7 +615,7 @@ def _inventory_report(connector: B2Connector, repo_root: Path, datasets_registry
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Seed S3M BackBlaze vault tiers")
+    parser = argparse.ArgumentParser(description="Seed S3M Hetzner Object Storage vault tiers")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--models", action="store_true", help="Seed AI model weights")
     mode.add_argument("--datasets", action="store_true", help="Seed training datasets")
@@ -645,7 +645,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     args = _parse_args()
     repo_root = _project_root()
-    connector = B2Connector()
+    connector = ObjectStorageConnector()
 
     datasets_registry_path = (repo_root / args.datasets_config).resolve()
     datasets_registry = _load_dataset_registry(datasets_registry_path)

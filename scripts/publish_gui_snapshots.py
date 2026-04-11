@@ -18,7 +18,7 @@ from typing import Any, Dict
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.api.gui_bridge.snapshot_publisher import SnapshotPublisher
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
 
 def _parse_args() -> argparse.Namespace:
@@ -34,7 +34,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--local-only",
         action="store_true",
-        help="Generate snapshots and write to local output instead of B2 upload",
+        help="Generate snapshots and write to local output instead of object storage upload",
     )
     parser.add_argument(
         "--output",
@@ -44,12 +44,12 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _resolve_connector(local_only: bool) -> B2Connector:
+def _resolve_connector(local_only: bool) -> ObjectStorageConnector:
     if local_only:
-        return B2Connector()
-    if hasattr(B2Connector, "from_env"):
-        return B2Connector.from_env()
-    return B2Connector()
+        return ObjectStorageConnector()
+    if hasattr(ObjectStorageConnector, "from_env"):
+        return ObjectStorageConnector.from_env()
+    return ObjectStorageConnector()
 
 
 def _select_workspaces(args: argparse.Namespace) -> list[str]:
@@ -93,7 +93,7 @@ def main() -> int:
         print("[OK] Published training-status snapshot")
         return 0
 
-    manifest = publisher.publish_to_b2(snapshots)
+    manifest = publisher.publish_to_object_storage(snapshots)
     print(f"[OK] Published {len(snapshots)} snapshots")
     _print_summary(manifest)
     return 0

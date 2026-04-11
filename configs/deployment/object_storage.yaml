@@ -1,0 +1,74 @@
+object_storage:
+  provider: "hetzner"
+  bucket_name: "s3m-vault"
+  region: "fsn1"
+  endpoint: "https://fsn1.your-objectstorage.com"
+  sync_interval_minutes: 30
+  max_retries: 3
+
+  # Hetzner Object Storage advantage:
+  # Internal traffic between Hetzner cloud servers and Object Storage
+  # in the same network zone (eu-central) is FREE.
+  # RunPod traffic still uses public internet (egress counted).
+  internal_network_zone: "eu-central"
+
+  storage_budget:
+    fp16_models_gb: 435
+    q4_models_gb: 119
+    datasets_gb: 1291
+    vendor_code_gb: 12
+    adapters_gb: 50
+    checkpoints_gb: 50
+    gui_snapshots_gb: 1
+    total_budget_gb: 1958
+    plan_tb: 2
+
+  engines:
+    phi3-medium:
+      fp16_hf_repo: "microsoft/Phi-3-medium-4k-instruct"
+      q4_hf_repo: "bartowski/Phi-3-medium-4k-instruct-GGUF"
+      fp16_size_gb: 28
+      q4_size_gb: 8.5
+      trainable: true
+      servable: true
+    mistral-7b:
+      fp16_hf_repo: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+      q4_hf_repo: "TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
+      fp16_size_gb: 93
+      q4_size_gb: 26
+      trainable: true
+      servable: true
+    allam-7b:
+      fp16_hf_repo: "humain-ai/ALLaM-7B-Instruct-preview"
+      q4_hf_repo: null
+      fp16_size_gb: 14
+      q4_size_gb: 4
+      trainable: true
+      servable: true
+    grok-300b:
+      fp16_hf_repo: "xai-org/grok-1"
+      q4_hf_repo: null
+      fp16_size_gb: 300
+      q4_size_gb: 80
+      trainable: false
+      servable: false
+      role: "validation_oracle_only"
+
+  access_rules:
+    hetzner:
+      pulls_fp16: true
+      pulls_q4: true
+      pulls_datasets: true
+      pushes_checkpoints: true
+      pushes_q4: true
+      pushes_snapshots: true
+      blocked_engines: ["grok-300b"]
+      network: "internal_free"
+    runpod:
+      pulls_fp16: true
+      pulls_q4: false
+      pulls_datasets: true
+      pushes_adapters: true
+      pushes_checkpoints: true
+      blocked_engines: ["grok-300b"]
+      network: "public_egress"

@@ -4,7 +4,7 @@
 Military/tactical context:
     S3M needs deterministic inventory of approved upstream code sources so
     disconnected deployment teams can stage vendor dependencies into the
-    sovereign BackBlaze vault without ad-hoc internet browsing.
+    sovereign object storage vault without ad-hoc internet browsing.
 """
 
 from __future__ import annotations

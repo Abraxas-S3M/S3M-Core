@@ -1,4 +1,4 @@
-"""Unit tests for BackBlaze B2 sync daemon orchestration."""
+"""Unit tests for object storage sync daemon orchestration."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 
 import yaml
 
-from scripts.infra.b2_sync_daemon import B2SyncDaemon
+from scripts.infra.storage_sync_daemon import StorageSyncDaemon
 
 
 class _FakeConnector:
@@ -60,24 +60,24 @@ def _write_config(tmp_path: Path, **sync_overrides: Any) -> Path:
     }
     sync.update(sync_overrides)
     payload = {
-        "backblaze": {
+        "object_storage": {
             "endpoint": "https://example.invalid",
             "bucket_name": "s3m-vault",
-            "key_id": "key-id",
-            "app_key": "app-key",
+            "access_key": "key-id",
+            "secret_key": "app-key",
         },
         "sync": sync,
     }
-    config_path = tmp_path / "backblaze.yaml"
+    config_path = tmp_path / "object_storage.yaml"
     config_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
     return config_path
 
 
 def test_sync_cycle_executes_expected_pull_and_push_operations(tmp_path: Path, monkeypatch) -> None:
     config_path = _write_config(tmp_path)
-    monkeypatch.setattr("scripts.infra.b2_sync_daemon.B2Connector", _FakeConnector)
+    monkeypatch.setattr("scripts.infra.storage_sync_daemon.ObjectStorageConnector", _FakeConnector)
 
-    daemon = B2SyncDaemon(config_path=str(config_path))
+    daemon = StorageSyncDaemon(config_path=str(config_path))
     totals = daemon.sync_cycle()
     connector = _FakeConnector._instance
 
@@ -107,10 +107,10 @@ def test_sync_cycle_blocks_grok_pull_paths_and_logs_warning(tmp_path: Path, monk
         quantized_pull_engines=["phi3-medium", "grok-300b"],
         adapters_engine_ids=["grok-300b"],
     )
-    monkeypatch.setattr("scripts.infra.b2_sync_daemon.B2Connector", _FakeConnector)
+    monkeypatch.setattr("scripts.infra.storage_sync_daemon.ObjectStorageConnector", _FakeConnector)
 
-    daemon = B2SyncDaemon(config_path=str(config_path))
-    with caplog.at_level("WARNING", logger="s3m.infra.b2_sync"):
+    daemon = StorageSyncDaemon(config_path=str(config_path))
+    with caplog.at_level("WARNING", logger="s3m.infra.storage_sync"):
         daemon.sync_cycle()
     connector = _FakeConnector._instance
 
@@ -129,10 +129,10 @@ def test_sync_cycle_blocks_when_listed_key_contains_grok(tmp_path: Path, monkeyp
             return [{"Key": f"{prefix}file-001.bin"}]
 
     config_path = _write_config(tmp_path, quantized_pull_engines=["phi3-medium"])
-    monkeypatch.setattr("scripts.infra.b2_sync_daemon.B2Connector", _KeyBlockingConnector)
+    monkeypatch.setattr("scripts.infra.storage_sync_daemon.ObjectStorageConnector", _KeyBlockingConnector)
 
-    daemon = B2SyncDaemon(config_path=str(config_path))
-    with caplog.at_level("WARNING", logger="s3m.infra.b2_sync"):
+    daemon = StorageSyncDaemon(config_path=str(config_path))
+    with caplog.at_level("WARNING", logger="s3m.infra.storage_sync"):
         daemon.sync_cycle()
     connector = _KeyBlockingConnector._instance
 
