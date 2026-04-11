@@ -84,16 +84,16 @@ def test_sync_cycle_executes_expected_pull_and_push_operations(tmp_path: Path, m
     pulled_prefixes = [prefix for prefix, _ in connector.pull_calls]
     assert "datasets/saudi_mod/scenarios/" in pulled_prefixes
     assert "datasets/nato/scenarios/" in pulled_prefixes
-    assert "quantized/phi3-medium/" in pulled_prefixes
-    assert "quantized/mistral-7b/" in pulled_prefixes
-    assert "adapters/phi3-medium/saudi_mod/" in pulled_prefixes
-    assert "adapters/phi3-medium/nato/" in pulled_prefixes
+    assert "models/q4-gguf/phi3-medium/" in pulled_prefixes
+    assert "models/q4-gguf/mistral-7b/" in pulled_prefixes
+    assert "models/fp16-adapters/phi3-medium/saudi_mod/" in pulled_prefixes
+    assert "models/fp16-adapters/phi3-medium/nato/" in pulled_prefixes
     assert all("grok" not in prefix.lower() for prefix in pulled_prefixes)
 
     pushed_prefixes = [prefix for _, prefix in connector.push_calls]
     assert "checkpoints/hetzner/saudi_mod/" in pushed_prefixes
     assert "checkpoints/hetzner/nato/" in pushed_prefixes
-    assert "eval-results/hetzner/" in pushed_prefixes
+    assert "eval-results/hetzner/global/" in pushed_prefixes
     assert "gui-snapshots/" in pushed_prefixes
 
     assert totals["downloaded"] >= 1
@@ -124,8 +124,8 @@ def test_sync_cycle_blocks_when_listed_key_contains_grok(tmp_path: Path, monkeyp
     class _KeyBlockingConnector(_FakeConnector):
         def list_objects(self, prefix: str) -> list[dict[str, str]]:
             self.list_calls.append(prefix)
-            if prefix == "quantized/phi3-medium/":
-                return [{"Key": "quantized/phi3-medium/grok-shadow.bin"}]
+            if prefix == "models/q4-gguf/phi3-medium/":
+                return [{"Key": "models/q4-gguf/phi3-medium/grok-shadow.bin"}]
             return [{"Key": f"{prefix}file-001.bin"}]
 
     config_path = _write_config(tmp_path, quantized_pull_engines=["phi3-medium"])
@@ -137,5 +137,5 @@ def test_sync_cycle_blocks_when_listed_key_contains_grok(tmp_path: Path, monkeyp
     connector = _KeyBlockingConnector._instance
 
     pulled_prefixes = [prefix for prefix, _ in connector.pull_calls]
-    assert "quantized/phi3-medium/" not in pulled_prefixes
+    assert "models/q4-gguf/phi3-medium/" not in pulled_prefixes
     assert any("Blocked pull key encountered" in record.message for record in caplog.records)

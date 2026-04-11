@@ -306,7 +306,8 @@ class ObjectStorageConnector:
 
         self._with_retries(f"download_file key={key}", _operation)
         logger.info("Downloaded storage://%s/%s to %s", self.bucket_name, key, target)
-        return {"remote_key": key, "size_bytes": int(target.stat().st_size)}
+        size_bytes = int(target.stat().st_size) if target.exists() else 0
+        return {"remote_key": key, "size_bytes": size_bytes}
 
     def list_keys(self, prefix: str) -> list[str]:
         """
