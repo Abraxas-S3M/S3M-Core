@@ -1,0 +1,452 @@
+# S3M Vendor Repos Manifest
+# Auto-generated from packages/integrations/*/*/manifest.yaml
+# Format: domain|slug|url|license|name
+# Total entries: 447
+# Generated: 2026-04-10T09:16:48.296924+00:00
+autonomy|awesome-behavior-trees|https://github.com/BehaviorTree/awesome-behavior-trees|MIT|awesome-behavior-trees
+autonomy|behaviortree.cpp|https://github.com/BehaviorTree/BehaviorTree.CPP|MIT|BehaviorTree.CPP
+autonomy|behaviortree.ros2|https://github.com/BehaviorTree/BehaviorTree.ROS2|MIT|BehaviorTree.ROS2
+autonomy|eli5|https://github.com/TeamHG-Memex/eli5|MIT|ELI5
+autonomy|groot|https://github.com/BehaviorTree/Groot|MIT|Groot
+autonomy|gym-pybullet-drones|https://github.com/utiasDSL/gym-pybullet-drones|MIT|gym-pybullet-drones
+autonomy|intel-xai-tools|https://github.com/intel/intel-xai-tools|Apache 2.0|intel-xai-tools
+autonomy|interpretml|https://github.com/interpretml/interpret|MIT|InterpretML
+autonomy|marllib|https://github.com/Replicable-MARL/MARLlib|MIT|MARLlib
+autonomy|nav2-behavior-tree|https://github.com/ros-planning/navigation2(nav2_behavior_tree|BSD|nav2_behavior_tree
+autonomy|openrl|https://github.com/OpenRL-Lab/openrl|Apache 2.0|openrl
+autonomy|pantheonrl|https://github.com/Stanford-ILIAD/PantheonRL|MIT|PantheonRL
+autonomy|pettingzoo|https://github.com/Farama-Foundation/PettingZoo(maintained|MIT|PettingZoo
+autonomy|pr-behavior-tree|https://github.com/personalrobotics/pr_behavior_tree|MIT|pr_behavior_tree
+autonomy|py-trees|https://github.com/splintered-reality/py_trees|BSD|py_trees
+autonomy|py-trees-ros|https://github.com/splintered-reality/py_trees_ros|BSD|py_trees_ros
+autonomy|ray-with-rllib|https://github.com/ray-project/ray|Apache 2.0|ray (with RLlib)
+autonomy|rl-baselines3-zoo|https://github.com/DLR-RM/rl-baselines3-zoo|MIT|rl-baselines3-zoo
+autonomy|spot-bt-ros|https://github.com/sandialabs/spot_bt_ros|Apache 2.0|spot_bt_ros
+autonomy|stable-baselines3|https://github.com/DLR-RM/stable-baselines3|MIT|stable-baselines3
+autonomy|trustyai-explainability|https://github.com/trustyai-explainability/trustyai-explainability|Apache 2.0|trustyai-explainability
+autonomy|xai-cybersecurity|https://github.com/ivoafonsobispo/XAI-Cybersecurity|MIT|XAI-Cybersecurity
+autonomy|xai-ethicalml|https://github.com/EthicalML/xai|MIT|xai (EthicalML)
+autonomy|xai-lib|https://github.com/kdd-lab/XAI-Lib|MIT|XAI-Lib
+comms|arabic-resources|https://github.com/NNLP-IL/Arabic-Resources|Unknown|Arabic-Resources
+comms|arabic-summarization-with-arabert|https://github.com/aliasharf123/arabic-summarization-with-araBert|Unknown|arabic-summarization-with-araBert
+comms|arabic-text-classification-summarization|https://github.com/NouraAbuthnain/arabic-text-classification-summarization|Unknown|arabic-text-classification-summarization
+comms|awesome-xmpp|https://github.com/bluszcz/awesome-xmpp|Unknown|awesome-xmpp
+comms|berty|https://github.com/berty/berty|Unknown|berty
+comms|c2-chatbot|https://github.com/traiannicula/c2_chatbot|Unknown|c2_chatbot
+comms|camelbert|https://github.com/CAMeL-Lab/CAMeLBERT|Unknown|CAMeLBERT
+comms|chatmail-relay|https://github.com/chatmail/relay|Unknown|chatmail/relay
+comms|chitchatter|https://github.com/jeremyckahn/chitchatter|Unknown|chitchatter
+comms|covert-c2|https://github.com/efchatz/Covert-C2|Unknown|Covert-C2
+comms|destroyer-p2p|https://github.com/Destroyer-official/Destroyer_P2P|Unknown|Destroyer_P2P
+comms|destroyer-p2p-extensions|https://github.com/Destroyer-official/Destroyer_P2P|Unknown|Destroyer_P2P (extensions)
+comms|ejabberd|https://github.com/processone/ejabberd|Unknown|ejabberd
+comms|enchat|https://github.com/sudodevdante/enchat|Unknown|enchat
+comms|enchat-extensions|https://github.com/sudodevdante/enchat|Unknown|enchat (extensions)
+comms|libsignal|https://github.com/signalapp/libsignal|Unknown|libsignal
+comms|meshtastic|https://github.com/meshtastic/meshtastic|Unknown|meshtastic
+comms|mt5-small-arabic-summarization|https://github.com/yalsaffar/mt5-small-Arabic-Summarization|Unknown|mt5-small-Arabic-Summarization
+comms|mxbridge|https://github.com/djmaze/mxbridge|Unknown|mxbridge
+comms|ninja|https://github.com/ahmedkhlief/Ninja|Unknown|Ninja
+comms|nlp-arabic-text-summarization-using-arab|https://github.com/asma-10/NLP-Arabic-text-summarization-using-araBART-|Unknown|NLP-Arabic-text-summarization-using-araBART
+comms|nostr-p2p|https://github.com/cmdruid/nostr-p2p|Unknown|nostr-p2p
+comms|prosody|https://github.com/prosody/prosody (core)|Unknown|prosody
+comms|relaysms-android|https://github.com/smswithoutborders/SMSwithoutBorders-Android|Unknown|RelaySMS-Android
+comms|rocket.chat|https://github.com/rocketchat/rocket.chat|Unknown|rocket.chat
+comms|simplex-chat|https://github.com/simplex-chat/simplex-chat|Unknown|simplex-chat
+comms|sremp|https://github.com/PlexSheep/SREMP|Unknown|SREMP
+comms|synapse-matrix-homeserver|https://github.com/element-hq/synapse|Unknown|synapse (Matrix homeserver)
+comms|talkkonnect|https://github.com/talkkonnect/talkkonnect|Unknown|talkkonnect
+comms|tfc-tinfoil-chat|https://github.com/maqp/tfc|Unknown|tfc (Tinfoil Chat)
+comms|wsc2|https://github.com/Arno0x/WSC2|Unknown|WSC2
+core_tooling|accelerate|https://github.com/huggingface/accelerate|Unknown|Accelerate
+core_tooling|bitsandbytes|https://github.com/TimDettmers/bitsandbytes|Unknown|BitsAndBytes
+core_tooling|datasets|https://github.com/huggingface/datasets|Unknown|Datasets
+core_tooling|hugging-face-hub|https://github.com/huggingface/huggingface_hub|Unknown|Hugging Face Hub
+core_tooling|hugging-face-transformers|https://github.com/huggingface/transformers|Unknown|Hugging Face Transformers
+core_tooling|mergekit|https://github.com/arcee-ai/mergekit|Unknown|Mergekit
+core_tooling|peft-parameter-efficient-fine-tuning|https://github.com/huggingface/peft|Unknown|PEFT (Parameter-Efficient Fine-Tuning)
+core_tooling|trl-transformers-reinforcement-learning|https://github.com/huggingface/trl|Unknown|TRL (Transformers Reinforcement Learning)
+core_tooling|unsloth|https://github.com/unslothai/unsloth|Unknown|Unsloth
+cyber|awesome-incident-response|https://github.com/meirwah/awesome-incident-response|Unknown|awesome-incident-response
+cyber|awesome-siem|https://github.com/cybersader/awesome-siem|Unknown|awesome-siem
+cyber|cortex|https://github.com/TheHive-Project/Cortex|Unknown|Cortex
+cyber|cybersim-soc-simulator|https://github.com/TheGhostPacket/cybersim-soc-simulator|Unknown|cybersim-soc-simulator
+cyber|cyberthreatintelligence|https://github.com/Knoxpix/CyberThreatIntelligence|Unknown|CyberThreatIntelligence
+cyber|enterprise-soc-detection-and-response-wa|https://github.com/THeOLdMAn48/Enterprise-SOC-Detection-and-Response-Wazuh|Unknown|Enterprise-SOC-Detection-and-Response-Wazuh
+cyber|graylog|https://github.com/Graylog2/graylog2-server|Unknown|graylog
+cyber|gsvsoc-cirt-playbook-battle-cards|https://github.com/guardsight/gsvsoc_cirt-playbook-battle-cards|Unknown|gsvsoc_cirt-playbook-battle-cards
+cyber|incident-playbook|https://github.com/austinsonger/Incident-Playbook|Unknown|Incident-Playbook
+cyber|incident-response-plan-template|https://github.com/counteractive/incident-response-plan-template|Unknown|incident-response-plan-template
+cyber|it-security-management-system-dashboard|https://github.com/Secu7/IT-Security-Management-System-Dashboard|Unknown|IT-Security-Management-System-Dashboard
+cyber|misp|https://github.com/MISP/MISP|Unknown|MISP
+cyber|open-source-siem-soc-stack|https://github.com/ArfanAbid/Open-Source-SIEM_SOC-Stack|Unknown|Open-Source-SIEM_SOC-Stack
+cyber|phantomcyber-playbooks|https://github.com/phantomcyber/playbooks|Unknown|phantomcyber/playbooks
+cyber|playbooks|https://github.com/socfortress/Playbooks|Unknown|Playbooks
+cyber|security-onion|https://github.com/Security-Onion-Solutions/security-onion|Unknown|security-onion
+cyber|shuffle|https://github.com/shuffle (main repo)|Unknown|shuffle
+cyber|soc-automation-with-automated-response-f|https://github.com/Jaykitkukadiya/Soc-automation-with-automated-response-for-malware-and-malicious-IP-connect|Unknown|Soc-automation-with-automated-response-for-malware-and-malicious-IP-connect
+cyber|soc-cert-dashboard|https://github.com/joupify/soc-cert-dashboard|Unknown|soc-cert-dashboard
+cyber|soc-multitool|https://github.com/zdhenard42/SOC-Multitool|Unknown|SOC-Multitool
+cyber|soc-toolkit|https://github.com/phrp720/soc-toolkit|Unknown|soc-toolkit
+cyber|thehive|https://github.com/TheHive-Project/TheHive|Unknown|TheHive
+cyber|thehive-cortex-misp-docker-compose-lab|https://github.com/ls111-cybersec/thehive-cortex-misp-docker-compose-lab11update|Unknown|thehive-cortex-misp-docker-compose-lab
+cyber|wazuh-rules|https://github.com/socfortress/Wazuh-Rules|Unknown|Wazuh-Rules
+cyber|wazuh-soc-enterprise|https://github.com/brunoflausino/wazuh-soc-enterprise|Unknown|wazuh-soc-enterprise
+cyber|wazuh-soc-lab|https://github.com/marxgoo/Wazuh-SOC-Lab|Unknown|Wazuh-SOC-Lab
+cyber|wazuh-suricata|https://github.com/ADORSYS-GIS/wazuh-suricata|Unknown|wazuh-suricata
+dashboard|actual|https://github.com/actualbudget/actual|MIT|Actual
+dashboard|assume|https://github.com/assume-framework/assume|MIT|Assume
+dashboard|awesome-asset-discovery-curated|https://github.com/redhuntlabs/Awesome-Asset-Discovery|MIT|Awesome-Asset-Discovery (Curated)
+dashboard|awesome-threat-detection-curated|https://github.com/0x4D31/awesome-threat-detection|MIT|Awesome-Threat-Detection (Curated)
+dashboard|battlesimulator|https://github.com/gregparkes/BattleSimulator|MIT|BattleSimulator
+dashboard|datascienceinteractivepython|https://github.com/GeostatsGuy/DataScienceInteractivePython|MIT|DataScienceInteractivePython
+dashboard|erpnext|https://github.com/frappe/erpnext|GPL-3.0|ERPNext
+dashboard|evidently|https://github.com/evidentlyai/evidently|Apache 2.0|Evidently
+dashboard|fleetbase|https://github.com/fleetbase/fleetbase|Apache 2.0|Fleetbase
+dashboard|ghosts|https://github.com/cmu-sei/GHOSTS|Apache 2.0|GHOSTS
+dashboard|industrace|https://github.com/industrace/industrace|MIT|Industrace
+dashboard|jsbsim|https://github.com/JSBSim-Team/jsbsim|LGPL-2.1|JSBSim
+dashboard|langfuse|https://github.com/langfuse/langfuse|MIT|Langfuse
+dashboard|marmotte|https://github.com/marmotteio/marmotteio|MIT|Marmotte
+dashboard|misp-dashboard|https://github.com/MISP/misp-dashboard|AGPL-3.0|MISP-Dashboard
+dashboard|ocular|https://github.com/simonwep/ocular|MIT|Ocular
+dashboard|opencti|https://github.com/OpenCTI-Platform/opencti|Apache 2.0|OpenCTI
+dashboard|orbat-mapper|https://github.com/orbat-mapper/orbat-mapper|MIT|Orbat-Mapper
+dashboard|panopticon-ai|https://github.com/Panopticon-AI-team/panopticon|MIT|Panopticon AI
+dashboard|phoenix|https://github.com/Arize-ai/phoenix|Apache 2.0|Phoenix
+dashboard|riskanalysiswithgenerativeaireasoning|https://github.com/bartczernicki/RiskAnalysisWithGenerativeAIReasoning|MIT|RiskAnalysisWithGenerativeAIReasoning
+dashboard|rogueshield-ai-threat-detector|https://github.com/mahaswetaroy1/rogueshield-ai-threat-detector|MIT|RogueShield AI Threat Detector
+dashboard|streamlit-cybersecurity-dashboard|https://github.com/ajitagupta/streamlit-cybersecurity-dashboard|MIT|Streamlit-Cybersecurity-Dashboard
+dashboard|supply-chain-management-dashboard|https://github.com/GirishKumarV25/Supply-Chain-Management-Dashboard|MIT|Supply-Chain-Management-Dashboard
+dashboard|supply-chain-performance-dashboard|https://github.com/PolinaBurova/Supply-Chain-Performance-Dashboard|MIT|Supply-Chain-Performance-Dashboard
+dashboard|taiwan-situation|https://github.com/Pluto114/TaiWan-situation|MIT|TaiWan-Situation
+dashboard|watcher|https://github.com/thalesgroup-cert/Watcher|Apache 2.0|Watcher
+dashboard|world-monitor|https://github.com/koala73/worldmonitor|MIT|World Monitor
+datasets|military-target-&-equipment-detection|https://github.com/KarthikPrabhu2541/Military-Target-and-Equipment-Detection|MIT (repo); dataset|Military Target & Equipment Detection
+datasets|open-transport-data|https://github.com/ITSLeeds/opentransportdata|Various|Open Transport Data
+datasets|panopticon-ai-scenarios|https://github.com/Panopticon-AI-team/panopticon|MIT|Panopticon AI Scenarios
+datasets|vehicledetection-sar-small-object|https://github.com/KK-MUT/VehicleDetection|Request from authors|VehicleDetection (SAR Small Object)
+hmi|aix360|https://github.com/Trusted-AI/AIX360|Apache 2.0|AIX360
+hmi|alibi|https://github.com/SeldonIO/alibi|Apache 2.0|alibi
+hmi|awesome-embodied-multimodal-llms|https://github.com/tulerfeng/Awesome-Embodied-Multimodal-LLMs|MIT|Awesome-Embodied-Multimodal-LLMs
+hmi|awesome-embodied-vla-va-vln|https://github.com/jonyzhang2023/awesome-embodied-vla-va-vln|MIT|awesome-embodied-vla-va-vln
+hmi|awesome-explainable-ai|https://github.com/rushrukh/awesome-explainable-ai|MIT|awesome-explainable-ai
+hmi|awesome-explainable-reinforcement-learni|https://github.com/Plankson/awesome-explainable-reinforcement-learning|MIT|awesome-explainable-reinforcement-learning
+hmi|awesome-machine-learning-interpretabilit|https://github.com/jphall663/awesome-machine-learning-interpretability|MIT|awesome-machine-learning-interpretability
+hmi|awesome-multimodal-large-language-models|https://github.com/bradyfu/awesome-multimodal-large-language-models|MIT|awesome-multimodal-large-language-models
+hmi|awesome-xai|https://github.com/altamiracorp/awesome-xai|MIT|awesome-xai
+hmi|by-your-command|https://github.com/pondersome/by_your_command|MIT|by_your_command
+hmi|captum|https://github.com/pytorch/captum|BSD|Captum
+hmi|drwhy-modelstudio-etc.|https://github.com/ModelOriented/DrWhy|GPL-3.0|DrWhy (modelStudio etc.)
+hmi|explainable-reinforcement-learning|https://github.com/observer4599/explainable-reinforcement-learning|MIT|explainable-reinforcement-learning
+hmi|explainerdashboard|https://github.com/oegedijk/explainerdashboard|MIT|explainerdashboard
+hmi|grafana-with-llm-plugins|https://github.com/grafana/grafana|AGPL-3.0|Grafana (with LLM plugins)
+hmi|isaacs-interface|https://github.com/augcog/ISAACS_Interface|Apache 2.0|ISAACS_Interface
+hmi|langfuse|https://github.com/langfuse/langfuse|MIT|langfuse
+hmi|llm-controlled-drone|https://github.com/pratikPhadte/LLM-controlled-drone|MIT|LLM-controlled-drone
+hmi|llm-ros2|https://github.com/LLMR-boringtao/LLM_ROS2|GPL-3.0|LLM_ROS2
+hmi|modelstudio|https://github.com/ModelOriented/modelStudio|GPL-3.0|modelStudio
+hmi|omnixai|https://github.com/salesforce/OmniXAI|BSD-3-Clause|OmniXAI
+hmi|opik|https://github.com/comet-ml/opik|MIT|opik
+hmi|phoenix|https://github.com/arize-ai/phoenix|Apache 2.0|phoenix
+hmi|quantus|https://github.com/understandable-machine-intelligence-lab/Quantus|Apache 2.0|Quantus
+hmi|ros-voice-assistant|https://github.com/victorcarvesk/ros-voice-assistant|MIT|ros-voice-assistant
+hmi|uavs-meet-llms|https://github.com/Hub-Tian/UAVs_Meet_LLMs|MIT|UAVs_Meet_LLMs
+hmi|ultravox|https://github.com/fixie-ai/ultravox|(Open weights)|ultravox
+hmi|vision-voice-multimodal-app|https://github.com/EvanGks/vision-voice-multimodal-app|MIT|vision-voice-multimodal-app
+hmi|vlms-with-ros2-workshop|https://github.com/nilutpolkashyap/vlms_with_ros2_workshop|MIT|vlms_with_ros2_workshop
+hmi|xai-resources|https://github.com/pbiecek/xai_resources|MIT|xai_resources
+intel|a-hybrid-arabic-text-summarization-appro|https://github.com/mohamedehab00/A-Hybrid-Arabic-Text-Summarization-Approach-based-on-Transformers|Unknown|A-Hybrid-Arabic-Text-Summarization-Approach-based-on-Transformers
+intel|aegis|https://github.com/alex-armand-blumberg/AEGIS|Unknown|AEGIS
+intel|arabic-abstractive-summarization|https://github.com/JoeFarag-00/Arabic-Abstractive-Summarization|Unknown|Arabic-Abstractive-Summarization
+intel|awesome-osint|https://github.com/jivoi/awesome-osint|Unknown|awesome-osint
+intel|awesome-osint-for-everything|https://github.com/Astrosp/Awesome-OSINT-For-Everything|Unknown|Awesome-OSINT-For-Everything
+intel|briefing-agent|https://github.com/alexnix300/briefing-agent|Unknown|briefing-agent
+intel|crisismap|https://github.com/realwaynesun/crisismap|Unknown|crisismap
+intel|globalpulse|https://github.com/ntamero/globalpulse|Unknown|globalpulse
+intel|holehe|https://github.com/megadose/holehe|Unknown|holehe
+intel|legendary-osint|https://github.com/K2SOsint/Legendary_OSINT|Unknown|Legendary_OSINT
+intel|meridian|https://github.com/iliane5/meridian|Unknown|meridian
+intel|news-briefing-generator|https://github.com/grbtm/news-briefing-generator|Unknown|news-briefing-generator
+intel|octosuite|https://github.com/bellingcat/octosuite|Unknown|octosuite
+intel|osint|https://github.com/doctorfree/osint|Unknown|osint
+intel|osint-bible|https://github.com/frangelbarrera/OSINT-BIBLE|Unknown|OSINT-BIBLE
+intel|osint-framework|https://github.com/fr4nc1stein/osint-framework|Unknown|osint-framework
+intel|osint-stuff-tool-collection|https://github.com/cipher387/osint_stuff_tool_collection|Unknown|osint_stuff_tool_collection
+intel|phoneinfoga|https://github.com/sundowndev/phoneinfoga|Unknown|phoneinfoga
+intel|recon-ng|https://github.com/lanmaster53/recon-ng|Unknown|recon-ng
+intel|social-media-osint-tools-collection|https://github.com/osintambition/Social-Media-OSINT-Tools-Collection|Unknown|Social-Media-OSINT-Tools-Collection
+intel|spiderfoot|https://github.com/smicallef/spiderfoot|Unknown|spiderfoot
+intel|taiwan-situation|https://github.com/Pluto114/TaiWan-situation|Unknown|TaiWan-situation
+intel|taranis-ai|https://github.com/taranis-ai/taranis-ai|Unknown|taranis-ai
+intel|tigmint|https://github.com/TIGMINT/TIGMINT|Unknown|TIGMINT
+intel|toutatis|https://github.com/megadose/toutatis|Unknown|toutatis
+interop|air-c2-cop-python|https://github.com/Esri/air-c2-cop-python|Unknown|air-c2-cop-python
+interop|awesome-command-control|https://github.com/tcostam/awesome-command-control|Unknown|awesome-command-control
+interop|awesome-geospatial|https://github.com/sacridini/Awesome-Geospatial|Unknown|awesome-geospatial
+interop|c2sim|https://github.com/gmuc4i/c2sim|Unknown|c2sim
+interop|c2simartifacts|https://github.com/OpenC2SIM/C2SIMArtifacts|Unknown|C2SIMArtifacts
+interop|clermont|https://github.com/SageHourihan/clermont|Unknown|clermont
+interop|coredsunreal-samples|https://github.com/distributedsimulationtools/coreDSUnreal_Sample_AutomaticMode|Unknown|coreDSUnreal (samples)
+interop|defense-solutions-proofs-of-concept|https://github.com/Esri/defense-solutions-proofs-of-concept|Unknown|defense-solutions-proofs-of-concept
+interop|dis-tutorial|https://github.com/open-dis/dis-tutorial|Unknown|dis-tutorial
+interop|ghosts-cyber-range-and-exercise-simulati|https://github.com/cmu-sei/ghosts-cyber-range-and-exercise-simulation-tools|Unknown|ghosts-cyber-range-and-exercise-simulation-tools
+interop|msdllib|https://github.com/orbat-mapper/msdllib|Unknown|msdllib
+interop|msg201cwix|https://github.com/OpenC2SIM/MSG201CWIX|Unknown|MSG201CWIX
+interop|open-dis-cpp|https://github.com/open-dis/open-dis-cpp|Unknown|open-dis-cpp
+interop|open-dis-java|https://github.com/open-dis/open-dis-java|Unknown|open-dis-java
+interop|open-dis-python|https://github.com/open-dis/open-dis-python|Unknown|open-dis-python
+interop|openc2sim.github.io|https://github.com/OpenC2SIM/OpenC2SIM.github.io|Unknown|OpenC2SIM.github.io
+interop|simplec2sim|https://github.com/AVataRR626/SimpleC2Sim|Unknown|SimpleC2Sim
+interop|tacticalmesh|https://github.com/TamTunnel/TacticalMesh|Unknown|TacticalMesh
+maintenance|ai-powered-predictive-maintenance-system|https://github.com/Siddhartha80/AI-Powered-Predictive-Maintenance-System-for-Vehicles|Unknown|AI-Powered-Predictive-Maintenance-System-for-Vehicles
+maintenance|allegro-ralph|https://github.com/allegro/ralph|Unknown|allegro/ralph
+maintenance|armymanagementsystem|https://github.com/christos-pelekis/ArmyManagementSystem|Unknown|ArmyManagementSystem
+maintenance|aws-fleet-predictive-maintenance|https://github.com/awslabs/aws-fleet-predictive-maintenance|Unknown|aws-fleet-predictive-maintenance
+maintenance|dolibarr-dolibarr|https://github.com/dolibarr/dolibarr|Unknown|dolibarr/dolibarr
+maintenance|fleetbase|https://github.com/fleetbase/fleetbase|Unknown|fleetbase
+maintenance|fleetms|https://github.com/jmnda-dev/fleetms|Unknown|fleetms
+maintenance|glpi-project-glpi|https://github.com/glpi-project/glpi|Unknown|glpi-project/glpi
+maintenance|intelligent-supplychain-management-syste|https://github.com/akhil888binoy/Intelligent-Supplychain-Management-System|Unknown|Intelligent-Supplychain-Management-System
+maintenance|militaryassetmanagementsystem|https://github.com/chiragSahani/MilitaryAssetManagementSystem|Unknown|MilitaryAssetManagementSystem
+maintenance|ml-based-vehicle-predictive-maintenance-|https://github.com/iDharshan/ML-Based-Vehicle-Predictive-Maintenance-System-with-Real-Time-Visualization|Unknown|ML-Based-Vehicle-Predictive-Maintenance-System-with-Real-Time-Visualization
+maintenance|nocobase-nocobase|https://github.com/nocobase/nocobase|Unknown|nocobase/nocobase
+maintenance|open-msupply|https://github.com/msupply-foundation/open-msupply|Unknown|open-msupply
+maintenance|openremote|https://github.com/openremote/openremote (fleet examples)|Unknown|openremote
+maintenance|openxe-org-openxe|https://github.com/OpenXE-org/OpenXE|Unknown|OpenXE-org/OpenXE
+maintenance|orangehrm-orangehrm|https://github.com/orangehrm/orangehrm|Unknown|orangehrm/orangehrm
+maintenance|pmx-data|https://github.com/autonlab/pmx_data|Unknown|pmx_data
+maintenance|predictive-maintenance|https://github.com/Sara-Esm/Predictive-Maintenance|Unknown|Predictive-Maintenance
+maintenance|predictive-maintenance-of-aircraft-engin|https://github.com/archd3sai/Predictive-Maintenance-of-Aircraft-Engine|Unknown|Predictive-Maintenance-of-Aircraft-Engine
+maintenance|predictive-maintenance-project|https://github.com/SureshAthanti/Predictive_Maintenance_Project|Unknown|Predictive_Maintenance_Project
+maintenance|predictive-maintenance-with-mlops|https://github.com/Sengarofficial/Predictive_Maintenance_With_MLops|Unknown|Predictive_Maintenance_With_MLops
+maintenance|procurement-management-system|https://github.com/Piumikavindya/Procurement-Management-System|Unknown|Procurement-Management-System
+maintenance|real-time-predictive-maintenance-system-|https://github.com/EkeminiThompson/Real-Time-Predictive-Maintenance-System-for-Aircraft|Unknown|Real-Time-Predictive-Maintenance-System-for-Aircraft
+maintenance|snipe-it|https://github.com/snipe/snipe-it|Unknown|snipe-it
+military|aegis|https://github.com/Vitalcheffe/Aegis|Apache 2.0|Aegis
+military|ardupilot|https://github.com/ArduPilot/ardupilot|GPL-3.0|ardupilot
+military|autonomous-ai-drone-scripts|https://github.com/sieuwe1/Autonomous-Ai-drone-scripts|MIT|Autonomous-Ai-drone-scripts
+military|autonomous-drone-simulator|https://github.com/jennamk14/autonomous_drone_simulator|MIT|autonomous_drone_simulator
+military|autonomous-drone-swarm|https://github.com/CUSP-NYU/autonomous-drone-swarm|MIT|autonomous-drone-swarm
+military|awesome-asset-discovery|https://github.com/redhuntlabs/Awesome-Asset-Discovery|MIT|Awesome-Asset-Discovery
+military|awesome-security|https://github.com/sbilly/awesome-security|MIT|awesome-security
+military|awesome-threat-intelligence|https://github.com/hslatman/awesome-threat-intelligence|MIT|awesome-threat-intelligence
+military|awesome-threat-intelligence-adapt|https://github.com/hslatman/awesome-threat-intelligence|MIT|awesome-threat-intelligence (adapt)
+military|battle-management-language-bml|https://github.com/c5i-gmu|Apache 2.0|Battle Management Language (BML)
+military|battle-simulator|https://github.com/manos02/battle-simulator|MIT|battle-simulator
+military|crazyswarm|https://github.com/USC-ACTLab/crazyswarm|MIT|crazyswarm
+military|drone-swarm|https://github.com/iamrajee/drone_swarm|MIT|drone_swarm
+military|glaws-spearbot|https://github.com/westpoint-robotics/GLAWS|MIT|GLAWS (SpearBot)
+military|hunter-ua-drone|https://github.com/Ohara124c41/Hunter-UA-Drone|MIT|Hunter-UA-Drone
+military|limited;-adapt-openmaint|https://github.com/openmaint/openmaint|AGPL-3.0|Limited; adapt OpenMAINT
+military|malcolm|https://github.com/cisagov/Malcolm|AGPL-3.0|Malcolm
+military|mav-multiagent-ws|https://github.com/ethz-asl/mav_multiagent_ws|(BSD-style)|mav_multiagent_ws
+military|mavros|https://github.com/mavlink/mavros|BSD|mavros
+military|metasploit|https://github.com/rapid7/metasploit-framework|BSD-3-Clause|Metasploit
+military|military-ai|https://github.com/AI-Guru/military-ai|MIT (curated)|military-ai
+military|military-management-fe|https://github.com/hduraimurugan/military-management-FE|MIT|military-management-FE
+military|military-sim-old|https://github.com/ninest/military-sim-old|MIT|military-sim-old
+military|multirobotexploration-robotarmy|https://github.com/abdulkadrtr/multiRobotExploration-RobotArmy|MIT|multiRobotExploration-RobotArmy
+military|multirotor-launch-west-point|https://github.com/westpoint-robotics|MIT|multirotor_launch (West Point)
+military|nikto|https://github.com/sullo/nikto|GPL-3.0|Nikto
+military|ompl|https://github.com/ompl/ompl|BSD|ompl
+military|open-dis|https://github.com/open-dis|BSD-3-Clause|Open-DIS
+military|openlmis|https://github.com/OpenLMIS/openlmis-ref-distro|AGPL-3.0|OpenLMIS
+military|openvas|https://github.com/greenbone/openvas-scanner|GPL-2.0|OpenVAS
+military|orb-slam3|https://github.com/UZ-SLAMLab/ORB_SLAM3|(BSD-style)|ORB_SLAM3
+military|osint-toolkit|https://github.com/dev-lu/osint_toolkit|MIT|osint_toolkit
+military|ossec|https://github.com/ossec/ossec-hids|GPL-2.0|OSSEC
+military|primaite|https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE|Apache 2.0|PrimAITE
+military|px4-autopilot|https://github.com/PX4/PX4-Autopilot|BSD-3-Clause|PX4-Autopilot
+military|qgroundcontrol|https://github.com/mavlink/qgroundcontrol|Apache 2.0|qgroundcontrol
+military|raise-the-openclaw|https://github.com/bgoldmann/Raise-The-OpenClaw|MIT|Raise-The-OpenClaw
+military|signalrange|https://github.com/thkruz/SignalRange|MIT|SignalRange
+military|snipe-it|https://github.com/snipe/snipe-it|AGPL-3.0|Snipe-IT
+military|snort|https://github.com/snort3/snort3|GPL-2.0|Snort
+military|vins-mono---vins-fusion|https://github.com/HKUST-Aerial-Robotics/VINS-Mono|(BSD-style)|VINS-Mono / VINS-Fusion
+nato|acados-optimal-control-solver|https://github.com/acados/acados|BSD|ACADOS (optimal control solver)
+nato|awesome-threat-intelligence-curated-list|https://github.com/hslatman/awesome-threat-intelligence|MIT|awesome-threat-intelligence (curated list)
+nato|open-dis-distributed-interactive-simulat|https://github.com/open-dis|BSD-3-Clause|Open-DIS (Distributed Interactive Simulation)
+nato|pytorch-core-ml-framework|https://github.com/pytorch/pytorch|BSD|PyTorch (core ML framework)
+nato|suricata|https://github.com/OISF/suricata|GPL-2.0|Suricata
+nato|wazuh|https://github.com/wazuh/wazuh|GPL-2.0|Wazuh
+nato|zeek-formerly-bro|https://github.com/zeek/zeek|BSD-3-Clause|Zeek (formerly Bro)
+navigation|acados|https://github.com/acados/acados|BSD|acados
+navigation|autonomous-drone-navigation|https://github.com/ahmedeltaher/Autonomous-drone-navigation|MIT|Autonomous-drone-navigation
+navigation|autonomous-drone-navigation-variants|https://github.com/topics/gps-denied|Varies|Autonomous-drone-navigation (variants)
+navigation|awesome-tinyml|https://github.com/umitkacar/awesome-tinyml|MIT|awesome-tinyml
+navigation|drone-path-predictor-ros|https://github.com/mzahana/drone_path_predictor_ros|MIT|drone_path_predictor_ros
+navigation|inertialsense-ros2|https://github.com/byu-magicc/inertialsense_ros2|MIT|inertialsense_ros2
+navigation|jetson-inference|https://github.com/dusty-nv/jetson-inference|MIT|jetson-inference
+navigation|kr-autonomous-flight|https://github.com/KumarRobotics/kr_autonomous_flight|(BSD-style)|kr_autonomous_flight
+navigation|li-slam-ros2|https://github.com/rsasaki0109/li_slam_ros2|(ROS2-style)|li_slam_ros2
+navigation|lio-sam|https://github.com/TixiaoShan/LIO-SAM|(BSD-style)|LIO-SAM
+navigation|lio-sam-6axis|https://github.com/JokerJohn/LIO_SAM_6AXIS|(BSD-style)|LIO_SAM_6AXIS
+navigation|model-inference-deployment|https://github.com/Yulv-git/Model-Inference-Deployment|MIT|Model-Inference-Deployment
+navigation|moveit-motion-planning|https://github.com/moveit/moveit|BSD|MoveIt (motion planning)
+navigation|mpc-planner|https://github.com/tud-amr/mpc_planner|MIT|mpc_planner
+navigation|nav2-ros2-navigation|https://github.com/ros-planning/navigation2|BSD|nav2 (ROS2 Navigation)
+navigation|nmpc-px4-ros2|https://github.com/kousheekc/nmpc_px4_ros2|MIT|nmpc_px4_ros2
+navigation|ompl|https://github.com/ompl/ompl|BSD|OMPL
+navigation|onnxruntime|https://github.com/microsoft/onnxruntime|MIT|onnxruntime
+navigation|onnxruntime-tensorrt|https://github.com/umitkacar/Onnxruntime-TensorRT|MIT|Onnxruntime-TensorRT
+navigation|openvins|https://github.com/rpng/open_vins|(BSD-style)|OpenVINS
+navigation|quadrotor-acados|https://github.com/duynamrcv/quadrotor_acados|MIT|quadrotor_acados
+navigation|ros2-nmpc-acados|https://github.com/SokhengDin/ROS2-NMPC-ACADOS|MIT|ROS2-NMPC-ACADOS
+navigation|rpg-mpc|https://github.com/uzh-rpg/rpg_mpc|(BSD-style)|rpg_mpc
+navigation|rpg-quadrotor-control-related|https://github.com/uzh-rpg/rpg_quadrotor_control|(BSD-style)|rpg_quadrotor_control (related)
+navigation|sc-lio-sam|https://github.com/gisbi-kim/SC-LIO-SAM|(BSD-style)|SC-LIO-SAM
+navigation|tensorrt-edge-llm|https://github.com/NVIDIA/TensorRT-Edge-LLM|(NVIDIA)|TensorRT-Edge-LLM
+navigation|tensorrt-nvidia-official|https://github.com/NVIDIA/TensorRT|Proprietary (free fo|TensorRT (NVIDIA official)
+navigation|trajectory-optimization|https://github.com/Zhefan-Xu/trajectory_optimization|(ICRA-style)|trajectory_optimization
+navigation|tvm|https://github.com/apache/tvm|Apache 2.0|tvm
+navigation|vins-fusion|https://github.com/HKUST-Aerial-Robotics/VINS-Fusion|(BSD-style)|VINS-Fusion
+navigation|visionuav-navigation|https://github.com/sidharthmohannair/VisionUAV-Navigation|MIT|VisionUAV-Navigation
+navigation|visual-slam-ros2|https://github.com/imnuman/visual-slam-ros2|MIT|visual-slam-ros2
+navigation|vslam-uav|https://github.com/bandofpv/VSLAM-UAV|MIT|VSLAM-UAV
+readiness|arab-osc|https://github.com/Link-/Arab_OSC|Unknown|Arab_OSC
+readiness|army-tool|https://github.com/Kontogiorgakis/Army-Tool|Unknown|Army-Tool
+readiness|armyscripts|https://github.com/uplusion23/ArmyScripts|Unknown|ArmyScripts
+readiness|armyunit-hr-app|https://github.com/athamana/ArmyUnit-HR-App|Unknown|ArmyUnit-HR-App
+readiness|aureuserp|https://github.com/aureuserp/aureuserp|Unknown|aureuserp
+readiness|blueseererp|https://github.com/blueseerERP/blueseer|Unknown|blueseerERP
+readiness|clermont|https://github.com/SageHourihan/clermont|Unknown|Clermont
+readiness|employee-project-management-platform|https://github.com/arnobt78/Employee-Project-Management-Platform--Angular-FullStack|Unknown|Employee-Project-Management-Platform
+readiness|employee-training-dashboard|https://github.com/Hari-Vijayaraghavan96/Employee_Training_Dashboard|Unknown|Employee_Training_Dashboard
+readiness|employeetrackingsystem|https://github.com/AkshandraSingh/EmployeeTrackingSystem|Unknown|EmployeeTrackingSystem
+readiness|erpnext|https://github.com/frappe/erpnext|Unknown|erpnext
+readiness|horilla|https://github.com/horilla-opensource/horilla|Unknown|horilla
+readiness|hr-management-system|https://github.com/ahmed-fawzy99/hr-management-system|Unknown|hr-management-system
+readiness|hr-oca|https://github.com/OCA/hr|Unknown|hr (OCA)
+readiness|hrms|https://github.com/frappe/hrms|Unknown|hrms
+readiness|hrms_laravel|https://github.com/amralsaleeh/HRMS|Unknown|HRMS
+readiness|learnhouse|https://github.com/learnhouse/learnhouse|Unknown|learnhouse
+readiness|lms|https://github.com/frappe/lms|Unknown|lms
+readiness|military-management-system|https://github.com/vansh18/Military-Management-System|Unknown|Military-Management-System
+readiness|mtc-cms|https://github.com/AnatoliiShliakhto/mtc-cms|Unknown|mtc-cms
+readiness|odin|https://github.com/syncpoint/ODIN|Unknown|ODIN
+readiness|odoo-core-+-modules|https://github.com/odoo/odoo|Unknown|odoo (core + modules)
+readiness|openspp-modules|https://github.com/OpenSPP/openspp-modules|Unknown|openspp-modules
+readiness|orbat-mapper|https://github.com/orbat-mapper/orbat-mapper|Unknown|orbat-mapper
+readiness|osint-war-room|https://github.com/Hue-Jhan/OSINT-War-Room|Unknown|OSINT-War-Room
+readiness|patternfly|https://github.com/patternfly (mission-control examples)|Unknown|patternfly
+readiness|riyaerp-hrms|https://github.com/TheLogicIraqCompany/RiyaErp-hrms|Unknown|RiyaErp-hrms
+readiness|smart.lms|https://github.com/rcarubbi/Smart.LMS|Unknown|Smart.LMS
+readiness|worldmonitor|https://github.com/koala73/worldmonitor|Unknown|worldmonitor
+sensor_analytics|ais-visual-fusion|https://github.com/QuJX/AIS-Visual-Fusion|Unknown|AIS-Visual-Fusion
+sensor_analytics|arcticshadowtracker|https://github.com/henrfo/ArcticShadowTracker|Unknown|ArcticShadowTracker
+sensor_analytics|awesome-geospatial|https://github.com/sacridini/Awesome-Geospatial|Unknown|Awesome-Geospatial
+sensor_analytics|awesome-gis|https://github.com/sshuair/awesome-gis|Unknown|awesome-gis
+sensor_analytics|awesome-remote-sensing-foundation-models|https://github.com/Jack-bo1220/Awesome-Remote-Sensing-Foundation-Models|Unknown|Awesome-Remote-Sensing-Foundation-Models
+sensor_analytics|border-surveillance-system|https://github.com/subhayudas/Border-Surveillance-System|Unknown|Border-Surveillance-System
+sensor_analytics|custom-scripts|https://github.com/sentinel-hub/custom-scripts|Unknown|custom-scripts
+sensor_analytics|debasis-dotcom-ship-detection-from-satel|https://github.com/debasis-dotcom/Ship-Detection-from-Satellite-Images-using-YOLOV4|Unknown|debasis-dotcom/Ship-Detection-from-Satellite-Images-using-YOLOV4
+sensor_analytics|eo-learn|https://github.com/sentinel-hub/eo-learn|Unknown|eo-learn
+sensor_analytics|fyp-maritime-surveillance|https://github.com/sakunaharinda/FYP-Maritime_Surveillance|Unknown|FYP-Maritime_Surveillance
+sensor_analytics|geoai|https://github.com/opengeos/geoai|Unknown|geoai
+sensor_analytics|geotracknet|https://github.com/CIA-Oceanix/GeoTrackNet|Unknown|GeoTrackNet
+sensor_analytics|military-tools-geoprocessing-toolbox|https://github.com/Esri/military-tools-geoprocessing-toolbox|Unknown|military-tools-geoprocessing-toolbox
+sensor_analytics|player-tool|https://github.com/alvarolb/player-tool|Unknown|player-tool
+sensor_analytics|sar-ship-dataset|https://github.com/CAESAR-Radi/SAR-Ship-Dataset|Unknown|SAR-Ship-Dataset
+sensor_analytics|sar-ship-detect|https://github.com/armkhudinyan/sar-ship-detect|Unknown|sar-ship-detect
+sensor_analytics|sar-shipdet-dataset-processor|https://github.com/egshkim/SAR-ShipDet-Dataset-Processor|Unknown|SAR-ShipDet-Dataset-Processor
+sensor_analytics|sarfish|https://github.com/DIUx-xView/SARFish|Unknown|SARFish
+sensor_analytics|sarmssd|https://github.com/buyukkanber/SARMSSD|Unknown|SARMSSD
+sensor_analytics|satellite-imagery-datasets-containing-sh|https://github.com/jasonmanesis/Satellite-Imagery-Datasets-Containing-Ships|Unknown|Satellite-Imagery-Datasets-Containing-Ships
+sensor_analytics|segment-geospatial|https://github.com/opengeos/segment-geospatial|Unknown|segment-geospatial
+sensor_analytics|ship-detection-on-remote-sensing-synthet|https://github.com/jasonmanesis/Ship-Detection-on-Remote-Sensing-Synthetic-Aperture-Radar-Data|Unknown|Ship-Detection-on-Remote-Sensing-Synthetic-Aperture-Radar-Data
+sensor_analytics|ship-detection-using-satellite-imagery|https://github.com/Dhruvisha29/Ship-Detection-Using-Satellite-Imagery|Unknown|Ship-Detection-Using-Satellite-Imagery
+sensor_analytics|ship-detection-using-satellite-images|https://github.com/SherinBK/Ship-detection|Unknown|Ship-Detection-Using-Satellite-Images
+sensor_analytics|speckle2void|https://github.com/Swarno-Coder/speckle2void|Unknown|speckle2void
+sensor_analytics|track-my-voyage|https://github.com/gopika-10/TRACK-MY-VOYAGE|Unknown|TRACK-MY-VOYAGE
+sensor_analytics|yolov8-sar-ship-detection|https://github.com/sethubolt7/YOLOV8_SAR_SHIP_DETECTION|Unknown|YOLOV8_SAR_SHIP_DETECTION
+sensor_fusion|ai-driven-threat-detection-system|https://github.com/melisa48/AI-Driven-Threat-Detection-System|MIT|AI-Driven-Threat-Detection-System
+sensor_fusion|aircraftdetectionyolov5|https://github.com/pHorvat/AircraftDetectionYolov5|MIT|AircraftDetectionYolov5
+sensor_fusion|automatic-target-recognition-using-sar-i|https://github.com/KhadijaKamran/Automatic-Target-Recognition-using-SAR-Imagery|MIT|Automatic-Target-Recognition-using-SAR-Imagery
+sensor_fusion|awesome-radar-perception|https://github.com/ZHOUYI1023/awesome-radar-perception|MIT|awesome-radar-perception
+sensor_fusion|awesome-threat-detection|https://github.com/0x4D31/awesome-threat-detection|MIT|awesome-threat-detection
+sensor_fusion|drone-anomaly-detection-dataset-and-unsu|https://github.com/isot-lab/Drone-Anomaly-Detection-Dataset-and-Unsupervised-Machine-Learning|MIT|Drone-Anomaly-Detection-Dataset-and-Unsupervised-Machine-Learning
+sensor_fusion|fuse|https://github.com/locusrobotics/fuse|BSD|fuse
+sensor_fusion|fusiontracking|https://github.com/TUMFTM/FusionTracking|(Research)|FusionTracking
+sensor_fusion|kinematic-arbiter|https://github.com/riscmaster/kinematic_arbiter|MIT|kinematic_arbiter
+sensor_fusion|lidar-radar-fusion-ekf-ukf|https://github.com/cggos/lidar_radar_fusion_ekf_ukf|MIT|lidar_radar_fusion_ekf_ukf
+sensor_fusion|liv-handhold-2|https://github.com/hku-mars/LIV_handhold_2|MIT|LIV_handhold_2
+sensor_fusion|m2s2|https://github.com/African-Robotics-Unit/M2S2|MIT|M2S2
+sensor_fusion|m3dgr|https://github.com/sjtuyinjie/M3DGR|MIT|M3DGR
+sensor_fusion|machine-learning-based-intrusion-detecti|https://github.com/uamughal/Machine-Learning-Based-Intrusion-Detection-System|MIT|Machine-Learning-Based-Intrusion-Detection-System
+sensor_fusion|military-detect|https://github.com/Erichen911/Military-Detect|MIT|Military-Detect
+sensor_fusion|military-target-and-equipment-detection|https://github.com/KarthikPrabhu2541/Military-Target-and-Equipment-Detection|MIT|Military-Target-and-Equipment-Detection
+sensor_fusion|military-yolov5|https://github.com/devavinothm/military-yolov5|MIT|military-yolov5
+sensor_fusion|orion|https://github.com/jonasrenault/orion|MIT|orion
+sensor_fusion|particle-filter|https://github.com/JMU-ROBOTICS-VIVA/particle_filter|MIT|particle_filter
+sensor_fusion|perception-interfaces|https://github.com/ika-rwth-aachen/perception_interfaces|MIT|perception_interfaces
+sensor_fusion|perception-vault|https://github.com/peakyquest/perception_vault|MIT|perception_vault
+sensor_fusion|ros-perception|https://github.com/ros-perception|BSD|ros-perception
+sensor_fusion|ros-sensor-fusion-tutorial|https://github.com/methylDragon/ros-sensor-fusion-tutorial|MIT|ros-sensor-fusion-tutorial
+sensor_fusion|rt-detr|https://github.com/lyuwenyu/RT-DETR|Apache 2.0|RT-DETR
+sensor_fusion|sensor-fusion|https://github.com/BDEvan5/sensor_fusion|MIT|sensor_fusion
+sensor_fusion|smart-track|https://github.com/mzahana/smart_track|MIT|smart_track
+sensor_fusion|truth-zeeker-ai-public|https://github.com/dr-rakshith-truth-zeeker/Truth-Zeeker-AI-Public|MIT|Truth-Zeeker-AI-Public
+sensor_fusion|uav-tracking-tank|https://github.com/adityachintala/UAV-tracking-tank|MIT|UAV-tracking-tank
+sensor_fusion|uavswarm-dataset|https://github.com/UAVSwarm/UAVSwarm-dataset|MIT|UAVSwarm-dataset
+sensor_fusion|ultralytics-yolov8-yolo11|https://github.com/ultralytics/ultralytics|AGPL-3.0|ultralytics (YOLOv8/YOLO11)
+sensor_fusion|zeek-anomaly-detector|https://github.com/stratosphereips/zeek_anomaly_detector|MIT|zeek_anomaly_detector
+simulation|airsim|https://github.com/microsoft/AirSim|MIT|AirSim
+simulation|awesome-synthetic-data|https://github.com/statice/awesome-synthetic-data|MIT|awesome-synthetic-data
+simulation|bcr-arm|https://github.com/blackcoffeerobotics/bcr_arm|(Open)|bcr_arm
+simulation|ctgan|https://github.com/sdv-dev/CTGAN|MIT|CTGAN
+simulation|datasynthesizer|https://github.com/DataResponsibly/DataSynthesizer|MIT|DataSynthesizer
+simulation|doppelganger|https://github.com/fjxmlzn/DoppelGANger|(Open)|DoppelGANger
+simulation|drone-simulator-cyber-physical|https://github.com/patilunmesh/drone_simulator|(Open)|drone_simulator (cyber-physical)
+simulation|flightmare|https://github.com/uzh-rpg/flightmare|(BSD-style)|flightmare
+simulation|gz-sim-gazebo-sim|https://github.com/gazebosim/gz-sim|Apache 2.0|gz-sim (Gazebo Sim)
+simulation|masendor|https://github.com/remance/Masendor|GPL-3.0|Masendor
+simulation|military-drones-vortex|https://github.com/Manohara-Ai/VorteX|Apache 2.0|Military_Drones (VorteX)
+simulation|military-simulator|https://github.com/jfeng530/Military-Simulator|MIT|Military-Simulator
+simulation|panopticon|https://github.com/Panopticon-AI-team/panopticon|MIT|panopticon
+simulation|paradigmbattlesimulator|https://github.com/MadGuarang/ParadigmBattleSimulator|Apache 2.0|ParadigmBattleSimulator
+simulation|pycmo|https://github.com/duyminh1998/pycmo|MIT|pycmo
+simulation|python-battlesim|https://github.com/GiladTrachtenberg/python-battlesim|MIT|python-battlesim
+simulation|rotors-simulator|https://github.com/ethz-asl/rotors_simulator|(BSD-style)|rotors_simulator
+simulation|satellite-jamming-simulator|https://github.com/deptofdefense/satellite-jamming-simulator(archived|MIT|satellite-jamming-simulator
+simulation|sdv-synthetic-data-vault|https://github.com/sdv-dev/SDV|MIT|SDV (Synthetic Data Vault)
+simulation|synthea|https://github.com/synthetichealth/synthea|MIT|Synthea
+simulation|tgan|https://github.com/sdv-dev/TGAN|MIT|TGAN
+swarm|aerostack2|https://github.com/aerostack2/aerostack2|(ROS2-style)|aerostack2
+swarm|amos-autonomous-mission-orchestration-sy|https://github.com/merkuriddg/amos-autonomous_mission_orchestration_system|Apache 2.0|amos-autonomous_mission_orchestration_system
+swarm|ardupilot-multiagent-simulation|https://github.com/aau-cns/Ardupilot_Multiagent_Simulation|GPL-3.0|Ardupilot_Multiagent_Simulation
+swarm|autonomous-uavs-swarm-mission|https://github.com/AlexJinlei/Autonomous_UAVs_Swarm_Mission|MIT|Autonomous_UAVs_Swarm_Mission
+swarm|boomslang-c2-sim|https://github.com/kabartsjc/boomslang-c2-sim|MIT|boomslang-c2-sim
+swarm|coflyers|https://github.com/micros-uav/CoFlyers|MIT|CoFlyers
+swarm|crazyswarm-extensions|https://github.com/USC-ACTLab/crazyswarm|MIT|crazyswarm (extensions)
+swarm|drones-swarm|https://github.com/mlpi-unipi/drones-swarm|MIT|drones-swarm
+swarm|droneswarmgpt|https://github.com/The-Swarm-Corporation/DroneSwarmGPT|Apache 2.0|DroneSwarmGPT
+swarm|ego-planner-swarm|https://github.com/ZJU-FAST-Lab/ego-planner-swarm|(Research)|ego-planner-swarm
+swarm|grex|https://github.com/NU-IDEAS-Lab/grex|MIT|grex
+swarm|heterogeneous-swarm-robotics|https://github.com/nema-oss/heterogeneous-swarm-robotics|MIT|heterogeneous-swarm-robotics
+swarm|lang-air-ground-teaming|https://github.com/KumarRobotics/lang-air-ground-teaming|MIT|lang-air-ground-teaming
+swarm|langostino|https://github.com/swarm-subnet/Langostino|MIT|Langostino
+swarm|mavsdk-drone-show|https://github.com/alireza787b/mavsdk_drone_show|MIT|mavsdk_drone_show
+swarm|mobile-swarm-navigation|https://github.com/Loki-Silvres/Mobile-Swarm-Navigation|MIT|Mobile-Swarm-Navigation
+swarm|multi-agent-reinforcement-learning-activ|https://github.com/i1Cps/multi-agent-reinforcement-learning-active-slam|MIT|multi-agent-reinforcement-learning-active-slam
+swarm|multi-robot-coordination-framework|https://github.com/JayDS22/Multi-Robot-Coordination-Framework|MIT|Multi-Robot-Coordination-Framework
+swarm|multi-robot-ros2|https://github.com/anhbantre/multi_robot_ros2|MIT|multi_robot_ros2
+swarm|multi-robot-trainer|https://github.com/zmk5/multi_robot_trainer|MIT|multi_robot_trainer
+swarm|odin-c2is|https://github.com/syncpoint/ODIN|(Archived)|ODIN (C2IS)
+swarm|open-dis|https://github.com/open-dis|BSD|open-dis
+swarm|openc2sim---c2simartifacts|https://github.com/OpenC2SIM|(SISO)|OpenC2SIM / C2SIMArtifacts
+swarm|px4-swarm-controller|https://github.com/artastier/PX4_Swarm_Controller|MIT|PX4_Swarm_Controller
+swarm|rai|https://github.com/RobotecAI/rai|MIT|rai
+swarm|ros2swarm|https://github.com/ROS2swarm/ROS2swarm|(ROS2-style)|ROS2swarm
+swarm|swarm-formation|https://github.com/ZJU-FAST-Lab/Swarm-Formation|GPLv3|Swarm-Formation
+swarm|swarm-intelligence-ros2|https://github.com/tasada038/swarm_intelligence_ros2|MIT|swarm_intelligence_ros2
+swarm|swarm-slam|https://github.com/MISTLab/Swarm-SLAM|MIT|Swarm-SLAM
+swarm|uav-orchestrator|https://github.com/wcipAUTH/UAV-orchestrator|MIT|UAV-orchestrator
+swarm|vswarm|https://github.com/lis-epfl/vswarm|MIT|vswarm
+training_sim|llmwargaming|https://github.com/ancorso/LLMWargaming|Unknown|LLMWargaming
+training_sim|openalfatau|https://github.com/Vytek/OpenAlfaTau|Unknown|OpenAlfaTau
+training_sim|openbw|https://github.com/OpenBW/openbw|Unknown|openbw
+training_sim|wargame|https://github.com/Gornova/Wargame|Unknown|Wargame
+training_sim|wargames|https://github.com/gruen/wargames|Unknown|wargames
+training_sim|wargamesai|https://github.com/user1342/WargamesAI|Unknown|WargamesAI
+training_sim|warshard|https://github.com/qferre/warshard|Unknown|warshard

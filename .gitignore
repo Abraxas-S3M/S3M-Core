@@ -15,3 +15,7 @@ data/logs/worker.log
 # Model weights (downloaded separately)
 models/*.gguf
 models/*.bin
+/tmp/s3m-vendor/
+/tmp/s3m-vendor-clone.log
+scripts/vendor/repos_skipped.txt
+/vendor/
