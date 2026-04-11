@@ -8,8 +8,6 @@ transported and merged in disconnected military edge environments.
 from __future__ import annotations
 
 import argparse
-import os
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,7 +28,7 @@ from transformers import (
 @dataclass(frozen=True)
 class EngineConfig:
     model_id: str
-    vault_dir: str
+    engine_id: str
     lora_r: int
     lora_alpha: int
     batch_size: int
@@ -39,21 +37,21 @@ class EngineConfig:
 ENGINE_CONFIGS: dict[str, EngineConfig] = {
     "phi3_medium": EngineConfig(
         model_id="microsoft/Phi-3-medium-4k-instruct",
-        vault_dir="phi3-medium",
+        engine_id="phi3-medium",
         lora_r=16,
         lora_alpha=32,
         batch_size=4,
     ),
     "allam": EngineConfig(
         model_id="humain-ai/ALLaM-7B-Instruct-preview",
-        vault_dir="allam",
+        engine_id="allam",
         lora_r=16,
         lora_alpha=32,
         batch_size=8,
     ),
     "mixtral": EngineConfig(
         model_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-        vault_dir="mixtral",
+        engine_id="mixtral",
         lora_r=8,
         lora_alpha=16,
         batch_size=2,
@@ -76,7 +74,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--push",
         action="store_true",
-        help="Rsync trained adapters to S3M vault after training finishes.",
+        help="Upload trained adapters to Object Storage vault after training finishes.",
+    )
+    parser.add_argument(
+        "--track",
+        default="saudi_mod",
+        help="Training track label used for adapter storage placement.",
     )
     parser.add_argument("--epochs", type=float, default=1.0)
     parser.add_argument("--lr", type=float, default=2e-4)
@@ -92,7 +95,7 @@ def validate_engine(engine: str) -> EngineConfig:
 
 
 def resolve_model_source(cfg: EngineConfig) -> str:
-    local_dir = LOCAL_BASE_ROOT / cfg.vault_dir
+    local_dir = LOCAL_BASE_ROOT / cfg.engine_id
     if local_dir.exists() and any(local_dir.iterdir()):
         return str(local_dir)
     return cfg.model_id
@@ -105,19 +108,18 @@ def resolve_text_field(column_names: list[str]) -> str:
     raise ValueError(f"Dataset must include one of ['text','prompt','instruction','content']; got: {column_names}")
 
 
-def maybe_push_to_vault(output_dir: Path, vault_engine_dir: str) -> None:
-    vault_ip = os.getenv("S3M_VAULT_IP")
-    if not vault_ip:
-        raise RuntimeError("--push was set but S3M_VAULT_IP is missing.")
-    subprocess.run(
-        [
-            "rsync",
-            "-avz",
-            f"{output_dir}/",
-            f"s3m-sync@{vault_ip}::s3m-weights/adapters/{vault_engine_dir}/",
-        ],
-        check=True,
-    )
+def maybe_push_to_vault(output_dir: Path, engine_id: str, track: str = "saudi_mod") -> None:
+    """Push trained LoRA adapter to Hetzner Object Storage vault."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from src.storage.b2_connector import B2Connector
+    from src.storage.vault_paths import VaultPaths
+
+    connector = B2Connector()
+    remote_prefix = VaultPaths.fp16_adapter(engine_id, track)
+    result = connector.sync_up(output_dir, remote_prefix)
+    uploaded = len(result) if isinstance(result, list) else int(result.get("uploaded", 0))
+    print(f"Adapter pushed to Object Storage: {remote_prefix}")
+    print(f"  Files uploaded: {uploaded}")
 
 
 def main() -> int:
@@ -203,8 +205,7 @@ def main() -> int:
     print(f"Adapter saved to: {output_dir}")
 
     if args.push:
-        maybe_push_to_vault(output_dir, cfg.vault_dir)
-        print(f"Adapter pushed to vault adapters/{cfg.vault_dir}/")
+        maybe_push_to_vault(output_dir, cfg.engine_id, args.track)
 
     return 0
 

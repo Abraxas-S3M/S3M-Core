@@ -1,31 +1,51 @@
 """Unit tests for distributed weight synchronization manager."""
 
-from dataclasses import dataclass
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
 from src.distributed.sync_manager import WeightSyncManager
+from src.storage.vault_paths import VaultPaths
 
 
-@dataclass
-class _RunResult:
-    returncode: int = 0
-    stdout: str = ""
-    stderr: str = ""
+class _FakeConnector:
+    def __init__(self) -> None:
+        self.sync_down_result: list[Path] | dict[str, int] = []
+        self.sync_up_result: list[str] | dict[str, int] = []
+        self.list_keys_map: dict[str, list[str]] = {}
+        self.sync_down_calls: list[tuple[str, Path]] = []
+        self.sync_up_calls: list[tuple[Path, str]] = []
+        self.upload_calls: list[tuple[Path, str]] = []
+
+    def sync_down(self, remote_prefix: str, local_dir: Path) -> list[Path] | dict[str, int]:
+        self.sync_down_calls.append((remote_prefix, local_dir))
+        return self.sync_down_result
+
+    def sync_up(self, source_dir: Path, remote_prefix: str) -> list[str] | dict[str, int]:
+        self.sync_up_calls.append((source_dir, remote_prefix))
+        return self.sync_up_result
+
+    def upload_file(self, local_path: Path, remote_key: str) -> None:
+        self.upload_calls.append((local_path, remote_key))
+
+    def list_keys(self, prefix: str) -> list[str]:
+        return self.list_keys_map.get(prefix, [])
 
 
 @pytest.fixture
-def distributed_config(tmp_path):
+def distributed_config(tmp_path: Path) -> Path:
     """Write a minimal distributed training config used by sync tests."""
     config_path = tmp_path / "distributed_training.yaml"
     config_path.write_text(
         "\n".join(
             [
                 "distributed_training:",
-                "  vault_ip: 10.0.0.8",
-                "  hetzner_ip: 10.0.0.9",
-                "  vault_base_path: /srv/vault/weights",
-                "  vault_user: s3m",
+                "  tracks: [saudi_mod, nato]",
+                "  training_profiles:",
+                "    phi3_medium: {}",
+                "    mixtral: {}",
             ]
         ),
         encoding="utf-8",
@@ -33,17 +53,26 @@ def distributed_config(tmp_path):
     return config_path
 
 
-def test_init_loads_primary_vault_settings(distributed_config):
-    """Manager loads vault connectivity settings from config."""
+@pytest.fixture
+def manager_with_fake_connector(distributed_config: Path, monkeypatch: pytest.MonkeyPatch):
+    """Construct manager with deterministic fake connector behavior."""
+    fake = _FakeConnector()
+    monkeypatch.setattr("src.distributed.sync_manager.B2Connector", lambda: fake)
     manager = WeightSyncManager(str(distributed_config))
-    assert manager.vault_ip == "10.0.0.8"
-    assert manager.hetzner_ip == "10.0.0.9"
-    assert manager.vault_base_path == "/srv/vault/weights"
+    return manager, fake
 
 
-def test_generate_pull_commands_contains_all_engines(distributed_config):
+def test_init_loads_tracks_engines_and_connector(manager_with_fake_connector):
+    """Manager derives track/engine sets from config and initializes connector."""
+    manager, fake = manager_with_fake_connector
+    assert manager.tracks == ["saudi_mod", "nato"]
+    assert manager.engine_ids == ["phi3_medium", "mixtral"]
+    assert manager.connector is fake
+
+
+def test_generate_pull_commands_contains_all_engines(manager_with_fake_connector):
     """Pull commands include all four target engines."""
-    manager = WeightSyncManager(str(distributed_config))
+    manager, _ = manager_with_fake_connector
     commands = manager.generate_pull_commands()
     assert commands["phi3_medium"].startswith("huggingface-cli download microsoft/Phi-3-medium-4k-instruct")
     assert "xai-org/grok-1" in commands["grok1"]
@@ -51,74 +80,72 @@ def test_generate_pull_commands_contains_all_engines(distributed_config):
     assert "humain-ai/ALLaM-7B-Instruct-preview" in commands["allam"]
 
 
-def test_estimate_download_time_returns_per_engine_and_totals(distributed_config):
+def test_estimate_download_time_returns_per_engine_and_totals(manager_with_fake_connector):
     """Download estimate includes each engine and aggregate totals."""
-    manager = WeightSyncManager(str(distributed_config))
+    manager, _ = manager_with_fake_connector
     estimates = manager.estimate_download_time(bandwidth_mbps=200.0)
     assert set(estimates) == {"phi3_medium", "grok1", "mixtral", "allam", "totals"}
     assert estimates["grok1"]["estimated_hours"] > estimates["phi3_medium"]["estimated_hours"]
     assert estimates["totals"]["estimated_minutes"] > 0
 
 
-def test_pull_and_push_parse_rsync_transfer_bytes(distributed_config, monkeypatch, tmp_path):
-    """Rsync output is parsed into deterministic byte counters."""
-    manager = WeightSyncManager(str(distributed_config))
+def test_pull_from_vault_uses_connector_sync_down(manager_with_fake_connector, tmp_path: Path):
+    """Vault pull delegates to connector sync_down with VaultPaths prefix."""
+    manager, fake = manager_with_fake_connector
+    fake.sync_down_result = [tmp_path / "file1.bin", tmp_path / "file2.bin"]
+
+    target = tmp_path / "target"
+    result = manager.pull_from_vault("phi3_medium", str(target), content="base")
+
+    assert result == {"status": "ok", "engine": "phi3_medium", "bytes_transferred": 2}
+    assert fake.sync_down_calls == [(VaultPaths.fp16_base("phi3_medium"), target)]
+
+
+def test_push_to_vault_uses_connector_sync_up(manager_with_fake_connector, tmp_path: Path):
+    """Vault push delegates to connector sync_up with adapter prefix."""
+    manager, fake = manager_with_fake_connector
+    fake.sync_up_result = ["models/fp16-adapters/phi3_medium/x.bin"]
     source = tmp_path / "adapters"
     source.mkdir(parents=True, exist_ok=True)
-    target = tmp_path / "target"
+    (source / "adapter.safetensors").write_text("payload", encoding="utf-8")
 
-    def _fake_run(cmd, capture_output, text, check):
-        if cmd[0] == "rsync":
-            return _RunResult(
-                returncode=0,
-                stdout="Total transferred file size: 12,345 bytes\n",
-                stderr="",
-            )
-        return _RunResult(returncode=1, stdout="", stderr="unexpected command")
+    result = manager.push_to_vault("phi3_medium", str(source), content="adapters")
 
-    monkeypatch.setattr("src.distributed.sync_manager.subprocess.run", _fake_run)
-    pull_result = manager.pull_from_vault("phi3_medium", str(target), content="base")
-    push_result = manager.push_to_vault("phi3_medium", str(source), content="adapters")
-
-    assert pull_result == {"status": "ok", "engine": "phi3_medium", "bytes_transferred": 12345}
-    assert push_result == {"status": "ok", "engine": "phi3_medium", "bytes_transferred": 12345}
+    assert result == {"status": "ok", "engine": "phi3_medium", "bytes_transferred": 1}
+    assert fake.sync_up_calls == [(source, VaultPaths.adapters("phi3_medium"))]
 
 
-def test_check_vault_status_and_engine_weight_status(distributed_config, monkeypatch):
-    """SSH probes map disk and per-engine availability fields."""
-    manager = WeightSyncManager(str(distributed_config))
+def test_check_vault_status_uses_precision_manager(manager_with_fake_connector, monkeypatch: pytest.MonkeyPatch):
+    """Status check routes through PrecisionManager inventory API."""
+    manager, fake = manager_with_fake_connector
+    inventory = {"phi3-medium": {"has_fp16": True, "has_q4": True}}
 
-    def _fake_run(cmd, capture_output, text, check):
-        remote_cmd = cmd[2]
-        if "df -BG" in remote_cmd:
-            return _RunResult(returncode=0, stdout="120 880\n", stderr="")
-        if "ls -1" in remote_cmd:
-            return _RunResult(returncode=0, stdout="phi3_medium\nmixtral\n", stderr="")
-        if "test -d" in remote_cmd and "phi3_medium/base" in remote_cmd:
-            return _RunResult(returncode=0, stdout="1\n", stderr="")
-        if "test -d" in remote_cmd and "mixtral/quantized" in remote_cmd:
-            return _RunResult(returncode=0, stdout="1\n", stderr="")
-        if "test -d" in remote_cmd:
-            return _RunResult(returncode=0, stdout="0\n", stderr="")
-        return _RunResult(returncode=1, stdout="", stderr="unsupported")
+    class _FakePrecisionManager:
+        def __init__(self, connector):
+            assert connector is fake
 
-    monkeypatch.setattr("src.distributed.sync_manager.subprocess.run", _fake_run)
+        def get_model_inventory(self):
+            return inventory
 
-    vault_status = manager.check_vault_status()
-    engine_status = manager.get_engine_weight_status()
-
-    assert vault_status["disk_used_gb"] == 120.0
-    assert vault_status["disk_free_gb"] == 880.0
-    assert vault_status["engines"]["phi3_medium"]["available"] is True
-    assert vault_status["engines"]["grok1"]["available"] is False
-
-    assert engine_status["phi3_medium"]["base"] is True
-    assert engine_status["mixtral"]["quantized"] is True
-    assert engine_status["allam"]["adapters"] is False
+    monkeypatch.setattr("src.distributed.sync_manager.PrecisionManager", _FakePrecisionManager)
+    result = manager.check_vault_status()
+    assert result == inventory
 
 
-def test_invalid_content_raises_validation_error(distributed_config):
+def test_engine_weight_status_uses_connector_list_keys(manager_with_fake_connector):
+    """Per-engine status is computed from Object Storage key listings."""
+    manager, fake = manager_with_fake_connector
+    fake.list_keys_map[VaultPaths.fp16_base("phi3_medium")] = ["models/fp16/phi3_medium/config.json"]
+    fake.list_keys_map[VaultPaths.q4_serving("mixtral")] = ["models/q4-gguf/mixtral/model.gguf"]
+
+    status = manager.get_engine_weight_status()
+    assert status["phi3_medium"]["base"] is True
+    assert status["mixtral"]["quantized"] is True
+    assert status["allam"]["adapters"] is False
+
+
+def test_invalid_content_raises_validation_error(manager_with_fake_connector):
     """Invalid content bucket names are rejected for security posture."""
-    manager = WeightSyncManager(str(distributed_config))
+    manager, _ = manager_with_fake_connector
     with pytest.raises(ValueError):
         manager.pull_from_vault("phi3_medium", "models/phi3-medium", content="weights")

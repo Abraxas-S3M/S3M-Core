@@ -11,16 +11,13 @@ Job lifecycle:
   3. GPU completes, writes adapter → queue/completed/
   4. CPU picks up adapter, runs eval, merges if promoted
 
-Checkpoint sync via rsync over SSH (bidirectional).
+Checkpoint sync via Object Storage (bidirectional).
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import os
-import shutil
-import subprocess
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -28,6 +25,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from src.storage.vault_paths import VaultPaths
 
 logger = logging.getLogger("s3m.training.gpu.hybrid_orchestrator")
 
@@ -143,50 +142,43 @@ class JobQueue:
 
 
 class CheckpointSyncer:
-    """Sync checkpoints between RunPod GPU and Hetzner CPU via rsync/SSH."""
+    """Sync checkpoints between GPU and CPU nodes via Object Storage vault.
+
+    Military/tactical context:
+    Using Object Storage as the intermediary eliminates the need for
+    direct SSH connectivity between ephemeral GPU pods and persistent
+    CPU training nodes. Artifacts transit through the sovereign vault.
+    """
 
     def __init__(
         self,
-        remote_host: str = "",
-        remote_user: str = "root",
-        ssh_key: str = "",
         gpu_checkpoint_dir: str = "checkpoints/gpu",
         cpu_checkpoint_dir: str = "/opt/s3m/state/training",
     ) -> None:
-        self.remote_host = remote_host or os.environ.get("S3M_HETZNER_HOST", "")
-        self.remote_user = remote_user
-        self.ssh_key = ssh_key or os.environ.get("S3M_HETZNER_SSH_KEY", "~/.ssh/s3m_hetzner")
+        from src.storage.b2_connector import B2Connector
+
+        self.connector = B2Connector()
         self.gpu_dir = Path(gpu_checkpoint_dir)
         self.cpu_dir = cpu_checkpoint_dir
 
-    def push_to_cpu(self, adapter_path: str) -> bool:
-        """Push completed adapter from GPU pod to Hetzner CPU."""
-        if not self.remote_host:
-            logger.warning("No HETZNER_HOST configured; skipping sync")
-            return False
-        src = Path(adapter_path).resolve()
-        dest = f"{self.remote_user}@{self.remote_host}:{self.cpu_dir}/adapters/{src.name}"
-        return self._rsync(str(src) + "/", dest)
-
-    def pull_from_cpu(self, remote_path: str, local_path: str) -> bool:
-        """Pull dataset or checkpoint from Hetzner to GPU pod."""
-        if not self.remote_host:
-            return False
-        src = f"{self.remote_user}@{self.remote_host}:{remote_path}"
-        return self._rsync(src, local_path)
-
-    def _rsync(self, src: str, dest: str) -> bool:
-        cmd = [
-            "rsync", "-avz", "--progress",
-            "-e", f"ssh -i {self.ssh_key} -o StrictHostKeyChecking=no",
-            src, dest,
-        ]
-        logger.info("Sync: %s → %s", src, dest)
+    def push_to_vault(self, adapter_path: str, engine_id: str, track: str) -> bool:
+        """Push completed adapter from GPU pod to Object Storage vault."""
+        remote = VaultPaths.fp16_adapter(engine_id, track)
         try:
-            subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=600)
+            self.connector.sync_up(adapter_path, remote)
             return True
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-            logger.error("Sync failed: %s", exc)
+        except Exception as exc:
+            logger.error("Vault push failed: %s", exc)
+            return False
+
+    def pull_from_vault(self, engine_id: str, track: str, local_path: str) -> bool:
+        """Pull checkpoint/adapter from Object Storage to local path."""
+        remote = VaultPaths.fp16_adapter(engine_id, track)
+        try:
+            self.connector.sync_down(remote, local_path)
+            return True
+        except Exception as exc:
+            logger.error("Vault pull failed: %s", exc)
             return False
 
 
@@ -240,7 +232,8 @@ class HybridOrchestrator:
 
             # Sync adapter back to CPU
             if job.adapter_path:
-                self.syncer.push_to_cpu(job.adapter_path)
+                track = str(job.metadata.get("track", "saudi_mod"))
+                self.syncer.push_to_vault(job.adapter_path, job.engine_id, track)
 
             self.queue.complete(job, success=True)
             return metrics

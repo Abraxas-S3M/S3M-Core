@@ -22,6 +22,8 @@ pip download -r requirements-all.txt -d "$BUNDLE_DIR/wheels/" 2>&1 | tail -5
 
 echo ""
 echo "[2/4] Copying source code..."
+# Tactical context: this rsync is local-only packaging; sovereign Object Storage is
+# used for remote artifact movement and is intentionally not contacted here.
 rsync -av --exclude='.git' --exclude='__pycache__' --exclude='*.pyc' \
     --exclude='data/replays' --exclude='data/synthetic' \
     src/ configs/ scripts/ docs/ architecture/ requirements-all.txt \
