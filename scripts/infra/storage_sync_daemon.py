@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Periodic BackBlaze B2 synchronization for Hetzner cloud CPU training.
+"""Periodic Hetzner Object Storage synchronization for Hetzner cloud CPU training.
 
 Military/tactical context:
 This daemon keeps cloud-side adaptation nodes supplied with approved data while
@@ -23,16 +23,16 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.storage.vault_paths import VaultPaths
 
-LOGGER = logging.getLogger("s3m.infra.b2_sync")
+LOGGER = logging.getLogger("s3m.infra.storage_sync")
 
 
-class B2SyncDaemon:
-    """Periodic bidirectional sync between Hetzner and BackBlaze B2."""
+class StorageSyncDaemon:
+    """Periodic bidirectional sync between Hetzner and Hetzner Object Storage."""
 
-    def __init__(self, config_path: str = "configs/deployment/backblaze.yaml"):
+    def __init__(self, config_path: str = "configs/deployment/object_storage.yaml"):
         self.config_path = Path(config_path)
         self.config = self._load_config(self.config_path)
         self.sync_cfg = self.config.get("sync", {}) if isinstance(self.config.get("sync"), dict) else {}
@@ -63,7 +63,7 @@ class B2SyncDaemon:
         self.gui_snapshots_root = Path(str(self.local_cfg.get("gui_snapshots_root", "/opt/s3m/gui-snapshots"))).resolve()
 
         self.node_id = str(self.sync_cfg.get("node_id", "hetzner")).strip() or "hetzner"
-        self.connector = B2Connector.from_config(self.config)
+        self.connector = ObjectStorageConnector.from_config(self.config)
 
         self._ensure_local_layout()
 
@@ -108,7 +108,7 @@ class B2SyncDaemon:
     def run_forever(self, interval_minutes: int = 30) -> None:
         """Main loop — sync every interval_minutes."""
         interval = max(1, int(interval_minutes))
-        LOGGER.info("Starting B2 sync daemon loop (interval=%s minutes)", interval)
+        LOGGER.info("Starting object storage sync daemon loop (interval=%s minutes)", interval)
         while True:
             started = time.monotonic()
             try:
@@ -204,10 +204,10 @@ class B2SyncDaemon:
     @staticmethod
     def _load_config(path: Path) -> dict[str, Any]:
         if not path.exists():
-            raise FileNotFoundError(f"B2 sync config not found: {path}")
+            raise FileNotFoundError(f"Object storage sync config not found: {path}")
         raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         if not isinstance(raw, dict):
-            raise ValueError("B2 sync config must be a mapping")
+            raise ValueError("Object storage sync config must be a mapping")
         return raw
 
 
@@ -219,8 +219,8 @@ def _configure_logging() -> None:
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="S3M BackBlaze B2 sync daemon")
-    parser.add_argument("--config", default="configs/deployment/backblaze.yaml", help="Path to sync config file")
+    parser = argparse.ArgumentParser(description="S3M Hetzner Object Storage sync daemon")
+    parser.add_argument("--config", default="configs/deployment/object_storage.yaml", help="Path to sync config file")
     parser.add_argument("--once", action="store_true", help="Run exactly one sync cycle and exit")
     parser.add_argument("--interval-minutes", type=int, default=0, help="Run interval for daemon loop")
     return parser.parse_args()
@@ -229,7 +229,7 @@ def _parse_args() -> argparse.Namespace:
 def main() -> int:
     _configure_logging()
     args = _parse_args()
-    daemon = B2SyncDaemon(config_path=str(args.config))
+    daemon = StorageSyncDaemon(config_path=str(args.config))
     if args.once:
         daemon.sync_cycle()
         return 0

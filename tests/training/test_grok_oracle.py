@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.training.validation import grok_oracle as grok_oracle_module
 from src.training.validation.grok_oracle import GrokValidationOracle, VerdictRequest
 
 
-def _build_connector(tmp_path: Path) -> B2Connector:
-    return B2Connector(emulation_root=tmp_path / "b2")
+def _build_connector(tmp_path: Path) -> ObjectStorageConnector:
+    return ObjectStorageConnector(emulation_root=tmp_path / "object-storage")
 
 
 def test_scan_pending_reads_verdict_requests(tmp_path: Path) -> None:
@@ -22,12 +22,12 @@ def test_scan_pending_reads_verdict_requests(tmp_path: Path) -> None:
             "engine_id": "phi3",
             "track": "saudi_mod",
             "artifact_type": "generated_text",
-            "b2_key": "grok-verdicts/pending/artifacts/artifact-1.json",
+            "object_key": "grok-verdicts/pending/artifacts/artifact-1.json",
             "session_id": "session-1",
             "created_at": "2026-04-09T00:00:00+00:00",
         },
     )
-    oracle = GrokValidationOracle(mode="offline", b2_connector=connector)
+    oracle = GrokValidationOracle(mode="offline", object_storage_connector=connector)
 
     requests = oracle.scan_pending()
 
@@ -59,11 +59,11 @@ def test_offline_evaluation_passes_saudi_mod_with_arabic_text(tmp_path: Path) ->
         engine_id="phi3",
         track="saudi_mod",
         artifact_type="generated_text",
-        b2_key="grok-verdicts/pending/artifacts/saudi-pass.json",
+        object_key="grok-verdicts/pending/artifacts/saudi-pass.json",
         session_id="session-pass",
         created_at="2026-04-09T00:00:00+00:00",
     )
-    oracle = GrokValidationOracle(mode="offline", b2_connector=connector)
+    oracle = GrokValidationOracle(mode="offline", object_storage_connector=connector)
 
     verdict = oracle.evaluate_artifact(request)
 
@@ -92,11 +92,11 @@ def test_offline_evaluation_rejects_corrupt_adapter(tmp_path: Path) -> None:
         engine_id="mistral",
         track="nato",
         artifact_type="adapter",
-        b2_key="grok-verdicts/pending/artifacts/corrupt.bin",
+        object_key="grok-verdicts/pending/artifacts/corrupt.bin",
         session_id="session-corrupt",
         created_at="2026-04-09T00:00:00+00:00",
     )
-    oracle = GrokValidationOracle(mode="offline", b2_connector=connector)
+    oracle = GrokValidationOracle(mode="offline", object_storage_connector=connector)
 
     verdict = oracle.evaluate_artifact(request)
 
@@ -114,7 +114,7 @@ def test_process_all_pending_moves_requests_to_approved_and_rejected(tmp_path: P
             "engine_id": "phi3",
             "track": "nato",
             "artifact_type": "generated_text",
-            "b2_key": "grok-verdicts/pending/artifacts/pass-1.json",
+            "object_key": "grok-verdicts/pending/artifacts/pass-1.json",
             "session_id": "session-pass-1",
             "created_at": "2026-04-09T00:00:00+00:00",
         },
@@ -126,7 +126,7 @@ def test_process_all_pending_moves_requests_to_approved_and_rejected(tmp_path: P
             "engine_id": "phi3",
             "track": "nato",
             "artifact_type": "generated_text",
-            "b2_key": "grok-verdicts/pending/artifacts/fail-1.json",
+            "object_key": "grok-verdicts/pending/artifacts/fail-1.json",
             "session_id": "session-fail-1",
             "created_at": "2026-04-09T00:00:01+00:00",
         },
@@ -148,7 +148,7 @@ def test_process_all_pending_moves_requests_to_approved_and_rejected(tmp_path: P
         {"eval_scores": {"format_compliance": 0.2, "doctrinal": 0.2, "overall": 0.2}},
     )
 
-    oracle = GrokValidationOracle(mode="offline", b2_connector=connector)
+    oracle = GrokValidationOracle(mode="offline", object_storage_connector=connector)
     verdicts = oracle.process_all_pending()
 
     assert len(verdicts) == 2
@@ -185,13 +185,13 @@ def test_api_mode_parses_response_into_verdict(monkeypatch, tmp_path: Path) -> N
         return _Response()
 
     monkeypatch.setattr(grok_oracle_module.requests, "post", _fake_post)
-    oracle = GrokValidationOracle(mode="api", xai_api_key="dummy", b2_connector=connector)
+    oracle = GrokValidationOracle(mode="api", xai_api_key="dummy", object_storage_connector=connector)
     request = VerdictRequest(
         artifact_id="api-artifact",
         engine_id="phi3",
         track="nato",
         artifact_type="generated_text",
-        b2_key="grok-verdicts/pending/artifacts/api-artifact.json",
+        object_key="grok-verdicts/pending/artifacts/api-artifact.json",
         session_id="session-api",
         created_at="2026-04-09T00:00:00+00:00",
     )

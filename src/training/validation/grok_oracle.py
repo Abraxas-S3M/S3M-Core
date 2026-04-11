@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 import requests
 import yaml
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 
 logger = logging.getLogger("s3m.training.grok_oracle")
 
@@ -34,7 +34,7 @@ class VerdictRequest:
     engine_id: str
     track: str
     artifact_type: str  # "adapter" | "eval_result" | "generated_text"
-    b2_key: str  # BackBlaze object key
+    object_key: str  # Object storage object key
     session_id: str
     created_at: str
 
@@ -72,7 +72,7 @@ class GrokValidationOracle:
         self,
         mode: str = "offline",  # "api" or "offline"
         xai_api_key: Optional[str] = None,
-        b2_connector: Optional[B2Connector] = None,
+        object_storage_connector: Optional[ObjectStorageConnector] = None,
     ) -> None:
         normalized_mode = str(mode or "offline").strip().lower()
         if normalized_mode not in {"api", "offline"}:
@@ -80,7 +80,7 @@ class GrokValidationOracle:
 
         self.mode = normalized_mode
         self.xai_api_key = xai_api_key
-        self.b2_connector = b2_connector or B2Connector()
+        self.object_storage_connector = object_storage_connector or ObjectStorageConnector()
         self.xai_api_url = "https://api.x.ai/v1/chat/completions"
         self.xai_model = "grok-beta"
 
@@ -89,7 +89,7 @@ class GrokValidationOracle:
         self._track_cfg_cache: dict[str, dict[str, Any]] = {}
 
     def scan_pending(self) -> List[VerdictRequest]:
-        """Scan grok-verdicts/pending/ in BackBlaze for unreviewed artifacts."""
+        """Scan grok-verdicts/pending/ in object storage for unreviewed artifacts."""
         requests_found: list[VerdictRequest] = []
         self._pending_manifest_keys.clear()
         self._request_payload_cache.clear()
@@ -127,7 +127,7 @@ class GrokValidationOracle:
         if not all(str(payload.get(field, "")).strip() for field in required):
             return False
         # At least one identity field is required so random JSON artifacts are not parsed as requests.
-        identity_fields = ("artifact_id", "b2_key", "engine_id")
+        identity_fields = ("artifact_id", "object_key", "engine_id")
         return any(str(payload.get(field, "")).strip() for field in identity_fields)
 
     def evaluate_artifact(self, request: VerdictRequest) -> Verdict:
@@ -162,15 +162,15 @@ class GrokValidationOracle:
         return verdicts
 
     def move_to_approved(self, request: VerdictRequest, verdict: Verdict):
-        """Move artifact from pending/ to approved/ in BackBlaze."""
+        """Move artifact from pending/ to approved/ in object storage."""
         self._move_request_to_lane(request=request, verdict=verdict, lane="approved")
 
     def move_to_rejected(self, request: VerdictRequest, verdict: Verdict):
-        """Move artifact from pending/ to rejected/ in BackBlaze."""
+        """Move artifact from pending/ to rejected/ in object storage."""
         self._move_request_to_lane(request=request, verdict=verdict, lane="rejected")
 
     def promote_approved_adapters(self):
-        """Copy approved adapters to the live adapters/ path in BackBlaze.
+        """Copy approved adapters to the live adapters/ path in object storage.
         This is what Hetzner pulls during its next sync cycle.
         """
         promoted_count = 0
@@ -189,7 +189,7 @@ class GrokValidationOracle:
             if not bool(verdict_payload.get("passed", False)):
                 continue
 
-            source_key = str(request_payload.get("b2_key", ""))
+            source_key = str(request_payload.get("object_key", ""))
             if "/pending/" in source_key:
                 source_key = source_key.replace("/pending/", "/approved/", 1)
             if not source_key:
@@ -354,14 +354,14 @@ class GrokValidationOracle:
             request_payload = self._request_payload_cache.get(request.artifact_id, asdict(request))
             self._write_json(destination_manifest, request_payload)
 
-        if request.b2_key and "/pending/" in request.b2_key:
-            destination_artifact = request.b2_key.replace("/pending/", f"/{lane}/", 1)
+        if request.object_key and "/pending/" in request.object_key:
+            destination_artifact = request.object_key.replace("/pending/", f"/{lane}/", 1)
             try:
-                self._move_object(request.b2_key, destination_artifact)
+                self._move_object(request.object_key, destination_artifact)
             except Exception as exc:  # pragma: no cover - defensive logging
                 logger.warning(
                     "Unable to move artifact %s to %s lane: %s",
-                    request.b2_key,
+                    request.object_key,
                     lane,
                     exc,
                 )
@@ -382,7 +382,7 @@ class GrokValidationOracle:
             engine_id=str(payload.get("engine_id", "unknown")),
             track=str(payload.get("track", "shared")),
             artifact_type=str(payload.get("artifact_type", "generated_text")),
-            b2_key=str(payload.get("b2_key", fallback_key)),
+            object_key=str(payload.get("object_key", fallback_key)),
             session_id=str(payload.get("session_id", "unknown")),
             created_at=str(payload.get("created_at", self._now_iso())),
         )
@@ -418,7 +418,7 @@ class GrokValidationOracle:
             f"grok-verdicts/sessions/{request.session_id}.json",
             f"training-sessions/{request.session_id}/metadata.json",
             f"sessions/{request.session_id}/metadata.json",
-            f"{Path(request.b2_key).with_suffix('')}.metadata.json",
+            f"{Path(request.object_key).with_suffix('')}.metadata.json",
         ]
 
         for key in key_candidates:
@@ -432,9 +432,9 @@ class GrokValidationOracle:
             if isinstance(payload, dict):
                 return payload
 
-        if request.b2_key.lower().endswith(".json"):
+        if request.object_key.lower().endswith(".json"):
             try:
-                payload = self._read_json(request.b2_key)
+                payload = self._read_json(request.object_key)
             except Exception:
                 payload = {}
             if isinstance(payload, dict):
@@ -462,11 +462,11 @@ class GrokValidationOracle:
                 return candidate
 
         try:
-            payload_bytes = self._read_bytes(request.b2_key)
+            payload_bytes = self._read_bytes(request.object_key)
         except Exception:
             return ""
         decoded = payload_bytes.decode("utf-8", errors="ignore")
-        if request.b2_key.lower().endswith(".json"):
+        if request.object_key.lower().endswith(".json"):
             try:
                 parsed = json.loads(decoded)
             except json.JSONDecodeError:
@@ -483,7 +483,7 @@ class GrokValidationOracle:
         if request.artifact_type != "adapter":
             return 1.0
         try:
-            size_bytes = self._stat_size(request.b2_key)
+            size_bytes = self._stat_size(request.object_key)
         except Exception:
             return 0.0
 
@@ -649,7 +649,7 @@ class GrokValidationOracle:
         return normalized
 
     def _list_keys(self, prefix: str) -> list[str]:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         if hasattr(connector, "list_keys"):
             return [str(item) for item in connector.list_keys(prefix)]
         if hasattr(connector, "list_objects"):
@@ -658,7 +658,7 @@ class GrokValidationOracle:
         if hasattr(connector, "list"):
             raw = connector.list(prefix)
             return self._normalize_object_listing(raw)
-        raise AttributeError("B2 connector does not expose list capability")
+        raise AttributeError("Object storage connector does not expose list capability")
 
     def _normalize_object_listing(self, raw_listing: Any) -> list[str]:
         keys: list[str] = []
@@ -673,7 +673,7 @@ class GrokValidationOracle:
         return sorted(keys)
 
     def _read_bytes(self, key: str) -> bytes:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("get_bytes", "read_bytes", "download_bytes"):
             if hasattr(connector, method_name):
                 method = getattr(connector, method_name)
@@ -681,10 +681,10 @@ class GrokValidationOracle:
                 return payload if isinstance(payload, bytes) else bytes(payload)
         if hasattr(connector, "get_text"):
             return str(connector.get_text(key)).encode("utf-8")
-        raise AttributeError("B2 connector does not expose byte-read capability")
+        raise AttributeError("Object storage connector does not expose byte-read capability")
 
     def _write_bytes(self, key: str, payload: bytes) -> None:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("put_bytes", "write_bytes", "upload_bytes"):
             if hasattr(connector, method_name):
                 getattr(connector, method_name)(key, payload)
@@ -692,10 +692,10 @@ class GrokValidationOracle:
         if hasattr(connector, "put_text"):
             connector.put_text(key, payload.decode("utf-8", errors="ignore"))
             return
-        raise AttributeError("B2 connector does not expose byte-write capability")
+        raise AttributeError("Object storage connector does not expose byte-write capability")
 
     def _read_json(self, key: str) -> dict[str, Any]:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("get_json", "read_json"):
             if hasattr(connector, method_name):
                 payload = getattr(connector, method_name)(key)
@@ -710,7 +710,7 @@ class GrokValidationOracle:
         return {"items": payload}
 
     def _write_json(self, key: str, payload: dict[str, Any]) -> None:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("put_json", "write_json", "upload_json"):
             if hasattr(connector, method_name):
                 getattr(connector, method_name)(key, payload)
@@ -718,7 +718,7 @@ class GrokValidationOracle:
         self._write_bytes(key, json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8"))
 
     def _move_object(self, source_key: str, destination_key: str) -> None:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("move", "move_object", "rename", "rename_object"):
             if hasattr(connector, method_name):
                 getattr(connector, method_name)(source_key, destination_key)
@@ -727,7 +727,7 @@ class GrokValidationOracle:
         self._delete_object(source_key)
 
     def _copy_object(self, source_key: str, destination_key: str) -> None:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("copy", "copy_object"):
             if hasattr(connector, method_name):
                 getattr(connector, method_name)(source_key, destination_key)
@@ -736,14 +736,14 @@ class GrokValidationOracle:
         self._write_bytes(destination_key, payload)
 
     def _delete_object(self, key: str) -> None:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("delete", "delete_object", "remove"):
             if hasattr(connector, method_name):
                 getattr(connector, method_name)(key)
                 return
 
     def _stat_size(self, key: str) -> int:
-        connector = self.b2_connector
+        connector = self.object_storage_connector
         for method_name in ("stat_size", "size", "get_size"):
             if hasattr(connector, method_name):
                 value = getattr(connector, method_name)(key)

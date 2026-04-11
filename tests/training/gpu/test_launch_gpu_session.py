@@ -31,7 +31,7 @@ def test_main_blocks_grok_engine(capsys) -> None:
         def launch_session(self, **kwargs):
             raise GrokTrainingBlockedError(
                 "Grok-300B is too large for GPU training. "
-                "It remains in BackBlaze as a validation oracle only."
+                "It remains in Hetzner Object Storage as a validation oracle only."
             )
 
     rc = mod.main(
@@ -59,7 +59,7 @@ def test_main_prints_session_result_json(capsys) -> None:
                 eval_scores={"opord_structure": 0.9},
                 training_duration_seconds=99.0,
                 examples_processed=2048,
-                uploaded_to_b2=True,
+                uploaded_to_object_storage=True,
             )
 
     rc = mod.main(
@@ -71,5 +71,5 @@ def test_main_prints_session_result_json(capsys) -> None:
     payload = json.loads(captured.out)
     assert payload["engine_id"] == "mistral-7b"
     assert payload["track"] == "nato"
-    assert payload["uploaded_to_b2"] is True
+    assert payload["uploaded_to_object_storage"] is True
 

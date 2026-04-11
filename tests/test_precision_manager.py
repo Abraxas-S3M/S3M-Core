@@ -8,7 +8,7 @@ import pytest
 from src.storage.precision_manager import PrecisionManager
 
 
-class _FakeB2:
+class _FakeObjectStorage:
     def __init__(self) -> None:
         self.synced_down: list[tuple[str, str]] = []
         self.synced_up: list[tuple[str, str]] = []
@@ -49,13 +49,13 @@ class _FakeB2:
 
 
 def test_pull_fp16_for_training_blocks_grok(tmp_path: Path) -> None:
-    manager = PrecisionManager(_FakeB2())
+    manager = PrecisionManager(_FakeObjectStorage())
     with pytest.raises(ValueError, match="blocked"):
         manager.pull_fp16_for_training("grok-300b", tmp_path / "models")
 
 
 def test_pull_q4_for_serving_uses_q4_prefix(tmp_path: Path) -> None:
-    fake = _FakeB2()
+    fake = _FakeObjectStorage()
     manager = PrecisionManager(fake)
     destination = tmp_path / "q4"
     returned = manager.pull_q4_for_serving("phi3-medium", destination)
@@ -65,7 +65,7 @@ def test_pull_q4_for_serving_uses_q4_prefix(tmp_path: Path) -> None:
 
 
 def test_push_q4_serving_replaces_existing_files(tmp_path: Path) -> None:
-    fake = _FakeB2()
+    fake = _FakeObjectStorage()
     fake.keys_by_prefix["models/q4-gguf/phi3-medium/"] = [
         "models/q4-gguf/phi3-medium/old-a.gguf",
         "models/q4-gguf/phi3-medium/old-b.gguf",
@@ -84,7 +84,7 @@ def test_push_q4_serving_replaces_existing_files(tmp_path: Path) -> None:
 
 
 def test_promote_merged_to_base_downloads_and_uploads_key_map() -> None:
-    fake = _FakeB2()
+    fake = _FakeObjectStorage()
     merged_prefix = "models/fp16-merged/phi3-medium/nato/"
     fake.keys_by_prefix[merged_prefix] = [
         "models/fp16-merged/phi3-medium/nato/config.json",
@@ -102,7 +102,7 @@ def test_promote_merged_to_base_downloads_and_uploads_key_map() -> None:
 
 
 def test_get_model_inventory_summarizes_tiers() -> None:
-    fake = _FakeB2()
+    fake = _FakeObjectStorage()
     fake.keys_by_prefix["models/fp16/phi3-medium/"] = [
         "models/fp16/phi3-medium/config.json",
         "models/fp16/phi3-medium/model.safetensors",

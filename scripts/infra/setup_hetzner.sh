@@ -30,7 +30,7 @@ require_env() {
 }
 
 install_packages() {
-  banner "Installing Hetzner B2 system dependencies"
+  banner "Installing Hetzner Object Storage system dependencies"
   sudo apt-get update
   sudo apt-get install -y \
     build-essential \
@@ -101,23 +101,23 @@ copy_repo_to_workspace() {
 }
 
 write_env_file() {
-  banner "Writing /workspace/.env from BackBlaze credentials"
-  require_env "S3M_B2_KEY_ID"
-  require_env "S3M_B2_APP_KEY"
-  require_env "S3M_B2_BUCKET_NAME"
-  require_env "S3M_B2_ENDPOINT"
+  banner "Writing /workspace/.env from Hetzner Object Storage credentials"
+  require_env "S3M_STORAGE_ACCESS_KEY"
+  require_env "S3M_STORAGE_SECRET_KEY"
+  require_env "S3M_STORAGE_BUCKET_NAME"
+  require_env "S3M_STORAGE_ENDPOINT"
 
   cat >"${WORKSPACE_ROOT}/.env" <<EOF
-S3M_B2_KEY_ID=${S3M_B2_KEY_ID}
-S3M_B2_APP_KEY=${S3M_B2_APP_KEY}
-S3M_B2_BUCKET_NAME=${S3M_B2_BUCKET_NAME}
-S3M_B2_ENDPOINT=${S3M_B2_ENDPOINT}
+S3M_STORAGE_ACCESS_KEY=${S3M_STORAGE_ACCESS_KEY}
+S3M_STORAGE_SECRET_KEY=${S3M_STORAGE_SECRET_KEY}
+S3M_STORAGE_BUCKET_NAME=${S3M_STORAGE_BUCKET_NAME}
+S3M_STORAGE_ENDPOINT=${S3M_STORAGE_ENDPOINT}
 EOF
   chmod 600 "${WORKSPACE_ROOT}/.env"
 }
 
-initial_b2_model_sync() {
-  banner "Initial BackBlaze pull for Phi-3 and Mistral quantized weights"
+initial_model_sync() {
+  banner "Initial Hetzner Object Storage pull for Phi-3 and Mistral quantized weights"
 
   # shellcheck disable=SC1091
   source "${VENV_PATH}/bin/activate"
@@ -129,16 +129,16 @@ initial_b2_model_sync() {
   python - <<'PY'
 import os
 
-from src.storage.b2_connector import B2Connector
+from src.storage.object_storage import ObjectStorageConnector
 from src.storage.vault_paths import VaultPaths
 
 blocked_tokens = ("grok", "grok-300b", "base-weights/grok-300b", "quantized/grok-300b")
 engines = ("phi3-medium", "mistral-7b")
-connector = B2Connector(
-    key_id=os.environ["S3M_B2_KEY_ID"],
-    app_key=os.environ["S3M_B2_APP_KEY"],
-    bucket_name=os.environ["S3M_B2_BUCKET_NAME"],
-    endpoint_url=os.environ["S3M_B2_ENDPOINT"],
+connector = ObjectStorageConnector(
+    access_key=os.environ["S3M_STORAGE_ACCESS_KEY"],
+    secret_key=os.environ["S3M_STORAGE_SECRET_KEY"],
+    bucket_name=os.environ["S3M_STORAGE_BUCKET_NAME"],
+    endpoint=os.environ["S3M_STORAGE_ENDPOINT"],
 )
 for engine_id in engines:
     prefix = VaultPaths.quantized_engine(engine_id)
@@ -152,9 +152,9 @@ PY
 install_systemd_units() {
   banner "Installing systemd units and timer"
 
-  cat >/tmp/s3m-b2-sync.service <<EOF
+  cat >/tmp/s3m-storage-sync.service <<EOF
 [Unit]
-Description=S3M BackBlaze B2 Sync Service
+Description=S3M Hetzner Object Storage Sync Service
 After=network-online.target
 Wants=network-online.target
 
@@ -163,18 +163,18 @@ Type=oneshot
 User=root
 WorkingDirectory=${WORKSPACE_ROOT}
 EnvironmentFile=${WORKSPACE_ROOT}/.env
-ExecStart=/bin/bash -lc 'source ${VENV_PATH}/bin/activate && python ${WORKSPACE_ROOT}/scripts/infra/b2_sync_daemon.py --config ${WORKSPACE_ROOT}/configs/deployment/backblaze.yaml --once'
+ExecStart=/bin/bash -lc 'source ${VENV_PATH}/bin/activate && python ${WORKSPACE_ROOT}/scripts/infra/storage_sync_daemon.py --config ${WORKSPACE_ROOT}/configs/deployment/object_storage.yaml --once'
 EOF
 
-  cat >/tmp/s3m-b2-sync.timer <<EOF
+  cat >/tmp/s3m-storage-sync.timer <<EOF
 [Unit]
-Description=Run S3M BackBlaze B2 sync every 30 minutes
+Description=Run S3M Hetzner Object Storage sync every 30 minutes
 
 [Timer]
 OnBootSec=2min
 OnUnitActiveSec=30min
 Persistent=true
-Unit=s3m-b2-sync.service
+Unit=s3m-storage-sync.service
 
 [Install]
 WantedBy=timers.target
@@ -221,32 +221,32 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-  sudo cp /tmp/s3m-b2-sync.service /etc/systemd/system/s3m-b2-sync.service
-  sudo cp /tmp/s3m-b2-sync.timer /etc/systemd/system/s3m-b2-sync.timer
+  sudo cp /tmp/s3m-storage-sync.service /etc/systemd/system/s3m-storage-sync.service
+  sudo cp /tmp/s3m-storage-sync.timer /etc/systemd/system/s3m-storage-sync.timer
   sudo cp /tmp/s3m-cpu-train.service /etc/systemd/system/s3m-cpu-train.service
   sudo cp /tmp/s3m-api-server.service /etc/systemd/system/s3m-api-server.service
   rm -f \
-    /tmp/s3m-b2-sync.service \
-    /tmp/s3m-b2-sync.timer \
+    /tmp/s3m-storage-sync.service \
+    /tmp/s3m-storage-sync.timer \
     /tmp/s3m-cpu-train.service \
     /tmp/s3m-api-server.service
 
   if command -v systemctl >/dev/null 2>&1; then
     sudo systemctl daemon-reload
-    sudo systemctl enable s3m-cpu-train s3m-api-server s3m-b2-sync.timer
+    sudo systemctl enable s3m-cpu-train s3m-api-server s3m-storage-sync.timer
     sudo systemctl restart s3m-cpu-train s3m-api-server
-    sudo systemctl start s3m-b2-sync.service || true
-    sudo systemctl start s3m-b2-sync.timer
+    sudo systemctl start s3m-storage-sync.service || true
+    sudo systemctl start s3m-storage-sync.timer
   fi
 }
 
 print_summary() {
-  banner "Hetzner BackBlaze setup summary"
+  banner "Hetzner Object Storage setup summary"
   echo "S3M root: ${S3M_ROOT}"
   echo "Workspace root: ${WORKSPACE_ROOT}"
   echo "Venv: ${VENV_PATH}"
-  echo "B2 sync service: /etc/systemd/system/s3m-b2-sync.service"
-  echo "B2 sync timer: /etc/systemd/system/s3m-b2-sync.timer"
+  echo "Storage sync service: /etc/systemd/system/s3m-storage-sync.service"
+  echo "Storage sync timer: /etc/systemd/system/s3m-storage-sync.timer"
   echo "CPU train service: /etc/systemd/system/s3m-cpu-train.service"
   echo "API server service: /etc/systemd/system/s3m-api-server.service"
 }
@@ -257,7 +257,7 @@ main() {
   setup_venv
   copy_repo_to_workspace
   write_env_file
-  initial_b2_model_sync
+  initial_model_sync
   install_systemd_units
   print_summary
 }

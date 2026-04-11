@@ -107,7 +107,7 @@ def test_validate_pack_rejects_checksum_tamper(tmp_path: Path) -> None:
     assert builder.validate_pack(pack) is False
 
 
-def test_upload_packs_emits_backblaze_key_prefixes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_upload_packs_emits_object_storage_key_prefixes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     builder = PacketBuilder()
     pack = builder.build_from_pairs(
         pairs=[{"prompt": "Intel summary", "completion": "Intel output"}],

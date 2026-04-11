@@ -1,7 +1,7 @@
 gui_bridge:
   snapshot_publish_interval_minutes: 15
   full_snapshot_interval_hours: 2
-  b2_snapshot_prefix: "gui-snapshots/"
+  snapshot_prefix: "gui-snapshots/"
   cloudflare_pages_domain: "demo.yourdomain.com"
   api_base_url: "https://api.yourdomain.com/api/v1"
   ws_url: "wss://api.yourdomain.com/ws"

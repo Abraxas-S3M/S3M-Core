@@ -27,7 +27,7 @@ logger = logging.getLogger("s3m.training.gpu.session_manager")
 
 GROK_BLOCK_MESSAGE = (
     "Grok-300B is too large for GPU training. "
-    "It remains in BackBlaze as a validation oracle only."
+    "It remains in Hetzner Object Storage as a validation oracle only."
 )
 SUPPORTED_TRACKS = {"saudi_mod", "ukraine_mod", "nato"}
 ENGINE_ALIASES = {
@@ -47,17 +47,17 @@ class SessionResult:
     eval_scores: Dict[str, float]
     training_duration_seconds: float
     examples_processed: int
-    uploaded_to_b2: bool
+    uploaded_to_object_storage: bool
 
 
 class GrokTrainingBlockedError(ValueError):
     """Raised when a Grok-family engine is routed to GPU fine-tuning."""
 
 
-class _LocalB2MirrorConnector:
-    """Offline fallback connector mirroring B2 keys onto local filesystem."""
+class _LocalObjectStorageMirrorConnector:
+    """Offline fallback connector mirroring object storage keys onto local filesystem."""
 
-    def __init__(self, mirror_root: str = "/workspace/backblaze") -> None:
+    def __init__(self, mirror_root: str = "/workspace/object-storage") -> None:
         self.root = Path(mirror_root)
         self.root.mkdir(parents=True, exist_ok=True)
 
@@ -129,7 +129,7 @@ class GPUSessionManager:
         self.checkpoint_root = self.workspace_root / "checkpoints" / "runpod"
         self.eval_root = self.workspace_root / "eval-results"
         self.eval_harness = S3MEvalHarness(eval_data_dir=str(self.eval_root))
-        self.b2_connector = self._load_b2_connector()
+        self.object_storage_connector = self._load_object_storage_connector()
         self._last_session_metadata_path: Optional[Path] = None
         self._last_checkpoint_for_resume: Optional[str] = None
         self._last_eval_scores: Dict[str, float] = {}
@@ -144,10 +144,10 @@ class GPUSessionManager:
     ) -> SessionResult:
         """Full training session lifecycle:
         1. Validate engine_id is NOT grok (hard block)
-        2. Sync weights + datasets from BackBlaze
+        2. Sync weights + datasets from Hetzner Object Storage
         3. Run QLoRA fine-tuning
         4. Run eval harness
-        5. Push adapter + metrics to BackBlaze
+        5. Push adapter + metrics to Hetzner Object Storage
         6. Push to grok-verdicts/pending/ for Grok validation
         7. Return session results
         """
@@ -158,7 +158,7 @@ class GPUSessionManager:
             raise ValueError("max_runtime_hours must be greater than 0.")
 
         resolved = self._resolve_engine(engine_id)
-        self.sync_from_b2(resolved.storage_engine_id, track)
+        self.sync_from_object_storage(resolved.storage_engine_id, track)
         resumed_from = self._detect_and_offer_resume_checkpoint(resolved.storage_engine_id)
         dataset_path = self._resolve_dataset_path(track=track, dataset_override=dataset_override)
 
@@ -201,7 +201,7 @@ class GPUSessionManager:
         self._last_session_metadata_path = metadata_path
         self._last_checkpoint_for_resume = metrics.get("checkpoint_path")
 
-        uploaded_to_b2 = self.sync_to_b2(
+        uploaded_to_object_storage = self.sync_to_object_storage(
             engine_id=resolved.storage_engine_id,
             track=track,
             adapter_dir=Path(adapter_path),
@@ -214,11 +214,11 @@ class GPUSessionManager:
             eval_scores=dict(eval_result.scores),
             training_duration_seconds=float(metrics.get("elapsed_seconds", 0.0)),
             examples_processed=int(metrics.get("examples_processed", 0)),
-            uploaded_to_b2=uploaded_to_b2,
+            uploaded_to_object_storage=uploaded_to_object_storage,
         )
 
-    def sync_from_b2(self, engine_id: str, track: str):
-        """Pull base weights and training data from BackBlaze."""
+    def sync_from_object_storage(self, engine_id: str, track: str):
+        """Pull base weights and training data from Hetzner Object Storage."""
         self._assert_non_grok(engine_id)
         self._validate_track(track)
         weights_prefix = f"base-weights/{engine_id}/"
@@ -227,10 +227,10 @@ class GPUSessionManager:
         dataset_dest = self.dataset_root / track
         self._pull_prefix(weights_prefix, weights_dest)
         self._pull_prefix(dataset_prefix, dataset_dest)
-        logger.info("B2 sync complete: engine=%s track=%s", engine_id, track)
+        logger.info("Object storage sync complete: engine=%s track=%s", engine_id, track)
 
-    def sync_to_b2(self, engine_id: str, track: str, adapter_dir: Path):
-        """Push training artifacts back to BackBlaze."""
+    def sync_to_object_storage(self, engine_id: str, track: str, adapter_dir: Path):
+        """Push training artifacts back to Hetzner Object Storage."""
         self._assert_non_grok(engine_id)
         self._validate_track(track)
 
@@ -410,7 +410,7 @@ class GPUSessionManager:
     def _pull_prefix(self, prefix: str, destination: Path) -> bool:
         destination.mkdir(parents=True, exist_ok=True)
         method = self._get_connector_method(
-            ["sync_prefix_to_local", "download_prefix", "pull_prefix", "sync_from_b2", "download_folder"]
+            ["sync_prefix_to_local", "download_prefix", "pull_prefix", "sync_from_object_storage", "download_folder"]
         )
         if method is None:
             return False
@@ -429,7 +429,7 @@ class GPUSessionManager:
         if not source.exists():
             return False
         method = self._get_connector_method(
-            ["sync_local_to_prefix", "upload_dir", "push_dir", "sync_to_b2", "upload_folder"]
+            ["sync_local_to_prefix", "upload_dir", "push_dir", "sync_to_object_storage", "upload_folder"]
         )
         if method is None:
             return False
@@ -458,10 +458,10 @@ class GPUSessionManager:
             ],
         )
 
-    def _load_b2_connector(self) -> Any:
+    def _load_object_storage_connector(self) -> Any:
         try:
-            module = importlib.import_module("src.storage.b2_connector")
-            for name in ("B2Connector", "BackBlazeB2Connector", "BackblazeB2Connector"):
+            module = importlib.import_module("src.storage.object_storage")
+            for name in ("ObjectStorageConnector", "HetznerObjectStorageConnector"):
                 connector_cls = getattr(module, name, None)
                 if connector_cls is None:
                     continue
@@ -471,15 +471,15 @@ class GPUSessionManager:
                     # Keep constructor fallback generic for compatibility with Prompt #1 variants.
                     return connector_cls(config_path=self.config_path)
         except Exception as exc:
-            logger.warning("B2 connector unavailable; using local mirror fallback. reason=%s", exc)
-        return _LocalB2MirrorConnector()
+            logger.warning("Object storage connector unavailable; using local mirror fallback. reason=%s", exc)
+        return _LocalObjectStorageMirrorConnector()
 
     def _get_connector_method(self, method_names: Iterable[str]):
         for name in method_names:
-            candidate = getattr(self.b2_connector, name, None)
+            candidate = getattr(self.object_storage_connector, name, None)
             if callable(candidate):
                 return candidate
-        logger.warning("No compatible B2 connector method found for names=%s", list(method_names))
+        logger.warning("No compatible object storage connector method found for names=%s", list(method_names))
         return None
 
     @staticmethod
