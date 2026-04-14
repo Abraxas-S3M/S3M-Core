@@ -1,4 +1,4 @@
-"""Tests for Hetzner Object Storage connector mission-storage operations."""
+"""Tests for S3-compatible object storage connector mission-storage operations."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def test_init_reads_environment_and_builds_s3_client(
         endpoint_url="https://s3.test.objectstorage.com",
         aws_access_key_id="unit-test-key-id",
         aws_secret_access_key="unit-test-app-key",
-        region_name="fsn1",
+        region_name="auto",
     )
 
 
@@ -278,3 +278,153 @@ def test_delete_file_invokes_delete_object(
         Bucket="unit-test-vault",
         Key="grok-verdicts/rejected/sample.json",
     )
+
+
+def test_from_config_defaults_region_to_auto(mocked_client: tuple[MagicMock, MagicMock]) -> None:
+    """Config bootstrap falls back to provider-agnostic S3 auto region."""
+    ObjectStorageConnector.from_config(
+        {
+            "object_storage": {
+                "access_key": "cfg-key",
+                "secret_key": "cfg-secret",
+                "endpoint": "https://cfg.objectstorage.test",
+            }
+        }
+    )
+
+    _client_factory(mocked_client).assert_called_once_with(
+        "s3",
+        endpoint_url="https://cfg.objectstorage.test",
+        aws_access_key_id="cfg-key",
+        aws_secret_access_key="cfg-secret",
+        region_name="auto",
+    )
+
+
+def test_for_cloudflare_r2_uses_account_and_r2_env_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+    mocked_client: tuple[MagicMock, MagicMock],
+) -> None:
+    """R2 factory assembles endpoint and credentials for zero-egress transfer lane."""
+    monkeypatch.setenv("S3M_CF_ACCOUNT_ID", "acct-123")
+    monkeypatch.setenv("S3M_R2_ACCESS_KEY_ID", "r2-key")
+    monkeypatch.setenv("S3M_R2_SECRET_ACCESS_KEY", "r2-secret")
+
+    connector = ObjectStorageConnector.for_cloudflare_r2(bucket_name="r2-vault")
+
+    assert connector.bucket_name == "r2-vault"
+    _client_factory(mocked_client).assert_called_once_with(
+        "s3",
+        endpoint_url="https://acct-123.r2.cloudflarestorage.com",
+        aws_access_key_id="r2-key",
+        aws_secret_access_key="r2-secret",
+        region_name="auto",
+    )
+
+
+def test_for_cloudflare_r2_requires_account_id(
+    monkeypatch: pytest.MonkeyPatch,
+    mocked_client: tuple[MagicMock, MagicMock],
+) -> None:
+    """Factory fails fast when the Cloudflare account identifier is missing."""
+    monkeypatch.delenv("S3M_CF_ACCOUNT_ID", raising=False)
+
+    with pytest.raises(ObjectStorageConfigError, match="S3M_CF_ACCOUNT_ID"):
+        ObjectStorageConnector.for_cloudflare_r2()
+
+    _client_factory(mocked_client).assert_not_called()
+
+
+def test_generate_presigned_url_delegates_to_client(
+    connector: ObjectStorageConnector,
+    mocked_client: tuple[MagicMock, MagicMock],
+) -> None:
+    """Presign requests are delegated with normalized key and expiry semantics."""
+    _client(mocked_client).generate_presigned_url.return_value = "https://signed.example/object"
+
+    url = connector.generate_presigned_url("/models/phi3.gguf", expires_in=900)
+
+    assert url == "https://signed.example/object"
+    _client(mocked_client).generate_presigned_url.assert_called_once_with(
+        "get_object",
+        Params={"Bucket": "unit-test-vault", "Key": "models/phi3.gguf"},
+        ExpiresIn=900,
+    )
+
+
+def test_generate_presigned_url_in_emulation_returns_file_url(tmp_path: Path) -> None:
+    """Emulation mode returns deterministic file URL without boto3 dependency."""
+    connector = ObjectStorageConnector(emulation_root=tmp_path)
+
+    url = connector.generate_presigned_url("models/phi3.gguf")
+
+    assert url == f"file://{(tmp_path / 'models' / 'phi3.gguf').resolve()}"
+
+
+def test_multipart_upload_sends_parts_and_completes(
+    connector: ObjectStorageConnector,
+    mocked_client: tuple[MagicMock, MagicMock],
+    tmp_path: Path,
+) -> None:
+    """Multipart transfer chunks large payloads and finalizes manifest cleanly."""
+    source = tmp_path / "model.bin"
+    source.write_bytes(b"a" * ((1024 * 1024) + 10))
+    checksum = hashlib.sha256(source.read_bytes()).hexdigest()
+    client = _client(mocked_client)
+    client.create_multipart_upload.return_value = {"UploadId": "upload-1"}
+    client.upload_part.side_effect = [{"ETag": "etag-1"}, {"ETag": "etag-2"}]
+
+    result = connector.multipart_upload(source, "weights/model.bin", part_size_mb=1)
+
+    client.create_multipart_upload.assert_called_once_with(
+        Bucket="unit-test-vault",
+        Key="weights/model.bin",
+        Metadata={"sha256": checksum},
+    )
+    assert client.upload_part.call_count == 2
+    client.complete_multipart_upload.assert_called_once_with(
+        Bucket="unit-test-vault",
+        Key="weights/model.bin",
+        UploadId="upload-1",
+        MultipartUpload={"Parts": [{"PartNumber": 1, "ETag": "etag-1"}, {"PartNumber": 2, "ETag": "etag-2"}]},
+    )
+    client.abort_multipart_upload.assert_not_called()
+    assert result["remote_key"] == "weights/model.bin"
+    assert result["etag"] == checksum
+    assert result["parts"] == 2
+    assert result["size_bytes"] == source.stat().st_size
+
+
+def test_multipart_upload_aborts_on_part_failure(
+    connector: ObjectStorageConnector,
+    mocked_client: tuple[MagicMock, MagicMock],
+    tmp_path: Path,
+) -> None:
+    """Upload failures abort multipart session to avoid orphaned server state."""
+    source = tmp_path / "model.bin"
+    source.write_bytes(b"critical-data")
+    client = _client(mocked_client)
+    client.create_multipart_upload.return_value = {"UploadId": "upload-2"}
+    client.upload_part.side_effect = RuntimeError("network drop")
+
+    with pytest.raises(RuntimeError, match="network drop"):
+        connector.multipart_upload(source, "weights/model.bin", part_size_mb=1)
+
+    client.abort_multipart_upload.assert_called_once_with(
+        Bucket="unit-test-vault",
+        Key="weights/model.bin",
+        UploadId="upload-2",
+    )
+
+
+def test_multipart_upload_in_emulation_delegates_to_upload_file(tmp_path: Path) -> None:
+    """Emulated multipart path reuses standard upload behavior for local vault simulation."""
+    connector = ObjectStorageConnector(emulation_root=tmp_path)
+    source = tmp_path / "input.bin"
+    source.write_bytes(b"payload")
+
+    with patch.object(connector, "upload_file", return_value={"remote_key": "weights/input.bin"}) as upload_mock:
+        result = connector.multipart_upload(source, "weights/input.bin")
+
+    upload_mock.assert_called_once_with(source, "weights/input.bin")
+    assert result["remote_key"] == "weights/input.bin"
