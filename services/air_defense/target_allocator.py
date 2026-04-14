@@ -7,7 +7,7 @@ assign targets through missile-gun-EW layers without cloud dependencies.
 
 from __future__ import annotations
 
-from typing import Iterable, Optional, Set
+from typing import Iterable, Optional, Protocol, Set
 
 from services.air_defense.effector_registry import EffectorRegistry
 from services.air_defense.models import (
@@ -30,8 +30,13 @@ class TargetAllocator:
         EffectorCategory.ELECTRONIC_WARFARE,
     )
 
-    def __init__(self, registry: EffectorRegistry) -> None:
+    def __init__(
+        self,
+        registry: EffectorRegistry,
+        interceptor_manager: Optional["InterceptorManagerProtocol"] = None,
+    ) -> None:
         self.registry = registry
+        self._interceptor_manager = interceptor_manager
 
     def allocate(
         self,
@@ -59,6 +64,7 @@ class TargetAllocator:
             if selected is None:
                 continue
             selected.begin_engagement(target_id)
+            self._start_interceptor_guidance_if_needed(selected=selected, target_id=target_id)
             allocation = TargetAllocation(
                 target_id=target_id,
                 target_position=target_position,
@@ -103,3 +109,21 @@ class TargetAllocator:
         if not candidates:
             return None
         return max(candidates, key=lambda eff: eff.readiness_score)
+
+    def _start_interceptor_guidance_if_needed(self, *, selected: Effector, target_id: str) -> None:
+        if selected.category is not EffectorCategory.INTERCEPTOR_DRONE:
+            return
+        if self._interceptor_manager is None:
+            return
+        # Tactical context: once an interceptor drone is allocated, guidance startup
+        # must begin immediately so the drone can enter Krechet midcourse control.
+        self._interceptor_manager.assign_target(selected.effector_id, target_id)
+        self._interceptor_manager.launch(selected.effector_id)
+
+
+class InterceptorManagerProtocol(Protocol):
+    def assign_target(self, interceptor_id: str, target_id: str) -> bool:
+        ...
+
+    def launch(self, interceptor_id: str) -> bool:
+        ...
