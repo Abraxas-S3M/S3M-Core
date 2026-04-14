@@ -8,7 +8,8 @@ offline command-post simulation on edge compute hardware.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from math import sqrt
+from typing import Any, Dict, List, Optional, Protocol, Tuple
 from uuid import uuid4
 
 from services.radar.models import (
@@ -19,6 +20,24 @@ from services.radar.models import (
     RadarStatus,
     RadarUnit,
     TrackState,
+)
+
+
+class AirDefenseAllocator(Protocol):
+    """Protocol for optional tactical target allocation integration."""
+
+    def allocate(
+        self,
+        target_id: str,
+        target_position: Tuple[float, float, float],
+        target_speed_mps: float,
+        target_classification: str,
+    ) -> Any:
+        ...
+
+
+ALLOCATABLE_TRACK_CLASSES = frozenset(
+    {"ENEMY_UAV", "ENEMY_CRUISE_MISSILE", "ENEMY_HELICOPTER", "ENEMY_AIRCRAFT"}
 )
 
 
@@ -34,11 +53,13 @@ def _parse_xyz(raw_position: Any, *, field_name: str) -> Tuple[float, float, flo
 class RadarManager:
     """Coordinate radar registration, scan ingest, and simple track fusion."""
 
-    def __init__(self) -> None:
+    def __init__(self, air_defense_allocator: Optional[AirDefenseAllocator] = None) -> None:
         self._radars: Dict[str, RadarUnit] = {}
         self._status: Dict[str, RadarStatus] = {}
         self._plots_by_radar: Dict[str, List[RadarPlot]] = {}
         self._tracks: Dict[str, FusedTrack] = {}
+        self._air_defense_allocator = air_defense_allocator
+        self._allocated_track_ids: set[str] = set()
 
     def list_radars(self) -> List[RadarUnit]:
         return list(self._radars.values())
@@ -56,6 +77,9 @@ class RadarManager:
 
     def get_status(self, radar_id: str) -> Optional[RadarStatus]:
         return self._status.get(str(radar_id))
+
+    def list_tracks(self) -> List[FusedTrack]:
+        return list(self._tracks.values())
 
     def get_all_status(self) -> Dict[str, Any]:
         statuses = [status.to_dict() for status in self._status.values()]
@@ -118,19 +142,76 @@ class RadarManager:
                 track_id = str(plot.correlated_track_id)
                 existing = self._tracks.get(track_id)
                 if existing is None:
+                    track_classification = self._derive_track_classification(plot)
                     self._tracks[track_id] = FusedTrack(
                         track_id=track_id,
                         state=TrackState.TENTATIVE,
                         last_update=now,
                         source_hits=1,
+                        classification=track_classification,
+                        position=plot.position or (0.0, 0.0, 0.0),
+                        sensor_sources=[plot.radar_id],
                     )
                     continue
 
                 existing.source_hits += 1
                 existing.last_update = now
+                if plot.position:
+                    existing.position = plot.position
+                if plot.radar_id and plot.radar_id not in existing.sensor_sources:
+                    existing.sensor_sources.append(plot.radar_id)
+                track_classification = self._derive_track_classification(plot)
+                if track_classification != "UNKNOWN":
+                    existing.classification = track_classification
                 if existing.source_hits >= 2:
                     existing.state = TrackState.CONFIRMED
+        self._allocate_confirmed_tracks()
         return list(self._tracks.values())
+
+    def _derive_track_classification(self, plot: RadarPlot) -> str:
+        attr_classification = (
+            plot.attributes.get("target_allocator_classification")
+            or plot.attributes.get("classification")
+        )
+        if isinstance(attr_classification, str) and attr_classification.strip():
+            return attr_classification.strip().upper()
+
+        mapping = {
+            RCSClassification.SMALL_UAV: "ENEMY_UAV",
+            RCSClassification.MEDIUM_UAV: "ENEMY_UAV",
+            RCSClassification.LARGE_UAV: "ENEMY_UAV",
+            RCSClassification.CRUISE_MISSILE: "ENEMY_CRUISE_MISSILE",
+            RCSClassification.HELICOPTER: "ENEMY_HELICOPTER",
+            RCSClassification.FIGHTER: "ENEMY_AIRCRAFT",
+            RCSClassification.FIGHTER_AIRCRAFT: "ENEMY_AIRCRAFT",
+            RCSClassification.LARGE_AIRCRAFT: "ENEMY_AIRCRAFT",
+        }
+        return mapping.get(plot.rcs_classification, "UNKNOWN")
+
+    def _track_speed_mps(self, track: FusedTrack) -> float:
+        vx, vy, vz = track.velocity
+        return float(sqrt((vx * vx) + (vy * vy) + (vz * vz)))
+
+    def _allocate_confirmed_tracks(self) -> None:
+        if self._air_defense_allocator is None:
+            return
+        for track in self._tracks.values():
+            if track.state is not TrackState.CONFIRMED:
+                continue
+            classification = str(track.classification or "UNKNOWN").upper()
+            if classification not in ALLOCATABLE_TRACK_CLASSES:
+                continue
+            if track.track_id in self._allocated_track_ids:
+                continue
+            # Tactical context: each confirmed hostile air track should trigger one
+            # deterministic effector allocation attempt to prevent duplicate fires.
+            self._air_defense_allocator.allocate(
+                target_id=track.track_id,
+                target_position=track.position,
+                target_speed_mps=self._track_speed_mps(track),
+                target_classification=classification,
+            )
+            self._allocated_track_ids.add(track.track_id)
 
     def get_stats(self) -> Dict[str, Any]:
         scans_received = sum(status.scans_received for status in self._status.values())
