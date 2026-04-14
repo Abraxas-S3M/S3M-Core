@@ -1,27 +1,31 @@
-"""Saudi/GCC layered air defense service package."""
+"""Air defense allocation subsystem for layered tactical engagements."""
 
 from services.air_defense.effector_registry import EffectorRegistry
 from services.air_defense.models import (
-    AirDefenseUnit,
+    AirDefenseZone,
+    AllocationResult,
     DefenseEchelon,
-    DefenseZone,
     Effector,
     EffectorCategory,
+    EffectorEnvelope,
+    EffectorState,
     EffectorType,
-    EngagementEnvelope,
+    TargetAllocation,
 )
-from services.air_defense.saudi_templates import create_krechet_equivalent_unit
+from services.air_defense.target_allocator import TargetAllocator
 from services.air_defense.zone_manager import ZoneManager
 
 __all__ = [
-    "AirDefenseUnit",
+    "AirDefenseZone",
+    "AllocationResult",
     "DefenseEchelon",
-    "DefenseZone",
     "Effector",
     "EffectorCategory",
+    "EffectorEnvelope",
     "EffectorRegistry",
+    "EffectorState",
     "EffectorType",
-    "EngagementEnvelope",
+    "TargetAllocation",
+    "TargetAllocator",
     "ZoneManager",
-    "create_krechet_equivalent_unit",
 ]

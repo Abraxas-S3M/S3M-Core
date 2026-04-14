@@ -1,21 +1,21 @@
-"""Core models for layered air defense force composition.
+"""Data models for layered air-defense fire allocation.
 
 Military context:
-These models encode a multi-echelon ground-based air defense construct so
-simulations can reason about tactical coverage, reaction windows, and
-interceptor inventory for critical-asset protection.
+These models formalize tactical engagement state for Krechet-style fire
+distribution so layered echelons can engage hostile air threats deterministically
+in disconnected combat conditions.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Tuple
-from uuid import uuid4
+from math import isfinite, sqrt
+from typing import List, Optional, Tuple
 
 
 class DefenseEchelon(str, Enum):
-    """Defensive depth bands used to organize layered engagements."""
+    """Layered defense bands used for doctrine-driven target engagement."""
 
     EXTENDED = "extended"
     MEDIUM = "medium"
@@ -24,7 +24,7 @@ class DefenseEchelon(str, Enum):
 
 
 class EffectorCategory(str, Enum):
-    """Operational categories for kinetic and non-kinetic effectors."""
+    """Mission category of an effector for target suitability matching."""
 
     SAM_MEDIUM = "sam_medium"
     SAM_SHORT = "sam_short"
@@ -35,130 +35,191 @@ class EffectorCategory(str, Enum):
 
 
 class EffectorType(str, Enum):
-    """Canonical effector system variants represented in S3M templates."""
+    """Concrete effector type for operator-readable audit messages."""
 
-    BUK_FS = "buk_fs"
-    ITEL_SNC = "itel_snc"
-    DASH_STASH_V2X = "dash_stash_v2x"
-    FRANKEN_SAM = "franken_sam"
-    SKYNEX = "skynex"
-    SKYRANGER = "skyranger"
-    RAPID_RANGER = "rapid_ranger"
-    TYPHOON_KDA = "typhoon_kda"
-    MANPADS_GENERIC = "manpads_generic"
-    INTERCEPTOR_TITAN = "interceptor_titan"
+    SAM_9M96 = "sam_9m96"
+    SAM_PANTSIR = "sam_pantsir"
+    CIWS_30MM = "ciws_30mm"
+    MANPADS_IGLA = "manpads_igla"
+    INTERCEPTOR_UAV = "interceptor_uav"
     EW_JAMMER = "ew_jammer"
 
 
-@dataclass
-class EngagementEnvelope:
-    """Kinematic and temporal limits that define valid engagement geometry."""
+class EffectorState(str, Enum):
+    """Lifecycle state for whether an effector can accept engagements."""
 
-    min_range_m: float
+    READY = "ready"
+    ENGAGED = "engaged"
+    RELOADING = "reloading"
+    MAINTENANCE = "maintenance"
+    OFFLINE = "offline"
+
+
+@dataclass(slots=True)
+class EffectorEnvelope:
+    """Kinematic constraints used to validate tactical intercept feasibility."""
+
     max_range_m: float
+    min_range_m: float
     min_altitude_m: float
     max_altitude_m: float
     max_target_speed_mps: float
-    reaction_time_s: float
-    engagement_time_s: float
-    simultaneous_targets: int
     pk_single_shot: float
 
     def __post_init__(self) -> None:
-        if self.min_range_m < 0 or self.max_range_m < 0:
-            raise ValueError("engagement range must be non-negative")
-        if self.min_altitude_m < 0 or self.max_altitude_m < 0:
-            raise ValueError("engagement altitude must be non-negative")
-        if self.max_target_speed_mps <= 0:
-            raise ValueError("max_target_speed_mps must be positive")
-        if self.reaction_time_s < 0 or self.engagement_time_s < 0:
-            raise ValueError("reaction and engagement times must be non-negative")
-        if self.min_range_m > self.max_range_m:
-            raise ValueError("min_range_m cannot exceed max_range_m")
-        if self.min_altitude_m > self.max_altitude_m:
-            raise ValueError("min_altitude_m cannot exceed max_altitude_m")
-        if self.simultaneous_targets < 1:
-            raise ValueError("simultaneous_targets must be at least 1")
-        if not 0.0 <= self.pk_single_shot <= 1.0:
-            raise ValueError("pk_single_shot must be between 0 and 1")
+        if self.max_range_m <= 0 or not isfinite(self.max_range_m):
+            raise ValueError("max_range_m must be finite and positive")
+        if self.min_range_m < 0 or self.min_range_m >= self.max_range_m:
+            raise ValueError("min_range_m must be >= 0 and less than max_range_m")
+        if self.max_altitude_m <= self.min_altitude_m:
+            raise ValueError("max_altitude_m must be greater than min_altitude_m")
+        if self.max_target_speed_mps <= 0 or not isfinite(self.max_target_speed_mps):
+            raise ValueError("max_target_speed_mps must be finite and positive")
+        if not (0.0 <= self.pk_single_shot <= 1.0):
+            raise ValueError("pk_single_shot must be between 0.0 and 1.0")
+
+    def can_engage(
+        self, slant_range_m: float, altitude_m: float, target_speed_mps: float
+    ) -> bool:
+        """Return whether target geometry is inside intercept envelope."""
+        return (
+            self.min_range_m <= slant_range_m <= self.max_range_m
+            and self.min_altitude_m <= altitude_m <= self.max_altitude_m
+            and target_speed_mps <= self.max_target_speed_mps
+        )
 
 
-@dataclass
+@dataclass(slots=True)
+class AirDefenseZone:
+    """Circular tactical zone describing one layer of defended airspace."""
+
+    zone_id: str
+    name: str
+    echelon: DefenseEchelon
+    center_position: Tuple[float, float, float]
+    min_radius_m: float
+    max_radius_m: float
+
+    def __post_init__(self) -> None:
+        if not self.zone_id.strip():
+            raise ValueError("zone_id must be non-empty")
+        if self.min_radius_m < 0 or self.max_radius_m <= self.min_radius_m:
+            raise ValueError("zone radii must satisfy 0 <= min < max")
+        _validate_position(self.center_position)
+
+    def contains_target(self, target_position: Tuple[float, float, float]) -> bool:
+        """Return true when target lies inside this tactical defense ring."""
+        _validate_position(target_position)
+        dx = target_position[0] - self.center_position[0]
+        dy = target_position[1] - self.center_position[1]
+        radial_distance = sqrt(dx * dx + dy * dy)
+        return self.min_radius_m <= radial_distance <= self.max_radius_m
+
+
+@dataclass(slots=True)
 class Effector:
-    """Single tactical effector node with inventory and engagement limits."""
+    """Individual firing unit with envelope and readiness metadata."""
 
+    effector_id: str
     name_en: str
-    name_ar: str
     effector_type: EffectorType
     category: EffectorCategory
     echelon: DefenseEchelon
-    envelope: EngagementEnvelope
+    state: EffectorState
+    zone_id: str
     position: Tuple[float, float, float]
+    envelope: EffectorEnvelope
+    readiness_score: float
     ammunition_total: int
     ammunition_remaining: int
-    reload_time_s: float
-    assigned_zone_id: str
-    effector_id: str = field(default_factory=lambda: f"eff-{uuid4().hex[:12]}")
+    current_target_id: Optional[str] = None
 
     def __post_init__(self) -> None:
-        if not self.name_en.strip() or not self.name_ar.strip():
-            raise ValueError("effector names must be non-empty")
-        if len(self.position) != 3:
-            raise ValueError("position must be a 3D coordinate tuple")
-        if self.ammunition_total < 0:
-            raise ValueError("ammunition_total must be non-negative")
-        if self.ammunition_remaining < 0:
-            raise ValueError("ammunition_remaining must be non-negative")
-        if self.ammunition_remaining > self.ammunition_total:
-            raise ValueError("ammunition_remaining cannot exceed ammunition_total")
-        if self.reload_time_s < 0:
-            raise ValueError("reload_time_s must be non-negative")
-        if not self.assigned_zone_id.strip():
-            raise ValueError("assigned_zone_id must be non-empty")
-
-
-@dataclass
-class DefenseZone:
-    """Radial defense zone that groups effectors by tactical echelon."""
-
-    zone_id: str
-    echelon: DefenseEchelon
-    center: Tuple[float, float, float]
-    radius_min_m: float
-    radius_max_m: float
-    defended_asset_name: str
-    defended_asset_name_ar: str
-    assigned_effector_ids: list[str] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        if len(self.center) != 3:
-            raise ValueError("zone center must be a 3D coordinate tuple")
-        if self.radius_min_m < 0 or self.radius_max_m < 0:
-            raise ValueError("zone radii must be non-negative")
-        if self.radius_min_m > self.radius_max_m:
-            raise ValueError("radius_min_m cannot exceed radius_max_m")
+        if not self.effector_id.strip():
+            raise ValueError("effector_id must be non-empty")
         if not self.zone_id.strip():
             raise ValueError("zone_id must be non-empty")
+        _validate_position(self.position)
+        if not (0.0 <= self.readiness_score <= 1.0):
+            raise ValueError("readiness_score must be between 0.0 and 1.0")
+        if self.ammunition_total < 0:
+            raise ValueError("ammunition_total must be >= 0")
+        if self.ammunition_remaining < 0:
+            raise ValueError("ammunition_remaining must be >= 0")
+        if self.ammunition_remaining > self.ammunition_total:
+            raise ValueError("ammunition_remaining cannot exceed ammunition_total")
+
+    def is_available(self) -> bool:
+        """Combat-ready means ready state, positive ammo, and nonzero readiness."""
+        return (
+            self.state == EffectorState.READY
+            and self.ammunition_remaining > 0
+            and self.readiness_score > 0.0
+        )
+
+    def range_to(self, target_position: Tuple[float, float, float]) -> float:
+        """Return 3D slant range used for fire-control decision logic."""
+        _validate_position(target_position)
+        dx = target_position[0] - self.position[0]
+        dy = target_position[1] - self.position[1]
+        dz = target_position[2] - self.position[2]
+        return sqrt(dx * dx + dy * dy + dz * dz)
+
+    def can_engage(
+        self, target_position: Tuple[float, float, float], target_speed_mps: float
+    ) -> bool:
+        """Return true if this effector can currently prosecute the target."""
+        if target_speed_mps < 0:
+            return False
+        if not self.is_available():
+            return False
+        slant_range = self.range_to(target_position)
+        altitude_m = target_position[2]
+        return self.envelope.can_engage(slant_range, altitude_m, target_speed_mps)
+
+    def begin_engagement(self, target_id: str) -> None:
+        """Transition to engaged state after tactical fire assignment."""
+        if not target_id.strip():
+            raise ValueError("target_id must be non-empty")
+        self.current_target_id = target_id
+        if self.ammunition_remaining > 0:
+            self.ammunition_remaining -= 1
+        self.state = EffectorState.ENGAGED
 
 
-@dataclass
-class AirDefenseUnit:
-    """Air defense order of battle anchored to a defended asset."""
+@dataclass(slots=True)
+class TargetAllocation:
+    """Auditable result of assigning one target to one effector."""
 
-    name_en: str
-    name_ar: str
-    defended_asset: str
-    position: Tuple[float, float, float]
-    effector_ids: list[str]
-    zone_ids: list[str]
-    unit_id: str = field(default_factory=lambda: f"adu-{uuid4().hex[:12]}")
+    target_id: str
+    target_position: Tuple[float, float, float]
+    target_speed_mps: float
+    target_classification: str
+    effector_id: str
+    effector_type: EffectorType
+    echelon: DefenseEchelon
+    zone_id: str
+    slant_range_m: float
+    pk_estimate: float
+    suitability_score: float
+    reasoning: str
+    fallback_effector_ids: List[str] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
-        if not self.name_en.strip() or not self.name_ar.strip():
-            raise ValueError("unit names must be non-empty")
-        if len(self.position) != 3:
-            raise ValueError("unit position must be a 3D coordinate tuple")
-        if not self.effector_ids:
-            raise ValueError("air defense unit must include at least one effector")
-        if not self.zone_ids:
-            raise ValueError("air defense unit must include at least one defense zone")
+
+@dataclass(slots=True)
+class AllocationResult:
+    """Top-level allocation response consumed by kill-chain services."""
+
+    allocated: bool
+    reasoning: str
+    allocation: Optional[TargetAllocation] = None
+    alternatives_count: int = 0
+    echelon_used: Optional[DefenseEchelon] = None
+
+
+def _validate_position(position: Tuple[float, float, float]) -> None:
+    if len(position) != 3:
+        raise ValueError("position must contain three coordinates")
+    for axis in position:
+        if not isfinite(axis):
+            raise ValueError("position coordinates must be finite")
