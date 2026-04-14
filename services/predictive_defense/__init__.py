@@ -1,16 +1,14 @@
-"""Predictive defense package for coordinated threat swarm analysis.
+"""Predictive defense services.
 
 Military context:
-Exports swarm-analysis models and logic used by tactical C2 software to
-estimate whether hostile tracks are converging as a coordinated attack wave.
+Exposes genome-aware forecasting components used by tactical C2 loops to
+anticipate adversary approach doctrine before engagement commitment.
 """
 
-from services.predictive_defense.models import SwarmIntent, SwarmPrediction, ThreatTrajectoryPrediction
-from services.predictive_defense.swarm_analyzer import SwarmAnalyzer
+from services.predictive_defense.models import ThreatTrajectoryPrediction
+from services.predictive_defense.trajectory_predictor import TrajectoryPredictor
 
 __all__ = [
-    "SwarmAnalyzer",
-    "SwarmIntent",
-    "SwarmPrediction",
     "ThreatTrajectoryPrediction",
+    "TrajectoryPredictor",
 ]
