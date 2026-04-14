@@ -1,15 +1,11 @@
-"""Radar services for measurement quality modeling.
+"""Radar plot preprocessing and scan correlation services.
 
 Military context:
-Exports radar configuration and noise conversion primitives used by tactical
-fusion pipelines to weight heterogeneous radar observations consistently.
+Maintains per-radar scan-to-scan custody so downstream fusion receives
+stable, physically plausible plot groupings under contested conditions.
 """
 
-from services.radar.models import RadarConfig, RadarType
-from services.radar.noise_model import RadarNoiseModel
+from services.radar.models import RadarPlot
+from services.radar.plot_correlator import PlotCorrelator
 
-__all__ = [
-    "RadarConfig",
-    "RadarType",
-    "RadarNoiseModel",
-]
+__all__ = ["RadarPlot", "PlotCorrelator"]
