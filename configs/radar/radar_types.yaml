@@ -1,0 +1,66 @@
+# File: configs/radar/radar_types.yaml
+# S3M Radar Type Library — Krechet-equivalent specifications
+# UNCLASSIFIED - FOUO
+
+radar_types:
+  rps_82:
+    name_en: "RPS-82 Portable Radar"
+    name_ar: "رادار RPS-82 محمول"
+    band: X
+    scan_mode: rotating
+    max_range_m: 20000
+    min_range_m: 100
+    has_elevation: true
+    has_doppler: true
+    scan_rate_rpm: 12
+    min_detectable_rcs_dbsm: -15
+    range_noise_std_m: 75
+    azimuth_noise_std_deg: 1.0
+    elevation_noise_std_deg: 2.0
+    role: "Forward short-range detection"
+
+  rps_202:
+    name_en: "RPS-202 Vehicle-Mounted Radar"
+    name_ar: "رادار RPS-202 مركبة"
+    band: S
+    scan_mode: rotating
+    max_range_m: 50000
+    min_range_m: 200
+    has_elevation: true
+    has_doppler: true
+    scan_rate_rpm: 6
+    min_detectable_rcs_dbsm: -10
+    range_noise_std_m: 50
+    azimuth_noise_std_deg: 0.7
+    elevation_noise_std_deg: 1.5
+    role: "Medium-range surveillance"
+
+  aesa_western:
+    name_en: "Western AESA Radar"
+    name_ar: "رادار AESA غربي"
+    band: C
+    scan_mode: electronic
+    max_range_m: 75000
+    min_range_m: 100
+    has_elevation: true
+    has_doppler: true
+    update_rate_hz: 2.0
+    min_detectable_rcs_dbsm: -20
+    range_noise_std_m: 15
+    azimuth_noise_std_deg: 0.3
+    elevation_noise_std_deg: 0.4
+    role: "High-accuracy search and track"
+
+  generic_2d:
+    name_en: "2D Surveillance Radar"
+    name_ar: "رادار مراقبة ثنائي الأبعاد"
+    band: S
+    scan_mode: rotating
+    max_range_m: 80000
+    min_range_m: 500
+    has_elevation: false
+    has_doppler: false
+    scan_rate_rpm: 6
+    range_noise_std_m: 100
+    azimuth_noise_std_deg: 1.2
+    role: "Legacy 2D surveillance"
