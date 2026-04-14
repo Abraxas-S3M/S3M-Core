@@ -1,53 +1,90 @@
-# S3M Default Defense Zone Templates
-# UNCLASSIFIED - FOUO
+zone_templates:
+  - template_id: saudi_layered_core
+    name_en: Saudi Layered Core
+    name_ar: Saudi Layered Core
+    center_km: [0.0, 0.0]
+    zones:
+      - zone_id_suffix: close-zone
+        name_en: Close Layer
+        name_ar: Close Layer
+        echelon: close
+        min_radius_km: 0.0
+        radius_km: 10.0
+        min_altitude_m: 0.0
+        max_altitude_m: 6000.0
+      - zone_id_suffix: short-zone
+        name_en: Short Layer
+        name_ar: Short Layer
+        echelon: short
+        min_radius_km: 10.0
+        radius_km: 20.0
+        min_altitude_m: 0.0
+        max_altitude_m: 15000.0
+      - zone_id_suffix: medium-zone
+        name_en: Medium Layer
+        name_ar: Medium Layer
+        echelon: medium
+        min_radius_km: 20.0
+        radius_km: 40.0
+        min_altitude_m: 0.0
+        max_altitude_m: 50000.0
 
-echelon_defaults:
-  close:
-    inner_radius_m: 0
-    outer_radius_m: 10000
-    min_altitude_m: 0
-    max_altitude_m: 3000
-    priority: 1
+  - template_id: saudi_eastern_energy_shield
+    name_en: Eastern Energy Shield
+    name_ar: Eastern Energy Shield
+    center_km: [120.0, -15.0]
+    zones:
+      - zone_id_suffix: close-zone
+        name_en: Close Layer
+        name_ar: Close Layer
+        echelon: close
+        min_radius_km: 0.0
+        radius_km: 10.0
+        min_altitude_m: 0.0
+        max_altitude_m: 6000.0
+      - zone_id_suffix: short-zone
+        name_en: Short Layer
+        name_ar: Short Layer
+        echelon: short
+        min_radius_km: 10.0
+        radius_km: 20.0
+        min_altitude_m: 0.0
+        max_altitude_m: 15000.0
+      - zone_id_suffix: medium-zone
+        name_en: Medium Layer
+        name_ar: Medium Layer
+        echelon: medium
+        min_radius_km: 20.0
+        radius_km: 40.0
+        min_altitude_m: 0.0
+        max_altitude_m: 50000.0
 
-  short:
-    inner_radius_m: 10000
-    outer_radius_m: 20000
-    min_altitude_m: 0
-    max_altitude_m: 8000
-    priority: 2
-
-  medium:
-    inner_radius_m: 20000
-    outer_radius_m: 40000
-    min_altitude_m: 0
-    max_altitude_m: 15000
-    priority: 3
-
-  extended:
-    inner_radius_m: 20000
-    outer_radius_m: 40000
-    min_altitude_m: 0
-    max_altitude_m: 12000
-    priority: 4
-
-# Saudi template zones for common defended assets
-saudi_templates:
-  oil_refinery:
-    name_en: "Oil Refinery Defense"
-    name_ar: "دفاع المصفاة"
-    echelons: [close, short, medium, extended]
-
-  airbase:
-    name_en: "Airbase Defense"
-    name_ar: "دفاع القاعدة الجوية"
-    echelons: [close, short, medium, extended]
-
-  port_facility:
-    name_en: "Port Facility Defense"
-    name_ar: "دفاع المنشأة المينائية"
-    echelons: [close, short, medium]
-
-  command_post:
-    name_en: "Command Post Defense"
-    name_ar: "دفاع مركز القيادة"
-    echelons: [close, short]
+  - template_id: saudi_red_sea_front
+    name_en: Red Sea Front
+    name_ar: Red Sea Front
+    center_km: [-90.0, 40.0]
+    zones:
+      - zone_id_suffix: close-zone
+        name_en: Close Layer
+        name_ar: Close Layer
+        echelon: close
+        min_radius_km: 0.0
+        radius_km: 10.0
+        min_altitude_m: 0.0
+        max_altitude_m: 6000.0
+      - zone_id_suffix: short-zone
+        name_en: Short Layer
+        name_ar: Short Layer
+        echelon: short
+        min_radius_km: 10.0
+        radius_km: 20.0
+        min_altitude_m: 0.0
+        max_altitude_m: 15000.0
+      - zone_id_suffix: medium-zone
+        name_en: Medium Layer
+        name_ar: Medium Layer
+        echelon: medium
+        min_radius_km: 20.0
+        radius_km: 40.0
+        min_altitude_m: 0.0
+        max_altitude_m: 50000.0

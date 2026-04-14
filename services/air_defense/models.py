@@ -1,411 +1,439 @@
-"""Core data models for S3M air defense effector management.
+"""Typed air-defense data models for registry, zones, and allocations.
 
 Military context:
-These models represent the typed effector taxonomy, engagement envelopes,
-and echeloned defense zones required for Krechet-equivalent C2 operations.
-Every effector carries its physical engagement constraints so the allocator
-can make geometry-aware fire distribution decisions.
+These dataclasses formalize effector readiness, engagement envelopes, and
+layered defense geometry so tactical command nodes can make deterministic,
+auditable fire-control choices during disconnected operations.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from math import atan2, degrees, sqrt
+import math
+import time
 from typing import Any, Dict, List, Optional, Tuple
-from uuid import uuid4
+
+
+def _require_non_empty(value: str, field_name: str) -> str:
+    text = str(value).strip()
+    if not text:
+        raise ValueError(f"{field_name} must be non-empty")
+    return text
+
+
+def _validate_finite(value: float, field_name: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"{field_name} must be finite")
+    return number
+
+
+def _normalize_degrees(angle_deg: float) -> float:
+    normalized = float(angle_deg) % 360.0
+    if normalized < 0:
+        normalized += 360.0
+    return normalized
 
 
 class EffectorType(str, Enum):
-    """Typed effector taxonomy matching Krechet 9C905 integration catalog."""
+    """Known air-defense effector archetypes used by S3M registries."""
 
-    # Medium-range SAM systems (20-40km)
-    IRIS_T_SLM = "iris_t_slm"
-    BUK_M1 = "buk_m1"
-    BUK_FS = "buk_fs"
-
-    # Short-range SAM systems (5-20km)
-    ITEL_SNC = "itel_snc"
-    DASH_STASH_V2X = "dash_stash_v2x"
-    FRANKEN_SAM = "franken_sam"
-
-    # Close-range gun/missile systems (0.5-10km)
-    SKYNEX = "skynex"
-    SKYRANGER = "skyranger"
-    RAPID_RANGER = "rapid_ranger"
-    TYPHOON_KDA = "typhoon_kda"
-    KDV_DIHL = "kdv_dihl"
-
-    # MANPADS (0.5-6km)
-    MANPADS_IGLA = "manpads_igla"
-    MANPADS_STINGER = "manpads_stinger"
-    MANPADS_GENERIC = "manpads_generic"
-
-    # Interceptor drones (5-40km)
-    INTERCEPTOR_TITAN = "interceptor_titan"
-    INTERCEPTOR_GENERIC = "interceptor_generic"
-
-    # Electronic warfare
-    EW_JAMMER = "ew_jammer"
-    EW_SPOOFER = "ew_spoofer"
-
-    # Generic / user-defined
-    CUSTOM = "custom"
+    PATRIOT_PAC3 = "patriot_pac3"
+    THAAD = "thaad"
+    HAWK_XXI = "hawk_xxi"
+    NASAMS_AMRAAM = "nasams_amraam"
+    SAMP_T = "samp_t"
+    SKY_DRAGON = "sky_dragon"
+    SPYDER_SR = "spyder_sr"
+    SHAHINE = "shahine"
+    CROTAL_NG = "crotal_ng"
+    PANTSIR_S1 = "pantsir_s1"
+    AVENGER = "avenger"
+    IRIS_T_SLS = "iris_t_sls"
+    SKYGUARD_35MM = "skyguard_35mm"
+    OERLIKON_GDF005 = "oerlikon_gdf005"
+    ZSU_23_4 = "zsu_23_4"
+    MISTRAL_MANPADS = "mistral_manpads"
+    STINGER_MANPADS = "stinger_manpads"
+    QW18_MANPADS = "qw18_manpads"
+    SHORAD_LASER = "shorad_laser"
+    ELECTRONIC_KILL = "electronic_kill"
 
 
 class EffectorCategory(str, Enum):
-    """High-level effector family for echelon assignment."""
+    """Effector class used for allocation and fallback policies."""
 
-    SAM_MEDIUM = "sam_medium"
-    SAM_SHORT = "sam_short"
-    CIWS_GUN = "ciws_gun"
+    MISSILE = "missile"
+    GUN = "gun"
     MANPADS = "manpads"
-    INTERCEPTOR_DRONE = "interceptor_drone"
+    DIRECTED_ENERGY = "directed_energy"
     ELECTRONIC_WARFARE = "electronic_warfare"
 
 
 class DefenseEchelon(str, Enum):
-    """Layered defense echelon matching Krechet coverage concept."""
+    """Layered defense echelons from outer to inner ring."""
 
-    CLOSE = "close"  # 0 - 10 km
-    SHORT = "short"  # 10 - 20 km
-    MEDIUM = "medium"  # 20 - 40 km
-    EXTENDED = "extended"  # 40+ km (interceptor drone outer envelope)
-
-
-class EffectorState(str, Enum):
-    """Operational readiness state of a single effector unit."""
-
-    READY = "ready"
-    ENGAGING = "engaging"
-    RELOADING = "reloading"
-    DEGRADED = "degraded"
-    OFFLINE = "offline"
-    DESTROYED = "destroyed"
+    MEDIUM = "medium"
+    SHORT = "short"
+    CLOSE = "close"
 
 
 @dataclass
 class EngagementEnvelope:
-    """Physical engagement constraints for an effector type.
+    """Geometric engagement envelope relative to an effector position."""
 
-    Military context:
-    Defines the 3D volume where this effector can effectively engage targets.
-    The allocator uses these bounds to determine geometric feasibility before
-    assigning a target to this effector.
-    """
-
-    min_range_m: float
-    max_range_m: float
+    min_range_km: float
+    max_range_km: float
     min_altitude_m: float
     max_altitude_m: float
-    min_azimuth_deg: float = 0.0  # 0 = full 360 coverage
-    max_azimuth_deg: float = 360.0
-    max_target_speed_mps: float = 500.0
-    reaction_time_s: float = 5.0
-    engagement_time_s: float = 10.0
-    simultaneous_targets: int = 1
-    pk_single_shot: float = 0.7  # probability of kill per shot
+    azimuth_start_deg: float = 0.0
+    azimuth_end_deg: float = 360.0
 
     def __post_init__(self) -> None:
-        if self.min_range_m < 0 or self.max_range_m <= self.min_range_m:
-            raise ValueError("Invalid range bounds")
-        if self.min_altitude_m < 0 or self.max_altitude_m < self.min_altitude_m:
-            raise ValueError("Invalid altitude bounds")
-        if not (0.0 <= self.pk_single_shot <= 1.0):
-            raise ValueError("pk_single_shot must be in [0, 1]")
+        self.min_range_km = _validate_finite(self.min_range_km, "min_range_km")
+        self.max_range_km = _validate_finite(self.max_range_km, "max_range_km")
+        self.min_altitude_m = _validate_finite(self.min_altitude_m, "min_altitude_m")
+        self.max_altitude_m = _validate_finite(self.max_altitude_m, "max_altitude_m")
+        self.azimuth_start_deg = _normalize_degrees(_validate_finite(self.azimuth_start_deg, "azimuth_start_deg"))
+        self.azimuth_end_deg = _normalize_degrees(_validate_finite(self.azimuth_end_deg, "azimuth_end_deg"))
 
-    def target_in_envelope(
-        self,
-        target_range_m: float,
-        target_altitude_m: float,
-        target_speed_mps: float = 0.0,
-        target_azimuth_deg: float = 0.0,
-    ) -> bool:
-        """Return True if target is within this effector's engagement envelope."""
-        if not (self.min_range_m <= target_range_m <= self.max_range_m):
+        if self.min_range_km < 0.0:
+            raise ValueError("min_range_km must be >= 0")
+        if self.max_range_km <= self.min_range_km:
+            raise ValueError("max_range_km must be greater than min_range_km")
+        if self.min_altitude_m < 0.0:
+            raise ValueError("min_altitude_m must be >= 0")
+        if self.max_altitude_m <= self.min_altitude_m:
+            raise ValueError("max_altitude_m must be greater than min_altitude_m")
+
+    def is_full_azimuth(self) -> bool:
+        """Return True when envelope provides full 360-degree coverage."""
+        span = (self.azimuth_end_deg - self.azimuth_start_deg) % 360.0
+        return math.isclose(span, 0.0, abs_tol=1e-6)
+
+    def azimuth_span_deg(self) -> float:
+        """Return azimuth span in degrees, mapping full circle to 360."""
+        span = (self.azimuth_end_deg - self.azimuth_start_deg) % 360.0
+        return 360.0 if math.isclose(span, 0.0, abs_tol=1e-6) else span
+
+    def covers_range(self, range_km: float) -> bool:
+        """Check horizontal range eligibility."""
+        distance = _validate_finite(range_km, "range_km")
+        return self.min_range_km <= distance <= self.max_range_km
+
+    def covers_altitude(self, altitude_m: float) -> bool:
+        """Check altitude eligibility."""
+        altitude = _validate_finite(altitude_m, "altitude_m")
+        return self.min_altitude_m <= altitude <= self.max_altitude_m
+
+    def covers_azimuth(self, azimuth_deg: float) -> bool:
+        """Check azimuth eligibility, supporting wrap-around sectors."""
+        if self.is_full_azimuth():
+            return True
+        azimuth = _normalize_degrees(_validate_finite(azimuth_deg, "azimuth_deg"))
+        if self.azimuth_start_deg <= self.azimuth_end_deg:
+            return self.azimuth_start_deg <= azimuth <= self.azimuth_end_deg
+        return azimuth >= self.azimuth_start_deg or azimuth <= self.azimuth_end_deg
+
+    def azimuth_coverage_ratio(self) -> float:
+        """Return fraction of 360-degree coverage represented by the envelope."""
+        return self.azimuth_span_deg() / 360.0
+
+
+@dataclass
+class EffectorState:
+    """Mutable readiness and ammunition state for one effector channel."""
+
+    readiness: float
+    ammunition_current: int
+    ammunition_capacity: int
+    reload_time_seconds: float
+    status: str = "ready"
+    last_fired_timestamp: Optional[float] = None
+    queued_targets: int = 0
+
+    def __post_init__(self) -> None:
+        self.readiness = _validate_finite(self.readiness, "readiness")
+        self.reload_time_seconds = _validate_finite(self.reload_time_seconds, "reload_time_seconds")
+        self.ammunition_current = int(self.ammunition_current)
+        self.ammunition_capacity = int(self.ammunition_capacity)
+        self.queued_targets = int(self.queued_targets)
+        self.status = _require_non_empty(self.status, "status").lower()
+
+        if not 0.0 <= self.readiness <= 1.0:
+            raise ValueError("readiness must be in [0.0, 1.0]")
+        if self.ammunition_capacity < 0:
+            raise ValueError("ammunition_capacity must be >= 0")
+        if not 0 <= self.ammunition_current <= self.ammunition_capacity:
+            raise ValueError("ammunition_current must be within [0, ammunition_capacity]")
+        if self.reload_time_seconds < 0.0:
+            raise ValueError("reload_time_seconds must be >= 0")
+        if self.queued_targets < 0:
+            raise ValueError("queued_targets must be >= 0")
+        if self.last_fired_timestamp is not None:
+            self.last_fired_timestamp = _validate_finite(self.last_fired_timestamp, "last_fired_timestamp")
+        if self.status not in {"ready", "degraded", "reloading", "offline", "maintenance"}:
+            raise ValueError("status must be one of ready/degraded/reloading/offline/maintenance")
+
+    def has_ammunition(self, rounds_required: int = 1) -> bool:
+        """Return True when enough ammunition is present for a shot."""
+        required = max(1, int(rounds_required))
+        return self.ammunition_current >= required
+
+    def reload_complete(self, now_ts: Optional[float] = None) -> bool:
+        """Return True if temporal reload constraints are satisfied."""
+        now = time.time() if now_ts is None else _validate_finite(now_ts, "now_ts")
+        if self.last_fired_timestamp is None:
+            return True
+        elapsed = now - self.last_fired_timestamp
+        return elapsed >= self.reload_time_seconds
+
+    def is_ready(self, now_ts: Optional[float] = None, rounds_required: int = 1) -> bool:
+        """Readiness gate used by allocators and engagement planners."""
+        if self.status not in {"ready", "degraded"}:
             return False
-        if not (self.min_altitude_m <= target_altitude_m <= self.max_altitude_m):
+        if self.readiness < 0.5:
             return False
-        if target_speed_mps > self.max_target_speed_mps:
+        if not self.has_ammunition(rounds_required=rounds_required):
             return False
-        if self.min_azimuth_deg != 0.0 or self.max_azimuth_deg != 360.0:
-            az = target_azimuth_deg % 360.0
-            if self.min_azimuth_deg <= self.max_azimuth_deg:
-                if not (self.min_azimuth_deg <= az <= self.max_azimuth_deg):
-                    return False
-            else:  # wraps around 0
-                if not (az >= self.min_azimuth_deg or az <= self.max_azimuth_deg):
-                    return False
-        return True
+        return self.reload_complete(now_ts=now_ts)
 
 
 @dataclass
 class Effector:
-    """Single air defense effector unit with full state tracking.
+    """Registered air-defense effector and current tactical capability."""
 
-    Military context:
-    Represents one launcher, gun system, interceptor drone station, MANPADS team,
-    or EW jammer - the atomic unit the C2 system commands. Each carries its own
-    position, ammunition state, and engagement envelope.
-    """
-
-    effector_id: str = field(default_factory=lambda: f"eff-{uuid4().hex[:10]}")
-    name_en: str = ""
-    name_ar: str = ""
-    effector_type: EffectorType = EffectorType.CUSTOM
-    category: EffectorCategory = EffectorCategory.CIWS_GUN
-    echelon: DefenseEchelon = DefenseEchelon.CLOSE
-    envelope: EngagementEnvelope = field(
-        default_factory=lambda: EngagementEnvelope(
-            min_range_m=500, max_range_m=5000, min_altitude_m=10, max_altitude_m=3000
-        )
-    )
-    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    heading_deg: float = 0.0
-    state: EffectorState = EffectorState.READY
-    ammunition_total: int = 0
-    ammunition_remaining: int = 0
-    reload_time_s: float = 30.0
-    current_target_id: Optional[str] = None
-    engagement_start: Optional[datetime] = None
-    engagements_completed: int = 0
-    kills_confirmed: int = 0
-    assigned_zone_id: Optional[str] = None
+    effector_id: str
+    name_en: str
+    name_ar: str
+    effector_type: EffectorType
+    category: EffectorCategory
+    echelon: DefenseEchelon
+    envelope: EngagementEnvelope
+    state: EffectorState
+    zone_id: str
+    position: Tuple[float, float, float]
+    priority: int = 100
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not isinstance(self.effector_id, str) or not self.effector_id.strip():
-            raise ValueError("effector_id must be a non-empty string")
-        if not isinstance(self.effector_type, EffectorType):
-            self.effector_type = EffectorType(self.effector_type)
-        if not isinstance(self.category, EffectorCategory):
-            self.category = EffectorCategory(self.category)
-        if not isinstance(self.echelon, DefenseEchelon):
-            self.echelon = DefenseEchelon(self.echelon)
-        if not isinstance(self.state, EffectorState):
-            self.state = EffectorState(self.state)
+        self.effector_id = _require_non_empty(self.effector_id, "effector_id")
+        self.name_en = _require_non_empty(self.name_en, "name_en")
+        self.name_ar = _require_non_empty(self.name_ar, "name_ar")
+        self.zone_id = _require_non_empty(self.zone_id, "zone_id")
+        self.priority = int(self.priority)
 
-    @property
-    def is_available(self) -> bool:
-        """True if effector can accept a new target assignment."""
-        return (
-            self.state == EffectorState.READY
-            and self.ammunition_remaining > 0
-            and self.current_target_id is None
+        if self.priority < 0:
+            raise ValueError("priority must be >= 0")
+        if len(self.position) != 3:
+            raise ValueError("position must have three coordinates (x, y, z)")
+        self.position = (
+            _validate_finite(self.position[0], "position_x"),
+            _validate_finite(self.position[1], "position_y"),
+            _validate_finite(self.position[2], "position_z"),
         )
 
-    @property
-    def readiness_score(self) -> float:
-        """0.0-1.0 composite readiness considering ammo, state, engagement load."""
-        if self.state in {EffectorState.OFFLINE, EffectorState.DESTROYED}:
-            return 0.0
-        base = 0.5 if self.state == EffectorState.DEGRADED else 1.0
-        ammo_ratio = self.ammunition_remaining / max(1, self.ammunition_total)
-        busy_penalty = 0.3 if self.current_target_id else 0.0
-        return max(0.0, min(1.0, base * ammo_ratio - busy_penalty))
-
-    def range_to(self, target_position: Tuple[float, float, float]) -> float:
-        """Slant range from effector to target in meters."""
-        dx = target_position[0] - self.position[0]
-        dy = target_position[1] - self.position[1]
-        dz = target_position[2] - self.position[2]
-        return sqrt(dx * dx + dy * dy + dz * dz)
+    def ground_range_km_to(self, target_position: Tuple[float, float, float]) -> float:
+        """Return ground range in km from effector to target."""
+        if len(target_position) != 3:
+            raise ValueError("target_position must have three coordinates")
+        dx = _validate_finite(target_position[0], "target_x") - self.position[0]
+        dy = _validate_finite(target_position[1], "target_y") - self.position[1]
+        return math.hypot(dx, dy)
 
     def azimuth_to(self, target_position: Tuple[float, float, float]) -> float:
-        """Azimuth bearing from effector to target in degrees (0=North, CW)."""
-        dx = target_position[0] - self.position[0]
-        dy = target_position[1] - self.position[1]
-        return degrees(atan2(dx, dy)) % 360.0
+        """Return azimuth in degrees from effector to target."""
+        if len(target_position) != 3:
+            raise ValueError("target_position must have three coordinates")
+        dx = _validate_finite(target_position[0], "target_x") - self.position[0]
+        dy = _validate_finite(target_position[1], "target_y") - self.position[1]
+        return _normalize_degrees(math.degrees(math.atan2(dy, dx)))
 
-    def can_engage(
-        self,
-        target_position: Tuple[float, float, float],
-        target_speed_mps: float = 0.0,
-    ) -> bool:
-        """Full engagement feasibility check: state + envelope + ammo."""
-        if not self.is_available:
-            return False
-        slant_range = self.range_to(target_position)
-        altitude = target_position[2]
+    def can_engage(self, target_position: Tuple[float, float, float], now_ts: Optional[float] = None) -> bool:
+        """Return True if state and geometry permit engagement."""
+        range_km = self.ground_range_km_to(target_position)
         azimuth = self.azimuth_to(target_position)
-        return self.envelope.target_in_envelope(
-            slant_range, altitude, target_speed_mps, azimuth
+        altitude = _validate_finite(target_position[2], "target_altitude_m")
+        return (
+            self.state.is_ready(now_ts=now_ts)
+            and self.envelope.covers_range(range_km)
+            and self.envelope.covers_altitude(altitude)
+            and self.envelope.covers_azimuth(azimuth)
         )
-
-    def begin_engagement(self, target_id: str) -> None:
-        """Transition to engaging state."""
-        self.state = EffectorState.ENGAGING
-        self.current_target_id = target_id
-        self.engagement_start = datetime.now(timezone.utc)
-
-    def complete_engagement(self, kill: bool = False) -> None:
-        """Complete engagement cycle, update ammo, transition state."""
-        self.engagements_completed += 1
-        self.ammunition_remaining = max(0, self.ammunition_remaining - 1)
-        if kill:
-            self.kills_confirmed += 1
-        self.current_target_id = None
-        self.engagement_start = None
-        if self.ammunition_remaining <= 0:
-            self.state = EffectorState.RELOADING
-        else:
-            self.state = EffectorState.READY
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Serialize for API responses and audit logs."""
-        return {
-            "effector_id": self.effector_id,
-            "name_en": self.name_en,
-            "name_ar": self.name_ar,
-            "effector_type": self.effector_type.value,
-            "category": self.category.value,
-            "echelon": self.echelon.value,
-            "state": self.state.value,
-            "position": list(self.position),
-            "ammunition_remaining": self.ammunition_remaining,
-            "ammunition_total": self.ammunition_total,
-            "readiness_score": round(self.readiness_score, 3),
-            "is_available": self.is_available,
-            "current_target_id": self.current_target_id,
-            "assigned_zone_id": self.assigned_zone_id,
-            "engagements_completed": self.engagements_completed,
-            "kills_confirmed": self.kills_confirmed,
-        }
 
 
 @dataclass
 class DefenseZone:
-    """Spatial defense zone representing one echelon layer.
+    """Layered defense zone represented as a ring sector around a center."""
 
-    Military context:
-    Maps to the Krechet layered coverage concept: close (1.5-10km),
-    short (10-20km), medium (20-40km). Each zone is a circular sector
-    centered on the defended asset with assigned effectors.
-    """
-
-    zone_id: str = field(default_factory=lambda: f"zone-{uuid4().hex[:8]}")
-    name_en: str = ""
-    name_ar: str = ""
-    echelon: DefenseEchelon = DefenseEchelon.CLOSE
-    center: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    inner_radius_m: float = 0.0
-    outer_radius_m: float = 10000.0
+    zone_id: str
+    name_en: str
+    name_ar: str
+    echelon: DefenseEchelon
+    center: Tuple[float, float]
+    radius_km: float
+    min_radius_km: float = 0.0
     min_altitude_m: float = 0.0
-    max_altitude_m: float = 5000.0
-    min_azimuth_deg: float = 0.0
-    max_azimuth_deg: float = 360.0
-    assigned_effector_ids: List[str] = field(default_factory=list)
-    priority: int = 1  # lower = higher priority
-    active: bool = True
+    max_altitude_m: float = 50000.0
+    azimuth_start_deg: float = 0.0
+    azimuth_end_deg: float = 360.0
+    unit_id: str = ""
 
     def __post_init__(self) -> None:
-        if self.inner_radius_m < 0 or self.outer_radius_m <= self.inner_radius_m:
-            raise ValueError("Invalid radius bounds for defense zone")
+        self.zone_id = _require_non_empty(self.zone_id, "zone_id")
+        self.name_en = _require_non_empty(self.name_en, "name_en")
+        self.name_ar = _require_non_empty(self.name_ar, "name_ar")
+        if self.unit_id:
+            self.unit_id = _require_non_empty(self.unit_id, "unit_id")
 
-    def contains_point(self, point: Tuple[float, float, float]) -> bool:
-        """Check if a 3D point falls within this zone's volume."""
-        dx = point[0] - self.center[0]
-        dy = point[1] - self.center[1]
-        ground_range = sqrt(dx * dx + dy * dy)
-        altitude = point[2]
-        if not (self.inner_radius_m <= ground_range <= self.outer_radius_m):
-            return False
-        if not (self.min_altitude_m <= altitude <= self.max_altitude_m):
-            return False
-        if self.min_azimuth_deg == 0.0 and self.max_azimuth_deg == 360.0:
+        if len(self.center) != 2:
+            raise ValueError("center must include two coordinates (x, y)")
+        self.center = (
+            _validate_finite(self.center[0], "center_x"),
+            _validate_finite(self.center[1], "center_y"),
+        )
+        self.radius_km = _validate_finite(self.radius_km, "radius_km")
+        self.min_radius_km = _validate_finite(self.min_radius_km, "min_radius_km")
+        self.min_altitude_m = _validate_finite(self.min_altitude_m, "min_altitude_m")
+        self.max_altitude_m = _validate_finite(self.max_altitude_m, "max_altitude_m")
+        self.azimuth_start_deg = _normalize_degrees(_validate_finite(self.azimuth_start_deg, "azimuth_start_deg"))
+        self.azimuth_end_deg = _normalize_degrees(_validate_finite(self.azimuth_end_deg, "azimuth_end_deg"))
+
+        if self.min_radius_km < 0.0:
+            raise ValueError("min_radius_km must be >= 0")
+        if self.radius_km <= self.min_radius_km:
+            raise ValueError("radius_km must be greater than min_radius_km")
+        if self.min_altitude_m < 0.0:
+            raise ValueError("min_altitude_m must be >= 0")
+        if self.max_altitude_m <= self.min_altitude_m:
+            raise ValueError("max_altitude_m must be greater than min_altitude_m")
+
+    def azimuth_span_deg(self) -> float:
+        """Return sector azimuth span in degrees."""
+        span = (self.azimuth_end_deg - self.azimuth_start_deg) % 360.0
+        return 360.0 if math.isclose(span, 0.0, abs_tol=1e-6) else span
+
+    def coverage_ratio(self) -> float:
+        """Return percentage of full-circle horizontal coverage."""
+        return self.azimuth_span_deg() / 360.0
+
+    def area_km2(self) -> float:
+        """Return horizontal area in square kilometers."""
+        ring_area = math.pi * (self.radius_km**2 - self.min_radius_km**2)
+        return ring_area * self.coverage_ratio()
+
+    def _covers_azimuth(self, azimuth_deg: float) -> bool:
+        if math.isclose(self.azimuth_span_deg(), 360.0, abs_tol=1e-6):
             return True
-        azimuth = degrees(atan2(dx, dy)) % 360.0
-        if self.min_azimuth_deg <= self.max_azimuth_deg:
-            return self.min_azimuth_deg <= azimuth <= self.max_azimuth_deg
-        return azimuth >= self.min_azimuth_deg or azimuth <= self.max_azimuth_deg
+        angle = _normalize_degrees(azimuth_deg)
+        if self.azimuth_start_deg <= self.azimuth_end_deg:
+            return self.azimuth_start_deg <= angle <= self.azimuth_end_deg
+        return angle >= self.azimuth_start_deg or angle <= self.azimuth_end_deg
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "zone_id": self.zone_id,
-            "name_en": self.name_en,
-            "name_ar": self.name_ar,
-            "echelon": self.echelon.value,
-            "center": list(self.center),
-            "inner_radius_m": self.inner_radius_m,
-            "outer_radius_m": self.outer_radius_m,
-            "altitude_range": [self.min_altitude_m, self.max_altitude_m],
-            "assigned_effectors": len(self.assigned_effector_ids),
-            "active": self.active,
-            "priority": self.priority,
-        }
+    def distance_km_to(self, x_km: float, y_km: float) -> float:
+        """Return horizontal distance from zone center to point."""
+        dx = _validate_finite(x_km, "x_km") - self.center[0]
+        dy = _validate_finite(y_km, "y_km") - self.center[1]
+        return math.hypot(dx, dy)
+
+    def contains_point(self, x_km: float, y_km: float, altitude_m: float) -> bool:
+        """Return True if 3D point is inside this defense zone."""
+        altitude = _validate_finite(altitude_m, "altitude_m")
+        if not self.min_altitude_m <= altitude <= self.max_altitude_m:
+            return False
+        distance = self.distance_km_to(x_km=x_km, y_km=y_km)
+        if not self.min_radius_km <= distance <= self.radius_km:
+            return False
+        azimuth = _normalize_degrees(math.degrees(math.atan2(y_km - self.center[1], x_km - self.center[0])))
+        return self._covers_azimuth(azimuth)
 
 
 @dataclass
 class AirDefenseUnit:
-    """Composite air defense unit grouping effectors and zones.
+    """Aggregate command object for zones and effectors under one unit."""
 
-    Military context:
-    Represents a Krechet-equivalent C2 node with its subordinate effectors
-    organized into defense zones. One AirDefenseUnit = one 9C905 system.
-    """
+    unit_id: str
+    name_en: str
+    name_ar: str
+    effectors: List[Effector] = field(default_factory=list)
+    zones: List[DefenseZone] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    unit_id: str = field(default_factory=lambda: f"adu-{uuid4().hex[:8]}")
-    name_en: str = "Air Defense Unit"
-    name_ar: str = "وحدة دفاع جوي"
-    defended_asset: str = ""
-    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    effector_ids: List[str] = field(default_factory=list)
-    zone_ids: List[str] = field(default_factory=list)
-    operational: bool = True
+    def __post_init__(self) -> None:
+        self.unit_id = _require_non_empty(self.unit_id, "unit_id")
+        self.name_en = _require_non_empty(self.name_en, "name_en")
+        self.name_ar = _require_non_empty(self.name_ar, "name_ar")
+
+        effector_ids = [e.effector_id for e in self.effectors]
+        if len(set(effector_ids)) != len(effector_ids):
+            raise ValueError("effectors must have unique effector_id values")
+        zone_ids = [z.zone_id for z in self.zones]
+        if len(set(zone_ids)) != len(zone_ids):
+            raise ValueError("zones must have unique zone_id values")
 
 
 @dataclass
 class TargetAllocation:
-    """Single target-to-effector assignment decision.
+    """Allocation decision mapping one target to one effector."""
 
-    Military context:
-    Records which effector was assigned to which target, why it was chosen,
-    and the computed engagement parameters. Used for audit trail and
-    miss-handler re-allocation.
-    """
+    allocation_id: str
+    target_id: str
+    target_type: str
+    target_position: Tuple[float, float, float]
+    assigned_effector_id: str
+    echelon: DefenseEchelon
+    score: float
+    reason: str
+    queued_index: int
+    created_at: float = field(default_factory=time.time)
+    fallback_depth: int = 0
 
-    allocation_id: str = field(default_factory=lambda: f"alloc-{uuid4().hex[:10]}")
-    target_id: str = ""
-    target_position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    target_speed_mps: float = 0.0
-    target_classification: str = ""
-    effector_id: str = ""
-    effector_type: EffectorType = EffectorType.CUSTOM
-    echelon: DefenseEchelon = DefenseEchelon.CLOSE
-    zone_id: str = ""
-    slant_range_m: float = 0.0
-    pk_estimate: float = 0.0
-    suitability_score: float = 0.0
-    reasoning: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    status: str = "pending"  # pending | engaging | hit | miss | aborted
-    attempts: int = 0
-    max_attempts: int = 3
-    fallback_effector_ids: List[str] = field(default_factory=list)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "allocation_id": self.allocation_id,
-            "target_id": self.target_id,
-            "effector_id": self.effector_id,
-            "effector_type": self.effector_type.value,
-            "echelon": self.echelon.value,
-            "slant_range_m": round(self.slant_range_m, 1),
-            "pk_estimate": round(self.pk_estimate, 3),
-            "suitability_score": round(self.suitability_score, 3),
-            "reasoning": self.reasoning,
-            "status": self.status,
-            "attempts": self.attempts,
-        }
+    def __post_init__(self) -> None:
+        self.allocation_id = _require_non_empty(self.allocation_id, "allocation_id")
+        self.target_id = _require_non_empty(self.target_id, "target_id")
+        self.target_type = _require_non_empty(self.target_type, "target_type")
+        self.assigned_effector_id = _require_non_empty(self.assigned_effector_id, "assigned_effector_id")
+        self.score = _validate_finite(self.score, "score")
+        self.queued_index = int(self.queued_index)
+        self.fallback_depth = int(self.fallback_depth)
+        self.created_at = _validate_finite(self.created_at, "created_at")
+        if len(self.target_position) != 3:
+            raise ValueError("target_position must have three coordinates")
+        self.target_position = (
+            _validate_finite(self.target_position[0], "target_x"),
+            _validate_finite(self.target_position[1], "target_y"),
+            _validate_finite(self.target_position[2], "target_z"),
+        )
+        if not 0.0 <= self.score <= 100.0:
+            raise ValueError("score must be in [0.0, 100.0]")
+        if self.queued_index < 0:
+            raise ValueError("queued_index must be >= 0")
+        if self.fallback_depth < 0:
+            raise ValueError("fallback_depth must be >= 0")
 
 
 @dataclass
 class AllocationResult:
-    """Result of a target allocation request across the defense system."""
+    """Allocator output with chosen effector and rejected candidates."""
 
-    allocated: bool = False
-    allocation: Optional[TargetAllocation] = None
-    alternatives_count: int = 0
-    reasoning: str = ""
-    echelon_used: Optional[DefenseEchelon] = None
+    target_id: str
+    selected_allocation: Optional[TargetAllocation]
+    considered_allocations: List[TargetAllocation] = field(default_factory=list)
+    unavailable_reasons: Dict[str, str] = field(default_factory=dict)
+    queue_depth_by_effector: Dict[str, int] = field(default_factory=dict)
+    fallback_required: bool = False
+
+    def __post_init__(self) -> None:
+        self.target_id = _require_non_empty(self.target_id, "target_id")
+        self.fallback_required = bool(self.fallback_required)
+        if self.selected_allocation and self.selected_allocation.target_id != self.target_id:
+            raise ValueError("selected_allocation target_id must match AllocationResult target_id")
+        for allocation in self.considered_allocations:
+            if allocation.target_id != self.target_id:
+                raise ValueError("considered allocation target_id mismatch")
+
+    @property
+    def allocated(self) -> bool:
+        """Return True if a valid effector assignment exists."""
+        return self.selected_allocation is not None

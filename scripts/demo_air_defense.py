@@ -1,107 +1,88 @@
-#!/usr/bin/env python3
-"""Demonstrate S3M air defense — full allocate-engage-miss-reallocate cycle.
+"""Demo for air-defense allocate -> engage -> miss -> reallocate cycle.
 
-Simulates a Krechet-equivalent engagement sequence:
-1. Set up a full Saudi air defense unit with echeloned zones.
-2. Incoming enemy UAV detected at 35km.
-3. Allocator assigns interceptor drone (extended echelon).
-4. Interceptor misses — target moves to 12km.
-5. Miss handler re-allocates to short-range SAM.
-6. SAM engages and confirms kill.
+Military context:
+Demonstrates doctrinal outer-layer engagement and immediate fallback to a
+secondary channel when first-shot intercept fails.
 """
 
-import sys
+from __future__ import annotations
 
-sys.path.insert(0, ".")
+from dataclasses import asdict, is_dataclass
+from enum import Enum
+import json
+import os
+import sys
+import time
+from typing import Any
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.air_defense.effector_registry import EffectorRegistry
 from services.air_defense.miss_handler import MissHandler
-from services.air_defense.saudi_templates import create_krechet_equivalent_unit
+from services.air_defense.saudi_templates import build_saudi_air_defense_unit
 from services.air_defense.target_allocator import TargetAllocator
-from services.air_defense.zone_manager import ZoneManager
+from services.air_defense.zone_manager import DefenseZoneManager
+
+
+def _serialize(value: Any) -> Any:
+    if is_dataclass(value):
+        return _serialize(asdict(value))
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, dict):
+        return {str(key): _serialize(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_serialize(item) for item in value]
+    return value
 
 
 def main() -> None:
-    print("=" * 70)
-    print("S3M AIR DEFENSE DEMO — KRECHET-EQUIVALENT ENGAGEMENT CYCLE")
-    print("Platform: NVIDIA Jetson AGX Orin 64GB | Mode: AIR-GAPPED")
-    print("=" * 70)
-
-    # Step 1: Set up the air defense unit
-    print("\n[1] Setting up Krechet-equivalent air defense unit...")
     registry = EffectorRegistry()
-    zone_mgr = ZoneManager()
-    unit = create_krechet_equivalent_unit(
-        registry,
-        zone_mgr,
-        center=(0, 0, 0),
-        defended_asset="ARAMCO Refinery Complex",
-        defended_asset_ar="مجمع تكرير أرامكو",
+    zone_manager = DefenseZoneManager()
+    allocator = TargetAllocator(registry=registry, zone_manager=zone_manager)
+    miss_handler = MissHandler(allocator=allocator, registry=registry)
+
+    unit = build_saudi_air_defense_unit(unit_id="demo-saudi-unit", center=(0.0, 0.0))
+    for zone in unit.zones:
+        zone_manager.register_zone(zone, replace_existing=True)
+    for effector in unit.effectors:
+        registry.register_effector(effector, replace_existing=True)
+
+    target_id = "track-uav-001"
+    target_position = (14.0, 2.0, 1400.0)
+    target_type = "enemy_uav"
+
+    print("== Initial allocation ==")
+    initial = allocator.allocate_target(
+        target_id=target_id,
+        target_position=target_position,
+        target_type=target_type,
+        reserve_queue=True,
     )
-    stats = registry.get_stats()
-    print(f"  Unit: {unit.name_en}")
-    print(f"  Effectors: {stats['total']} total, {stats['ready']} ready")
-    print(f"  Zones: {len(unit.zone_ids)} echelons")
-    coverage = zone_mgr.get_coverage_report()
-    for ech, data in coverage.items():
-        print(
-            f"    {ech}: {data['total_effectors']} effectors, "
-            f"{data['outer_radius_m'] / 1000:.0f}km outer range"
-        )
+    print(json.dumps(_serialize(initial), indent=2))
+    if initial.selected_allocation is None:
+        print("No allocation available. Demo cannot continue.")
+        return
 
-    # Step 2: Incoming threat detected
-    print("\n[2] THREAT DETECTED: Enemy UAV at 35km, altitude 2000m, speed 80 m/s")
-    target_pos = (35000.0, 0.0, 2000.0)
-    target_speed = 80.0
+    selected_effector_id = initial.selected_allocation.assigned_effector_id
+    registry.consume_ammunition(selected_effector_id, rounds=1)
+    registry.record_shot(selected_effector_id, timestamp=time.time())
 
-    allocator = TargetAllocator(registry, zone_mgr)
-    miss_handler = MissHandler(registry, allocator)
+    print("\n== Miss assessment and fallback allocation ==")
+    reallocation = miss_handler.handle_miss(
+        target_id=target_id,
+        target_position=target_position,
+        target_type=target_type,
+        previous_allocation=initial.selected_allocation,
+        miss_reason="drone_miss",
+    )
+    print(json.dumps(_serialize(reallocation), indent=2))
 
-    result1 = allocator.allocate("tgt-shahed-01", target_pos, target_speed, "ENEMY_UAV")
-    print(f"  Allocated: {result1.allocated}")
-    if result1.allocation:
-        print(
-            "  Effector: "
-            f"{result1.allocation.effector_type.value} in "
-            f"{result1.allocation.echelon.value} echelon"
-        )
-        print(f"  Slant range: {result1.allocation.slant_range_m:.0f}m")
-        print(f"  Pk estimate: {result1.allocation.pk_estimate:.2f}")
-        print(f"  Alternatives: {result1.alternatives_count}")
-        print(f"  Reasoning: {result1.reasoning}")
-
-    # Step 3: Interceptor drone misses, target moves closer
-    print("\n[3] MISS — Interceptor drone failed to neutralize. Target now at 12km.")
-    new_pos = (12000.0, 0.0, 1500.0)
-    new_speed = 90.0
-
-    result2 = miss_handler.report_miss(result1.allocation, new_pos, new_speed)
-    print(f"  Re-allocated: {result2.allocated}")
-    if result2.allocation:
-        print(
-            "  Fallback effector: "
-            f"{result2.allocation.effector_type.value} in "
-            f"{result2.allocation.echelon.value} echelon"
-        )
-        print(f"  New slant range: {result2.allocation.slant_range_m:.0f}m")
-        print(f"  Reasoning: {result2.reasoning}")
-
-    # Step 4: SAM engages — kill confirmed
-    print("\n[4] KILL CONFIRMED — Short-range SAM destroyed the target.")
-    if result2.allocation:
-        miss_handler.report_kill(result2.allocation)
-
-    # Summary
-    print("\n" + "=" * 70)
-    print("ENGAGEMENT SUMMARY")
-    final_stats = registry.get_stats()
-    print(f"  Effectors ready: {final_stats['ready']}/{final_stats['total']}")
-    print(f"  Total ammo remaining: {final_stats['total_ammo']}")
-    miss_stats = miss_handler.get_miss_stats()
-    print(f"  Misses recorded: {miss_stats['total_misses']}")
-    print(f"  Allocation log entries: {len(allocator.get_allocation_log())}")
-    print("=" * 70)
-    print("Demo complete. S3M air defense subsystem operational.")
+    if reallocation.selected_allocation is not None:
+        fallback_effector_id = reallocation.selected_allocation.assigned_effector_id
+        print(f"\nFallback assigned to: {fallback_effector_id}")
+    else:
+        print("\nNo fallback effector available.")
 
 
 if __name__ == "__main__":
