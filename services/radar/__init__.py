@@ -1,14 +1,16 @@
-"""Radar reconnaissance services and tactical templates."""
+"""Radar surveillance service primitives for tactical air picture ingestion.
 
-from services.radar.krechet_radar_suite import create_krechet_radar_suite
-from services.radar.models import RadarBand, RadarConfig, RadarType, ScanMode
-from services.radar.radar_manager import RadarManager
+Military context:
+Provides validated radar configuration and plot parsing components used to
+ingest range/azimuth/elevation tracks into the common operating picture.
+"""
+
+from services.radar.models import RadarBand, RadarConfig, RadarPlot, RadarType, ScanMode
 
 __all__ = [
     "RadarBand",
     "RadarConfig",
-    "RadarManager",
+    "RadarPlot",
     "RadarType",
     "ScanMode",
-    "create_krechet_radar_suite",
 ]
