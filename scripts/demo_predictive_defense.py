@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Demonstrate S3M predictive defense - beyond-Krechet capability.
+"""Demonstrate S3M predictive defense — beyond-Krechet capability.
 
 Scenario: 8 Shahed-class UAVs detected at 50km approaching ARAMCO facility.
 Threat genome correlator identifies Houthi drone program signature.
@@ -9,17 +9,16 @@ System pre-positions 5 Titan interceptors on predicted approach corridors
 """
 
 import sys
-from datetime import datetime, timezone
-
 sys.path.insert(0, ".")
 
+from datetime import datetime, timezone
 from src.sensor_fusion.models import Track, TrackState
 from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
 
 
 def main() -> None:
     print("=" * 72)
-    print("S3M PREDICTIVE DEFENSE DEMO - BEYOND-KRECHET CAPABILITY")
+    print("S3M PREDICTIVE DEFENSE DEMO — BEYOND-KRECHET CAPABILITY")
     print("Platform: NVIDIA Jetson AGX Orin 64GB | Mode: AIR-GAPPED")
     print("=" * 72)
 
@@ -30,7 +29,7 @@ def main() -> None:
         interceptor_speed_mps=60,
     )
 
-    # Tactical context: seed adversary signature so early-warning intent can bias trajectories.
+    # Step 1: Genome context (Houthi drone program profile)
     print("\n[1] Loading Houthi drone program genome context...")
     genome = {
         "actor_name": "Houthi Drone Program",
@@ -41,9 +40,9 @@ def main() -> None:
     }
     for i in range(8):
         mgr.set_genome_context(f"trk-shahed-{i:02d}", genome)
-    print("  Genome context set for 8 tracks")
+    print(f"  Genome context set for 8 tracks")
 
-    # Tactical context: emulate a south-to-north swarm ingress from standoff distance.
+    # Step 2: Simulate radar tracks — 8 Shaheds approaching from south
     print("\n[2] RADAR: 8 Shahed-class UAVs detected at ~50km, heading north")
     tracks = []
     for i in range(8):
@@ -60,14 +59,14 @@ def main() -> None:
         )
         tracks.append(track)
 
-    # Tactical context: forward-deployed Titan assets available for corridor denial.
+    # Step 3: Available interceptors
     interceptors = [
         {"interceptor_id": f"titan-{i+1}", "position": (400 * (i - 2), -800, 100)}
         for i in range(5)
     ]
     print(f"  Available interceptors: {len(interceptors)} Titan stations")
 
-    # Tactical context: run prediction to transition from reactive defense to pre-positioning.
+    # Step 4: Run predictive defense pipeline
     print("\n[3] Running predictive defense pipeline...")
     alert = mgr.process_tracks(tracks, interceptors)
 
@@ -77,12 +76,12 @@ def main() -> None:
     print(f"  Threats: {alert.threat_count}")
     print(f"  Time to impact: {alert.time_to_impact_s:.0f}s")
 
-    print("\n  Recommended actions:")
+    print(f"\n  Recommended actions:")
     for action in alert.recommended_actions:
         print(f"    - {action}")
 
-    # Tactical context: expose lead-time estimation quality per track.
-    print("\n[4] Trajectory predictions:")
+    # Step 5: Show predictions
+    print(f"\n[4] Trajectory predictions:")
     for pred in mgr.get_predictions()[:4]:
         print(
             f"  {pred.track_id}: "
@@ -92,19 +91,19 @@ def main() -> None:
             f"conf={pred.prediction_confidence:.2f}"
         )
 
-    # Tactical context: summarize whether coordinated swarm behavior is detected.
+    # Step 6: Swarm analysis
     swarm = mgr.get_swarm_analysis()
     if swarm:
-        print("\n[5] Swarm analysis:")
+        print(f"\n[5] Swarm analysis:")
         print(f"  Tracks: {swarm.track_count}")
         print(f"  Intent: {swarm.intent.value}")
         print(f"  Convergence in: {swarm.convergence_time_s:.0f}s")
-        print(f"  Approach bearing: {swarm.approach_bearing_deg:.0f} deg")
+        print(f"  Approach bearing: {swarm.approach_bearing_deg:.0f}°")
         print(f"  Effectors needed: {swarm.effectors_required}")
         print(f"  Estimated defense Pk: {swarm.estimated_pk_defense:.2f}")
 
-    # Tactical context: print launch offsets for corridor pre-positioning.
-    print("\n[6] Pre-position commands:")
+    # Step 7: Pre-position commands
+    print(f"\n[6] Pre-position commands:")
     for cmd in mgr.get_commands():
         print(
             f"  {cmd.interceptor_id} -> ({cmd.intercept_position[0]:.0f}, "
@@ -115,7 +114,7 @@ def main() -> None:
 
     print(f"\n{'=' * 72}")
     stats = mgr.get_stats()
-    print("PREDICTIVE DEFENSE STATUS")
+    print(f"PREDICTIVE DEFENSE STATUS")
     print(f"  Active predictions: {stats['active_predictions']}")
     print(f"  Swarm detected: {stats['swarm_detected']}")
     print(f"  Pre-position commands: {stats['pre_position_commands']}")
