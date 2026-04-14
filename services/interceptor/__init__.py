@@ -1,26 +1,14 @@
-"""Interceptor guidance package.
+"""Interceptor guidance services and data models.
 
 Military context:
-Exports validated guidance primitives used by interceptor drones to steer
-toward airborne threats during boost, midcourse, and terminal phases.
+Exports tactical geometry computations used by the guidance computer to
+maintain continuous pursuit-state awareness.
 """
 
-from services.interceptor.guidance_laws import LeadPursuit, ProportionalNavigation, PurePursuit
-from services.interceptor.models import (
-    GuidanceMode,
-    GuidancePhase,
-    InterceptGeometry,
-    InterceptorConfig,
-    SteeringCommand,
-)
+from services.interceptor.geometry import InterceptGeometryComputer
+from services.interceptor.models import InterceptGeometry
 
 __all__ = [
-    "GuidanceMode",
-    "GuidancePhase",
     "InterceptGeometry",
-    "InterceptorConfig",
-    "LeadPursuit",
-    "ProportionalNavigation",
-    "PurePursuit",
-    "SteeringCommand",
+    "InterceptGeometryComputer",
 ]
