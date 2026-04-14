@@ -1,0 +1,112 @@
+# S3M Air Defense Effector Type Library
+# UNCLASSIFIED - FOUO
+# Engagement envelopes based on publicly available specifications
+
+effector_types:
+  buk_fs:
+    name_en: "BUK-FS"
+    name_ar: "بوك-أف أس"
+    category: sam_medium
+    echelon: medium
+    envelope:
+      min_range_m: 3000
+      max_range_m: 40000
+      min_altitude_m: 15
+      max_altitude_m: 25000
+      max_target_speed_mps: 830
+      reaction_time_s: 12
+      engagement_time_s: 25
+      simultaneous_targets: 2
+      pk_single_shot: 0.80
+    typical_ammo: 4
+    reload_time_s: 300
+
+  iris_t_slm:
+    name_en: "IRIS-T SLM"
+    name_ar: "آيريس-تي"
+    category: sam_medium
+    echelon: medium
+    envelope:
+      min_range_m: 1000
+      max_range_m: 40000
+      min_altitude_m: 10
+      max_altitude_m: 20000
+      max_target_speed_mps: 900
+      reaction_time_s: 10
+      engagement_time_s: 20
+      simultaneous_targets: 4
+      pk_single_shot: 0.85
+    typical_ammo: 8
+    reload_time_s: 600
+
+  itel_snc:
+    name_en: "Itel SNC"
+    name_ar: "إيتل أس أن سي"
+    category: sam_short
+    echelon: short
+    envelope:
+      min_range_m: 500
+      max_range_m: 15000
+      min_altitude_m: 10
+      max_altitude_m: 10000
+      max_target_speed_mps: 500
+      reaction_time_s: 8
+      engagement_time_s: 15
+      simultaneous_targets: 1
+      pk_single_shot: 0.70
+    typical_ammo: 8
+    reload_time_s: 120
+
+  skynex:
+    name_en: "Skynex"
+    name_ar: "سكاينكس"
+    category: ciws_gun
+    echelon: close
+    envelope:
+      min_range_m: 200
+      max_range_m: 4000
+      min_altitude_m: 5
+      max_altitude_m: 3000
+      max_target_speed_mps: 400
+      reaction_time_s: 2
+      engagement_time_s: 3
+      simultaneous_targets: 1
+      pk_single_shot: 0.60
+    typical_ammo: 500
+    reload_time_s: 45
+
+  interceptor_titan:
+    name_en: "Titan Interceptor Drone"
+    name_ar: "طائرة اعتراض تيتان"
+    category: interceptor_drone
+    echelon: extended
+    envelope:
+      min_range_m: 1000
+      max_range_m: 40000
+      min_altitude_m: 20
+      max_altitude_m: 12000
+      max_target_speed_mps: 250
+      reaction_time_s: 15
+      engagement_time_s: 120
+      simultaneous_targets: 1
+      pk_single_shot: 0.65
+    typical_ammo: 3
+    reload_time_s: 600
+
+  ew_jammer:
+    name_en: "EW Jammer"
+    name_ar: "جهاز تشويش"
+    category: electronic_warfare
+    echelon: short
+    envelope:
+      min_range_m: 100
+      max_range_m: 15000
+      min_altitude_m: 0
+      max_altitude_m: 8000
+      max_target_speed_mps: 600
+      reaction_time_s: 2
+      engagement_time_s: 0
+      simultaneous_targets: 10
+      pk_single_shot: 0.30
+    typical_ammo: 9999
+    reload_time_s: 0
