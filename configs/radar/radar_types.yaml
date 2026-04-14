@@ -1,66 +1,84 @@
-# File: configs/radar/radar_types.yaml
-# S3M Radar Type Library — Krechet-equivalent specifications
-# UNCLASSIFIED - FOUO
+# Tactical radar type library for S3M Radar Adapter Framework.
+# Military context:
+# Values here support offline deployment planning by defining baseline
+# characteristics for mixed-radar command-post integration.
 
 radar_types:
-  rps_82:
+  RPS_82:
     name_en: "RPS-82 Portable Radar"
-    name_ar: "رادار RPS-82 محمول"
-    band: X
-    scan_mode: rotating
-    max_range_m: 20000
-    min_range_m: 100
-    has_elevation: true
-    has_doppler: true
-    scan_rate_rpm: 12
-    min_detectable_rcs_dbsm: -15
-    range_noise_std_m: 75
-    azimuth_noise_std_deg: 1.0
-    elevation_noise_std_deg: 2.0
-    role: "Forward short-range detection"
+    name_ar: "رادار آر بي إس-82 المحمول"
+    band: "X_BAND"
+    dimensions: "2D"
+    min_range_m: 200.0
+    max_range_m: 32000.0
+    scan_rate_hz: 1.2
+    beam_width_az_deg: 2.4
+    beam_width_el_deg: 6.0
+    doppler_resolution_mps: 0.8
+    detection_probability_curve:
+      - [0.0, 0.20]
+      - [6.0, 0.55]
+      - [12.0, 0.85]
+      - [18.0, 0.95]
 
-  rps_202:
-    name_en: "RPS-202 Vehicle-Mounted Radar"
-    name_ar: "رادار RPS-202 مركبة"
-    band: S
-    scan_mode: rotating
-    max_range_m: 50000
-    min_range_m: 200
-    has_elevation: true
-    has_doppler: true
-    scan_rate_rpm: 6
-    min_detectable_rcs_dbsm: -10
-    range_noise_std_m: 50
-    azimuth_noise_std_deg: 0.7
-    elevation_noise_std_deg: 1.5
-    role: "Medium-range surveillance"
+  RPS_202:
+    name_en: "RPS-202 Vehicle Radar"
+    name_ar: "رادار آر بي إس-202 المركب على مركبة"
+    band: "S_BAND"
+    dimensions: "3D"
+    min_range_m: 300.0
+    max_range_m: 75000.0
+    scan_rate_hz: 1.0
+    beam_width_az_deg: 1.4
+    beam_width_el_deg: 2.8
+    doppler_resolution_mps: 0.45
+    detection_probability_curve:
+      - [0.0, 0.30]
+      - [6.0, 0.65]
+      - [12.0, 0.90]
+      - [18.0, 0.97]
 
-  aesa_western:
-    name_en: "Western AESA Radar"
-    name_ar: "رادار AESA غربي"
-    band: C
-    scan_mode: electronic
-    max_range_m: 75000
-    min_range_m: 100
-    has_elevation: true
-    has_doppler: true
-    update_rate_hz: 2.0
-    min_detectable_rcs_dbsm: -20
-    range_noise_std_m: 15
-    azimuth_noise_std_deg: 0.3
-    elevation_noise_std_deg: 0.4
-    role: "High-accuracy search and track"
+  WESTERN_AESA:
+    name_en: "Western AESA Class Radar"
+    name_ar: "رادار غربي من فئة مصفوفة المسح الإلكتروني"
+    representative_models:
+      - "AN/TPS-80"
+      - "Giraffe"
+      - "TRML-4D"
+    band: "S_BAND"
+    dimensions: "3D"
+    min_range_m: 500.0
+    max_range_m: 120000.0
+    scan_rate_hz: 1.6
+    beam_width_az_deg: 1.0
+    beam_width_el_deg: 2.0
+    doppler_resolution_mps: 0.3
+    detection_probability_curve:
+      - [0.0, 0.35]
+      - [6.0, 0.72]
+      - [12.0, 0.94]
+      - [18.0, 0.99]
 
-  generic_2d:
-    name_en: "2D Surveillance Radar"
-    name_ar: "رادار مراقبة ثنائي الأبعاد"
-    band: S
-    scan_mode: rotating
-    max_range_m: 80000
-    min_range_m: 500
-    has_elevation: false
-    has_doppler: false
-    scan_rate_rpm: 6
-    range_noise_std_m: 100
-    azimuth_noise_std_deg: 1.2
-    role: "Legacy 2D surveillance"
+  GENERIC_2D:
+    name_en: "Generic 2D Surveillance Radar"
+    name_ar: "رادار مراقبة ثنائي الأبعاد عام"
+    band: "X_BAND"
+    dimensions: "2D"
+    min_range_m: 150.0
+    max_range_m: 40000.0
+    scan_rate_hz: 1.0
+    beam_width_az_deg: 2.0
+    beam_width_el_deg: 5.0
+    doppler_resolution_mps: 1.0
+
+  GENERIC_3D:
+    name_en: "Generic 3D Surveillance Radar"
+    name_ar: "رادار مراقبة ثلاثي الأبعاد عام"
+    band: "C_BAND"
+    dimensions: "3D"
+    min_range_m: 200.0
+    max_range_m: 60000.0
+    scan_rate_hz: 0.9
+    beam_width_az_deg: 1.8
+    beam_width_el_deg: 3.5
+    doppler_resolution_mps: 0.7

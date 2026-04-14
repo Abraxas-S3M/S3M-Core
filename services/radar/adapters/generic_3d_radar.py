@@ -1,4 +1,9 @@
-"""Generic 3D radar adapter for normalized tactical plot parsing."""
+"""Adapter for generic 3D radar feeds with elevation support.
+
+Military context:
+3D surveillance radars provide volumetric contacts needed for layered
+engagement geometry and altitude-based effector assignment.
+"""
 
 from __future__ import annotations
 
@@ -6,50 +11,68 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from services.radar.adapters.base_adapter import BaseRadarAdapter
-from services.radar.models import RadarPlot
+from services.radar.models import RadarPlot, RadarScan, ScanMode
+
+
+def _to_datetime(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, str):
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
+
+
+def _coerce_rcs_m2(entry: Dict[str, Any]) -> float:
+    if "rcs_m2" in entry:
+        return max(0.0, float(entry["rcs_m2"]))
+    if "rcs_dbsm" in entry:
+        return max(0.0, 10.0 ** (float(entry["rcs_dbsm"]) / 10.0))
+    return 0.1
 
 
 class Generic3DRadarAdapter(BaseRadarAdapter):
-    """Parses simple list-based 3D plot payloads."""
+    """Normalize generic 3D radar payloads to typed RadarScan."""
 
-    def parse_raw_data(self, raw_data: Dict[str, Any]) -> List[RadarPlot]:
-        if not isinstance(raw_data, dict):
-            raise ValueError("raw_data must be a dictionary")
-
-        payload = raw_data.get("plots", [])
-        if not isinstance(payload, list):
-            raise ValueError("raw_data['plots'] must be a list")
+    def parse_raw_scan(self, raw_scan: Dict[str, Any]) -> RadarScan:
+        if not isinstance(raw_scan, dict):
+            raise ValueError("raw_scan must be a dictionary")
+        scan_mode = ScanMode.from_value(raw_scan.get("scan_mode", "VOLUME"))
+        timestamp = _to_datetime(raw_scan.get("timestamp"))
+        scan_index = int(raw_scan.get("scan_index", 0))
+        scan_id = str(raw_scan.get("scan_id") or f"{self.config.radar_id}-{scan_index}")
+        plots_raw = raw_scan.get("plots", [])
+        if not isinstance(plots_raw, list):
+            raise ValueError("raw_scan['plots'] must be a list")
 
         plots: List[RadarPlot] = []
-        for idx, item in enumerate(payload):
-            if not isinstance(item, dict):
-                continue
-
-            try:
-                range_m = self._to_float(item.get("range_m", item.get("range")))
-                azimuth_deg = self._to_float(item.get("azimuth_deg", item.get("azimuth")))
-            except ValueError:
-                continue
-
-            elevation_deg = self._safe_float(item.get("elevation_deg", item.get("elevation")), default=0.0)
+        for idx, entry in enumerate(plots_raw):
+            if not isinstance(entry, dict):
+                raise ValueError(f"plot {idx} must be a dictionary")
+            range_m = float(entry.get("range_m", float(entry.get("range_km", 0.0)) * 1000.0))
+            azimuth_deg = float(entry.get("azimuth_deg", entry.get("az_deg", 0.0)))
+            elevation_deg = float(entry.get("elevation_deg", entry.get("el_deg", 0.0)))
+            radial_velocity = float(entry.get("radial_velocity_mps", entry.get("vr_mps", 0.0)))
+            snr_db = float(entry.get("snr_db", 14.0))
             plot = RadarPlot(
-                plot_id=str(item.get("plot_id", f"{self.config.radar_id}-{idx}")),
+                plot_id=str(entry.get("plot_id", f"{scan_id}-plot-{idx}")),
+                timestamp=_to_datetime(entry.get("timestamp", timestamp)),
                 range_m=range_m,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=elevation_deg,
-                rcs_dbsm=self._safe_float(item.get("rcs_dbsm"), default=-30.0),
-                radial_velocity_mps=self._safe_float(item.get("radial_velocity_mps"), default=0.0),
-                snr_db=self._safe_float(item.get("snr_db"), default=0.0),
-                timestamp=datetime.now(timezone.utc),
+                radial_velocity_mps=radial_velocity,
+                rcs_m2=_coerce_rcs_m2(entry),
+                snr_db=snr_db,
+                confidence=float(entry.get("confidence", 1.0)),
+                metadata=dict(entry.get("metadata", {})),
             )
             plots.append(plot)
-        return plots
 
-    def _to_float(self, value: Any) -> float:
-        if not isinstance(value, (int, float)):
-            raise ValueError("value must be numeric")
-        return float(value)
-
-    def _safe_float(self, value: Any, default: float) -> float:
-        return float(value) if isinstance(value, (int, float)) else default
-
+        return RadarScan(
+            radar_id=self.config.radar_id,
+            scan_mode=scan_mode,
+            timestamp=timestamp,
+            scan_id=scan_id,
+            scan_index=scan_index,
+            plots=plots,
+        )
