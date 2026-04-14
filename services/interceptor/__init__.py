@@ -1,44 +1,26 @@
-"""Interceptor guidance subsystem for Krechet-equivalent C2 behavior.
+"""Interceptor guidance services for local air-defense engagements.
 
 Military context:
-Provides deterministic, offline guidance components that steer interceptor
-UAVs to the 200-300 m autonomous handoff window against aerial targets.
+Provides offline-capable interceptor guidance primitives for layered defense
+where the node may need to continue engagements under comms disruption.
 """
 
+from services.interceptor.guidance_computer import GuidanceComputer, GuidancePhase, PhaseManager
+from services.interceptor.interceptor_manager import InterceptorManager
 from services.interceptor.models import (
-    GuidanceMode,
-    GuidancePhase,
     GuidanceSolution,
-    HandoffCriteria,
-    InterceptGeometry,
-    InterceptResult,
     InterceptorConfig,
     InterceptorState,
-    SteeringCommand,
+    InterceptResult,
 )
 
 __all__ = [
-    "GuidanceMode",
+    "GuidanceComputer",
     "GuidancePhase",
     "GuidanceSolution",
-    "HandoffCriteria",
-    "InterceptGeometry",
-    "InterceptResult",
     "InterceptorConfig",
-    "InterceptorGuidanceComputer",
     "InterceptorManager",
     "InterceptorState",
-    "SteeringCommand",
+    "InterceptResult",
+    "PhaseManager",
 ]
-
-
-def __getattr__(name: str):
-    if name == "InterceptorGuidanceComputer":
-        from services.interceptor.guidance_computer import InterceptorGuidanceComputer
-
-        return InterceptorGuidanceComputer
-    if name == "InterceptorManager":
-        from services.interceptor.interceptor_manager import InterceptorManager
-
-        return InterceptorManager
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

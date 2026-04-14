@@ -1,143 +1,166 @@
-"""Main interceptor guidance loop (Krechet 9C905-2 equivalent)."""
+"""Per-interceptor guidance engine for drone-to-target interception.
+
+Military context:
+This component executes deterministic local guidance so each interceptor can
+continue engagement even during degraded comms with higher-echelon command.
+"""
 
 from __future__ import annotations
 
-from threading import RLock
+from dataclasses import dataclass
+from enum import Enum
+from math import sqrt
 from typing import Tuple
 
-from services.interceptor.geometry import compute_intercept_geometry
-from services.interceptor.guidance_laws import compute_guidance_command
 from services.interceptor.models import (
-    GuidanceMode,
-    GuidancePhase,
     GuidanceSolution,
-    InterceptGeometry,
     InterceptorConfig,
     InterceptorState,
-    SteeringCommand,
+    InterceptResult,
+    Vec3,
+    _validate_vec3,
 )
-from services.interceptor.phase_manager import GuidancePhaseManager
-
-Vector3 = Tuple[float, float, float]
 
 
-class InterceptorGuidanceComputer:
-    """Compute real-time steering commands from interceptor and target states."""
+class GuidancePhase(str, Enum):
+    PRE_LAUNCH = "pre_launch"
+    BOOST = "boost"
+    MIDCOURSE = "midcourse"
+    TERMINAL = "terminal"
+    COMPLETE = "complete"
 
-    def __init__(self, interceptor_id: str, config: InterceptorConfig) -> None:
-        if not interceptor_id:
-            raise ValueError("interceptor_id is required")
-        self.interceptor_id = interceptor_id
+
+@dataclass
+class PhaseManager:
+    current_phase: GuidancePhase = GuidancePhase.PRE_LAUNCH
+
+    @property
+    def is_complete(self) -> bool:
+        return self.current_phase is GuidancePhase.COMPLETE
+
+    def set_phase(self, phase: GuidancePhase) -> None:
+        self.current_phase = phase
+
+
+class GuidanceComputer:
+    """Compute guidance commands for a single assigned interceptor."""
+
+    def __init__(self, config: InterceptorConfig, target_id: str) -> None:
+        if not target_id:
+            raise ValueError("target_id is required")
         self.config = config
-        self._lock = RLock()
-        self._phase_manager = GuidancePhaseManager(config=config)
+        self.target_id = target_id
+        self.phase_manager = PhaseManager()
+        self.current_state = InterceptorState.ASSIGNED
+        self.current_phase = self.phase_manager.current_phase
+        self._cycle = 0
+        self._radar_locked = False
+        self._last_range_m = float("inf")
+        self._result: InterceptResult | None = None
 
-    def reset(self) -> None:
-        with self._lock:
-            self._phase_manager.reset()
+    @property
+    def is_active(self) -> bool:
+        return self.current_state is not InterceptorState.COMPLETE
 
-    def get_state(self) -> tuple[InterceptorState, GuidancePhase]:
-        return self._phase_manager.get_state()
+    def launch(self) -> None:
+        if self.phase_manager.is_complete:
+            return
+        self.current_state = InterceptorState.LAUNCHED
+        self.phase_manager.set_phase(GuidancePhase.BOOST)
+        self.current_phase = self.phase_manager.current_phase
 
-    def _select_mode(self, phase: GuidancePhase) -> GuidanceMode:
-        if phase == GuidancePhase.MIDCOURSE_GUIDED:
-            return self.config.preferred_mode
-        if phase == GuidancePhase.TERMINAL_APPROACH:
-            return GuidanceMode.LEAD_PURSUIT
-        if phase == GuidancePhase.AUTONOMOUS_HANDOFF:
-            return GuidanceMode.PURE_PURSUIT
-        return GuidanceMode.PURE_PURSUIT
+    def radar_acquired(self) -> None:
+        if self.phase_manager.is_complete:
+            return
+        self._radar_locked = True
+        if self.current_state in {InterceptorState.LAUNCHED, InterceptorState.ASSIGNED}:
+            self.current_state = InterceptorState.TRACKING
+            self.phase_manager.set_phase(GuidancePhase.MIDCOURSE)
+            self.current_phase = self.phase_manager.current_phase
 
-    def _build_hold_command(self) -> SteeringCommand:
-        return SteeringCommand(
-            acceleration_mps2=(0.0, 0.0, 0.0),
-            desired_velocity_mps=(0.0, 0.0, 0.0),
-            commanded_heading_deg=0.0,
-            commanded_pitch_deg=0.0,
-            throttle_fraction=0.0,
-            mode=GuidanceMode.PURE_PURSUIT,
-            metadata={"tactical_reason": "no_guidance_command"},
-        )
-
-    def _evaluate_handoff_window(self, geometry: InterceptGeometry) -> bool:
-        criteria = self.config.handoff_criteria
-        return (
-            criteria.min_range_m <= geometry.range_m <= criteria.max_range_m
-            and geometry.closing_velocity_mps >= criteria.min_closing_velocity_mps
-            and geometry.line_of_sight_rate_rad_s <= criteria.max_line_of_sight_rate_rad_s
-        )
-
-    def _evaluate_abort(self, geometry: InterceptGeometry) -> bool:
-        return (
-            geometry.predicted_miss_distance_m > self.config.miss_abort_distance_m
-            and geometry.closing_velocity_mps <= 0.0
-        )
-
-    def compute_solution(
+    def update(
         self,
-        *,
-        target_id: str,
-        interceptor_position_m: Vector3,
-        interceptor_velocity_mps: Vector3,
-        target_position_m: Vector3,
-        target_velocity_mps: Vector3,
-        launched: bool = True,
-        radar_acquired: bool = True,
-        autonomous_handoff_confirmed: bool = False,
-        engaged: bool = False,
-        dt_s: float | None = None,
+        interceptor_pos: Tuple[float, float, float],
+        interceptor_vel: Tuple[float, float, float],
+        target_pos: Tuple[float, float, float],
+        target_vel: Tuple[float, float, float],
     ) -> GuidanceSolution:
-        """Compute one guidance update, including phase transition and steering."""
-        with self._lock:
-            cycle_dt_s = dt_s if dt_s is not None else 1.0 / self.config.update_rate_hz
-            geometry = compute_intercept_geometry(
-                interceptor_position_m=interceptor_position_m,
-                interceptor_velocity_mps=interceptor_velocity_mps,
-                target_position_m=target_position_m,
-                target_velocity_mps=target_velocity_mps,
-                interceptor_max_speed_mps=self.config.max_speed_mps,
+        if self.phase_manager.is_complete:
+            raise RuntimeError("guidance update called after engagement completion")
+
+        i_pos = _validate_vec3(interceptor_pos, field_name="interceptor_pos")
+        i_vel = _validate_vec3(interceptor_vel, field_name="interceptor_vel")
+        t_pos = _validate_vec3(target_pos, field_name="target_pos")
+        t_vel = _validate_vec3(target_vel, field_name="target_vel")
+
+        self._cycle += 1
+        rel = (t_pos[0] - i_pos[0], t_pos[1] - i_pos[1], t_pos[2] - i_pos[2])
+        rel_vel = (t_vel[0] - i_vel[0], t_vel[1] - i_vel[1], t_vel[2] - i_vel[2])
+        range_to_target_m = sqrt(rel[0] ** 2 + rel[1] ** 2 + rel[2] ** 2)
+        self._last_range_m = range_to_target_m
+
+        if range_to_target_m > 0.0:
+            closing_speed_mps = -(
+                (rel[0] * rel_vel[0] + rel[1] * rel_vel[1] + rel[2] * rel_vel[2])
+                / range_to_target_m
             )
+            unit_los = (rel[0] / range_to_target_m, rel[1] / range_to_target_m, rel[2] / range_to_target_m)
+        else:
+            closing_speed_mps = self.config.max_speed_mps
+            unit_los = (0.0, 0.0, 0.0)
 
-            abort_recommended = self._evaluate_abort(geometry)
-            engaged_now = engaged or (geometry.range_m <= self.config.autonomous_engagement_range_m)
-            state, phase, transition_reason = self._phase_manager.advance(
-                geometry.range_m,
-                launched=launched,
-                radar_acquired=radar_acquired,
-                autonomous_handoff_confirmed=autonomous_handoff_confirmed,
-                engaged=engaged_now,
-                abort_recommended=abort_recommended,
-            )
+        accel = self._scaled_vec(unit_los, self.config.max_acceleration_mps2)
 
-            handoff_recommended = self._evaluate_handoff_window(geometry)
-            mode = self._select_mode(phase)
-            if phase in {GuidancePhase.PRELAUNCH, GuidancePhase.ENGAGED, GuidancePhase.MISS}:
-                steering = self._build_hold_command()
-                if phase == GuidancePhase.ENGAGED:
-                    transition_reason = "terminal_engagement_complete"
-                if phase == GuidancePhase.MISS:
-                    transition_reason = "intercept_miss_declared"
-            else:
-                steering = compute_guidance_command(
-                    mode=mode,
-                    interceptor_velocity_mps=interceptor_velocity_mps,
-                    target_velocity_mps=target_velocity_mps,
-                    geometry=geometry,
-                    config=self.config,
-                    dt_s=cycle_dt_s,
-                )
+        if range_to_target_m <= self.config.hit_radius_m:
+            self._complete(outcome="hit", final_range_m=range_to_target_m)
+            should_fire_fuze = True
+        elif self._cycle >= int(self.config.fuel_endurance_s):
+            self._complete(outcome="miss", final_range_m=range_to_target_m)
+            should_fire_fuze = False
+        else:
+            if self._radar_locked and range_to_target_m <= self.config.seeker_acquisition_range_m:
+                # Terminal transition indicates local seeker handoff near endgame.
+                self.current_state = InterceptorState.TERMINAL
+                self.phase_manager.set_phase(GuidancePhase.TERMINAL)
+                self.current_phase = self.phase_manager.current_phase
+            should_fire_fuze = range_to_target_m <= (self.config.hit_radius_m * 1.5)
 
-            if state == InterceptorState.AUTONOMOUS_HANDOFF and handoff_recommended:
-                transition_reason = "handoff_window_stable_ready_for_terminal_autonomy"
+        return GuidanceSolution(
+            interceptor_id=self.config.interceptor_id,
+            target_id=self.target_id,
+            interceptor_state=self.current_state,
+            command_acceleration_mps2=accel,
+            range_to_target_m=range_to_target_m,
+            closing_speed_mps=closing_speed_mps,
+            should_fire_fuze=should_fire_fuze,
+        )
 
-            return GuidanceSolution(
-                interceptor_id=self.interceptor_id,
-                target_id=target_id,
-                phase=phase,
-                mode=steering.mode,
-                geometry=geometry,
-                steering_command=steering,
-                handoff_recommended=handoff_recommended,
-                abort_recommended=abort_recommended,
-                reason=transition_reason,
-            )
+    def get_result(self) -> InterceptResult:
+        if self._result is not None:
+            return self._result
+        final_range = self._last_range_m if self._last_range_m != float("inf") else 0.0
+        return InterceptResult(
+            interceptor_id=self.config.interceptor_id,
+            target_id=self.target_id,
+            outcome="incomplete",
+            final_state=self.current_state,
+            final_range_m=final_range,
+            cycles_completed=self._cycle,
+        )
+
+    def _complete(self, *, outcome: str, final_range_m: float) -> None:
+        self.current_state = InterceptorState.COMPLETE
+        self.phase_manager.set_phase(GuidancePhase.COMPLETE)
+        self.current_phase = self.phase_manager.current_phase
+        self._result = InterceptResult(
+            interceptor_id=self.config.interceptor_id,
+            target_id=self.target_id,
+            outcome=outcome,
+            final_state=InterceptorState.COMPLETE,
+            final_range_m=final_range_m,
+            cycles_completed=self._cycle,
+        )
+
+    @staticmethod
+    def _scaled_vec(vec: Vec3, magnitude: float) -> Vec3:
+        return (vec[0] * magnitude, vec[1] * magnitude, vec[2] * magnitude)
