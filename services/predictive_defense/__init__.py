@@ -1,31 +1,5 @@
-"""
-S3M Predictive Threat Trajectory Engine
+"""Predictive defense service components."""
 
-Beyond-Krechet capability: fuses radar tracks, threat genome behavioral
-patterns, and short-horizon prediction to pre-position interceptor drones
-and cue effectors 60-120 seconds BEFORE threats enter the defense zone.
+from services.predictive_defense.track_genome_bridge import TrackGenomeBridge
 
-Pipeline:
-  RadarManager (fused tracks) → TrackGenomeBridge (genome correlation)
-  → TrajectoryPredictor (genome-enhanced forecasts) → SwarmAnalyzer
-  (convergence prediction) → PrePositionOptimizer (interceptor launch timing)
-  → InterceptorManager + TargetAllocator (execute pre-emptive defense)
-"""
-
-from services.predictive_defense.models import (
-    ThreatTrajectoryPrediction,
-    SwarmPrediction,
-    PrePositionCommand,
-    InterceptWindow,
-    PredictiveAlert,
-    DefensePosture,
-)
-
-__all__ = [
-    "ThreatTrajectoryPrediction",
-    "SwarmPrediction",
-    "PrePositionCommand",
-    "InterceptWindow",
-    "PredictiveAlert",
-    "DefensePosture",
-]
+__all__ = ["TrackGenomeBridge"]
