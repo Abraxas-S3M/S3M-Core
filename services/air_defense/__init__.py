@@ -1,19 +1,27 @@
-"""Air defense service package for tactical effector management."""
+"""Air defense allocation and effector management services."""
 
-from services.air_defense.effector_registry import EffectorRegistry
 from services.air_defense.models import (
+    AirDefenseUnit,
+    AllocationResult,
     DefenseEchelon,
+    DefenseZone,
     Effector,
     EffectorCategory,
     EffectorState,
     EffectorType,
+    EngagementEnvelope,
+    TargetAllocation,
 )
 
 __all__ = [
+    "AirDefenseUnit",
+    "AllocationResult",
     "DefenseEchelon",
+    "DefenseZone",
     "Effector",
     "EffectorCategory",
-    "EffectorRegistry",
     "EffectorState",
     "EffectorType",
+    "EngagementEnvelope",
+    "TargetAllocation",
 ]
