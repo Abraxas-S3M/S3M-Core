@@ -7,8 +7,10 @@ including launch authorization, guidance updates, and miss re-engagement flow.
 
 from __future__ import annotations
 
+import importlib.util
 from dataclasses import dataclass
 from math import sqrt
+from pathlib import Path
 from threading import RLock
 from time import time
 from typing import Any, Dict, Optional, Tuple
@@ -22,9 +24,76 @@ from services.interceptor.models import (
     InterceptorConfig,
     InterceptorState,
 )
-from src.apps.drone_ops.autopilot_bridge import AutopilotBridge
 
 Vector3 = Tuple[float, float, float]
+
+
+class _FallbackAutopilotBridge:
+    """Fallback simulated bridge when package-level imports are unavailable."""
+
+    def __init__(self, backend: str = "simulated") -> None:
+        self.backend = backend
+        self._position = (0.0, 0.0, 0.0)
+        self._target = (0.0, 0.0, 0.0)
+        self._connected = False
+        self._armed = False
+
+    def connect(self, connection_string: str = "") -> bool:
+        del connection_string
+        self._connected = True
+        return True
+
+    def arm(self) -> bool:
+        self._armed = True
+        return True
+
+    def takeoff(self, altitude: float) -> bool:
+        self._target = (self._position[0], self._position[1], float(altitude))
+        return True
+
+    def send_command(self, command: Dict[str, Any]) -> bool:
+        if command.get("type") == "MOVE_TO":
+            raw_pos = command.get("position", self._target)
+            if isinstance(raw_pos, (tuple, list)) and len(raw_pos) == 3:
+                self._target = (float(raw_pos[0]), float(raw_pos[1]), float(raw_pos[2]))
+        return True
+
+    def get_telemetry(self) -> Dict[str, Any]:
+        px, py, pz = self._position
+        tx, ty, tz = self._target
+        dx = tx - px
+        dy = ty - py
+        dz = tz - pz
+        mag = sqrt((dx * dx) + (dy * dy) + (dz * dz))
+        if mag > 1e-6:
+            step = min(15.0, mag)
+            ratio = step / mag
+            self._position = (px + (dx * ratio), py + (dy * ratio), pz + (dz * ratio))
+        return {
+            "position": self._position,
+            "battery_pct": 100.0,
+            "airspeed": 15.0,
+            "groundspeed": 15.0,
+            "heading": 0.0,
+        }
+
+
+def _resolve_autopilot_bridge_class() -> Any:
+    try:
+        from src.apps.drone_ops.autopilot_bridge import AutopilotBridge  # type: ignore
+
+        return AutopilotBridge
+    except Exception:
+        bridge_path = Path(__file__).resolve().parents[2] / "src/apps/drone_ops/autopilot_bridge.py"
+        if bridge_path.exists():
+            spec = importlib.util.spec_from_file_location("s3m_autopilot_bridge", bridge_path)
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                bridge_class = getattr(module, "AutopilotBridge", None)
+                if bridge_class is not None:
+                    return bridge_class
+        return _FallbackAutopilotBridge
 
 
 def _vector_norm(v: Vector3) -> float:
@@ -53,7 +122,7 @@ def _is_radar_acquired(state: InterceptorState) -> bool:
 class _InterceptorRuntime:
     interceptor_id: str
     config: InterceptorConfig
-    autopilot: AutopilotBridge
+    autopilot: Any
     guidance: InterceptorGuidanceComputer
     state: InterceptorState = InterceptorState.PRELAUNCH
     target_id: Optional[str] = None
@@ -89,12 +158,13 @@ class InterceptorManager:
         self,
         interceptor_id: str,
         config: InterceptorConfig,
-        autopilot: Optional[AutopilotBridge] = None,
+        autopilot: Optional[Any] = None,
     ) -> Dict[str, Any]:
         with self._lock:
             if interceptor_id in self._interceptors:
                 raise ValueError(f"interceptor_id '{interceptor_id}' already registered")
-            bridge = autopilot or AutopilotBridge(backend="simulated")
+            autopilot_bridge_class = _resolve_autopilot_bridge_class()
+            bridge = autopilot or autopilot_bridge_class(backend="simulated")
             bridge.connect()
             runtime = _InterceptorRuntime(
                 interceptor_id=interceptor_id,
@@ -151,13 +221,21 @@ class InterceptorManager:
                     return track.position, track.velocity
         return None
 
-    def _estimate_interceptor_velocity(self, runtime: _InterceptorRuntime, position_m: Vector3) -> Vector3:
+    def _estimate_interceptor_velocity(
+        self,
+        runtime: _InterceptorRuntime,
+        position_m: Vector3,
+        dt_override_s: Optional[float] = None,
+    ) -> Vector3:
         now_s = time()
         if runtime.last_position_m is None or runtime.last_position_time_s is None:
             runtime.last_position_m = position_m
             runtime.last_position_time_s = now_s
             return (0.0, 0.0, 0.0)
-        dt = max(1e-3, now_s - runtime.last_position_time_s)
+        if dt_override_s is not None and dt_override_s > 0.0:
+            dt = dt_override_s
+        else:
+            dt = max(1e-3, now_s - runtime.last_position_time_s)
         velocity = (
             (position_m[0] - runtime.last_position_m[0]) / dt,
             (position_m[1] - runtime.last_position_m[1]) / dt,
@@ -179,7 +257,11 @@ class InterceptorManager:
 
             telemetry = runtime.autopilot.get_telemetry()
             interceptor_position = tuple(telemetry.get("position", (0.0, 0.0, 0.0)))
-            interceptor_velocity = self._estimate_interceptor_velocity(runtime, interceptor_position)  # type: ignore[arg-type]
+            interceptor_velocity = self._estimate_interceptor_velocity(
+                runtime,
+                interceptor_position,  # type: ignore[arg-type]
+                dt_override_s=dt_s,
+            )
 
             solution = runtime.guidance.compute_solution(
                 target_id=runtime.target_id,
