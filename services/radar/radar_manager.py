@@ -8,7 +8,6 @@ to preserve continuity of hostile air tracks as they penetrate defended airspace
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass
 from math import cos, radians, sin
 from typing import Any
 
@@ -21,13 +20,6 @@ from services.radar.models import (
 )
 
 
-@dataclass(slots=True)
-class _PlotWithMeta:
-    plot: RadarPlot
-    az_bucket: int
-    el_bucket: int
-
-
 class RadarManager:
     """Manage tactical radar registrations, scan ingest, and local track fusion."""
 
@@ -35,7 +27,7 @@ class RadarManager:
         self._radars: dict[str, RadarConfig] = {}
         self._plots_by_radar: dict[str, list[RadarPlot]] = {}
         self._status: dict[str, dict[str, int]] = {}
-        self._pending_plots: list[_PlotWithMeta] = []
+        self._pending_plots: list[RadarPlot] = []
 
     def register_radar(self, config: RadarConfig, *, replace_existing: bool = False) -> None:
         if config.radar_id in self._radars and not replace_existing:
@@ -92,13 +84,7 @@ class RadarManager:
             )
             accepted.append(plot)
             self._plots_by_radar[radar_id].append(plot)
-            self._pending_plots.append(
-                _PlotWithMeta(
-                    plot=plot,
-                    az_bucket=round(plot.azimuth_deg / 5.0),
-                    el_bucket=round(plot.elevation_deg / 3.0),
-                )
-            )
+            self._pending_plots.append(plot)
 
         self._status[radar_id]["plots"] += len(accepted)
         return accepted
@@ -107,13 +93,19 @@ class RadarManager:
         if not self._pending_plots:
             return []
 
-        grouped: dict[tuple[int, int, RCSClassification], list[RadarPlot]] = {}
-        for item in self._pending_plots:
-            key = (item.az_bucket, item.el_bucket, item.plot.rcs_classification)
-            grouped.setdefault(key, []).append(item.plot)
+        grouped: list[list[RadarPlot]] = []
+        for plot in self._pending_plots:
+            placed = False
+            for group in grouped:
+                if self._is_same_track(plot, group):
+                    group.append(plot)
+                    placed = True
+                    break
+            if not placed:
+                grouped.append([plot])
 
         tracks: list[FusedTrack] = []
-        for group_plots in grouped.values():
+        for group_plots in grouped:
             if not group_plots:
                 continue
             sensors = sorted({plot.radar_id for plot in group_plots})
@@ -152,6 +144,24 @@ class RadarManager:
 
         self._pending_plots = []
         return tracks
+
+    @staticmethod
+    def _is_same_track(candidate: RadarPlot, group: list[RadarPlot]) -> bool:
+        if not group:
+            return True
+        lead = group[0]
+        if candidate.rcs_classification is not lead.rcs_classification:
+            return False
+        mean_az = sum(plot.azimuth_deg for plot in group) / len(group)
+        mean_el = sum(plot.elevation_deg for plot in group) / len(group)
+        mean_velocity = sum(plot.velocity_mps for plot in group) / len(group)
+        # Tactical note: permissive angular gates preserve a single track while a
+        # low-RCS target closes rapidly through layered radar rings.
+        return (
+            abs(candidate.azimuth_deg - mean_az) <= 6.0
+            and abs(candidate.elevation_deg - mean_el) <= 4.0
+            and abs(candidate.velocity_mps - mean_velocity) <= 20.0
+        )
 
     @staticmethod
     def _classify_rcs(*, rcs_dbsm: float) -> tuple[RCSClassification, float]:
