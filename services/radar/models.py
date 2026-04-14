@@ -1,157 +1,68 @@
-"""Radar domain models for tactical sensor reporting."""
+"""Data models for radar target tracks and RCS classes.
+
+Military context:
+These structures carry tactical radar returns into downstream kill-chain logic
+where classification confidence influences engagement sequencing.
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from enum import Enum
+from math import isfinite
 from typing import Optional, Tuple
 
 
-class RadarType(str, Enum):
-    """Supported radar families for force-protection sensing."""
-
-    RPS_82 = "RPS_82"
-    RPS_202 = "RPS_202"
-    GENERIC_2D = "GENERIC_2D"
-    GENERIC_3D = "GENERIC_3D"
-    AESA_WESTERN = "AESA_WESTERN"
-    AESA_PANEL = "AESA_PANEL"
-
-
-class RadarBand(str, Enum):
-    """RF operating bands relevant to battlefield radar catalogs."""
-
-    L = "L"
-    S = "S"
-    C = "C"
-    X = "X"
-    KU = "KU"
+def _validate_finite(value: float, *, field_name: str) -> float:
+    cast_value = float(value)
+    if not isfinite(cast_value):
+        raise ValueError(f"{field_name} must be a finite number")
+    return cast_value
 
 
 class RCSClassification(str, Enum):
-    """RCS-derived classes used for initial tactical threat triage."""
-
+    CLUTTER = "CLUTTER"
+    SMALL_UAV = "SMALL_UAV"
+    MEDIUM_UAV = "MEDIUM_UAV"
+    LARGE_UAV = "LARGE_UAV"
+    CRUISE_MISSILE = "CRUISE_MISSILE"
+    FIGHTER = "FIGHTER"
+    HELICOPTER = "HELICOPTER"
+    LARGE_AIRCRAFT = "LARGE_AIRCRAFT"
+    BALLISTIC = "BALLISTIC"
     UNKNOWN = "UNKNOWN"
-    MICRO = "MICRO"
-    SMALL = "SMALL"
-    MEDIUM = "MEDIUM"
-    LARGE = "LARGE"
-
-
-@dataclass
-class RadarConfig:
-    """Static configuration describing one registered radar asset."""
-
-    radar_id: str
-    radar_type: RadarType
-    band: RadarBand
-    max_range_m: float
-    name_en: str = "Unnamed Radar"
-    position_m: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    clutter_snr_threshold_db: float = 3.0
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-        if not isinstance(self.radar_type, RadarType):
-            raise ValueError("radar_type must be a RadarType")
-        if not isinstance(self.band, RadarBand):
-            raise ValueError("band must be a RadarBand")
-        if not isinstance(self.max_range_m, (int, float)) or float(self.max_range_m) <= 0:
-            raise ValueError("max_range_m must be a positive number")
-        self.max_range_m = float(self.max_range_m)
-        if not isinstance(self.name_en, str) or not self.name_en.strip():
-            raise ValueError("name_en must be a non-empty string")
-        if not isinstance(self.position_m, tuple) or len(self.position_m) != 3:
-            raise ValueError("position_m must be a tuple of (x, y, z)")
-        if not all(isinstance(v, (int, float)) for v in self.position_m):
-            raise ValueError("position_m values must be numeric")
-        self.position_m = (
-            float(self.position_m[0]),
-            float(self.position_m[1]),
-            float(self.position_m[2]),
-        )
-        if not isinstance(self.clutter_snr_threshold_db, (int, float)):
-            raise ValueError("clutter_snr_threshold_db must be numeric")
-        self.clutter_snr_threshold_db = float(self.clutter_snr_threshold_db)
 
 
 @dataclass
 class RadarPlot:
-    """Single radar plot after adapter parsing."""
+    """Single radar plot used for tactical air target evaluation."""
 
-    plot_id: str
-    range_m: float
-    azimuth_deg: float
-    elevation_deg: float = 0.0
-    rcs_dbsm: float = -30.0
-    radial_velocity_mps: float = 0.0
-    snr_db: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    rcs_linear_m2: float
+    radial_velocity_mps: float
     position_cartesian: Optional[Tuple[float, float, float]] = None
     rcs_classification: RCSClassification = RCSClassification.UNKNOWN
-    correlated_track_id: Optional[str] = None
+    classification_confidence: float = 0.0
 
     def __post_init__(self) -> None:
-        if not isinstance(self.plot_id, str) or not self.plot_id.strip():
-            raise ValueError("plot_id must be a non-empty string")
-        for field_name in ("range_m", "azimuth_deg", "elevation_deg", "rcs_dbsm", "radial_velocity_mps", "snr_db"):
-            value = getattr(self, field_name)
-            if not isinstance(value, (int, float)):
-                raise ValueError(f"{field_name} must be numeric")
-            setattr(self, field_name, float(value))
-        if self.range_m < 0.0:
-            raise ValueError("range_m must be non-negative")
-        if not isinstance(self.timestamp, datetime):
-            raise ValueError("timestamp must be datetime")
+        self.rcs_linear_m2 = _validate_finite(self.rcs_linear_m2, field_name="rcs_linear_m2")
+        self.radial_velocity_mps = _validate_finite(
+            self.radial_velocity_mps,
+            field_name="radial_velocity_mps",
+        )
+        self.classification_confidence = _validate_finite(
+            self.classification_confidence,
+            field_name="classification_confidence",
+        )
+        if self.rcs_linear_m2 < 0:
+            raise ValueError("rcs_linear_m2 must be non-negative")
+        if not 0.0 <= self.classification_confidence <= 1.0:
+            raise ValueError("classification_confidence must be in [0.0, 1.0]")
         if self.position_cartesian is not None:
-            if not isinstance(self.position_cartesian, tuple) or len(self.position_cartesian) != 3:
-                raise ValueError("position_cartesian must be a tuple of (x, y, z)")
-            if not all(isinstance(v, (int, float)) for v in self.position_cartesian):
-                raise ValueError("position_cartesian values must be numeric")
+            if len(self.position_cartesian) != 3:
+                raise ValueError("position_cartesian must contain exactly three values")
+            x, y, z = self.position_cartesian
             self.position_cartesian = (
-                float(self.position_cartesian[0]),
-                float(self.position_cartesian[1]),
-                float(self.position_cartesian[2]),
+                _validate_finite(x, field_name="position_cartesian[0]"),
+                _validate_finite(y, field_name="position_cartesian[1]"),
+                _validate_finite(z, field_name="position_cartesian[2]"),
             )
-        if not isinstance(self.rcs_classification, RCSClassification):
-            raise ValueError("rcs_classification must be an RCSClassification")
-        if self.correlated_track_id is not None and not isinstance(self.correlated_track_id, str):
-            raise ValueError("correlated_track_id must be a string or None")
-
-
-@dataclass
-class RadarScan:
-    """One scan burst from a radar for COP update cycles."""
-
-    radar_id: str
-    timestamp: datetime
-    plots: list[RadarPlot]
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-        if not isinstance(self.timestamp, datetime):
-            raise ValueError("timestamp must be datetime")
-        if not isinstance(self.plots, list):
-            raise ValueError("plots must be a list")
-        if any(not isinstance(plot, RadarPlot) for plot in self.plots):
-            raise ValueError("plots entries must be RadarPlot instances")
-
-
-@dataclass
-class RadarStatus:
-    """Operational counters for radar readiness monitoring."""
-
-    radar_id: str
-    operational: bool = True
-    scans_received: int = 0
-    plots_received: int = 0
-    plots_correlated: int = 0
-    last_scan_time: Optional[datetime] = None
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-
