@@ -28,7 +28,7 @@ class InterceptorManager:
         self._interceptors: Dict[str, InterceptorConfig] = {}
         self._guidance_computers: Dict[str, GuidanceComputer] = {}
         self._results: List[InterceptResult] = []
-        self._recorded_results: set[tuple[str, str]] = set()
+        self._recorded_result_gc_ids: set[int] = set()
 
     def register_interceptor(self, config: InterceptorConfig) -> InterceptorConfig:
         """Register an interceptor drone in the fleet."""
@@ -89,11 +89,11 @@ class InterceptorManager:
                 return None
             result = gc.get_result()
             if gc.phase_manager.is_complete:
-                key = (result.interceptor_id, result.target_id)
-                if key not in self._recorded_results:
+                gc_id = id(gc)
+                if gc_id not in self._recorded_result_gc_ids:
                     # Tactical metrics must count each completed interception once.
                     self._results.append(result)
-                    self._recorded_results.add(key)
+                    self._recorded_result_gc_ids.add(gc_id)
             return result
 
     def get_active_interceptions(self) -> List[Dict[str, Any]]:

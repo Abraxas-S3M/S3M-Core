@@ -93,6 +93,47 @@ def test_get_result_records_completed_intercept_once() -> None:
     assert stats["misses"] == 0
 
 
+def test_reengaging_same_interceptor_and_target_counts_new_completion() -> None:
+    manager = InterceptorManager()
+    manager.register_interceptor(_config("int-repeat"))
+
+    assert manager.assign_target("int-repeat", "trk-repeat") is True
+    assert manager.launch("int-repeat") is True
+    assert manager.radar_acquired("int-repeat") is True
+    assert (
+        manager.guide(
+            interceptor_id="int-repeat",
+            interceptor_pos=(50.0, 0.0, 0.0),
+            interceptor_vel=(0.0, 0.0, 0.0),
+            target_pos=(50.0, 0.0, 0.0),
+            target_vel=(0.0, 0.0, 0.0),
+        )
+        is not None
+    )
+    assert manager.get_result("int-repeat") is not None
+
+    # Re-assigning the same pair is a new tactical attempt and must be counted.
+    assert manager.assign_target("int-repeat", "trk-repeat") is True
+    assert manager.launch("int-repeat") is True
+    assert manager.radar_acquired("int-repeat") is True
+    assert (
+        manager.guide(
+            interceptor_id="int-repeat",
+            interceptor_pos=(60.0, 0.0, 0.0),
+            interceptor_vel=(0.0, 0.0, 0.0),
+            target_pos=(60.0, 0.0, 0.0),
+            target_vel=(0.0, 0.0, 0.0),
+        )
+        is not None
+    )
+    assert manager.get_result("int-repeat") is not None
+
+    stats = manager.get_stats()
+    assert stats["completed"] == 2
+    assert stats["hits"] == 2
+    assert stats["misses"] == 0
+
+
 def test_miss_updates_stats_after_fuel_exhaustion() -> None:
     manager = InterceptorManager()
     manager.register_interceptor(_config("int-miss", fuel_endurance_s=1.0))
