@@ -1,134 +1,105 @@
-"""Tests for tactical radar manager ingestion and fusion bridge."""
+"""Unit tests for tactical radar ingestion and track fusion."""
 
 from __future__ import annotations
 
-import os
-import sys
-
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from services.radar.models import RadarBand, RadarConfig, RadarType
-from services.radar.radar_manager import RadarManager
+from services.radar import RadarManager, TrackState, create_krechet_radar_suite
 
 
-def _config(radar_id: str = "radar-1") -> RadarConfig:
-    return RadarConfig(
-        radar_id=radar_id,
-        radar_type=RadarType.GENERIC_3D,
-        band=RadarBand.S,
-        max_range_m=120_000.0,
-        name_en="Test Tactical Radar",
-        position_m=(100.0, 200.0, 5.0),
-        clutter_snr_threshold_db=3.0,
+def test_krechet_suite_fuses_layered_detections_into_confirmed_track() -> None:
+    """Layered radars should produce one corroborated tactical air track."""
+    manager = RadarManager()
+    configs = create_krechet_radar_suite(manager, center=(0.0, 0.0, 0.0))
+    assert len(configs) == 3
+
+    manager.ingest_scan(
+        configs[2].radar_id,
+        {
+            "plots": [
+                {
+                    "range_m": 45000,
+                    "azimuth_deg": 10,
+                    "elevation_deg": 2,
+                    "velocity_mps": 55,
+                    "rcs_dbsm": -10,
+                    "snr_db": 22,
+                }
+            ]
+        },
     )
-
-
-def test_register_and_list_radar() -> None:
-    manager = RadarManager()
-    config = _config()
-    manager.register_radar(config)
-
-    assert manager.get_radar(config.radar_id) == config
-    assert len(manager.list_radars()) == 1
-    sensor_ids = {sensor["sensor_id"] for sensor in manager.sensor_manager.get_sensors()}
-    assert config.radar_id in sensor_ids
-
-
-def test_ingest_scan_updates_status_and_bridges_to_sensor_manager() -> None:
-    manager = RadarManager()
-    manager.register_radar(_config())
-
-    raw_data = {
-        "plots": [
-            {
-                "plot_id": "p-001",
-                "range_m": 10_000.0,
-                "azimuth_deg": 15.0,
-                "elevation_deg": 2.5,
-                "snr_db": 18.0,
-                "rcs_dbsm": -3.0,
-                "radial_velocity_mps": 120.0,
-            },
-            {
-                "plot_id": "p-002",
-                "range_m": 5_000.0,
-                "azimuth_deg": 25.0,
-                "elevation_deg": 0.0,
-                "snr_db": 1.0,  # should be filtered as clutter
-                "rcs_dbsm": -25.0,
-                "radial_velocity_mps": 10.0,
-            },
-        ]
-    }
-
-    plots = manager.ingest_scan("radar-1", raw_data)
-    assert len(plots) == 1
-    assert plots[0].position_cartesian is not None
-    assert plots[0].correlated_track_id is not None
-
-    status = manager.get_status("radar-1")
-    assert status is not None
-    assert status.scans_received == 1
-    assert status.plots_received == 1
-    assert status.plots_correlated == 1
-
-    health = manager.sensor_manager.health_check()
-    assert health["pending_readings"] == 1
+    manager.ingest_scan(
+        configs[1].radar_id,
+        {
+            "plots": [
+                {
+                    "range_m": 18000,
+                    "azimuth_deg": 12,
+                    "elevation_deg": 3,
+                    "velocity_mps": 58,
+                    "rcs_dbsm": -9,
+                    "snr_db": 20,
+                }
+            ]
+        },
+    )
+    manager.ingest_scan(
+        configs[0].radar_id,
+        {
+            "plots": [
+                {
+                    "range_m": 12000,
+                    "azimuth_deg": 14,
+                    "elevation_deg": 4,
+                    "velocity_mps": 60,
+                    "rcs_dbsm": -8,
+                    "snr_db": 18,
+                }
+            ]
+        },
+    )
 
     tracks = manager.process_fused_tracks()
     assert len(tracks) == 1
+    track = tracks[0]
+    assert track.state is TrackState.CONFIRMED
+    assert track.classification == "shahed_class_uav"
+    assert set(track.sensor_sources) == {cfg.radar_id for cfg in configs}
+
+    status = manager.get_all_status()
+    for cfg in configs:
+        assert status[cfg.radar_id]["scans"] == 1
+        assert status[cfg.radar_id]["plots"] == 1
+        assert status[cfg.radar_id]["correlated"] == 1
 
 
-def test_ingest_scan_requires_registered_radar() -> None:
+def test_ingest_scan_validates_payload_and_rejects_out_of_range_plots() -> None:
+    """Input validation should enforce safe radar payload handling."""
     manager = RadarManager()
-    with pytest.raises(ValueError, match="not registered"):
+    config = create_krechet_radar_suite(manager)[0]
+
+    with pytest.raises(ValueError, match="Unknown radar_id"):
         manager.ingest_scan("missing-radar", {"plots": []})
 
+    with pytest.raises(ValueError, match="must include a list"):
+        manager.ingest_scan(config.radar_id, {"plots": "bad"})
 
-def test_correlation_persists_ids_and_stats() -> None:
-    manager = RadarManager()
-    manager.register_radar(_config())
-
-    first = manager.ingest_scan(
-        "radar-1",
+    accepted = manager.ingest_scan(
+        config.radar_id,
         {
             "plots": [
                 {
-                    "plot_id": "a",
-                    "range_m": 20_000.0,
-                    "azimuth_deg": 90.0,
+                    "range_m": config.max_range_m + 1.0,
+                    "azimuth_deg": 0.0,
                     "elevation_deg": 0.0,
-                    "snr_db": 10.0,
+                    "velocity_mps": 0.0,
+                    "rcs_dbsm": -20.0,
+                    "snr_db": 5.0,
                 }
             ]
         },
     )
-    second = manager.ingest_scan(
-        "radar-1",
-        {
-            "plots": [
-                {
-                    "plot_id": "b",
-                    "range_m": 20_050.0,
-                    "azimuth_deg": 90.0,
-                    "elevation_deg": 0.0,
-                    "snr_db": 11.0,
-                }
-            ]
-        },
-    )
-
-    assert first[0].correlated_track_id is not None
-    assert second[0].correlated_track_id == first[0].correlated_track_id
-
-    all_status = manager.get_all_status()
-    assert all_status["radar-1"]["scans"] == 2
-
-    stats = manager.get_stats()
-    assert stats["registered_radars"] == 1
-    assert stats["total_scans"] == 2
-    assert stats["total_plots"] == 2
-    assert stats["active_correlations"] == 1
-
+    assert accepted == []
+    status = manager.get_all_status()[config.radar_id]
+    assert status["scans"] == 1
+    assert status["plots"] == 0

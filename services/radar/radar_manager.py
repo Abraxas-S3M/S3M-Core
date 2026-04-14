@@ -1,161 +1,207 @@
-"""Central radar manager for multi-radar tactical integration.
+"""Radar manager for ingesting scans and producing fused tracks.
 
 Military context:
-This manager emulates a Krechet-like integration node by accepting multiple
-radar types, normalizing plots, and pushing unified readings into Layer 02.
+Implements edge-local radar fusion that combines detections from layered sensors
+to preserve continuity of hostile air tracks as they penetrate defended airspace.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict
-from threading import RLock
-from typing import Any, Dict, List, Optional, Tuple, Union
+from collections import Counter
+from math import cos, radians, sin
+from typing import Any
 
-from src.sensor_fusion.models import SensorReading, SensorType
-from src.sensor_fusion.sensor_manager import SensorManager
-from services.radar.adapters.base_adapter import BaseRadarAdapter
-from services.radar.adapters.generic_2d_radar import Generic2DRadarAdapter
-from services.radar.adapters.generic_3d_radar import Generic3DRadarAdapter
-from services.radar.adapters.rps82_adapter import RPS82Adapter
-from services.radar.adapters.rps202_adapter import RPS202Adapter
-from services.radar.adapters.western_aesa_adapter import WesternAESAAdapter
-from services.radar.coordinate_converter import CoordinateConverter
-from services.radar.models import PlotCorrelation, RadarConfig, RadarScan, RadarType
-from services.radar.plot_correlator import PlotCorrelator
+from services.radar.models import (
+    FusedTrack,
+    RCSClassification,
+    RadarConfig,
+    RadarPlot,
+    TrackState,
+)
 
 
 class RadarManager:
-    """Register radar adapters and ingest normalized sensor readings."""
+    """Manage tactical radar registrations, scan ingest, and local track fusion."""
 
-    def __init__(
-        self,
-        sensor_manager: Optional[SensorManager] = None,
-        reference_origin_lla: Optional[Tuple[float, float, float]] = None,
-    ) -> None:
-        self._lock = RLock()
-        self._sensor_manager = sensor_manager or SensorManager()
-        self._reference_origin_lla = reference_origin_lla
-        self._adapters: Dict[str, BaseRadarAdapter] = {}
-        self._configs: Dict[str, RadarConfig] = {}
-        self._plot_correlator = PlotCorrelator()
+    def __init__(self) -> None:
+        self._radars: dict[str, RadarConfig] = {}
+        self._plots_by_radar: dict[str, list[RadarPlot]] = {}
+        self._status: dict[str, dict[str, int]] = {}
+        self._pending_plots: list[RadarPlot] = []
 
-    def register_radar(self, config: RadarConfig) -> None:
-        with self._lock:
-            if config.radar_id in self._adapters:
-                raise ValueError(f"Radar '{config.radar_id}' is already registered")
-            adapter = self._build_adapter(config)
-            self._adapters[config.radar_id] = adapter
-            self._configs[config.radar_id] = config
-            if self._reference_origin_lla is None:
-                self._reference_origin_lla = config.position_lla
-            self._sensor_manager.register_sensor(
-                sensor_id=config.radar_id,
-                sensor_type=SensorType.RADAR,
-                config=self._serialize_config(config),
+    def register_radar(self, config: RadarConfig, *, replace_existing: bool = False) -> None:
+        if config.radar_id in self._radars and not replace_existing:
+            raise ValueError(f"Radar {config.radar_id} already registered")
+        self._radars[config.radar_id] = config
+        self._plots_by_radar.setdefault(config.radar_id, [])
+        self._status.setdefault(config.radar_id, {"scans": 0, "plots": 0, "correlated": 0})
+
+    def get_radar(self, radar_id: str) -> RadarConfig | None:
+        return self._radars.get(radar_id)
+
+    def get_all_status(self) -> dict[str, dict[str, int]]:
+        return {rid: dict(stats) for rid, stats in self._status.items()}
+
+    def ingest_scan(self, radar_id: str, payload: dict[str, Any]) -> list[RadarPlot]:
+        radar = self._radars.get(radar_id)
+        if radar is None:
+            raise ValueError(f"Unknown radar_id: {radar_id}")
+        plots_payload = payload.get("plots")
+        if not isinstance(plots_payload, list):
+            raise ValueError("payload must include a list under key 'plots'")
+
+        self._status[radar_id]["scans"] += 1
+        accepted: list[RadarPlot] = []
+        for raw_plot in plots_payload:
+            if not isinstance(raw_plot, dict):
+                continue
+            range_m = float(raw_plot.get("range_m", -1.0))
+            if range_m < 0.0 or range_m > radar.max_range_m:
+                continue
+            azimuth = float(raw_plot.get("azimuth_deg", 0.0))
+            elevation = float(raw_plot.get("elevation_deg", 0.0))
+            velocity = float(raw_plot.get("velocity_mps", 0.0))
+            rcs_dbsm = float(raw_plot.get("rcs_dbsm", -30.0))
+            snr_db = float(raw_plot.get("snr_db", 0.0))
+            position = self._to_cartesian(
+                radar_position=radar.position,
+                range_m=range_m,
+                azimuth_deg=azimuth,
+                elevation_deg=elevation,
+            )
+            rcs_classification, confidence = self._classify_rcs(rcs_dbsm=rcs_dbsm)
+            plot = RadarPlot(
+                radar_id=radar_id,
+                range_m=range_m,
+                azimuth_deg=azimuth,
+                elevation_deg=elevation,
+                velocity_mps=velocity,
+                rcs_dbsm=rcs_dbsm,
+                snr_db=snr_db,
+                position_cartesian=position,
+                rcs_classification=rcs_classification,
+                classification_confidence=confidence,
+            )
+            accepted.append(plot)
+            self._plots_by_radar[radar_id].append(plot)
+            self._pending_plots.append(plot)
+
+        self._status[radar_id]["plots"] += len(accepted)
+        return accepted
+
+    def process_fused_tracks(self) -> list[FusedTrack]:
+        if not self._pending_plots:
+            return []
+
+        grouped: list[list[RadarPlot]] = []
+        for plot in self._pending_plots:
+            placed = False
+            for group in grouped:
+                if self._is_same_track(plot, group):
+                    group.append(plot)
+                    placed = True
+                    break
+            if not placed:
+                grouped.append([plot])
+
+        tracks: list[FusedTrack] = []
+        for group_plots in grouped:
+            if not group_plots:
+                continue
+            sensors = sorted({plot.radar_id for plot in group_plots})
+            avg_position = (
+                sum(plot.position_cartesian[0] for plot in group_plots) / len(group_plots),
+                sum(plot.position_cartesian[1] for plot in group_plots) / len(group_plots),
+                sum(plot.position_cartesian[2] for plot in group_plots) / len(group_plots),
+            )
+            mean_velocity = sum(plot.velocity_mps for plot in group_plots) / len(group_plots)
+            avg_az = sum(plot.azimuth_deg for plot in group_plots) / len(group_plots)
+            avg_el = sum(plot.elevation_deg for plot in group_plots) / len(group_plots)
+            velocity_vector = self._to_velocity_vector(
+                speed_mps=mean_velocity,
+                azimuth_deg=avg_az,
+                elevation_deg=avg_el,
+            )
+            classification_counts = Counter(plot.rcs_classification for plot in group_plots)
+            dominant_class = classification_counts.most_common(1)[0][0]
+
+            # Tactical note: multi-radar corroboration upgrades a target from
+            # tentative to confirmed for downstream weapon-assignment logic.
+            state = TrackState.CONFIRMED if len(sensors) > 1 else TrackState.TENTATIVE
+            if state is TrackState.CONFIRMED:
+                for sensor_id in sensors:
+                    self._status[sensor_id]["correlated"] += 1
+
+            tracks.append(
+                FusedTrack(
+                    position=avg_position,
+                    velocity=velocity_vector,
+                    sensor_sources=sensors,
+                    classification=dominant_class.value,
+                    state=state,
+                )
             )
 
-    def unregister_radar(self, radar_id: str) -> bool:
-        with self._lock:
-            removed = radar_id in self._adapters
-            if not removed:
-                return False
-            del self._adapters[radar_id]
-            del self._configs[radar_id]
-            self._plot_correlator.clear(radar_id=radar_id)
+        self._pending_plots = []
+        return tracks
+
+    @staticmethod
+    def _is_same_track(candidate: RadarPlot, group: list[RadarPlot]) -> bool:
+        if not group:
             return True
-
-    def ingest_scan(self, radar_id: str, scan_input: Union[Dict[str, Any], RadarScan]) -> List[SensorReading]:
-        with self._lock:
-            adapter = self._adapters.get(radar_id)
-            if adapter is None:
-                raise ValueError(f"Radar '{radar_id}' is not registered")
-            scan = scan_input if isinstance(scan_input, RadarScan) else adapter.parse_raw_scan(scan_input)
-            correlations = self._plot_correlator.correlate(scan)
-            converter = self._build_converter()
-            normalized_readings = adapter.adapt_scan(scan=scan, converter=converter, correlations=correlations)
-            ingested: List[SensorReading] = []
-            for reading in normalized_readings:
-                ingested_reading = self._sensor_manager.ingest(
-                    sensor_id=reading.sensor_id,
-                    data=dict(reading.data),
-                    position=reading.position,
-                    confidence=reading.confidence,
-                )
-                ingested.append(ingested_reading)
-            return ingested
-
-    def ingest_scan_with_correlations(
-        self,
-        radar_id: str,
-        scan_input: Union[Dict[str, Any], RadarScan],
-    ) -> Tuple[List[SensorReading], List[PlotCorrelation]]:
-        with self._lock:
-            adapter = self._adapters.get(radar_id)
-            if adapter is None:
-                raise ValueError(f"Radar '{radar_id}' is not registered")
-            scan = scan_input if isinstance(scan_input, RadarScan) else adapter.parse_raw_scan(scan_input)
-            correlations = self._plot_correlator.correlate(scan)
-            converter = self._build_converter()
-            normalized_readings = adapter.adapt_scan(scan=scan, converter=converter, correlations=correlations)
-            ingested: List[SensorReading] = []
-            for reading in normalized_readings:
-                ingested.append(
-                    self._sensor_manager.ingest(
-                        sensor_id=reading.sensor_id,
-                        data=dict(reading.data),
-                        position=reading.position,
-                        confidence=reading.confidence,
-                    )
-                )
-            return ingested, correlations
-
-    def process_fusion(self):
-        with self._lock:
-            return self._sensor_manager.process()
-
-    def get_registered_radars(self) -> List[Dict[str, Any]]:
-        with self._lock:
-            return [self._serialize_config(cfg) for cfg in self._configs.values()]
-
-    def get_sensor_manager(self) -> SensorManager:
-        return self._sensor_manager
-
-    def get_status(self) -> Dict[str, Any]:
-        with self._lock:
-            return {
-                "registered_radars": len(self._adapters),
-                "radar_ids": sorted(self._adapters.keys()),
-                "reference_origin_lla": self._reference_origin_lla,
-                "sensor_manager": self._sensor_manager.health_check(),
-            }
-
-    def _build_converter(self) -> CoordinateConverter:
-        if self._reference_origin_lla is None:
-            raise RuntimeError("No reference origin configured; register at least one radar")
-        return CoordinateConverter(
-            reference_latitude_deg=self._reference_origin_lla[0],
-            reference_longitude_deg=self._reference_origin_lla[1],
-            reference_altitude_m=self._reference_origin_lla[2],
+        lead = group[0]
+        if candidate.rcs_classification is not lead.rcs_classification:
+            return False
+        mean_az = sum(plot.azimuth_deg for plot in group) / len(group)
+        mean_el = sum(plot.elevation_deg for plot in group) / len(group)
+        mean_velocity = sum(plot.velocity_mps for plot in group) / len(group)
+        # Tactical note: permissive angular gates preserve a single track while a
+        # low-RCS target closes rapidly through layered radar rings.
+        return (
+            abs(candidate.azimuth_deg - mean_az) <= 6.0
+            and abs(candidate.elevation_deg - mean_el) <= 4.0
+            and abs(candidate.velocity_mps - mean_velocity) <= 20.0
         )
 
     @staticmethod
-    def _serialize_config(config: RadarConfig) -> Dict[str, Any]:
-        payload = asdict(config)
-        payload["radar_type"] = config.radar_type.value
-        payload["radar_band"] = config.radar_band.value
-        payload["status"] = config.status.value
-        payload["position_lla"] = tuple(config.position_lla)
-        payload["orientation_deg"] = tuple(config.orientation_deg)
-        return payload
+    def _classify_rcs(*, rcs_dbsm: float) -> tuple[RCSClassification, float]:
+        if rcs_dbsm <= -15.0:
+            return (RCSClassification.MICRO_UAV, 0.88)
+        if rcs_dbsm <= -8.0:
+            return (RCSClassification.SHAHED_CLASS_UAV, 0.83)
+        if rcs_dbsm <= -3.0:
+            return (RCSClassification.TACTICAL_UAV, 0.78)
+        if rcs_dbsm <= 8.0:
+            return (RCSClassification.CRUISE_MISSILE, 0.7)
+        return (RCSClassification.AIRCRAFT, 0.67)
 
     @staticmethod
-    def _build_adapter(config: RadarConfig) -> BaseRadarAdapter:
-        factory = {
-            RadarType.GENERIC_2D: Generic2DRadarAdapter,
-            RadarType.GENERIC_3D: Generic3DRadarAdapter,
-            RadarType.RPS_82: RPS82Adapter,
-            RadarType.RPS_202: RPS202Adapter,
-            RadarType.WESTERN_AESA: WesternAESAAdapter,
-        }
-        adapter_cls = factory[config.radar_type]
-        return adapter_cls(config)
+    def _to_cartesian(
+        *,
+        radar_position: tuple[float, float, float],
+        range_m: float,
+        azimuth_deg: float,
+        elevation_deg: float,
+    ) -> tuple[float, float, float]:
+        azimuth_rad = radians(azimuth_deg)
+        elevation_rad = radians(elevation_deg)
+        horizontal_range = range_m * cos(elevation_rad)
+        x = radar_position[0] + horizontal_range * cos(azimuth_rad)
+        y = radar_position[1] + horizontal_range * sin(azimuth_rad)
+        z = radar_position[2] + range_m * sin(elevation_rad)
+        return (x, y, z)
+
+    @staticmethod
+    def _to_velocity_vector(
+        *,
+        speed_mps: float,
+        azimuth_deg: float,
+        elevation_deg: float,
+    ) -> tuple[float, float, float]:
+        azimuth_rad = radians(azimuth_deg)
+        elevation_rad = radians(elevation_deg)
+        horizontal_speed = speed_mps * cos(elevation_rad)
+        vx = horizontal_speed * cos(azimuth_rad)
+        vy = horizontal_speed * sin(azimuth_rad)
+        vz = speed_mps * sin(elevation_rad)
+        return (vx, vy, vz)

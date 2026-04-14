@@ -1,309 +1,125 @@
-"""Radar domain models for tactical multi-radar integration.
+"""Data models for tactical radar sensing and fused tracks.
 
 Military context:
-These typed dataclasses define the standardized radar contract that allows
-heterogeneous surveillance assets to feed one fused air picture without
-vendor-specific assumptions in Layer 02.
+These structures represent tactical radar detections and fused air tracks used
+to maintain a layered local air picture in contested low-altitude scenarios.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
 from math import isfinite
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Tuple
 from uuid import uuid4
 
 
-def _finite(value: float, *, field_name: str) -> float:
-    converted = float(value)
-    if not isfinite(converted):
-        raise ValueError(f"{field_name} must be a finite number")
-    return converted
+def _validate_finite(value: float, *, field_name: str) -> float:
+    numeric = float(value)
+    if not isfinite(numeric):
+        raise ValueError(f"{field_name} must be finite")
+    return numeric
 
 
-def _non_negative(value: float, *, field_name: str) -> float:
-    converted = _finite(value, field_name=field_name)
-    if converted < 0.0:
+def _validate_non_negative(value: float, *, field_name: str) -> float:
+    numeric = _validate_finite(value, field_name=field_name)
+    if numeric < 0.0:
         raise ValueError(f"{field_name} must be non-negative")
-    return converted
+    return numeric
 
 
-def _bounded_probability(value: float, *, field_name: str) -> float:
-    converted = _finite(value, field_name=field_name)
-    if not (0.0 <= converted <= 1.0):
-        raise ValueError(f"{field_name} must be in [0.0, 1.0]")
-    return converted
-
-
-def _normalize_azimuth(azimuth_deg: float) -> float:
-    value = _finite(azimuth_deg, field_name="azimuth_deg")
-    return value % 360.0
-
-
-def _validate_timestamp(value: datetime, *, field_name: str) -> datetime:
-    if not isinstance(value, datetime):
-        raise ValueError(f"{field_name} must be a datetime")
-    if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value
+def _validate_position(position: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    if len(position) != 3:
+        raise ValueError("position must contain exactly three coordinates")
+    return (
+        _validate_finite(position[0], field_name="position_x"),
+        _validate_finite(position[1], field_name="position_y"),
+        _validate_finite(position[2], field_name="position_z"),
+    )
 
 
 class RadarType(str, Enum):
-    """Supported radar family identifiers for adapter dispatch."""
-
-    GENERIC_2D = "GENERIC_2D"
-    GENERIC_3D = "GENERIC_3D"
-    RPS_82 = "RPS_82"
-    RPS_202 = "RPS_202"
-    WESTERN_AESA = "WESTERN_AESA"
-
-    @classmethod
-    def from_value(cls, value: str | "RadarType") -> "RadarType":
-        if isinstance(value, RadarType):
-            return value
-        if isinstance(value, str):
-            normalized = value.strip().upper()
-            if normalized in cls.__members__:
-                return cls[normalized]
-        raise ValueError(f"Invalid radar type: {value}")
-
-
-class RadarBand(str, Enum):
-    """Electromagnetic band for radar performance/noise tuning."""
-
-    L_BAND = "L_BAND"
-    S_BAND = "S_BAND"
-    C_BAND = "C_BAND"
-    X_BAND = "X_BAND"
-    KU_BAND = "KU_BAND"
-
-    @classmethod
-    def from_value(cls, value: str | "RadarBand") -> "RadarBand":
-        if isinstance(value, RadarBand):
-            return value
-        if isinstance(value, str):
-            normalized = value.strip().upper()
-            if normalized in cls.__members__:
-                return cls[normalized]
-        raise ValueError(f"Invalid radar band: {value}")
-
-
-class ScanMode(str, Enum):
-    """Radar tactical scan patterns."""
-
-    SEARCH = "SEARCH"
-    SECTOR = "SECTOR"
-    VOLUME = "VOLUME"
-    TRACK_WHILE_SCAN = "TRACK_WHILE_SCAN"
-
-    @classmethod
-    def from_value(cls, value: str | "ScanMode") -> "ScanMode":
-        if isinstance(value, ScanMode):
-            return value
-        if isinstance(value, str):
-            normalized = value.strip().upper()
-            if normalized in cls.__members__:
-                return cls[normalized]
-        raise ValueError(f"Invalid scan mode: {value}")
-
-
-class RadarStatus(str, Enum):
-    """Operational status for command-post readiness reporting."""
-
-    ONLINE = "ONLINE"
-    DEGRADED = "DEGRADED"
-    OFFLINE = "OFFLINE"
-    MAINTENANCE = "MAINTENANCE"
-
-    @classmethod
-    def from_value(cls, value: str | "RadarStatus") -> "RadarStatus":
-        if isinstance(value, RadarStatus):
-            return value
-        if isinstance(value, str):
-            normalized = value.strip().upper()
-            if normalized in cls.__members__:
-                return cls[normalized]
-        raise ValueError(f"Invalid radar status: {value}")
+    RPS_82 = "rps-82"
+    RPS_202 = "rps-202"
+    AESA = "aesa"
 
 
 class RCSClassification(str, Enum):
-    """Tactical class labels inferred from radar cross section."""
-
-    SMALL_UAV = "SMALL_UAV"
-    MEDIUM_UAV = "MEDIUM_UAV"
-    CRUISE_MISSILE = "CRUISE_MISSILE"
-    HELICOPTER = "HELICOPTER"
-    FIGHTER_AIRCRAFT = "FIGHTER_AIRCRAFT"
-    LARGE_AIRCRAFT = "LARGE_AIRCRAFT"
-    BALLISTIC_TARGET = "BALLISTIC_TARGET"
-    UNKNOWN = "UNKNOWN"
+    MICRO_UAV = "micro_uav"
+    SHAHED_CLASS_UAV = "shahed_class_uav"
+    TACTICAL_UAV = "tactical_uav"
+    CRUISE_MISSILE = "cruise_missile_like"
+    AIRCRAFT = "aircraft_like"
 
 
-@dataclass
+class TrackState(str, Enum):
+    TENTATIVE = "tentative"
+    CONFIRMED = "confirmed"
+
+
+@dataclass(slots=True)
+class RadarConfig:
+    radar_id: str
+    name_en: str
+    radar_type: RadarType
+    position: Tuple[float, float, float]
+    max_range_m: float
+
+    def __post_init__(self) -> None:
+        if not self.radar_id:
+            raise ValueError("radar_id is required")
+        if not self.name_en:
+            raise ValueError("name_en is required")
+        self.position = _validate_position(self.position)
+        self.max_range_m = _validate_non_negative(self.max_range_m, field_name="max_range_m")
+        if self.max_range_m == 0.0:
+            raise ValueError("max_range_m must be > 0")
+
+
+@dataclass(slots=True)
 class RadarPlot:
-    """One raw radar detection in polar coordinates from one scan."""
-
+    radar_id: str
     range_m: float
     azimuth_deg: float
     elevation_deg: float
-    radial_velocity_mps: float
-    rcs_m2: float
+    velocity_mps: float
+    rcs_dbsm: float
     snr_db: float
-    confidence: float = 1.0
-    plot_id: str = field(default_factory=lambda: str(uuid4()))
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    position_cartesian: Tuple[float, float, float]
+    rcs_classification: RCSClassification
+    classification_confidence: float
 
     def __post_init__(self) -> None:
-        if not isinstance(self.plot_id, str) or not self.plot_id.strip():
-            raise ValueError("plot_id must be a non-empty string")
-        self.timestamp = _validate_timestamp(self.timestamp, field_name="timestamp")
-        self.range_m = _non_negative(self.range_m, field_name="range_m")
-        self.azimuth_deg = _normalize_azimuth(self.azimuth_deg)
-        self.elevation_deg = _finite(self.elevation_deg, field_name="elevation_deg")
-        self.radial_velocity_mps = _finite(self.radial_velocity_mps, field_name="radial_velocity_mps")
-        self.rcs_m2 = _non_negative(self.rcs_m2, field_name="rcs_m2")
-        self.snr_db = _finite(self.snr_db, field_name="snr_db")
-        self.confidence = _bounded_probability(self.confidence, field_name="confidence")
-        if not isinstance(self.metadata, dict):
-            raise ValueError("metadata must be a dictionary")
-
-
-@dataclass
-class RadarScan:
-    """Set of plots produced by one tactical radar sweep."""
-
-    radar_id: str
-    scan_mode: ScanMode
-    plots: List[RadarPlot]
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    scan_id: str = field(default_factory=lambda: str(uuid4()))
-    scan_index: int = 0
-    status: RadarStatus = RadarStatus.ONLINE
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-        self.scan_mode = ScanMode.from_value(self.scan_mode)
-        self.timestamp = _validate_timestamp(self.timestamp, field_name="timestamp")
-        if not isinstance(self.scan_id, str) or not self.scan_id.strip():
-            raise ValueError("scan_id must be a non-empty string")
-        if not isinstance(self.scan_index, int) or self.scan_index < 0:
-            raise ValueError("scan_index must be a non-negative integer")
-        self.status = RadarStatus.from_value(self.status)
-        if not isinstance(self.plots, list):
-            raise ValueError("plots must be a list")
-        if any(not isinstance(plot, RadarPlot) for plot in self.plots):
-            raise ValueError("plots must contain RadarPlot objects")
-
-
-@dataclass
-class RadarConfig:
-    """Static/dynamic configuration for one radar adapter instance."""
-
-    radar_id: str
-    radar_type: RadarType
-    radar_band: RadarBand
-    name_en: str
-    name_ar: str
-    position_lla: Tuple[float, float, float]
-    orientation_deg: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    scan_rate_hz: float = 1.0
-    beam_width_az_deg: float = 2.0
-    beam_width_el_deg: float = 4.0
-    min_range_m: float = 100.0
-    max_range_m: float = 120_000.0
-    doppler_resolution_mps: float = 1.5
-    nominal_detection_probability: float = 0.9
-    detection_probability_curve: Sequence[Tuple[float, float]] = field(default_factory=tuple)
-    status: RadarStatus = RadarStatus.ONLINE
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-        self.radar_type = RadarType.from_value(self.radar_type)
-        self.radar_band = RadarBand.from_value(self.radar_band)
-        if not isinstance(self.name_en, str) or not self.name_en.strip():
-            raise ValueError("name_en must be a non-empty string")
-        if not isinstance(self.name_ar, str) or not self.name_ar.strip():
-            raise ValueError("name_ar must be a non-empty string")
-        if not isinstance(self.position_lla, tuple) or len(self.position_lla) != 3:
-            raise ValueError("position_lla must be a tuple of (lat_deg, lon_deg, alt_m)")
-        lat = _finite(self.position_lla[0], field_name="position_lla[0]")
-        lon = _finite(self.position_lla[1], field_name="position_lla[1]")
-        alt = _finite(self.position_lla[2], field_name="position_lla[2]")
-        if not (-90.0 <= lat <= 90.0):
-            raise ValueError("position_lla latitude must be in [-90, 90]")
-        if not (-180.0 <= lon <= 180.0):
-            raise ValueError("position_lla longitude must be in [-180, 180]")
-        self.position_lla = (lat, lon, alt)
-        if not isinstance(self.orientation_deg, tuple) or len(self.orientation_deg) != 3:
-            raise ValueError("orientation_deg must be a tuple of (yaw, pitch, roll)")
-        self.orientation_deg = (
-            _finite(self.orientation_deg[0], field_name="orientation_deg[0]"),
-            _finite(self.orientation_deg[1], field_name="orientation_deg[1]"),
-            _finite(self.orientation_deg[2], field_name="orientation_deg[2]"),
+        if not self.radar_id:
+            raise ValueError("radar_id is required")
+        self.range_m = _validate_non_negative(self.range_m, field_name="range_m")
+        self.azimuth_deg = _validate_finite(self.azimuth_deg, field_name="azimuth_deg")
+        self.elevation_deg = _validate_finite(self.elevation_deg, field_name="elevation_deg")
+        self.velocity_mps = _validate_finite(self.velocity_mps, field_name="velocity_mps")
+        self.rcs_dbsm = _validate_finite(self.rcs_dbsm, field_name="rcs_dbsm")
+        self.snr_db = _validate_finite(self.snr_db, field_name="snr_db")
+        self.position_cartesian = _validate_position(self.position_cartesian)
+        self.classification_confidence = _validate_finite(
+            self.classification_confidence,
+            field_name="classification_confidence",
         )
-        self.scan_rate_hz = _non_negative(self.scan_rate_hz, field_name="scan_rate_hz")
-        if self.scan_rate_hz <= 0.0:
-            raise ValueError("scan_rate_hz must be greater than zero")
-        self.beam_width_az_deg = _non_negative(self.beam_width_az_deg, field_name="beam_width_az_deg")
-        self.beam_width_el_deg = _non_negative(self.beam_width_el_deg, field_name="beam_width_el_deg")
-        if self.beam_width_az_deg <= 0.0 or self.beam_width_el_deg <= 0.0:
-            raise ValueError("beam widths must be greater than zero")
-        self.min_range_m = _non_negative(self.min_range_m, field_name="min_range_m")
-        self.max_range_m = _non_negative(self.max_range_m, field_name="max_range_m")
-        if self.max_range_m <= self.min_range_m:
-            raise ValueError("max_range_m must be greater than min_range_m")
-        self.doppler_resolution_mps = _non_negative(self.doppler_resolution_mps, field_name="doppler_resolution_mps")
-        self.nominal_detection_probability = _bounded_probability(
-            self.nominal_detection_probability,
-            field_name="nominal_detection_probability",
-        )
-        if not isinstance(self.detection_probability_curve, Sequence):
-            raise ValueError("detection_probability_curve must be a sequence")
-        normalized_curve: List[Tuple[float, float]] = []
-        for idx, pair in enumerate(self.detection_probability_curve):
-            if not isinstance(pair, (tuple, list)) or len(pair) != 2:
-                raise ValueError(
-                    f"detection_probability_curve[{idx}] must be a (snr_db, probability) pair"
-                )
-            snr_db = _finite(pair[0], field_name=f"detection_probability_curve[{idx}][0]")
-            prob = _bounded_probability(pair[1], field_name=f"detection_probability_curve[{idx}][1]")
-            normalized_curve.append((snr_db, prob))
-        normalized_curve.sort(key=lambda item: item[0])
-        self.detection_probability_curve = tuple(normalized_curve)
-        self.status = RadarStatus.from_value(self.status)
-        if not isinstance(self.metadata, dict):
-            raise ValueError("metadata must be a dictionary")
+        if not (0.0 <= self.classification_confidence <= 1.0):
+            raise ValueError("classification_confidence must be in [0.0, 1.0]")
 
 
-@dataclass
-class PlotCorrelation:
-    """Association between two plots across consecutive scans."""
-
-    radar_id: str
-    previous_plot_id: str
-    current_plot_id: str
-    dt_seconds: float
-    spatial_distance_m: float
-    radial_velocity_delta_mps: float
-    score: float
-    correlation_id: str = field(default_factory=lambda: str(uuid4()))
+@dataclass(slots=True)
+class FusedTrack:
+    position: Tuple[float, float, float]
+    velocity: Tuple[float, float, float]
+    sensor_sources: list[str]
+    classification: str
+    state: TrackState
+    track_id: str = field(default_factory=lambda: str(uuid4()))
 
     def __post_init__(self) -> None:
-        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
-            raise ValueError("radar_id must be a non-empty string")
-        if not isinstance(self.previous_plot_id, str) or not self.previous_plot_id.strip():
-            raise ValueError("previous_plot_id must be a non-empty string")
-        if not isinstance(self.current_plot_id, str) or not self.current_plot_id.strip():
-            raise ValueError("current_plot_id must be a non-empty string")
-        self.dt_seconds = _non_negative(self.dt_seconds, field_name="dt_seconds")
-        self.spatial_distance_m = _non_negative(self.spatial_distance_m, field_name="spatial_distance_m")
-        self.radial_velocity_delta_mps = abs(_finite(self.radial_velocity_delta_mps, field_name="radial_velocity_delta_mps"))
-        self.score = _bounded_probability(self.score, field_name="score")
-        if not isinstance(self.correlation_id, str) or not self.correlation_id.strip():
-            raise ValueError("correlation_id must be a non-empty string")
+        self.position = _validate_position(self.position)
+        self.velocity = _validate_position(self.velocity)
+        if not self.sensor_sources:
+            raise ValueError("sensor_sources must not be empty")
+        if not self.classification:
+            raise ValueError("classification is required")

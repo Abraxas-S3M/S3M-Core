@@ -1,84 +1,121 @@
-"""Demo: multi-radar integration into one fused tactical picture.
+#!/usr/bin/env python3
+"""Demonstrate S3M multi-radar air picture — Krechet-equivalent integration.
 
-Military context:
-This script emulates a command-post exercise where heterogeneous radars report
-simultaneously and feed Layer 02 fusion with normalized tactical contacts.
+Simulates:
+1. Deploy Krechet radar suite (RPS-82 + RPS-202 + AESA)
+2. Incoming Shahed-class UAV detected at 45km by AESA
+3. Same target detected at 18km by RPS-202
+4. Same target detected at 12km by RPS-82
+5. Multi-radar fused track with RCS classification
 """
 
-from __future__ import annotations
-
-import os
 import sys
-from datetime import datetime, timezone
-from pprint import pprint
 
-# Ensure script works when executed directly from repository root or scripts/ path.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, ".")
 
-from services.radar.krechet_radar_suite import load_krechet_suite
+from services.radar.krechet_radar_suite import create_krechet_radar_suite
 from services.radar.radar_manager import RadarManager
 
 
-def _build_demo_scan(ts: datetime):
-    return {
-        "timestamp": ts.isoformat(),
-        "scan_mode": "TRACK_WHILE_SCAN",
-        "plots": [
-            {
-                "plot_id": "demo-fast-uav",
-                "range_m": 12_500.0,
-                "azimuth_deg": 35.0,
-                "elevation_deg": 2.0,
-                "radial_velocity_mps": 70.0,
-                "rcs_m2": 0.04,
-                "snr_db": 16.0,
-            },
-            {
-                "plot_id": "demo-cruise",
-                "range_m": 28_000.0,
-                "azimuth_deg": 102.0,
-                "elevation_deg": 4.0,
-                "radial_velocity_mps": 230.0,
-                "rcs_m2": 0.35,
-                "snr_db": 18.0,
-            },
-            {
-                "plot_id": "demo-large-aircraft",
-                "range_m": 54_000.0,
-                "azimuth_deg": 280.0,
-                "elevation_deg": 6.0,
-                "radial_velocity_mps": 145.0,
-                "rcs_m2": 22.0,
-                "snr_db": 20.0,
-            },
-        ],
-    }
+def main() -> None:
+    print("=" * 70)
+    print("S3M RADAR INTEGRATION DEMO — KRECHET MULTI-RADAR AIR PICTURE")
+    print("Platform: NVIDIA Jetson AGX Orin 64GB | Mode: AIR-GAPPED")
+    print("=" * 70)
 
+    mgr = RadarManager()
+    print("\n[1] Deploying Krechet radar suite...")
+    configs = create_krechet_radar_suite(mgr, center=(0, 0, 0))
+    for c in configs:
+        print(f"  {c.name_en} ({c.radar_type.value}) — max range {c.max_range_m / 1000:.0f}km")
 
-def run_demo() -> None:
-    manager = RadarManager()
-    suite = load_krechet_suite(manager)
-    print(f"Loaded suite '{suite.suite_name}' with {len(suite.radar_configs)} radars")
+    # Tactical context: long-range AESA gives early warning for layered defense cueing.
+    print("\n[2] AESA detects target at 45km (Shahed-class UAV, RCS ~ -10 dBsm)")
+    aesa_id = configs[2].radar_id
+    plots = mgr.ingest_scan(
+        aesa_id,
+        {
+            "plots": [
+                {
+                    "range_m": 45000,
+                    "azimuth_deg": 10,
+                    "elevation_deg": 2,
+                    "velocity_mps": 55,
+                    "rcs_dbsm": -10,
+                    "snr_db": 22,
+                },
+            ]
+        },
+    )
+    for p in plots:
+        print(
+            f"  Plot: range={p.range_m}m az={p.azimuth_deg}° "
+            f"class={p.rcs_classification.value} conf={p.classification_confidence:.2f}"
+        )
+        print(
+            "  Cartesian: "
+            f"({p.position_cartesian[0]:.0f}, {p.position_cartesian[1]:.0f}, {p.position_cartesian[2]:.0f})"
+        )
 
-    timestamp = datetime.now(timezone.utc)
-    radar_ids = ["rps82-alpha", "rps202-bravo", "western-aesa-charlie"]
-    for radar_id in radar_ids:
-        raw_scan = _build_demo_scan(timestamp)
-        readings, correlations = manager.ingest_scan_with_correlations(radar_id, raw_scan)
-        print(f"\nRadar {radar_id}: {len(readings)} readings, {len(correlations)} correlations")
-        for reading in readings:
-            print(
-                f"  plot={reading.data.get('plot_id')} "
-                f"class={reading.data.get('classification')} "
-                f"alloc={reading.data.get('target_allocator_classification')} "
-                f"pos={reading.position}"
-            )
+    print("\n[3] RPS-202 detects same target at 18km")
+    rps202_id = configs[1].radar_id
+    plots2 = mgr.ingest_scan(
+        rps202_id,
+        {
+            "plots": [
+                {
+                    "range_m": 18000,
+                    "azimuth_deg": 12,
+                    "elevation_deg": 3,
+                    "velocity_mps": 58,
+                    "rcs_dbsm": -9,
+                    "snr_db": 20,
+                },
+            ]
+        },
+    )
+    for p in plots2:
+        print(f"  Plot: range={p.range_m}m az={p.azimuth_deg}° class={p.rcs_classification.value}")
 
-    tracks = manager.process_fusion()
-    print(f"\nFused track count: {len(tracks)}")
-    for track in tracks:
-        pprint(track.to_dict())
+    print("\n[4] RPS-82 detects same target at 12km")
+    rps82_id = configs[0].radar_id
+    plots3 = mgr.ingest_scan(
+        rps82_id,
+        {
+            "plots": [
+                {
+                    "range_m": 12000,
+                    "azimuth_deg": 14,
+                    "elevation_deg": 4,
+                    "velocity_mps": 60,
+                    "rcs_dbsm": -8,
+                    "snr_db": 18,
+                },
+            ]
+        },
+    )
+    for p in plots3:
+        print(f"  Plot: range={p.range_m}m az={p.azimuth_deg}° class={p.rcs_classification.value}")
+
+    print("\n[5] Fusing multi-radar tracks...")
+    tracks = mgr.process_fused_tracks()
+    print(f"  Fused tracks: {len(tracks)}")
+    for t in tracks:
+        print(f"  Track {t.track_id[:8]} state={t.state.value} class={t.classification}")
+        print(f"    pos=({t.position[0]:.0f}, {t.position[1]:.0f}, {t.position[2]:.0f})")
+        print(f"    vel=({t.velocity[0]:.1f}, {t.velocity[1]:.1f}, {t.velocity[2]:.1f}) m/s")
+        print(f"    sensors: {t.sensor_sources}")
+
+    print("\n" + "=" * 70)
+    print("RADAR STATUS")
+    for rid, status in mgr.get_all_status().items():
+        r = mgr.get_radar(rid)
+        if r is None:
+            continue
+        print(f"  {r.name_en}: {status['scans']} scans, {status['plots']} plots, {status['correlated']} correlated")
+    print("=" * 70)
+    print("Demo complete. Multi-radar air picture operational.")
 
 
 if __name__ == "__main__":
-    run_demo()
+    main()

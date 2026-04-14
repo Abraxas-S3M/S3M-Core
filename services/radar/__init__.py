@@ -1,35 +1,28 @@
-"""S3M Radar Adapter Framework package."""
+"""Radar sensing and multi-sensor track fusion services.
 
-from services.radar.krechet_radar_suite import (
-    KrechetRadarSuite,
-    build_krechet_demo_suite,
-    load_krechet_suite,
-)
+Military context:
+Provides the tactical radar layer used to merge long-, medium-, and short-range
+air-search detections into one coherent local air picture for C2 decisions.
+"""
+
+from services.radar.krechet_radar_suite import create_krechet_radar_suite
 from services.radar.models import (
-    PlotCorrelation,
+    FusedTrack,
     RCSClassification,
-    RadarBand,
     RadarConfig,
     RadarPlot,
-    RadarScan,
-    RadarStatus,
     RadarType,
-    ScanMode,
+    TrackState,
 )
 from services.radar.radar_manager import RadarManager
 
 __all__ = [
-    "KrechetRadarSuite",
-    "PlotCorrelation",
+    "FusedTrack",
     "RCSClassification",
-    "RadarBand",
     "RadarConfig",
     "RadarManager",
     "RadarPlot",
-    "RadarScan",
-    "RadarStatus",
     "RadarType",
-    "ScanMode",
-    "build_krechet_demo_suite",
-    "load_krechet_suite",
+    "TrackState",
+    "create_krechet_radar_suite",
 ]
