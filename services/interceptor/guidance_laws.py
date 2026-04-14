@@ -1,37 +1,83 @@
-"""Guidance law implementations for air-to-air intercept.
+"""Guidance law implementations for interceptor steering.
 
 Military context:
-Proportional Navigation (PN) is the standard guidance law used by virtually
-all modern missile systems and the Krechet interceptor drone guidance. It
-commands acceleration proportional to the line-of-sight rotation rate times
-closing velocity, which drives the interceptor onto a collision course.
-
-Three laws are provided with increasing sophistication:
-1. Pure Pursuit — always fly toward current target position (simplest, worst performance)
-2. Lead Pursuit — fly toward predicted future position (better for crossing targets)
-3. Proportional Navigation — compute acceleration to null LOS rate (optimal for constant-speed targets)
+The guidance laws encode tactical steering behavior for command-guided
+interceptors across boost, midcourse, and terminal phases.
 """
 
 from __future__ import annotations
 
-import math
+from math import atan2, copysign, hypot, pi, sin, sqrt
 from typing import Tuple
 
-from services.interceptor.models import (
-    GuidanceMode,
-    GuidancePhase,
-    InterceptGeometry,
-    InterceptorConfig,
-    SteeringCommand,
-)
+from services.interceptor.models import GuidancePhase, InterceptGeometry, InterceptorConfig, SteeringCommand
+
+
+def _vector_sub(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+
+def _vector_add(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
+
+
+def _vector_scale(v: Tuple[float, float, float], scalar: float) -> Tuple[float, float, float]:
+    return (v[0] * scalar, v[1] * scalar, v[2] * scalar)
+
+
+def _cross(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
+    return (
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    )
+
+
+def _norm(v: Tuple[float, float, float]) -> float:
+    return sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
+
+
+def _clamp(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
+
+
+def _heading_xy(vector: Tuple[float, float, float]) -> float:
+    return atan2(vector[1], vector[0]) if hypot(vector[0], vector[1]) > 1e-9 else 0.0
+
+
+def _wrap_angle(angle_rad: float) -> float:
+    wrapped = (angle_rad + pi) % (2.0 * pi) - pi
+    return wrapped
+
+
+def _build_command(
+    *,
+    phase: GuidancePhase,
+    lateral_accel: float,
+    vertical_accel: float,
+    heading_rate: float,
+    config: InterceptorConfig,
+    notes: str,
+) -> SteeringCommand:
+    return SteeringCommand(
+        phase=phase,
+        lateral_accel_mps2=_clamp(
+            lateral_accel,
+            -config.max_lateral_accel_mps2,
+            config.max_lateral_accel_mps2,
+        ),
+        vertical_accel_mps2=_clamp(
+            vertical_accel,
+            -config.max_vertical_accel_mps2,
+            config.max_vertical_accel_mps2,
+        ),
+        heading_rate_rad_s=_clamp(heading_rate, -2.5, 2.5),
+        notes=notes,
+    )
 
 
 class PurePursuit:
-    """Always steer toward current target position.
-
-    Simple but inefficient — results in tail-chase curves with large
-    miss distances against crossing targets. Used as fallback only.
-    """
+    """Classic pure pursuit guidance with bounded acceleration commands."""
 
     def compute(
         self,
@@ -39,35 +85,28 @@ class PurePursuit:
         interceptor_pos: Tuple[float, float, float],
         target_pos: Tuple[float, float, float],
         config: InterceptorConfig,
-        phase: GuidancePhase = GuidancePhase.MIDCOURSE,
+        phase: GuidancePhase,
     ) -> SteeringCommand:
         del geometry
+        los = _vector_sub(target_pos, interceptor_pos)
+        desired_heading = _heading_xy(los)
+        heading_error = _wrap_angle(desired_heading - 0.0)
+        lateral_accel = config.max_lateral_accel_mps2 * sin(heading_error)
+        vertical_ratio = 0.0 if abs(los[2]) < 1e-9 else los[2] / max(_norm(los), 1e-6)
+        vertical_accel = config.max_vertical_accel_mps2 * vertical_ratio
 
-        dx = target_pos[0] - interceptor_pos[0]
-        dy = target_pos[1] - interceptor_pos[1]
-        dz = target_pos[2] - interceptor_pos[2]
-        ground_range = math.sqrt(dx * dx + dy * dy)
-
-        heading = math.degrees(math.atan2(dx, dy)) % 360.0
-        pitch = math.degrees(math.atan2(dz, ground_range)) if ground_range > 0.1 else 0.0
-
-        return SteeringCommand(
-            commanded_heading_deg=heading,
-            commanded_pitch_deg=pitch,
-            commanded_speed_mps=config.max_speed_mps,
-            commanded_position=target_pos,
-            guidance_mode=GuidanceMode.PURE_PURSUIT,
+        return _build_command(
             phase=phase,
+            lateral_accel=lateral_accel,
+            vertical_accel=vertical_accel,
+            heading_rate=heading_error * 1.2,
+            config=config,
+            notes="Pure pursuit toward current target LOS",
         )
 
 
 class LeadPursuit:
-    """Steer toward predicted future target position.
-
-    Extrapolates target position by time-to-intercept to compute a
-    lead point. Better than pure pursuit for crossing targets but
-    still suboptimal compared to PN.
-    """
+    """Lead pursuit guidance that points at predicted target position."""
 
     def compute(
         self,
@@ -76,48 +115,30 @@ class LeadPursuit:
         target_pos: Tuple[float, float, float],
         target_vel: Tuple[float, float, float],
         config: InterceptorConfig,
-        phase: GuidancePhase = GuidancePhase.MIDCOURSE,
+        phase: GuidancePhase,
     ) -> SteeringCommand:
-        tgo = min(geometry.time_to_intercept_s, 60.0)  # Cap prediction horizon.
-        # Predicted intercept point for current guidance update.
-        px = target_pos[0] + target_vel[0] * tgo
-        py = target_pos[1] + target_vel[1] * tgo
-        pz = target_pos[2] + target_vel[2] * tgo
+        interceptor_speed = max(geometry.interceptor_speed_mps, 1.0)
+        lead_time_s = geometry.range_m / interceptor_speed
+        lead_point = _vector_add(target_pos, _vector_scale(target_vel, lead_time_s))
+        lead_los = _vector_sub(lead_point, interceptor_pos)
+        desired_heading = _heading_xy(lead_los)
+        heading_error = _wrap_angle(desired_heading - 0.0)
+        lateral_accel = config.max_lateral_accel_mps2 * sin(heading_error)
+        vertical_ratio = 0.0 if abs(lead_los[2]) < 1e-9 else lead_los[2] / max(_norm(lead_los), 1e-6)
+        vertical_accel = config.max_vertical_accel_mps2 * vertical_ratio
 
-        dx = px - interceptor_pos[0]
-        dy = py - interceptor_pos[1]
-        dz = pz - interceptor_pos[2]
-        ground_range = math.sqrt(dx * dx + dy * dy)
-
-        heading = math.degrees(math.atan2(dx, dy)) % 360.0
-        pitch = math.degrees(math.atan2(dz, ground_range)) if ground_range > 0.1 else 0.0
-
-        return SteeringCommand(
-            commanded_heading_deg=heading,
-            commanded_pitch_deg=pitch,
-            commanded_speed_mps=config.max_speed_mps,
-            commanded_position=(px, py, pz),
-            guidance_mode=GuidanceMode.LEAD_PURSUIT,
+        return _build_command(
             phase=phase,
+            lateral_accel=lateral_accel,
+            vertical_accel=vertical_accel,
+            heading_rate=heading_error * 1.4,
+            config=config,
+            notes="Lead pursuit toward extrapolated target point",
         )
 
 
 class ProportionalNavigation:
-    """True Proportional Navigation (TPN) guidance law.
-
-    Military context:
-    The standard guidance law for air-to-air intercept. Commands lateral
-    acceleration proportional to:
-        a_cmd = N × Vc × dσ/dt
-    where:
-        N = navigation constant (typically 3-5, higher = more aggressive)
-        Vc = closing velocity
-        dσ/dt = line-of-sight rotation rate
-
-    This drives the LOS rate to zero, which geometrically means the
-    interceptor is on a collision course with the target. The Krechet
-    9C905-2 uses this principle for its guidance computation.
-    """
+    """Proportional navigation guidance (default Krechet mode)."""
 
     def compute(
         self,
@@ -127,78 +148,31 @@ class ProportionalNavigation:
         target_pos: Tuple[float, float, float],
         target_vel: Tuple[float, float, float],
         config: InterceptorConfig,
-        phase: GuidancePhase = GuidancePhase.MIDCOURSE,
+        phase: GuidancePhase,
     ) -> SteeringCommand:
-        del target_pos, target_vel
+        del interceptor_pos, target_pos
+        rel_vel = _vector_sub(target_vel, interceptor_vel)
+        turn_axis = _cross(geometry.line_of_sight_unit, rel_vel)
+        turn_sign = 1.0 if abs(turn_axis[2]) < 1e-9 else copysign(1.0, turn_axis[2])
 
-        N = config.nav_constant
-        Vc = max(geometry.closing_velocity_mps, 1.0)
-
-        # PN acceleration commands (inertial frame)
-        # Lateral (horizontal): N × Vc × LOS_rate_azimuth
-        los_rate_az_rad = math.radians(geometry.los_rate_az_dps)
-        # Vertical: N × Vc × LOS_rate_elevation
-        los_rate_el_rad = math.radians(geometry.los_rate_el_dps)
-
-        a_lateral = N * Vc * los_rate_az_rad
-        a_vertical = N * Vc * los_rate_el_rad
-
-        # Clamp to platform limits
-        max_a = config.max_acceleration_mps2
-        a_lateral = max(-max_a, min(max_a, a_lateral))
-        a_vertical = max(-max_a, min(max_a, a_vertical))
-
-        # Convert acceleration command to heading/pitch adjustments
-        interceptor_speed = math.sqrt(
-            interceptor_vel[0] ** 2 + interceptor_vel[1] ** 2 + interceptor_vel[2] ** 2
+        # Tactical context: PN scales turn command by LOS rate and closure,
+        # creating aggressive late-course maneuvering against maneuvering threats.
+        lateral_magnitude = (
+            config.nav_constant
+            * max(geometry.closing_speed_mps, 0.0)
+            * abs(geometry.line_of_sight_rate_rad_s)
         )
-        if interceptor_speed < 1.0:
-            interceptor_speed = 1.0
+        lateral_accel = turn_sign * lateral_magnitude
+        heading_rate = turn_sign * (lateral_magnitude / max(geometry.interceptor_speed_mps, 1.0))
 
-        # Current heading from velocity vector
-        current_heading = (
-            math.degrees(math.atan2(interceptor_vel[0], interceptor_vel[1])) % 360.0
-        )
-        current_pitch = math.degrees(
-            math.atan2(
-                interceptor_vel[2],
-                math.sqrt(interceptor_vel[0] ** 2 + interceptor_vel[1] ** 2),
-            )
-        )
+        vertical_bias = geometry.line_of_sight_unit[2] * config.max_vertical_accel_mps2
+        vertical_accel = vertical_bias + (0.1 * lateral_magnitude * copysign(1.0, vertical_bias or 1.0))
 
-        # Heading correction from lateral acceleration
-        dt = 1.0 / max(config.guidance_update_hz, 1.0)
-        heading_correction = math.degrees(a_lateral * dt / max(interceptor_speed, 1.0))
-        pitch_correction = math.degrees(a_vertical * dt / max(interceptor_speed, 1.0))
-
-        commanded_heading = (current_heading + heading_correction) % 360.0
-        commanded_pitch = max(-60.0, min(60.0, current_pitch + pitch_correction))
-
-        # Compute commanded position (one update step ahead)
-        speed = min(
-            config.max_speed_mps,
-            interceptor_speed + 2.0,
-        )  # Slight acceleration toward max speed.
-        cmd_heading_rad = math.radians(commanded_heading)
-        cmd_pitch_rad = math.radians(commanded_pitch)
-        step_dist = speed * dt
-        cmd_x = (
-            interceptor_pos[0]
-            + step_dist * math.sin(cmd_heading_rad) * math.cos(cmd_pitch_rad)
-        )
-        cmd_y = (
-            interceptor_pos[1]
-            + step_dist * math.cos(cmd_heading_rad) * math.cos(cmd_pitch_rad)
-        )
-        cmd_z = interceptor_pos[2] + step_dist * math.sin(cmd_pitch_rad)
-
-        return SteeringCommand(
-            commanded_heading_deg=commanded_heading,
-            commanded_pitch_deg=commanded_pitch,
-            commanded_speed_mps=speed,
-            commanded_position=(cmd_x, cmd_y, cmd_z),
-            lateral_accel_mps2=a_lateral,
-            vertical_accel_mps2=a_vertical,
-            guidance_mode=GuidanceMode.PROPORTIONAL_NAV,
+        return _build_command(
             phase=phase,
+            lateral_accel=lateral_accel,
+            vertical_accel=vertical_accel,
+            heading_rate=heading_rate,
+            config=config,
+            notes="PN command based on LOS rate and closure",
         )
