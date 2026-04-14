@@ -1,0 +1,63 @@
+# S3M Interceptor Drone Type Library
+# UNCLASSIFIED - FOUO
+
+interceptor_types:
+  titan:
+    name_en: "Titan Interceptor Drone"
+    name_ar: "طائرة اعتراض تيتان"
+    platform_type: fixed_wing
+    max_speed_mps: 80
+    cruise_speed_mps: 55
+    max_acceleration_mps2: 15
+    max_turn_rate_dps: 45
+    max_climb_rate_mps: 15
+    max_altitude_m: 12000
+    endurance_s: 600
+    nav_constant: 4.0
+    guidance_update_hz: 10
+    handoff_range_m: 250
+    terminal_range_m: 500
+    kill_radius_m: 5
+    seeker_fov_deg: 30
+    seeker_range_m: 500
+    engagement_method: "kinetic_or_proximity_fuze"
+
+  quadrotor_interceptor:
+    name_en: "Quadrotor Interceptor"
+    name_ar: "طائرة اعتراض رباعية"
+    platform_type: quadrotor
+    max_speed_mps: 40
+    cruise_speed_mps: 25
+    max_acceleration_mps2: 20
+    max_turn_rate_dps: 90
+    max_climb_rate_mps: 10
+    max_altitude_m: 3000
+    endurance_s: 300
+    nav_constant: 3.5
+    guidance_update_hz: 20
+    handoff_range_m: 150
+    terminal_range_m: 300
+    kill_radius_m: 3
+    seeker_fov_deg: 45
+    seeker_range_m: 300
+    engagement_method: "kinetic"
+
+  loitering_interceptor:
+    name_en: "Loitering Interceptor Munition"
+    name_ar: "ذخيرة اعتراض متسكعة"
+    platform_type: loitering
+    max_speed_mps: 120
+    cruise_speed_mps: 35
+    max_acceleration_mps2: 25
+    max_turn_rate_dps: 60
+    max_climb_rate_mps: 20
+    max_altitude_m: 8000
+    endurance_s: 1800
+    nav_constant: 4.5
+    guidance_update_hz: 10
+    handoff_range_m: 200
+    terminal_range_m: 400
+    kill_radius_m: 8
+    seeker_fov_deg: 40
+    seeker_range_m: 600
+    engagement_method: "warhead_proximity"

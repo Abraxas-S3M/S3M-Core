@@ -102,6 +102,17 @@ async def trigger_fusion() -> Dict[str, Any]:
     }
 
 
+@router.get("/tracks")
+async def list_tracks() -> Dict[str, Any]:
+    """Return fused air-picture tracks for dashboard visualization."""
+    tracks = _manager.list_tracks()
+    return {
+        "tracks": [track.to_dict() for track in tracks],
+        "count": len(tracks),
+        "confirmed": sum(1 for t in tracks if t.state.value == "confirmed"),
+    }
+
+
 @router.get("/stats")
 async def radar_stats() -> Dict[str, Any]:
     return _manager.get_stats()
