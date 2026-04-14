@@ -1,2 +1,1 @@
-"""Radar adapter implementations for tactical sensor families."""
-
+"""Radar adapter implementations for heterogeneous tactical sensors."""
