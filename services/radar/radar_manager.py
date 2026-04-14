@@ -103,9 +103,16 @@ class RadarManager:
                 raise ValueError(f"plot[{idx}] must be an object")
             position = _parse_xyz(raw_plot.get("position", [0.0, 0.0, 0.0]), field_name=f"plot[{idx}].position")
             classification_text = str(raw_plot.get("rcs_classification", "unknown")).strip().lower()
+            classification_key = {
+                "small": "small_uav",
+                "medium": "medium_uav",
+                "large": "large_uav",
+                "fighter_aircraft": "fighter",
+                "fighter_jet": "fighter",
+            }.get(classification_text, classification_text)
             classification = RCSClassification.UNKNOWN
             for candidate in RCSClassification:
-                if candidate.value == classification_text:
+                if candidate.value == classification_key:
                     classification = candidate
                     break
             track_id_raw = raw_plot.get("track_id") or raw_plot.get("correlated_track_id")
@@ -118,7 +125,7 @@ class RadarManager:
                     plot_id=str(uuid4()),
                     radar_id=radar_key,
                     position=position,
-                    rcs_classification=classification,
+                    rcs_classification=classification.value,
                     correlated_track_id=track_id,
                     timestamp=now,
                     attributes={k: v for k, v in raw_plot.items() if k not in {"position", "track_id", "correlated_track_id", "rcs_classification"}},
