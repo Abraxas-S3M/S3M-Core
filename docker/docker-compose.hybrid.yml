@@ -1,24 +1,19 @@
-# S3M Hybrid Training Deployment — RunPod GPU + Hetzner CPU
-# 
-# Usage:
-#   On Hetzner: docker compose -f docker/docker-compose.cloud.yml up -d
-#   On RunPod:  docker compose -f docker/docker-compose.hybrid.yml --profile gpu up -d
-#   Both:       Sync via rsync over SSH (see configs/gpu_training.yaml hybrid section)
+# S3M Hybrid Training — RunPod GPU → Cloudflare R2
+# Usage on RunPod: docker compose -f docker/docker-compose.hybrid.yml --profile gpu up -d
 version: "3.8"
 
 services:
-  # === GPU Services (RunPod 4090) ===
   s3m-gpu-worker:
     build:
       context: ..
       dockerfile: docker/Dockerfile.gpu
     container_name: s3m-gpu-worker
     profiles: ["gpu"]
+    env_file:
+      - ../.env.r2
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - S3M_DEVICE=cuda
-      - S3M_HETZNER_HOST=${S3M_HETZNER_HOST}
-      - S3M_HETZNER_SSH_KEY=/root/.ssh/s3m_hetzner
       - WANDB_API_KEY=${WANDB_API_KEY:-}
       - WANDB_PROJECT=s3m-training
       - S3M_LOG_LEVEL=INFO
@@ -27,7 +22,6 @@ services:
       - gpu-models:/opt/s3m/models
       - gpu-data:/opt/s3m/data
       - gpu-state:/opt/s3m/state
-      - ${S3M_SSH_DIR:-~/.ssh}:/root/.ssh:ro
     deploy:
       resources:
         reservations:
@@ -38,13 +32,14 @@ services:
     command: ["python3", "scripts/gpu_worker.py", "--poll-interval", "30"]
     restart: unless-stopped
 
-  # === Interactive training (manual runs) ===
   s3m-gpu-interactive:
     build:
       context: ..
       dockerfile: docker/Dockerfile.gpu
     container_name: s3m-gpu-interactive
     profiles: ["interactive"]
+    env_file:
+      - ../.env.r2
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - S3M_DEVICE=cuda
