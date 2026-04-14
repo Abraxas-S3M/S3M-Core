@@ -195,7 +195,7 @@ connector.upload_file(gguf_q4, f"{VaultPaths.q4_serving(engine)}{Path(gguf_q4).n
 connector.sync_up(adapter_dir, VaultPaths.fp16_adapter(engine, track))
 if keep_merged:
     connector.sync_up(merged_dir, VaultPaths.fp16_merged(engine, track))
-print("Artifacts pushed to Hetzner Object Storage.")
+print("Artifacts pushed to Cloudflare R2.")
 PY
 
 banner "Cleaning fp16 intermediate artifacts to save disk"

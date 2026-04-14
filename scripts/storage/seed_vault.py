@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Seed S3M Hetzner Object Storage vault tiers: models, datasets, and vendor repositories.
+"""Seed S3M Cloudflare R2 vault tiers: models, datasets, and vendor repositories.
 
 Military/tactical context:
     This orchestration script supports sovereign artifact pre-positioning so
-    operators can rehydrate tactical AI capabilities from Hetzner Object Storage
+    operators can rehydrate tactical AI capabilities from Cloudflare R2
     storage during contested or disconnected operations.
 """
 
@@ -615,7 +615,7 @@ def _inventory_report(connector: ObjectStorageConnector, repo_root: Path, datase
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Seed S3M Hetzner Object Storage vault tiers")
+    parser = argparse.ArgumentParser(description="Seed S3M Cloudflare R2 vault tiers")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--models", action="store_true", help="Seed AI model weights")
     mode.add_argument("--datasets", action="store_true", help="Seed training datasets")

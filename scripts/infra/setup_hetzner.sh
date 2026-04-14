@@ -30,7 +30,7 @@ require_env() {
 }
 
 install_packages() {
-  banner "Installing Hetzner Object Storage system dependencies"
+  banner "Installing Cloudflare R2 system dependencies"
   sudo apt-get update
   sudo apt-get install -y \
     build-essential \
@@ -101,7 +101,7 @@ copy_repo_to_workspace() {
 }
 
 write_env_file() {
-  banner "Writing /workspace/.env from Hetzner Object Storage credentials"
+  banner "Writing /workspace/.env from Cloudflare R2 credentials"
   require_env "S3M_STORAGE_ACCESS_KEY"
   require_env "S3M_STORAGE_SECRET_KEY"
   require_env "S3M_STORAGE_BUCKET_NAME"
@@ -117,7 +117,7 @@ EOF
 }
 
 initial_model_sync() {
-  banner "Initial Hetzner Object Storage pull for Phi-3 and Mistral quantized weights"
+  banner "Initial Cloudflare R2 pull for Phi-3 and Mistral quantized weights"
 
   # shellcheck disable=SC1091
   source "${VENV_PATH}/bin/activate"
@@ -154,7 +154,7 @@ install_systemd_units() {
 
   cat >/tmp/s3m-storage-sync.service <<EOF
 [Unit]
-Description=S3M Hetzner Object Storage Sync Service
+Description=S3M Cloudflare R2 Sync Service
 After=network-online.target
 Wants=network-online.target
 
@@ -168,7 +168,7 @@ EOF
 
   cat >/tmp/s3m-storage-sync.timer <<EOF
 [Unit]
-Description=Run S3M Hetzner Object Storage sync every 30 minutes
+Description=Run S3M Cloudflare R2 sync every 30 minutes
 
 [Timer]
 OnBootSec=2min
@@ -241,7 +241,7 @@ EOF
 }
 
 print_summary() {
-  banner "Hetzner Object Storage setup summary"
+  banner "Cloudflare R2 setup summary"
   echo "S3M root: ${S3M_ROOT}"
   echo "Workspace root: ${WORKSPACE_ROOT}"
   echo "Venv: ${VENV_PATH}"

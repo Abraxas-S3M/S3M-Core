@@ -27,7 +27,7 @@ logger = logging.getLogger("s3m.training.gpu.session_manager")
 
 GROK_BLOCK_MESSAGE = (
     "Grok-300B is too large for GPU training. "
-    "It remains in Hetzner Object Storage as a validation oracle only."
+    "It remains in Cloudflare R2 as a validation oracle only."
 )
 SUPPORTED_TRACKS = {"saudi_mod", "ukraine_mod", "nato"}
 ENGINE_ALIASES = {
@@ -144,10 +144,10 @@ class GPUSessionManager:
     ) -> SessionResult:
         """Full training session lifecycle:
         1. Validate engine_id is NOT grok (hard block)
-        2. Sync weights + datasets from Hetzner Object Storage
+        2. Sync weights + datasets from Cloudflare R2
         3. Run QLoRA fine-tuning
         4. Run eval harness
-        5. Push adapter + metrics to Hetzner Object Storage
+        5. Push adapter + metrics to Cloudflare R2
         6. Push to grok-verdicts/pending/ for Grok validation
         7. Return session results
         """
@@ -218,7 +218,7 @@ class GPUSessionManager:
         )
 
     def sync_from_object_storage(self, engine_id: str, track: str):
-        """Pull base weights and training data from Hetzner Object Storage."""
+        """Pull base weights and training data from Cloudflare R2."""
         self._assert_non_grok(engine_id)
         self._validate_track(track)
         weights_prefix = f"base-weights/{engine_id}/"
@@ -230,7 +230,7 @@ class GPUSessionManager:
         logger.info("Object storage sync complete: engine=%s track=%s", engine_id, track)
 
     def sync_to_object_storage(self, engine_id: str, track: str, adapter_dir: Path):
-        """Push training artifacts back to Hetzner Object Storage."""
+        """Push training artifacts back to Cloudflare R2."""
         self._assert_non_grok(engine_id)
         self._validate_track(track)
 

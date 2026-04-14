@@ -94,7 +94,7 @@ build_llama_cpp_cuda() {
 }
 
 sync_from_vault() {
-  banner "Syncing base weights and datasets from Hetzner Object Storage"
+  banner "Syncing base weights and datasets from Cloudflare R2"
   if [[ "$(printf '%s' "${S3M_TARGET_ENGINE}" | tr '[:upper:]' '[:lower:]')" == *grok* ]]; then
     echo "ERROR: Grok-family engine sync is blocked by policy." >&2
     exit 1
@@ -137,12 +137,12 @@ for track in tracks:
         prefix=VaultPaths.adapters(engine, track=track),
         local_dir=f"{adapter_root}/{track}",
     )
-print("Hetzner Object Storage pull complete.")
+print("Cloudflare R2 pull complete.")
 PY
 }
 
 push_to_vault() {
-  banner "Pushing training artifacts to Hetzner Object Storage"
+  banner "Pushing training artifacts to Cloudflare R2"
   if [[ "$(printf '%s' "${S3M_TARGET_ENGINE}" | tr '[:upper:]' '[:lower:]')" == *grok* ]]; then
     echo "ERROR: Grok-family engine push is blocked by policy." >&2
     exit 1
@@ -176,7 +176,7 @@ connector.sync_local_to_prefix(
     local_dir=checkpoint_root,
     prefix=VaultPaths.checkpoints("runpod", engine_id=engine),
 )
-print("Hetzner Object Storage push complete.")
+print("Cloudflare R2 push complete.")
 PY
 }
 

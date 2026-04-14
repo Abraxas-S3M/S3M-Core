@@ -76,7 +76,7 @@ def _load_metrics_store_class():
 
 
 class SnapshotPublisher:
-    """Generates and publishes GUI data snapshots to Hetzner Object Storage.
+    """Generates and publishes GUI data snapshots to Cloudflare R2.
 
     Military/tactical context:
     Snapshots provide the CloudFlare Pages frontend with pre-rendered
@@ -169,7 +169,7 @@ class SnapshotPublisher:
         }
 
     def publish_to_object_storage(self, snapshots: Dict[str, Any]) -> Dict[str, Any]:
-        """Upload all snapshots to gui-snapshots/ in Hetzner Object Storage.
+        """Upload all snapshots to gui-snapshots/ in Cloudflare R2.
 
         Each workspace gets its own JSON file:
         - gui-snapshots/command.json

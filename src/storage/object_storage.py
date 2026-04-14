@@ -5,8 +5,8 @@ Tactical context:
     Weight artifacts, adapters, and evaluation payloads are strategic resources.
     This connector enforces resilient transfer procedures so deployed teams can
     rehydrate model stacks from the vault during contested, disconnected, or
-    degraded operations. Cloudflare R2 preserves S3 API interoperability while
-    its zero-egress-cost model sustains high-tempo artifact distribution.
+    degraded operations. Cloudflare R2 shares the same S3 API used by
+    boto3 and provides free internal traffic within the Hetzner eu-central zone.
 """
 
 from __future__ import annotations
@@ -188,7 +188,7 @@ class ObjectStorageConnector:
         resolved = (value or os.getenv(env_name, "")).strip()
         if not resolved:
             raise ObjectStorageConfigError(
-                f"Missing required object storage configuration: {env_name}"
+                f"Missing required Cloudflare R2 configuration: {env_name}"
             )
         return resolved
 

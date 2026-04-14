@@ -1,4 +1,4 @@
-"""Tests for S3-compatible object storage connector mission-storage operations."""
+"""Tests for Cloudflare R2 connector mission-storage operations."""
 
 from __future__ import annotations
 
