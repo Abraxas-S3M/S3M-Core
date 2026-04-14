@@ -1,99 +1,190 @@
-"""Intercept geometry computations for guidance laws.
+"""Geometry utilities for real-time interceptor guidance.
 
 Military context:
-This module provides deterministic slant-range and closure geometry used by
-the fire-control loop to choose maneuvers under contested conditions.
+These functions compute the collision triangle and closure metrics used by
+command guidance to place an interceptor into a 200-300 m handoff basket.
 """
 
 from __future__ import annotations
 
-from math import sqrt
-from typing import Tuple
+from math import acos, asin, degrees, sqrt
+from typing import Dict, Optional, Tuple
 
 from services.interceptor.models import InterceptGeometry
 
-
-def _vector_sub(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+Vector3 = Tuple[float, float, float]
 
 
-def _vector_add(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
+def _dot(a: Vector3, b: Vector3) -> float:
+    return (a[0] * b[0]) + (a[1] * b[1]) + (a[2] * b[2])
 
 
-def _vector_scale(v: Tuple[float, float, float], scalar: float) -> Tuple[float, float, float]:
-    return (v[0] * scalar, v[1] * scalar, v[2] * scalar)
-
-
-def _dot(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-
-
-def _cross(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    return (
-        a[1] * b[2] - a[2] * b[1],
-        a[2] * b[0] - a[0] * b[2],
-        a[0] * b[1] - a[1] * b[0],
-    )
-
-
-def _norm(v: Tuple[float, float, float]) -> float:
+def _norm(v: Vector3) -> float:
     return sqrt(_dot(v, v))
 
 
-class InterceptGeometryComputer:
-    """Compute LOS geometry and intercept feasibility metrics."""
+def _add(a: Vector3, b: Vector3) -> Vector3:
+    return (a[0] + b[0], a[1] + b[1], a[2] + b[2])
 
-    def __init__(self) -> None:
-        self._last_time_s = 0.0
 
-    def reset(self) -> None:
-        self._last_time_s = 0.0
+def _sub(a: Vector3, b: Vector3) -> Vector3:
+    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
 
-    def compute(
-        self,
-        interceptor_pos: Tuple[float, float, float],
-        interceptor_vel: Tuple[float, float, float],
-        target_pos: Tuple[float, float, float],
-        target_vel: Tuple[float, float, float],
-        time_s: float,
-    ) -> InterceptGeometry:
-        rel_pos = _vector_sub(target_pos, interceptor_pos)
-        rel_vel = _vector_sub(target_vel, interceptor_vel)
-        range_m = max(_norm(rel_pos), 0.0)
 
-        if range_m <= 1e-6:
-            los_unit = (0.0, 0.0, 0.0)
-            los_rate = 0.0
+def _scale(v: Vector3, s: float) -> Vector3:
+    return (v[0] * s, v[1] * s, v[2] * s)
+
+
+def _cross(a: Vector3, b: Vector3) -> Vector3:
+    return (
+        (a[1] * b[2]) - (a[2] * b[1]),
+        (a[2] * b[0]) - (a[0] * b[2]),
+        (a[0] * b[1]) - (a[1] * b[0]),
+    )
+
+
+def _safe_unit(v: Vector3) -> Vector3:
+    length = _norm(v)
+    if length <= 1e-9:
+        return (0.0, 0.0, 0.0)
+    inv = 1.0 / length
+    return (v[0] * inv, v[1] * inv, v[2] * inv)
+
+
+def compute_closing_velocity(relative_position_m: Vector3, relative_velocity_mps: Vector3) -> float:
+    """Return positive value when interceptor-target range is decreasing."""
+    range_m = _norm(relative_position_m)
+    if range_m <= 1e-9:
+        return 0.0
+    return -_dot(relative_position_m, relative_velocity_mps) / range_m
+
+
+def compute_line_of_sight_rate(relative_position_m: Vector3, relative_velocity_mps: Vector3) -> float:
+    """Return scalar LOS angular-rate magnitude in rad/s."""
+    range_m = _norm(relative_position_m)
+    if range_m <= 1e-9:
+        return 0.0
+    omega_vec = _cross(relative_position_m, relative_velocity_mps)
+    return _norm(omega_vec) / (range_m * range_m)
+
+
+def predict_miss_distance(relative_position_m: Vector3, relative_velocity_mps: Vector3) -> float:
+    """Predict miss distance at closest point of approach (CPA)."""
+    rel_speed_sq = _dot(relative_velocity_mps, relative_velocity_mps)
+    if rel_speed_sq <= 1e-9:
+        return _norm(relative_position_m)
+    t_cpa = -_dot(relative_position_m, relative_velocity_mps) / rel_speed_sq
+    if t_cpa <= 0.0:
+        return _norm(relative_position_m)
+    cpa_vector = _add(relative_position_m, _scale(relative_velocity_mps, t_cpa))
+    return _norm(cpa_vector)
+
+
+def estimate_time_to_intercept(
+    relative_position_m: Vector3,
+    relative_velocity_mps: Vector3,
+    interceptor_max_speed_mps: float,
+    target_velocity_mps: Optional[Vector3] = None,
+) -> Optional[float]:
+    """Estimate intercept time using either closure or pursuit quadratic."""
+    if interceptor_max_speed_mps <= 0.0:
+        return None
+    range_m = _norm(relative_position_m)
+    if range_m <= 1e-6:
+        return 0.0
+
+    if target_velocity_mps is not None:
+        vt = target_velocity_mps
+        speed_sq = interceptor_max_speed_mps * interceptor_max_speed_mps
+        a = _dot(vt, vt) - speed_sq
+        b = 2.0 * _dot(relative_position_m, vt)
+        c = _dot(relative_position_m, relative_position_m)
+        if abs(a) <= 1e-9:
+            if abs(b) > 1e-9:
+                t = -c / b
+                if t > 0.0:
+                    return t
         else:
-            los_unit = _vector_scale(rel_pos, 1.0 / range_m)
-            los_rate = _norm(_cross(rel_pos, rel_vel)) / max(range_m * range_m, 1e-6)
+            discriminant = (b * b) - (4.0 * a * c)
+            if discriminant >= 0.0:
+                root = sqrt(discriminant)
+                t1 = (-b - root) / (2.0 * a)
+                t2 = (-b + root) / (2.0 * a)
+                candidates = [value for value in (t1, t2) if value > 0.0]
+                if candidates:
+                    return min(candidates)
 
-        closing_speed = -_dot(rel_vel, los_unit)
-        if closing_speed > 1e-3:
-            time_to_go_s = range_m / closing_speed
-            predicted_interceptor = _vector_add(
-                interceptor_pos,
-                _vector_scale(interceptor_vel, time_to_go_s),
-            )
-            predicted_target = _vector_add(target_pos, _vector_scale(target_vel, time_to_go_s))
-            predicted_miss = _norm(_vector_sub(predicted_target, predicted_interceptor))
-            predicted_intercept_point = predicted_target
-        else:
-            time_to_go_s = 0.0
-            predicted_miss = range_m
-            predicted_intercept_point = None
+    closing = compute_closing_velocity(relative_position_m, relative_velocity_mps)
+    if closing <= 1e-6:
+        return None
+    return range_m / closing
 
-        self._last_time_s = float(time_s)
-        return InterceptGeometry(
-            timestamp_s=max(float(time_s), 0.0),
-            range_m=range_m,
-            closing_speed_mps=closing_speed,
-            line_of_sight_unit=los_unit,
-            line_of_sight_rate_rad_s=los_rate,
-            predicted_time_to_go_s=time_to_go_s,
-            predicted_miss_distance_m=max(predicted_miss, 0.0),
-            interceptor_speed_mps=max(_norm(interceptor_vel), 0.0),
-            target_speed_mps=max(_norm(target_vel), 0.0),
-            predicted_intercept_point=predicted_intercept_point,
-        )
+
+def compute_collision_triangle(
+    relative_position_m: Vector3,
+    target_velocity_mps: Vector3,
+    interceptor_max_speed_mps: float,
+) -> Dict[str, float]:
+    """Compute lead-angle geometry for tactical briefing and debug."""
+    range_m = _norm(relative_position_m)
+    target_speed = _norm(target_velocity_mps)
+    if range_m <= 1e-6:
+        return {"range_m": 0.0, "lead_angle_deg": 0.0, "aspect_angle_deg": 0.0}
+
+    los_to_target = _safe_unit(relative_position_m)
+    target_unit = _safe_unit(target_velocity_mps)
+    cos_aspect = max(-1.0, min(1.0, _dot(los_to_target, target_unit)))
+    aspect_angle_rad = acos(cos_aspect)
+
+    lead_angle_deg = 0.0
+    if interceptor_max_speed_mps > 1e-6 and target_speed > 1e-6:
+        ratio = (target_speed / interceptor_max_speed_mps) * abs(sqrt(max(0.0, 1.0 - (cos_aspect * cos_aspect))))
+        ratio = max(-1.0, min(1.0, ratio))
+        lead_angle_deg = degrees(asin(ratio))
+
+    return {
+        "range_m": range_m,
+        "target_speed_mps": target_speed,
+        "interceptor_speed_mps": max(0.0, interceptor_max_speed_mps),
+        "aspect_angle_deg": degrees(aspect_angle_rad),
+        "lead_angle_deg": lead_angle_deg,
+    }
+
+
+def compute_intercept_geometry(
+    interceptor_position_m: Vector3,
+    interceptor_velocity_mps: Vector3,
+    target_position_m: Vector3,
+    target_velocity_mps: Vector3,
+    interceptor_max_speed_mps: float,
+) -> InterceptGeometry:
+    """Compute full geometry packet for one guidance-cycle update."""
+    relative_position = _sub(target_position_m, interceptor_position_m)
+    relative_velocity = _sub(target_velocity_mps, interceptor_velocity_mps)
+    range_m = _norm(relative_position)
+    los_unit = _safe_unit(relative_position)
+    closing_velocity = compute_closing_velocity(relative_position, relative_velocity)
+    los_rate = compute_line_of_sight_rate(relative_position, relative_velocity)
+    miss_distance = predict_miss_distance(relative_position, relative_velocity)
+    tti = estimate_time_to_intercept(
+        relative_position,
+        relative_velocity,
+        interceptor_max_speed_mps,
+        target_velocity_mps=target_velocity_mps,
+    )
+    triangle = compute_collision_triangle(
+        relative_position,
+        target_velocity_mps,
+        interceptor_max_speed_mps,
+    )
+    return InterceptGeometry(
+        range_m=range_m,
+        closing_velocity_mps=closing_velocity,
+        line_of_sight_rate_rad_s=los_rate,
+        predicted_miss_distance_m=miss_distance,
+        relative_position_m=relative_position,
+        relative_velocity_mps=relative_velocity,
+        line_of_sight_unit=los_unit,
+        time_to_intercept_s=tti,
+        collision_triangle=triangle,
+    )

@@ -1,199 +1,398 @@
-"""In-memory interceptor manager for deterministic guidance control.
+"""Fleet manager for interceptor drone launch, guidance, and assessment.
 
 Military context:
-The manager models a command-post interceptor timeline (assign -> launch ->
-radar handoff -> terminal guidance) so offline rehearsals can verify
-engagement-state transitions without external dependencies.
+Coordinates command-guided interceptors as a layered air-defense channel,
+including launch authorization, guidance updates, and miss re-engagement flow.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import importlib.util
+from dataclasses import dataclass
 from math import sqrt
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import uuid4
+from pathlib import Path
+from threading import RLock
+from time import time
+from typing import Any, Dict, Optional, Tuple
 
+from services.interceptor.autopilot_adapter import AutopilotAdapter
+from services.interceptor.guidance_computer import InterceptorGuidanceComputer
 from services.interceptor.models import (
+    GuidancePhase,
     GuidanceSolution,
-    InterceptionResult,
+    InterceptResult,
     InterceptorConfig,
-    InterceptorUnit,
+    InterceptorState,
 )
 
+Vector3 = Tuple[float, float, float]
 
-def _parse_vec3(raw_value: Any, *, field_name: str) -> Tuple[float, float, float]:
-    if not isinstance(raw_value, (tuple, list)) or len(raw_value) != 3:
-        raise ValueError(f"{field_name} must be [x_m, y_m, z_m]")
+
+class _FallbackAutopilotBridge:
+    """Fallback simulated bridge when package-level imports are unavailable."""
+
+    def __init__(self, backend: str = "simulated") -> None:
+        self.backend = backend
+        self._position = (0.0, 0.0, 0.0)
+        self._target = (0.0, 0.0, 0.0)
+        self._connected = False
+        self._armed = False
+
+    def connect(self, connection_string: str = "") -> bool:
+        del connection_string
+        self._connected = True
+        return True
+
+    def arm(self) -> bool:
+        self._armed = True
+        return True
+
+    def takeoff(self, altitude: float) -> bool:
+        self._target = (self._position[0], self._position[1], float(altitude))
+        return True
+
+    def send_command(self, command: Dict[str, Any]) -> bool:
+        if command.get("type") == "MOVE_TO":
+            raw_pos = command.get("position", self._target)
+            if isinstance(raw_pos, (tuple, list)) and len(raw_pos) == 3:
+                self._target = (float(raw_pos[0]), float(raw_pos[1]), float(raw_pos[2]))
+        return True
+
+    def get_telemetry(self) -> Dict[str, Any]:
+        px, py, pz = self._position
+        tx, ty, tz = self._target
+        dx = tx - px
+        dy = ty - py
+        dz = tz - pz
+        mag = sqrt((dx * dx) + (dy * dy) + (dz * dz))
+        if mag > 1e-6:
+            step = min(15.0, mag)
+            ratio = step / mag
+            self._position = (px + (dx * ratio), py + (dy * ratio), pz + (dz * ratio))
+        return {
+            "position": self._position,
+            "battery_pct": 100.0,
+            "airspeed": 15.0,
+            "groundspeed": 15.0,
+            "heading": 0.0,
+        }
+
+
+def _resolve_autopilot_bridge_class() -> Any:
     try:
-        x = float(raw_value[0])
-        y = float(raw_value[1])
-        z = float(raw_value[2])
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} must contain numeric coordinates") from exc
-    return (x, y, z)
+        from src.apps.drone_ops.autopilot_bridge import AutopilotBridge  # type: ignore
+
+        return AutopilotBridge
+    except Exception:
+        bridge_path = Path(__file__).resolve().parents[2] / "src/apps/drone_ops/autopilot_bridge.py"
+        if bridge_path.exists():
+            spec = importlib.util.spec_from_file_location("s3m_autopilot_bridge", bridge_path)
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                bridge_class = getattr(module, "AutopilotBridge", None)
+                if bridge_class is not None:
+                    return bridge_class
+        return _FallbackAutopilotBridge
 
 
-def _subtract(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    return (a[0] - b[0], a[1] - b[1], a[2] - b[2])
+def _vector_norm(v: Vector3) -> float:
+    return sqrt((v[0] * v[0]) + (v[1] * v[1]) + (v[2] * v[2]))
 
 
-def _dot(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
-    return (a[0] * b[0]) + (a[1] * b[1]) + (a[2] * b[2])
+def _target_speed(v: Vector3) -> float:
+    return _vector_norm(v)
+
+
+def _is_launched(state: InterceptorState) -> bool:
+    return state != InterceptorState.PRELAUNCH
+
+
+def _is_radar_acquired(state: InterceptorState) -> bool:
+    return state in {
+        InterceptorState.RADAR_ACQUIRED,
+        InterceptorState.MIDCOURSE_GUIDED,
+        InterceptorState.TERMINAL_APPROACH,
+        InterceptorState.AUTONOMOUS_HANDOFF,
+        InterceptorState.ENGAGED,
+    }
+
+
+@dataclass
+class _InterceptorRuntime:
+    interceptor_id: str
+    config: InterceptorConfig
+    autopilot: Any
+    guidance: InterceptorGuidanceComputer
+    state: InterceptorState = InterceptorState.PRELAUNCH
+    target_id: Optional[str] = None
+    target_position_m: Optional[Vector3] = None
+    target_velocity_mps: Vector3 = (0.0, 0.0, 0.0)
+    target_classification: str = "unknown"
+    last_solution: Optional[GuidanceSolution] = None
+    last_allocation: Any = None
+    last_position_m: Optional[Vector3] = None
+    last_position_time_s: Optional[float] = None
 
 
 class InterceptorManager:
-    """Track interceptor state and produce deterministic guidance outputs."""
+    """Manage a fleet of command-guided interceptor drones."""
 
-    def __init__(self) -> None:
-        self._interceptors: Dict[str, InterceptorUnit] = {}
-        self._engagement_started_at: Dict[str, datetime] = {}
-        self._results: Dict[str, InterceptionResult] = {}
+    def __init__(
+        self,
+        *,
+        sensor_manager: Any | None = None,
+        track_fuser: Any | None = None,
+        target_allocator: Any | None = None,
+        miss_handler: Any | None = None,
+    ) -> None:
+        self._lock = RLock()
+        self._sensor_manager = sensor_manager
+        self._track_fuser = track_fuser
+        self._target_allocator = target_allocator
+        self._miss_handler = miss_handler
+        self._autopilot_adapter = AutopilotAdapter()
+        self._interceptors: Dict[str, _InterceptorRuntime] = {}
 
-        self._register_count = 0
-        self._launch_count = 0
-        self._guidance_cycles = 0
-        self._handoff_count = 0
-        self._terminal_count = 0
-
-    def register_interceptor(self, config: InterceptorConfig) -> InterceptorUnit:
-        interceptor_id = f"intc-{uuid4().hex[:10]}"
-        unit = InterceptorUnit(interceptor_id=interceptor_id, config=config)
-        self._interceptors[interceptor_id] = unit
-        self._register_count += 1
-        return unit
-
-    def assign_target(self, interceptor_id: str, target_id: str) -> bool:
-        if not target_id:
-            return False
-        unit = self._interceptors.get(str(interceptor_id))
-        if unit is None:
-            return False
-        unit.assigned_target_id = str(target_id)
-        self._results.pop(unit.interceptor_id, None)
-        return True
-
-    def launch(self, interceptor_id: str) -> bool:
-        unit = self._interceptors.get(str(interceptor_id))
-        if unit is None or not unit.assigned_target_id:
-            return False
-        if not unit.launched:
-            self._launch_count += 1
-        unit.launched = True
-        self._engagement_started_at[unit.interceptor_id] = datetime.now(timezone.utc)
-        return True
-
-    def radar_acquired(self, interceptor_id: str) -> bool:
-        unit = self._interceptors.get(str(interceptor_id))
-        if unit is None or not unit.launched:
-            return False
-        unit.radar_acquired = True
-        return True
-
-    def guide(
+    def register_interceptor(
         self,
         interceptor_id: str,
-        interceptor_position: Any,
-        interceptor_velocity: Any,
-        target_position: Any,
-        target_velocity: Any,
-    ) -> Optional[GuidanceSolution]:
-        unit = self._interceptors.get(str(interceptor_id))
-        if unit is None or not unit.launched or not unit.assigned_target_id:
+        config: InterceptorConfig,
+        autopilot: Optional[Any] = None,
+    ) -> Dict[str, Any]:
+        with self._lock:
+            if interceptor_id in self._interceptors:
+                raise ValueError(f"interceptor_id '{interceptor_id}' already registered")
+            autopilot_bridge_class = _resolve_autopilot_bridge_class()
+            bridge = autopilot or autopilot_bridge_class(backend="simulated")
+            bridge.connect()
+            runtime = _InterceptorRuntime(
+                interceptor_id=interceptor_id,
+                config=config,
+                autopilot=bridge,
+                guidance=InterceptorGuidanceComputer(interceptor_id=interceptor_id, config=config),
+            )
+            self._interceptors[interceptor_id] = runtime
+            return self.get_interceptor_status(interceptor_id)
+
+    def launch_interceptor(self, interceptor_id: str, takeoff_altitude_m: float = 120.0) -> Dict[str, Any]:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            runtime.autopilot.arm()
+            runtime.autopilot.takeoff(takeoff_altitude_m)
+            runtime.state = InterceptorState.LAUNCHED
+            return self.get_interceptor_status(interceptor_id)
+
+    def assign_target(
+        self,
+        interceptor_id: str,
+        target_id: str,
+        target_position_m: Vector3,
+        target_velocity_mps: Vector3 = (0.0, 0.0, 0.0),
+        target_classification: str = "unknown",
+        request_allocation: bool = True,
+    ) -> Dict[str, Any]:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            runtime.target_id = target_id
+            runtime.target_position_m = target_position_m
+            runtime.target_velocity_mps = target_velocity_mps
+            runtime.target_classification = target_classification
+            if runtime.state == InterceptorState.LAUNCHED:
+                runtime.state = InterceptorState.RADAR_ACQUIRED
+            if request_allocation and self._target_allocator is not None:
+                runtime.last_allocation = self._request_allocation(
+                    target_id=target_id,
+                    target_position_m=target_position_m,
+                    target_velocity_mps=target_velocity_mps,
+                    target_classification=target_classification,
+                )
+            return self.get_interceptor_status(interceptor_id)
+
+    def update_target_from_fusion(self, target_id: str) -> Optional[Tuple[Vector3, Vector3]]:
+        if self._track_fuser is not None and hasattr(self._track_fuser, "get_track"):
+            track = self._track_fuser.get_track(target_id)
+            if track is not None:
+                return track.position, track.velocity
+        if self._sensor_manager is not None and hasattr(self._sensor_manager, "get_fused_tracks"):
+            tracks = self._sensor_manager.get_fused_tracks()
+            for track in tracks:
+                if getattr(track, "track_id", None) == target_id:
+                    return track.position, track.velocity
+        return None
+
+    def _estimate_interceptor_velocity(
+        self,
+        runtime: _InterceptorRuntime,
+        position_m: Vector3,
+        dt_override_s: Optional[float] = None,
+    ) -> Vector3:
+        now_s = time()
+        if runtime.last_position_m is None or runtime.last_position_time_s is None:
+            runtime.last_position_m = position_m
+            runtime.last_position_time_s = now_s
+            return (0.0, 0.0, 0.0)
+        if dt_override_s is not None and dt_override_s > 0.0:
+            dt = dt_override_s
+        else:
+            dt = max(1e-3, now_s - runtime.last_position_time_s)
+        velocity = (
+            (position_m[0] - runtime.last_position_m[0]) / dt,
+            (position_m[1] - runtime.last_position_m[1]) / dt,
+            (position_m[2] - runtime.last_position_m[2]) / dt,
+        )
+        runtime.last_position_m = position_m
+        runtime.last_position_time_s = now_s
+        return velocity
+
+    def guide_interceptor(self, interceptor_id: str, dt_s: Optional[float] = None) -> GuidanceSolution:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            if runtime.target_id is None or runtime.target_position_m is None:
+                raise ValueError("target must be assigned before guidance")
+
+            fused_target = self.update_target_from_fusion(runtime.target_id)
+            if fused_target is not None:
+                runtime.target_position_m, runtime.target_velocity_mps = fused_target
+
+            telemetry = runtime.autopilot.get_telemetry()
+            interceptor_position = tuple(telemetry.get("position", (0.0, 0.0, 0.0)))
+            interceptor_velocity = self._estimate_interceptor_velocity(
+                runtime,
+                interceptor_position,  # type: ignore[arg-type]
+                dt_override_s=dt_s,
+            )
+
+            solution = runtime.guidance.compute_solution(
+                target_id=runtime.target_id,
+                interceptor_position_m=interceptor_position,  # type: ignore[arg-type]
+                interceptor_velocity_mps=interceptor_velocity,
+                target_position_m=runtime.target_position_m,
+                target_velocity_mps=runtime.target_velocity_mps,
+                launched=_is_launched(runtime.state),
+                radar_acquired=_is_radar_acquired(runtime.state),
+                engaged=runtime.state == InterceptorState.ENGAGED,
+                dt_s=dt_s,
+            )
+            runtime.last_solution = solution
+            runtime.state = runtime.guidance.get_state()[0]
+            self._autopilot_adapter.send_solution(runtime.autopilot, interceptor_position, solution)  # type: ignore[arg-type]
+            return solution
+
+    def guide_all(self, dt_s: Optional[float] = None) -> Dict[str, GuidanceSolution]:
+        with self._lock:
+            solutions: Dict[str, GuidanceSolution] = {}
+            for interceptor_id in list(self._interceptors.keys()):
+                runtime = self._interceptors[interceptor_id]
+                if runtime.target_id is None:
+                    continue
+                solutions[interceptor_id] = self.guide_interceptor(interceptor_id, dt_s=dt_s)
+            return solutions
+
+    def assess_intercept_result(self, interceptor_id: str) -> InterceptResult:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            if runtime.last_solution is None:
+                raise ValueError("no guidance solution available for assessment")
+            state = runtime.state
+            if runtime.last_solution.phase == GuidancePhase.ENGAGED:
+                state = InterceptorState.ENGAGED
+            elif runtime.last_solution.phase == GuidancePhase.MISS:
+                state = InterceptorState.MISS
+            return InterceptResult(
+                interceptor_id=interceptor_id,
+                target_id=runtime.last_solution.target_id,
+                state=state,
+                miss_distance_m=runtime.last_solution.geometry.predicted_miss_distance_m,
+                engagement_range_m=runtime.last_solution.geometry.range_m,
+                details={
+                    "phase": runtime.last_solution.phase.value,
+                    "mode": runtime.last_solution.mode.value,
+                    "reason": runtime.last_solution.reason,
+                },
+            )
+
+    def report_miss_and_reengage(
+        self,
+        interceptor_id: str,
+        updated_target_position_m: Optional[Vector3] = None,
+        updated_target_velocity_mps: Optional[Vector3] = None,
+    ) -> Any:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            runtime.state = InterceptorState.MISS
+            if self._miss_handler is None or runtime.last_allocation is None:
+                return None
+            if hasattr(self._miss_handler, "report_miss"):
+                speed = _target_speed(updated_target_velocity_mps or runtime.target_velocity_mps)
+                return self._miss_handler.report_miss(
+                    runtime.last_allocation,
+                    updated_target_position=updated_target_position_m or runtime.target_position_m,
+                    updated_target_speed=speed,
+                )
+            if hasattr(self._miss_handler, "handle_miss"):
+                return self._miss_handler.handle_miss(
+                    target_id=runtime.target_id or "unknown",
+                    target_position=updated_target_position_m or runtime.target_position_m,
+                    target_type=runtime.target_classification,
+                    previous_allocation=runtime.last_allocation,
+                    miss_reason="interceptor_miss",
+                )
             return None
 
-        intc_pos = _parse_vec3(interceptor_position, field_name="interceptor_position")
-        intc_vel = _parse_vec3(interceptor_velocity, field_name="interceptor_velocity")
-        tgt_pos = _parse_vec3(target_position, field_name="target_position")
-        tgt_vel = _parse_vec3(target_velocity, field_name="target_velocity")
+    def get_interceptor_status(self, interceptor_id: str) -> Dict[str, Any]:
+        with self._lock:
+            runtime = self._require_interceptor(interceptor_id)
+            return {
+                "interceptor_id": runtime.interceptor_id,
+                "state": runtime.state.value,
+                "target_id": runtime.target_id,
+                "target_position_m": runtime.target_position_m,
+                "target_velocity_mps": runtime.target_velocity_mps,
+                "last_solution": runtime.last_solution.to_dict() if runtime.last_solution else None,
+            }
 
-        rel_pos = _subtract(tgt_pos, intc_pos)
-        rel_vel = _subtract(tgt_vel, intc_vel)
-        range_to_target = sqrt(_dot(rel_pos, rel_pos))
-        if range_to_target > 1e-6:
-            los_hat = (
-                rel_pos[0] / range_to_target,
-                rel_pos[1] / range_to_target,
-                rel_pos[2] / range_to_target,
+    def list_interceptors(self) -> Dict[str, Dict[str, Any]]:
+        with self._lock:
+            return {interceptor_id: self.get_interceptor_status(interceptor_id) for interceptor_id in self._interceptors}
+
+    def health_check(self) -> Dict[str, Any]:
+        with self._lock:
+            return {
+                "interceptors_registered": len(self._interceptors),
+                "interceptors_with_targets": sum(1 for r in self._interceptors.values() if r.target_id is not None),
+                "states": {interceptor_id: runtime.state.value for interceptor_id, runtime in self._interceptors.items()},
+            }
+
+    def _request_allocation(
+        self,
+        *,
+        target_id: str,
+        target_position_m: Vector3,
+        target_velocity_mps: Vector3,
+        target_classification: str,
+    ) -> Any:
+        speed = _target_speed(target_velocity_mps)
+        allocator = self._target_allocator
+        if allocator is None:
+            return None
+        if hasattr(allocator, "allocate"):
+            return allocator.allocate(
+                target_id=target_id,
+                target_position=target_position_m,
+                target_speed_mps=speed,
+                target_classification=target_classification,
             )
-            closing_speed = max(0.0, -_dot(rel_pos, rel_vel) / range_to_target)
-        else:
-            los_hat = (0.0, 0.0, 0.0)
-            closing_speed = 0.0
-
-        # Tactical note: command vector approximates PN acceleration intent.
-        command_gain = unit.config.nav_constant * closing_speed
-        command_vector = (
-            los_hat[0] * command_gain,
-            los_hat[1] * command_gain,
-            los_hat[2] * command_gain,
-        )
-
-        handoff_initiated = range_to_target <= unit.config.handoff.handoff_range_m
-        terminal_phase = unit.radar_acquired and range_to_target <= unit.config.handoff.terminal_range_m
-        guidance_mode = "terminal_homing" if terminal_phase else "midcourse_pn"
-        if handoff_initiated:
-            self._handoff_count += 1
-        if terminal_phase:
-            self._terminal_count += 1
-
-        self._guidance_cycles += 1
-        solution = GuidanceSolution(
-            interceptor_id=unit.interceptor_id,
-            target_id=unit.assigned_target_id,
-            guidance_mode=guidance_mode,
-            command_vector_mps2=command_vector,
-            range_to_target_m=range_to_target,
-            closing_speed_mps=closing_speed,
-            handoff_initiated=handoff_initiated,
-            terminal_phase=terminal_phase,
-        )
-
-        if terminal_phase and range_to_target <= 5.0:
-            started_at = self._engagement_started_at.get(unit.interceptor_id)
-            now = datetime.now(timezone.utc)
-            elapsed = (now - started_at).total_seconds() if started_at is not None else 0.0
-            self._results[unit.interceptor_id] = InterceptionResult(
-                interceptor_id=unit.interceptor_id,
-                target_id=unit.assigned_target_id,
-                status="completed",
-                outcome="intercepted",
-                final_range_m=range_to_target,
-                engagement_time_s=elapsed,
+        if hasattr(allocator, "allocate_target"):
+            return allocator.allocate_target(
+                target_id=target_id,
+                target_position=target_position_m,
+                target_type=target_classification,
             )
-            unit.launched = False
-            unit.radar_acquired = False
-            self._engagement_started_at.pop(unit.interceptor_id, None)
+        return None
 
-        return solution
-
-    def get_active_interceptions(self) -> List[Dict[str, Any]]:
-        active: List[Dict[str, Any]] = []
-        for unit in self._interceptors.values():
-            if not unit.launched or not unit.assigned_target_id:
-                continue
-            active.append(
-                {
-                    "interceptor_id": unit.interceptor_id,
-                    "target_id": unit.assigned_target_id,
-                    "radar_acquired": unit.radar_acquired,
-                    "launched": unit.launched,
-                }
-            )
-        return active
-
-    def get_result(self, interceptor_id: str) -> Optional[InterceptionResult]:
-        return self._results.get(str(interceptor_id))
-
-    def get_stats(self) -> Dict[str, Any]:
-        active_count = len(self.get_active_interceptions())
-        return {
-            "interceptors_registered": len(self._interceptors),
-            "register_events": self._register_count,
-            "launch_events": self._launch_count,
-            "guidance_cycles": self._guidance_cycles,
-            "handoff_events": self._handoff_count,
-            "terminal_events": self._terminal_count,
-            "active_interceptions": active_count,
-            "completed_interceptions": len(self._results),
-        }
-
+    def _require_interceptor(self, interceptor_id: str) -> _InterceptorRuntime:
+        runtime = self._interceptors.get(interceptor_id)
+        if runtime is None:
+            raise KeyError(f"unknown interceptor_id '{interceptor_id}'")
+        return runtime

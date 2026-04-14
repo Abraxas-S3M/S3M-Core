@@ -1,276 +1,149 @@
-"""Tests for S3M interceptor drone guidance computer."""
+from __future__ import annotations
 
-import sys
-import math
-
-sys.path.insert(0, ".")
-
-from services.interceptor.models import (
-    GuidancePhase,
-    InterceptorConfig,
-    InterceptorState,
-    HandoffCriteria,
-)
-from services.interceptor.geometry import InterceptGeometryComputer
+from services.interceptor.autopilot_adapter import AutopilotAdapter
+from services.interceptor.geometry import compute_intercept_geometry
+from services.interceptor.guidance_computer import InterceptorGuidanceComputer
 from services.interceptor.guidance_laws import (
-    ProportionalNavigation,
-    PurePursuit,
-    LeadPursuit,
+    lead_pursuit_command,
+    proportional_navigation_command,
+    pure_pursuit_command,
 )
-from services.interceptor.phase_manager import GuidancePhaseManager
-from services.interceptor.guidance_computer import GuidanceComputer
 from services.interceptor.interceptor_manager import InterceptorManager
+from services.interceptor.models import GuidanceMode, GuidancePhase, InterceptorConfig
+from services.interceptor.phase_manager import GuidancePhaseManager
 
 
-def _titan_config() -> InterceptorConfig:
+def _build_config() -> InterceptorConfig:
     return InterceptorConfig(
-        name_en="Titan Test",
-        name_ar="تيتان تجريبي",
-        max_speed_mps=80,
-        nav_constant=4.0,
-        guidance_update_hz=10,
-        handoff=HandoffCriteria(handoff_range_m=250, terminal_range_m=500),
+        interceptor_type="test_interceptor",
+        name_en="Test Interceptor",
+        name_ar="معترض اختبار",
+        max_speed_mps=70.0,
+        max_acceleration_mps2=12.0,
+        update_rate_hz=20.0,
+        terminal_approach_range_m=1000.0,
     )
 
 
-# --- Geometry Tests ---
-
-
-def test_geometry_closing_target():
-    gc = InterceptGeometryComputer()
-    geom = gc.compute(
-        interceptor_pos=(0, 0, 500),
-        interceptor_vel=(0, 50, 0),
-        target_pos=(0, 5000, 500),
-        target_vel=(0, -30, 0),
-        time_s=1.0,
+def test_geometry_computes_closing_and_time_to_intercept() -> None:
+    geometry = compute_intercept_geometry(
+        interceptor_position_m=(0.0, 0.0, 0.0),
+        interceptor_velocity_mps=(20.0, 0.0, 0.0),
+        target_position_m=(1000.0, 0.0, 0.0),
+        target_velocity_mps=(0.0, 0.0, 0.0),
+        interceptor_max_speed_mps=70.0,
     )
-    assert geom.range_m > 4000
-    assert geom.closing_velocity_mps > 70  # Both moving toward each other
-    assert geom.time_to_intercept_s > 0
+    assert geometry.range_m == 1000.0
+    assert geometry.closing_velocity_mps > 0.0
+    assert geometry.predicted_miss_distance_m < 1e-6
+    assert geometry.time_to_intercept_s is not None
 
 
-def test_geometry_crossing_target():
-    gc = InterceptGeometryComputer()
-    geom = gc.compute(
-        interceptor_pos=(0, 0, 500),
-        interceptor_vel=(0, 60, 0),
-        target_pos=(3000, 3000, 500),
-        target_vel=(-40, 0, 0),
-        time_s=1.0,
+def test_guidance_laws_generate_distinct_modes() -> None:
+    config = _build_config()
+    geometry = compute_intercept_geometry(
+        interceptor_position_m=(0.0, 0.0, 0.0),
+        interceptor_velocity_mps=(10.0, 0.0, 0.0),
+        target_position_m=(800.0, 120.0, 50.0),
+        target_velocity_mps=(-5.0, 8.0, 0.0),
+        interceptor_max_speed_mps=config.max_speed_mps,
     )
-    assert geom.crossing_angle_deg > 45
+    pure = pure_pursuit_command((10.0, 0.0, 0.0), geometry, config, dt_s=0.05)
+    lead = lead_pursuit_command((10.0, 0.0, 0.0), (-5.0, 8.0, 0.0), geometry, config, dt_s=0.05)
+    pn = proportional_navigation_command((10.0, 0.0, 0.0), geometry, config, dt_s=0.05)
+
+    assert pure.mode == GuidanceMode.PURE_PURSUIT
+    assert lead.mode == GuidanceMode.LEAD_PURSUIT
+    assert pn.mode == GuidanceMode.PROPORTIONAL_NAVIGATION
+    assert 0.0 <= pn.throttle_fraction <= 1.0
 
 
-def test_geometry_los_rate_computed():
-    gc = InterceptGeometryComputer()
-    gc.compute(
-        interceptor_pos=(0, 0, 500),
-        interceptor_vel=(0, 60, 0),
-        target_pos=(1000, 5000, 500),
-        target_vel=(-30, -20, 0),
-        time_s=0.0,
+def test_phase_manager_transitions_to_handoff_window() -> None:
+    config = _build_config()
+    manager = GuidancePhaseManager(config=config)
+    manager.advance(3000.0, launched=True, radar_acquired=False, autonomous_handoff_confirmed=False, engaged=False, abort_recommended=False)
+    manager.advance(1500.0, launched=True, radar_acquired=True, autonomous_handoff_confirmed=False, engaged=False, abort_recommended=False)
+    state, phase, _ = manager.advance(
+        250.0,
+        launched=True,
+        radar_acquired=True,
+        autonomous_handoff_confirmed=False,
+        engaged=False,
+        abort_recommended=False,
     )
-    geom2 = gc.compute(
-        interceptor_pos=(0, 6, 500),
-        interceptor_vel=(0, 60, 0),
-        target_pos=(970, 4980, 500),
-        target_vel=(-30, -20, 0),
-        time_s=0.1,
+    assert state.value == "autonomous_handoff"
+    assert phase == GuidancePhase.AUTONOMOUS_HANDOFF
+
+
+def test_guidance_computer_recommends_handoff_in_window() -> None:
+    computer = InterceptorGuidanceComputer(interceptor_id="intc-1", config=_build_config())
+    computer.compute_solution(
+        target_id="t-1",
+        interceptor_position_m=(0.0, 0.0, 100.0),
+        interceptor_velocity_mps=(30.0, 0.0, 0.0),
+        target_position_m=(950.0, 0.0, 100.0),
+        target_velocity_mps=(0.0, 0.0, 0.0),
+        launched=True,
+        radar_acquired=True,
     )
-    # LOS rate should be non-zero for crossing target
-    assert abs(geom2.los_rate_az_dps) > 0.01 or abs(geom2.los_rate_el_dps) >= 0
-
-
-# --- Guidance Law Tests ---
-
-
-def test_pure_pursuit_points_at_target():
-    from services.interceptor.models import InterceptGeometry
-
-    config = _titan_config()
-    pp = PurePursuit()
-    geom = InterceptGeometry(range_m=5000)
-    cmd = pp.compute(geom, (0, 0, 500), (0, 5000, 500), config)
-    # Should command heading roughly north (toward target at y=5000)
-    assert 350 < cmd.commanded_heading_deg or cmd.commanded_heading_deg < 10
-
-
-def test_pn_guidance_produces_acceleration():
-    from services.interceptor.models import InterceptGeometry
-
-    config = _titan_config()
-    pn = ProportionalNavigation()
-    geom = InterceptGeometry(
-        range_m=5000,
-        closing_velocity_mps=80,
-        los_rate_az_dps=2.0,
-        los_rate_el_dps=0.5,
+    solution = computer.compute_solution(
+        target_id="t-1",
+        interceptor_position_m=(0.0, 0.0, 100.0),
+        interceptor_velocity_mps=(35.0, 0.0, 0.0),
+        target_position_m=(250.0, 0.0, 100.0),
+        target_velocity_mps=(0.0, 0.0, 0.0),
+        launched=True,
+        radar_acquired=True,
     )
-    cmd = pn.compute(
-        geom,
-        (0, 0, 500),
-        (0, 60, 0),
-        (1000, 5000, 600),
-        (-30, -20, 0),
-        config,
-        GuidancePhase.MIDCOURSE,
+    assert solution.handoff_recommended is True
+    assert solution.phase == GuidancePhase.AUTONOMOUS_HANDOFF
+
+
+def test_guidance_computer_marks_engaged_inside_terminal_range() -> None:
+    computer = InterceptorGuidanceComputer(interceptor_id="intc-2", config=_build_config())
+    solution = computer.compute_solution(
+        target_id="t-close",
+        interceptor_position_m=(0.0, 0.0, 100.0),
+        interceptor_velocity_mps=(5.0, 0.0, 0.0),
+        target_position_m=(5.0, 0.0, 100.0),
+        target_velocity_mps=(0.0, 0.0, 0.0),
+        launched=True,
+        radar_acquired=True,
     )
-    assert cmd.lateral_accel_mps2 != 0.0  # PN should command lateral accel
+    assert solution.phase == GuidancePhase.ENGAGED
 
 
-# --- Phase Manager Tests ---
-
-
-def test_phase_transitions():
-    pm = GuidancePhaseManager(
-        HandoffCriteria(handoff_range_m=250, terminal_range_m=500)
+def test_autopilot_adapter_translates_solution_to_move_to() -> None:
+    config = _build_config()
+    computer = InterceptorGuidanceComputer(interceptor_id="intc-3", config=config)
+    solution = computer.compute_solution(
+        target_id="t-2",
+        interceptor_position_m=(0.0, 0.0, 50.0),
+        interceptor_velocity_mps=(15.0, 0.0, 0.0),
+        target_position_m=(600.0, 40.0, 70.0),
+        target_velocity_mps=(-4.0, 0.0, 0.0),
+        launched=True,
+        radar_acquired=True,
     )
-    assert pm.state == InterceptorState.PRELAUNCH
+    adapter = AutopilotAdapter(command_horizon_s=1.0)
+    command = adapter.solution_to_command((0.0, 0.0, 50.0), solution)
+    assert command["type"] in {"MOVE_TO", "HOLD"}
+    if command["type"] == "MOVE_TO":
+        assert len(command["position"]) == 3
 
-    pm.launch()
-    assert pm.state == InterceptorState.LAUNCHED
 
-    pm.radar_acquired()
-    assert pm.state == InterceptorState.RADAR_ACQUIRED
-
-    from services.interceptor.models import InterceptGeometry
-
-    # Midcourse: far from target
-    pm.update(
-        InterceptGeometry(
-            range_m=10000,
-            closing_velocity_mps=80,
-            predicted_miss_distance_m=50,
-        )
+def test_interceptor_manager_register_launch_assign_guide() -> None:
+    manager = InterceptorManager()
+    config = _build_config()
+    manager.register_interceptor(interceptor_id="fleet-1", config=config)
+    manager.launch_interceptor("fleet-1", takeoff_altitude_m=120.0)
+    manager.assign_target(
+        interceptor_id="fleet-1",
+        target_id="trk-1",
+        target_position_m=(1800.0, 200.0, 300.0),
+        target_velocity_mps=(-20.0, 0.0, 0.0),
+        request_allocation=False,
     )
-    assert pm.state == InterceptorState.MIDCOURSE_GUIDED
-
-    # Terminal: close
-    pm.update(
-        InterceptGeometry(
-            range_m=400,
-            closing_velocity_mps=80,
-            predicted_miss_distance_m=30,
-        )
-    )
-    assert pm.state == InterceptorState.TERMINAL_APPROACH
-
-    # Handoff
-    pm.update(
-        InterceptGeometry(
-            range_m=200,
-            closing_velocity_mps=80,
-            predicted_miss_distance_m=10,
-        )
-    )
-    assert pm.state == InterceptorState.AUTONOMOUS_HANDOFF
-
-    # Engaged
-    pm.update(
-        InterceptGeometry(
-            range_m=5,
-            closing_velocity_mps=80,
-            predicted_miss_distance_m=2,
-        )
-    )
-    assert pm.state == InterceptorState.ENGAGED
-
-
-def test_phase_abort_on_diverging():
-    pm = GuidancePhaseManager(
-        HandoffCriteria(min_closing_velocity_mps=10, terminal_range_m=500)
-    )
-    pm.launch()
-    pm.radar_acquired()
-
-    from services.interceptor.models import InterceptGeometry
-
-    pm.update(InterceptGeometry(range_m=8000, closing_velocity_mps=80))
-    assert pm.state == InterceptorState.MIDCOURSE_GUIDED
-    # Diverging: closing velocity drops below minimum at long range
-    pm.update(
-        InterceptGeometry(
-            range_m=7000,
-            closing_velocity_mps=5,
-            predicted_miss_distance_m=50,
-        )
-    )
-    assert pm.state == InterceptorState.MISS
-
-
-# --- Full Guidance Computer Tests ---
-
-
-def test_guidance_computer_full_intercept():
-    config = _titan_config()
-    gc = GuidanceComputer(config, "tgt-shahed-01")
-    gc.launch()
-    gc.radar_acquired()
-
-    # Simulate closing approach
-    interceptor_pos = [0.0, 0.0, 500.0]
-    target_pos = [0.0, 10000.0, 600.0]
-    target_vel = (0.0, -30.0, 0.0)
-
-    phases_seen = set()
-    for i in range(200):
-        intc_speed = 70.0
-        # Simple sim: move interceptor toward commanded position
-        sol = gc.update(
-            tuple(interceptor_pos),
-            (0.0, intc_speed, 0.0),
-            tuple(target_pos),
-            target_vel,
-        )
-        phases_seen.add(sol.phase.value)
-
-        # Advance positions
-        dt = 0.1
-        interceptor_pos[1] += intc_speed * dt
-        target_pos[0] += target_vel[0] * dt
-        target_pos[1] += target_vel[1] * dt
-
-        if gc.phase_manager.is_complete:
-            break
-
-    result = gc.get_result()
-    assert result.guidance_cycles > 10
-    assert "midcourse" in phases_seen
-    # Should have progressed through at least midcourse
-    assert result.outcome in {"hit", "miss", "pending"}
-
-
-# --- Interceptor Manager Tests ---
-
-
-def test_manager_register_assign_launch():
-    mgr = InterceptorManager()
-    config = _titan_config()
-    mgr.register_interceptor(config)
-    assert mgr.assign_target(config.interceptor_id, "tgt-01")
-    assert mgr.launch(config.interceptor_id)
-    assert mgr.radar_acquired(config.interceptor_id)
-
-    sol = mgr.guide(
-        config.interceptor_id,
-        (0, 0, 500),
-        (0, 60, 0),
-        (0, 5000, 600),
-        (0, -30, 0),
-    )
-    assert sol is not None
-    assert sol.state == InterceptorState.MIDCOURSE_GUIDED
-
-
-if __name__ == "__main__":
-    test_geometry_closing_target()
-    test_geometry_crossing_target()
-    test_geometry_los_rate_computed()
-    test_pure_pursuit_points_at_target()
-    test_pn_guidance_produces_acceleration()
-    test_phase_transitions()
-    test_phase_abort_on_diverging()
-    test_guidance_computer_full_intercept()
-    test_manager_register_assign_launch()
-    print("ALL INTERCEPTOR GUIDANCE TESTS PASSED")
+    solution = manager.guide_interceptor("fleet-1", dt_s=0.2)
+    assert solution.target_id == "trk-1"
+    assert solution.geometry.range_m > 0.0

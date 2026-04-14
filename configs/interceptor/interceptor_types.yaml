@@ -1,63 +1,45 @@
-# S3M Interceptor Drone Type Library
-# UNCLASSIFIED - FOUO
-
+# Interceptor platform presets for command-guided air-defense engagements.
+# Military context: values tune each airframe for midcourse guidance to
+# reach the 200-300 m autonomous seeker handoff basket.
 interceptor_types:
-  titan:
-    name_en: "Titan Interceptor Drone"
-    name_ar: "طائرة اعتراض تيتان"
-    platform_type: fixed_wing
-    max_speed_mps: 80
-    cruise_speed_mps: 55
-    max_acceleration_mps2: 15
-    max_turn_rate_dps: 45
-    max_climb_rate_mps: 15
-    max_altitude_m: 12000
-    endurance_s: 600
-    nav_constant: 4.0
-    guidance_update_hz: 10
-    handoff_range_m: 250
-    terminal_range_m: 500
-    kill_radius_m: 5
-    seeker_fov_deg: 30
-    seeker_range_m: 500
-    engagement_method: "kinetic_or_proximity_fuze"
+  titan_class:
+    interceptor_type: "titan_class"
+    name_en: "Titan Interceptor"
+    name_ar: "المعترض تايتان"
+    max_speed_mps: 78.0
+    max_acceleration_mps2: 16.0
+    update_rate_hz: 25.0
+    navigation_constant: 3.5
+    lead_bias: 1.1
+    terminal_approach_range_m: 1500.0
+    autonomous_engagement_range_m: 10.0
+    miss_abort_distance_m: 900.0
+    preferred_mode: "proportional_navigation"
 
   quadrotor_interceptor:
+    interceptor_type: "quadrotor_interceptor"
     name_en: "Quadrotor Interceptor"
-    name_ar: "طائرة اعتراض رباعية"
-    platform_type: quadrotor
-    max_speed_mps: 40
-    cruise_speed_mps: 25
-    max_acceleration_mps2: 20
-    max_turn_rate_dps: 90
-    max_climb_rate_mps: 10
-    max_altitude_m: 3000
-    endurance_s: 300
-    nav_constant: 3.5
-    guidance_update_hz: 20
-    handoff_range_m: 150
-    terminal_range_m: 300
-    kill_radius_m: 3
-    seeker_fov_deg: 45
-    seeker_range_m: 300
-    engagement_method: "kinetic"
+    name_ar: "معترض رباعي المراوح"
+    max_speed_mps: 32.0
+    max_acceleration_mps2: 9.0
+    update_rate_hz: 20.0
+    navigation_constant: 3.0
+    lead_bias: 1.0
+    terminal_approach_range_m: 900.0
+    autonomous_engagement_range_m: 8.0
+    miss_abort_distance_m: 600.0
+    preferred_mode: "lead_pursuit"
 
-  loitering_interceptor:
-    name_en: "Loitering Interceptor Munition"
-    name_ar: "ذخيرة اعتراض متسكعة"
-    platform_type: loitering
-    max_speed_mps: 120
-    cruise_speed_mps: 35
-    max_acceleration_mps2: 25
-    max_turn_rate_dps: 60
-    max_climb_rate_mps: 20
-    max_altitude_m: 8000
-    endurance_s: 1800
-    nav_constant: 4.5
-    guidance_update_hz: 10
-    handoff_range_m: 200
-    terminal_range_m: 400
-    kill_radius_m: 8
-    seeker_fov_deg: 40
-    seeker_range_m: 600
-    engagement_method: "warhead_proximity"
+  fixed_wing_interceptor:
+    interceptor_type: "fixed_wing_interceptor"
+    name_en: "Fixed-Wing Interceptor"
+    name_ar: "معترض جناح ثابت"
+    max_speed_mps: 65.0
+    max_acceleration_mps2: 7.0
+    update_rate_hz: 18.0
+    navigation_constant: 4.0
+    lead_bias: 1.2
+    terminal_approach_range_m: 1800.0
+    autonomous_engagement_range_m: 12.0
+    miss_abort_distance_m: 1000.0
+    preferred_mode: "proportional_navigation"

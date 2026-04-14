@@ -1,40 +1,44 @@
-"""Interceptor guidance subsystem.
+"""Interceptor guidance subsystem for Krechet-equivalent C2 behavior.
 
 Military context:
-Exports deterministic command-guidance primitives used for short-range
-interception control loops in contested air-defense operations.
+Provides deterministic, offline guidance components that steer interceptor
+UAVs to the 200-300 m autonomous handoff window against aerial targets.
 """
 
-from services.interceptor.geometry import InterceptGeometryComputer
-from services.interceptor.guidance_computer import GuidanceComputer
-from services.interceptor.guidance_laws import LeadPursuit, ProportionalNavigation, PurePursuit
 from services.interceptor.models import (
     GuidanceMode,
     GuidancePhase,
     GuidanceSolution,
-    HandoffConfig,
-    InterceptorConfig,
-    InterceptorState,
+    HandoffCriteria,
     InterceptGeometry,
     InterceptResult,
+    InterceptorConfig,
+    InterceptorState,
     SteeringCommand,
 )
-from services.interceptor.phase_manager import GuidancePhaseManager
 
 __all__ = [
-    "GuidanceComputer",
     "GuidanceMode",
     "GuidancePhase",
-    "GuidancePhaseManager",
     "GuidanceSolution",
-    "HandoffConfig",
+    "HandoffCriteria",
     "InterceptGeometry",
-    "InterceptGeometryComputer",
     "InterceptResult",
     "InterceptorConfig",
+    "InterceptorGuidanceComputer",
+    "InterceptorManager",
     "InterceptorState",
-    "LeadPursuit",
-    "ProportionalNavigation",
-    "PurePursuit",
     "SteeringCommand",
 ]
+
+
+def __getattr__(name: str):
+    if name == "InterceptorGuidanceComputer":
+        from services.interceptor.guidance_computer import InterceptorGuidanceComputer
+
+        return InterceptorGuidanceComputer
+    if name == "InterceptorManager":
+        from services.interceptor.interceptor_manager import InterceptorManager
+
+        return InterceptorManager
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
