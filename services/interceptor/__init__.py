@@ -1,26 +1,17 @@
-"""Interceptor guidance services for local air-defense engagements.
+"""Interceptor guidance and state-control package.
 
 Military context:
-Provides offline-capable interceptor guidance primitives for layered defense
-where the node may need to continue engagements under comms disruption.
+Exports interceptor guidance models and transition logic for deterministic
+command-and-control handoff in tactical air-defense engagements.
 """
 
-from services.interceptor.guidance_computer import GuidanceComputer, GuidancePhase, PhaseManager
-from services.interceptor.interceptor_manager import InterceptorManager
-from services.interceptor.models import (
-    GuidanceSolution,
-    InterceptorConfig,
-    InterceptorState,
-    InterceptResult,
-)
+from services.interceptor.models import GuidancePhase, HandoffCriteria, InterceptGeometry, InterceptorState
+from services.interceptor.phase_manager import GuidancePhaseManager
 
 __all__ = [
-    "GuidanceComputer",
     "GuidancePhase",
-    "GuidanceSolution",
-    "InterceptorConfig",
-    "InterceptorManager",
+    "GuidancePhaseManager",
+    "HandoffCriteria",
+    "InterceptGeometry",
     "InterceptorState",
-    "InterceptResult",
-    "PhaseManager",
 ]

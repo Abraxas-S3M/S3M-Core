@@ -1,124 +1,81 @@
-"""Data models for autonomous interceptor guidance and engagement outcomes.
+"""Interceptor guidance data models for Krechet engagement control.
 
 Military context:
-These structures keep guidance state explicit and auditable so battery crews can
-reconstruct each engagement decision cycle during tactical after-action review.
+These types define state and geometry values used by the interceptor guidance
+state machine that transitions from launch through autonomous terminal handoff.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from enum import Enum
-from math import isfinite
-from typing import Tuple
-
-
-Vec3 = Tuple[float, float, float]
-
-
-def _validate_vec3(value: Vec3, *, field_name: str) -> Vec3:
-    if len(value) != 3:
-        raise ValueError(f"{field_name} must contain exactly three coordinates")
-    x, y, z = (float(value[0]), float(value[1]), float(value[2]))
-    if not (isfinite(x) and isfinite(y) and isfinite(z)):
-        raise ValueError(f"{field_name} coordinates must be finite numbers")
-    return (x, y, z)
-
-
-def _validate_non_negative(value: float, *, field_name: str) -> float:
-    parsed = float(value)
-    if not isfinite(parsed) or parsed < 0.0:
-        raise ValueError(f"{field_name} must be a finite non-negative number")
-    return parsed
+import math
 
 
 class InterceptorState(str, Enum):
-    READY = "ready"
-    ASSIGNED = "assigned"
+    """Lifecycle states for a single interceptor sortie."""
+
+    PRELAUNCH = "prelaunch"
     LAUNCHED = "launched"
-    TRACKING = "tracking"
+    RADAR_ACQUIRED = "radar_acquired"
+    MIDCOURSE_GUIDED = "midcourse_guided"
+    TERMINAL_APPROACH = "terminal_approach"
+    AUTONOMOUS_HANDOFF = "autonomous_handoff"
+    ENGAGED = "engaged"
+    MISS = "miss"
+    LOST = "lost"
+    RTB = "rtb"
+
+
+class GuidancePhase(str, Enum):
+    """Guidance control phases mapped to interceptor mission timing."""
+
+    BOOST = "boost"
+    MIDCOURSE = "midcourse"
     TERMINAL = "terminal"
-    COMPLETE = "complete"
+    AUTONOMOUS = "autonomous"
+    POST_ENGAGE = "post_engage"
 
 
 @dataclass
-class InterceptorConfig:
-    interceptor_id: str
-    max_speed_mps: float = 350.0
-    max_acceleration_mps2: float = 60.0
-    seeker_acquisition_range_m: float = 3_500.0
-    hit_radius_m: float = 25.0
-    fuel_endurance_s: float = 120.0
+class HandoffCriteria:
+    """Range and quality thresholds for transitioning guidance authority."""
+
+    terminal_range_m: float = 500.0
+    handoff_range_m: float = 250.0
+    min_closing_velocity_mps: float = 25.0
+    max_miss_distance_m: float = 35.0
 
     def __post_init__(self) -> None:
-        if not self.interceptor_id:
-            raise ValueError("interceptor_id is required")
-        self.max_speed_mps = _validate_non_negative(self.max_speed_mps, field_name="max_speed_mps")
-        self.max_acceleration_mps2 = _validate_non_negative(
-            self.max_acceleration_mps2,
-            field_name="max_acceleration_mps2",
-        )
-        self.seeker_acquisition_range_m = _validate_non_negative(
-            self.seeker_acquisition_range_m,
-            field_name="seeker_acquisition_range_m",
-        )
-        self.hit_radius_m = _validate_non_negative(self.hit_radius_m, field_name="hit_radius_m")
-        self.fuel_endurance_s = _validate_non_negative(
-            self.fuel_endurance_s,
-            field_name="fuel_endurance_s",
-        )
-        if self.max_acceleration_mps2 == 0.0:
-            raise ValueError("max_acceleration_mps2 must be > 0")
+        for field_name in (
+            "terminal_range_m",
+            "handoff_range_m",
+            "min_closing_velocity_mps",
+            "max_miss_distance_m",
+        ):
+            value = float(getattr(self, field_name))
+            if not math.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{field_name} must be a finite positive value")
+            setattr(self, field_name, value)
+        if self.handoff_range_m >= self.terminal_range_m:
+            raise ValueError("handoff_range_m must be less than terminal_range_m")
 
 
 @dataclass
-class GuidanceSolution:
-    interceptor_id: str
-    target_id: str
-    interceptor_state: InterceptorState
-    command_acceleration_mps2: Vec3
-    range_to_target_m: float
-    closing_speed_mps: float
-    should_fire_fuze: bool
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+class InterceptGeometry:
+    """Realtime intercept geometry metrics from seeker and fire-control tracks."""
+
+    range_m: float
+    closing_velocity_mps: float
+    predicted_miss_distance_m: float
 
     def __post_init__(self) -> None:
-        if not self.interceptor_id:
-            raise ValueError("interceptor_id is required")
-        if not self.target_id:
-            raise ValueError("target_id is required")
-        self.command_acceleration_mps2 = _validate_vec3(
-            self.command_acceleration_mps2,
-            field_name="command_acceleration_mps2",
-        )
-        self.range_to_target_m = _validate_non_negative(
-            self.range_to_target_m,
-            field_name="range_to_target_m",
-        )
-        self.closing_speed_mps = float(self.closing_speed_mps)
-        if not isfinite(self.closing_speed_mps):
-            raise ValueError("closing_speed_mps must be finite")
-
-
-@dataclass
-class InterceptResult:
-    interceptor_id: str
-    target_id: str
-    outcome: str
-    final_state: InterceptorState
-    final_range_m: float
-    cycles_completed: int
-    completed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-
-    def __post_init__(self) -> None:
-        if not self.interceptor_id:
-            raise ValueError("interceptor_id is required")
-        if not self.target_id:
-            raise ValueError("target_id is required")
-        if self.outcome not in {"hit", "miss", "aborted", "incomplete"}:
-            raise ValueError("outcome must be one of: hit, miss, aborted, incomplete")
-        self.final_range_m = _validate_non_negative(self.final_range_m, field_name="final_range_m")
-        self.cycles_completed = int(self.cycles_completed)
-        if self.cycles_completed < 0:
-            raise ValueError("cycles_completed must be >= 0")
+        self.range_m = float(self.range_m)
+        self.closing_velocity_mps = float(self.closing_velocity_mps)
+        self.predicted_miss_distance_m = float(self.predicted_miss_distance_m)
+        if not math.isfinite(self.range_m) or self.range_m < 0.0:
+            raise ValueError("range_m must be a finite non-negative value")
+        if not math.isfinite(self.closing_velocity_mps):
+            raise ValueError("closing_velocity_mps must be a finite value")
+        if not math.isfinite(self.predicted_miss_distance_m) or self.predicted_miss_distance_m < 0.0:
+            raise ValueError("predicted_miss_distance_m must be a finite non-negative value")
