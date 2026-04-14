@@ -1,128 +1,157 @@
-"""Core radar data models for tactical air-defense sensing.
-
-Military context:
-These structures normalize heterogeneous radar feeds into a common track/plot
-schema so C2 and engagement logic can reason about contacts consistently.
-"""
+"""Radar domain models for tactical sensor reporting."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from math import isfinite
-
-
-def _to_finite_float(value: float | int, *, field_name: str) -> float:
-    parsed = float(value)
-    if not isfinite(parsed):
-        raise ValueError(f"{field_name} must be a finite number")
-    return parsed
+from typing import Optional, Tuple
 
 
 class RadarType(str, Enum):
-    """Known radar families used by the tactical picture."""
+    """Supported radar families for force-protection sensing."""
 
+    RPS_82 = "RPS_82"
     RPS_202 = "RPS_202"
+    GENERIC_2D = "GENERIC_2D"
+    GENERIC_3D = "GENERIC_3D"
+    AESA_WESTERN = "AESA_WESTERN"
+    AESA_PANEL = "AESA_PANEL"
 
 
 class RadarBand(str, Enum):
-    """RF operating bands used by supported sensors."""
+    """RF operating bands relevant to battlefield radar catalogs."""
 
-    S_BAND = "S_BAND"
+    L = "L"
+    S = "S"
+    C = "C"
+    X = "X"
+    KU = "KU"
 
 
-class ScanMode(str, Enum):
-    """Scan behavior informing coverage and revisit assumptions."""
+class RCSClassification(str, Enum):
+    """RCS-derived classes used for initial tactical threat triage."""
 
-    ROTATING = "ROTATING"
+    UNKNOWN = "UNKNOWN"
+    MICRO = "MICRO"
+    SMALL = "SMALL"
+    MEDIUM = "MEDIUM"
+    LARGE = "LARGE"
 
 
 @dataclass
 class RadarConfig:
-    """Operational envelope and noise model for a radar type."""
+    """Static configuration describing one registered radar asset."""
 
-    radar_id: str = "rps202-default"
-    name_en: str = ""
-    name_ar: str = ""
-    radar_type: RadarType = RadarType.RPS_202
-    band: RadarBand = RadarBand.S_BAND
-    scan_mode: ScanMode = ScanMode.ROTATING
-    max_range_m: float = 0.0
-    min_range_m: float = 0.0
-    max_elevation_deg: float = 0.0
-    has_elevation: bool = True
-    has_doppler: bool = True
-    beam_width_az_deg: float = 0.0
-    beam_width_el_deg: float = 0.0
-    scan_rate_rpm: float = 0.0
-    min_detectable_rcs_dbsm: float = 0.0
-    range_resolution_m: float = 0.0
-    range_noise_std_m: float = 0.0
-    azimuth_noise_std_deg: float = 0.0
-    elevation_noise_std_deg: float = 0.0
+    radar_id: str
+    radar_type: RadarType
+    band: RadarBand
+    max_range_m: float
+    name_en: str = "Unnamed Radar"
+    position_m: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    clutter_snr_threshold_db: float = 3.0
 
     def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        if isinstance(self.radar_type, str):
-            self.radar_type = RadarType(self.radar_type)
-        if isinstance(self.band, str):
-            self.band = RadarBand(self.band)
-        if isinstance(self.scan_mode, str):
-            self.scan_mode = ScanMode(self.scan_mode)
-
-        self.max_range_m = _to_finite_float(self.max_range_m, field_name="max_range_m")
-        self.min_range_m = _to_finite_float(self.min_range_m, field_name="min_range_m")
-        if self.max_range_m < 0.0 or self.min_range_m < 0.0:
-            raise ValueError("range limits must be non-negative")
-        if self.max_range_m < self.min_range_m:
-            raise ValueError("max_range_m must be >= min_range_m")
-
-        self.max_elevation_deg = _to_finite_float(self.max_elevation_deg, field_name="max_elevation_deg")
-        self.beam_width_az_deg = _to_finite_float(self.beam_width_az_deg, field_name="beam_width_az_deg")
-        self.beam_width_el_deg = _to_finite_float(self.beam_width_el_deg, field_name="beam_width_el_deg")
-        self.scan_rate_rpm = _to_finite_float(self.scan_rate_rpm, field_name="scan_rate_rpm")
-        self.min_detectable_rcs_dbsm = _to_finite_float(
-            self.min_detectable_rcs_dbsm,
-            field_name="min_detectable_rcs_dbsm",
+        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
+            raise ValueError("radar_id must be a non-empty string")
+        if not isinstance(self.radar_type, RadarType):
+            raise ValueError("radar_type must be a RadarType")
+        if not isinstance(self.band, RadarBand):
+            raise ValueError("band must be a RadarBand")
+        if not isinstance(self.max_range_m, (int, float)) or float(self.max_range_m) <= 0:
+            raise ValueError("max_range_m must be a positive number")
+        self.max_range_m = float(self.max_range_m)
+        if not isinstance(self.name_en, str) or not self.name_en.strip():
+            raise ValueError("name_en must be a non-empty string")
+        if not isinstance(self.position_m, tuple) or len(self.position_m) != 3:
+            raise ValueError("position_m must be a tuple of (x, y, z)")
+        if not all(isinstance(v, (int, float)) for v in self.position_m):
+            raise ValueError("position_m values must be numeric")
+        self.position_m = (
+            float(self.position_m[0]),
+            float(self.position_m[1]),
+            float(self.position_m[2]),
         )
-        self.range_resolution_m = _to_finite_float(self.range_resolution_m, field_name="range_resolution_m")
-        self.range_noise_std_m = _to_finite_float(self.range_noise_std_m, field_name="range_noise_std_m")
-        self.azimuth_noise_std_deg = _to_finite_float(self.azimuth_noise_std_deg, field_name="azimuth_noise_std_deg")
-        self.elevation_noise_std_deg = _to_finite_float(
-            self.elevation_noise_std_deg,
-            field_name="elevation_noise_std_deg",
-        )
+        if not isinstance(self.clutter_snr_threshold_db, (int, float)):
+            raise ValueError("clutter_snr_threshold_db must be numeric")
+        self.clutter_snr_threshold_db = float(self.clutter_snr_threshold_db)
 
 
 @dataclass
 class RadarPlot:
-    """Single radar return in a normalized tactical coordinate space."""
+    """Single radar plot after adapter parsing."""
+
+    plot_id: str
+    range_m: float
+    azimuth_deg: float
+    elevation_deg: float = 0.0
+    rcs_dbsm: float = -30.0
+    radial_velocity_mps: float = 0.0
+    snr_db: float = 0.0
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    position_cartesian: Optional[Tuple[float, float, float]] = None
+    rcs_classification: RCSClassification = RCSClassification.UNKNOWN
+    correlated_track_id: Optional[str] = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.plot_id, str) or not self.plot_id.strip():
+            raise ValueError("plot_id must be a non-empty string")
+        for field_name in ("range_m", "azimuth_deg", "elevation_deg", "rcs_dbsm", "radial_velocity_mps", "snr_db"):
+            value = getattr(self, field_name)
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"{field_name} must be numeric")
+            setattr(self, field_name, float(value))
+        if self.range_m < 0.0:
+            raise ValueError("range_m must be non-negative")
+        if not isinstance(self.timestamp, datetime):
+            raise ValueError("timestamp must be datetime")
+        if self.position_cartesian is not None:
+            if not isinstance(self.position_cartesian, tuple) or len(self.position_cartesian) != 3:
+                raise ValueError("position_cartesian must be a tuple of (x, y, z)")
+            if not all(isinstance(v, (int, float)) for v in self.position_cartesian):
+                raise ValueError("position_cartesian values must be numeric")
+            self.position_cartesian = (
+                float(self.position_cartesian[0]),
+                float(self.position_cartesian[1]),
+                float(self.position_cartesian[2]),
+            )
+        if not isinstance(self.rcs_classification, RCSClassification):
+            raise ValueError("rcs_classification must be an RCSClassification")
+        if self.correlated_track_id is not None and not isinstance(self.correlated_track_id, str):
+            raise ValueError("correlated_track_id must be a string or None")
+
+
+@dataclass
+class RadarScan:
+    """One scan burst from a radar for COP update cycles."""
 
     radar_id: str
     timestamp: datetime
-    range_m: float
-    azimuth_deg: float
-    elevation_deg: float
-    radial_velocity_mps: float
-    rcs_dbsm: float
-    snr_db: float
+    plots: list[RadarPlot]
 
     def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        if isinstance(self.timestamp, str):
-            self.timestamp = datetime.fromisoformat(self.timestamp.replace("Z", "+00:00"))
-        if self.timestamp.tzinfo is None:
-            self.timestamp = self.timestamp.replace(tzinfo=timezone.utc)
+        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
+            raise ValueError("radar_id must be a non-empty string")
+        if not isinstance(self.timestamp, datetime):
+            raise ValueError("timestamp must be datetime")
+        if not isinstance(self.plots, list):
+            raise ValueError("plots must be a list")
+        if any(not isinstance(plot, RadarPlot) for plot in self.plots):
+            raise ValueError("plots entries must be RadarPlot instances")
 
-        self.range_m = _to_finite_float(self.range_m, field_name="range_m")
-        self.azimuth_deg = _to_finite_float(self.azimuth_deg, field_name="azimuth_deg")
-        self.elevation_deg = _to_finite_float(self.elevation_deg, field_name="elevation_deg")
-        self.radial_velocity_mps = _to_finite_float(self.radial_velocity_mps, field_name="radial_velocity_mps")
-        self.rcs_dbsm = _to_finite_float(self.rcs_dbsm, field_name="rcs_dbsm")
-        self.snr_db = _to_finite_float(self.snr_db, field_name="snr_db")
 
-        if self.range_m < 0.0:
-            raise ValueError("range_m must be non-negative")
+@dataclass
+class RadarStatus:
+    """Operational counters for radar readiness monitoring."""
+
+    radar_id: str
+    operational: bool = True
+    scans_received: int = 0
+    plots_received: int = 0
+    plots_correlated: int = 0
+    last_scan_time: Optional[datetime] = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
+            raise ValueError("radar_id must be a non-empty string")
+

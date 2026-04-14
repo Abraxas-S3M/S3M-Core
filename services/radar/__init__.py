@@ -1,11 +1,2 @@
-"""Radar service package for tactical sensor ingestion and normalization."""
+"""Radar ingestion package for tactical air-defense sensing."""
 
-from services.radar.models import RadarBand, RadarConfig, RadarPlot, RadarType, ScanMode
-
-__all__ = [
-    "RadarBand",
-    "RadarConfig",
-    "RadarPlot",
-    "RadarType",
-    "ScanMode",
-]
