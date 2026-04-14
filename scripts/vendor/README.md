@@ -2,7 +2,7 @@
 
 This directory manages external GitHub vendor code ingestion for the S3M sovereign vault.
 
-Military/tactical context: vendor dependencies are staged into Hetzner Object Storage so field systems can rebuild software stacks offline without live internet access.
+Military/tactical context: vendor dependencies are staged into Cloudflare R2 so field systems can rebuild software stacks offline without live internet access.
 
 ## Files
 
@@ -51,7 +51,7 @@ python scripts/vendor/build_repos_manifest.py --output /tmp/test-repos.txt
 - Local disk usage is bounded to one cloned repository per worker.
 - With `--parallel N`, each worker still processes repos one-at-a-time in its own `/tmp/s3m-vendor/...` path.
 
-## Hetzner Object Storage destination layout
+## Cloudflare R2 destination layout
 
 - Source files: `vendor/{domain}/{slug}/...`
 - Completion marker: `vendor/{domain}/{slug}/.cloned`

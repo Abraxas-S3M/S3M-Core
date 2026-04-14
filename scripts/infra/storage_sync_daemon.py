@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Periodic Hetzner Object Storage synchronization for Hetzner cloud CPU training.
+"""Periodic Cloudflare R2 synchronization for Hetzner cloud CPU training.
 
 Military/tactical context:
 This daemon keeps cloud-side adaptation nodes supplied with approved data while
@@ -30,7 +30,7 @@ LOGGER = logging.getLogger("s3m.infra.storage_sync")
 
 
 class StorageSyncDaemon:
-    """Periodic bidirectional sync between Hetzner and Hetzner Object Storage."""
+    """Periodic bidirectional sync between Hetzner and Cloudflare R2."""
 
     def __init__(self, config_path: str = "configs/deployment/object_storage.yaml"):
         self.config_path = Path(config_path)
@@ -219,7 +219,7 @@ def _configure_logging() -> None:
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="S3M Hetzner Object Storage sync daemon")
+    parser = argparse.ArgumentParser(description="S3M Cloudflare R2 sync daemon")
     parser.add_argument("--config", default="configs/deployment/object_storage.yaml", help="Path to sync config file")
     parser.add_argument("--once", action="store_true", help="Run exactly one sync cycle and exit")
     parser.add_argument("--interval-minutes", type=int, default=0, help="Run interval for daemon loop")

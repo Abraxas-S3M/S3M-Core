@@ -1,11 +1,11 @@
 """
-Hetzner Object Storage S3-compatible connector for sovereign vault operations.
+Cloudflare R2 S3-compatible connector for sovereign vault operations.
 
 Tactical context:
     Weight artifacts, adapters, and evaluation payloads are strategic resources.
     This connector enforces resilient transfer procedures so deployed teams can
     rehydrate model stacks from the vault during contested, disconnected, or
-    degraded operations. Hetzner Object Storage shares the same S3 API used by
+    degraded operations. Cloudflare R2 shares the same S3 API used by
     boto3 and provides free internal traffic within the Hetzner eu-central zone.
 """
 
@@ -157,7 +157,7 @@ class ObjectStorageConnector:
         resolved = (value or os.getenv(env_name, "")).strip()
         if not resolved:
             raise ObjectStorageConfigError(
-                f"Missing required Hetzner Object Storage configuration: {env_name}"
+                f"Missing required Cloudflare R2 configuration: {env_name}"
             )
         return resolved
 

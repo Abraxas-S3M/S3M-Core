@@ -31,7 +31,7 @@ def test_main_blocks_grok_engine(capsys) -> None:
         def launch_session(self, **kwargs):
             raise GrokTrainingBlockedError(
                 "Grok-300B is too large for GPU training. "
-                "It remains in Hetzner Object Storage as a validation oracle only."
+                "It remains in Cloudflare R2 as a validation oracle only."
             )
 
     rc = mod.main(

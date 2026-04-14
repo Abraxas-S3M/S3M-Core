@@ -109,7 +109,7 @@ def resolve_text_field(column_names: list[str]) -> str:
 
 
 def maybe_push_to_vault(output_dir: Path, engine_id: str, track: str = "saudi_mod") -> None:
-    """Push trained LoRA adapter to Hetzner Object Storage vault."""
+    """Push trained LoRA adapter to Cloudflare R2 vault."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from src.storage.b2_connector import B2Connector
     from src.storage.vault_paths import VaultPaths

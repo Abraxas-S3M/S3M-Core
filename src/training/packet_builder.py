@@ -255,7 +255,7 @@ class PacketBuilder:
         return True
 
     def upload_packs(self, pack_dirs: List[Path], track: str) -> List[str]:
-        """Upload validated packs to Hetzner Object Storage under datasets/{track}/scenarios/."""
+        """Upload validated packs to Cloudflare R2 under datasets/{track}/scenarios/."""
         self._validate_track(track)
         uploaded_prefixes: List[str] = []
         for raw_dir in pack_dirs:

@@ -448,7 +448,7 @@ main() {
   fi
 
   if ! object_storage_connection_check >/dev/null 2>&1; then
-    log_line "[FATAL] Cannot connect to Hetzner Object Storage"
+    log_line "[FATAL] Cannot connect to Cloudflare R2"
     return 2
   fi
 

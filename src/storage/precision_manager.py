@@ -33,7 +33,7 @@ class PrecisionManager:
         if VaultPaths.is_blocked_engine(engine_id):
             raise ValueError(
                 f"Engine '{engine_id}' is blocked from pull. "
-                "Grok-1 (300 GB) stays in Hetzner Object Storage as validation oracle."
+                "Grok-1 (300 GB) stays in Cloudflare R2 as validation oracle."
             )
         remote = VaultPaths.fp16_base(engine_id)
         self.object_storage.sync_down(remote, local_dir)
@@ -48,12 +48,12 @@ class PrecisionManager:
         return Path(local_dir)
 
     def push_fp16_adapter(self, engine_id: str, track: str, adapter_dir: Path) -> dict[str, int]:
-        """Push FP16 LoRA adapter from RunPod back to Hetzner Object Storage."""
+        """Push FP16 LoRA adapter from RunPod back to Cloudflare R2."""
         remote = VaultPaths.fp16_adapter(engine_id, track)
         return self.object_storage.sync_up(adapter_dir, remote)
 
     def push_fp16_merged(self, engine_id: str, track: str, merged_dir: Path) -> dict[str, int]:
-        """Push merged FP16 model from Hetzner to Hetzner Object Storage."""
+        """Push merged FP16 model from Hetzner to Cloudflare R2."""
         remote = VaultPaths.fp16_merged(engine_id, track)
         return self.object_storage.sync_up(merged_dir, remote)
 
