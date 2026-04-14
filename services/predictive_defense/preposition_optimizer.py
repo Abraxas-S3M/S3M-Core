@@ -12,7 +12,7 @@ approach corridors 60-120 seconds early.
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from services.predictive_defense.models import (
     InterceptWindow,
@@ -75,7 +75,7 @@ class PrePositionOptimizer:
             intc = available_interceptors[i]
             intc_id = str(intc.get("interceptor_id", f"intc-{i}"))
             intc_pos = self._validate_position(
-                tuple(intc.get("position", self.defended_position)),
+                intc.get("position", self.defended_position),
                 f"available_interceptors[{i}].position",
             )
 
@@ -90,7 +90,7 @@ class PrePositionOptimizer:
             launch_now = launch_offset < 5.0  # Execute immediate scramble when margin is minimal.
 
             # Place the loiter point slightly inward toward defended assets to reduce terminal dash.
-            prepos = self._compute_preposition_point(pred, window.intercept_position)
+            prepos = self._compute_preposition_point(window.intercept_position)
 
             reasoning = (
                 f"Pre-position {intc_id} at predicted intercept point "
@@ -147,11 +147,9 @@ class PrePositionOptimizer:
 
     def _compute_preposition_point(
         self,
-        prediction: ThreatTrajectoryPrediction,
         intercept_pos: Tuple[float, float, float],
     ) -> Tuple[float, float, float]:
         """Position interceptor slightly toward the defended asset from intercept point."""
-        _ = prediction
         offset_ratio = 0.2
         x = intercept_pos[0] + (self.defended_position[0] - intercept_pos[0]) * offset_ratio
         y = intercept_pos[1] + (self.defended_position[1] - intercept_pos[1]) * offset_ratio
@@ -159,7 +157,9 @@ class PrePositionOptimizer:
         return (x, y, z)
 
     @staticmethod
-    def _validate_position(position: Tuple[float, ...], field_name: str) -> Tuple[float, float, float]:
+    def _validate_position(position: Any, field_name: str) -> Tuple[float, float, float]:
+        if not isinstance(position, (list, tuple)):
+            raise ValueError(f"{field_name} must be a 3D list/tuple")
         if len(position) != 3:
             raise ValueError(f"{field_name} must contain exactly 3 coordinates")
         x, y, z = float(position[0]), float(position[1]), float(position[2])
