@@ -1,0 +1,45 @@
+# Interceptor platform presets for command-guided air-defense engagements.
+# Military context: values tune each airframe for midcourse guidance to
+# reach the 200-300 m autonomous seeker handoff basket.
+interceptor_types:
+  titan_class:
+    interceptor_type: "titan_class"
+    name_en: "Titan Interceptor"
+    name_ar: "المعترض تايتان"
+    max_speed_mps: 78.0
+    max_acceleration_mps2: 16.0
+    update_rate_hz: 25.0
+    navigation_constant: 3.5
+    lead_bias: 1.1
+    terminal_approach_range_m: 1500.0
+    autonomous_engagement_range_m: 10.0
+    miss_abort_distance_m: 900.0
+    preferred_mode: "proportional_navigation"
+
+  quadrotor_interceptor:
+    interceptor_type: "quadrotor_interceptor"
+    name_en: "Quadrotor Interceptor"
+    name_ar: "معترض رباعي المراوح"
+    max_speed_mps: 32.0
+    max_acceleration_mps2: 9.0
+    update_rate_hz: 20.0
+    navigation_constant: 3.0
+    lead_bias: 1.0
+    terminal_approach_range_m: 900.0
+    autonomous_engagement_range_m: 8.0
+    miss_abort_distance_m: 600.0
+    preferred_mode: "lead_pursuit"
+
+  fixed_wing_interceptor:
+    interceptor_type: "fixed_wing_interceptor"
+    name_en: "Fixed-Wing Interceptor"
+    name_ar: "معترض جناح ثابت"
+    max_speed_mps: 65.0
+    max_acceleration_mps2: 7.0
+    update_rate_hz: 18.0
+    navigation_constant: 4.0
+    lead_bias: 1.2
+    terminal_approach_range_m: 1800.0
+    autonomous_engagement_range_m: 12.0
+    miss_abort_distance_m: 1000.0
+    preferred_mode: "proportional_navigation"
