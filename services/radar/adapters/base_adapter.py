@@ -1,28 +1,42 @@
-"""Base contract for radar feed adapters.
-
-Military context:
-Adapter implementations normalize heterogeneous radar payloads into a common
-plot schema so C2 workflows can fuse detections across sensors.
-"""
+"""Abstract base class for radar type adapters."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Dict, List
 
-from services.radar.models import RadarConfig
+from services.radar.models import RadarConfig, RadarPlot
 
 
 class BaseRadarAdapter(ABC):
-    """Abstract adapter for radar feed normalization."""
+    """Abstract adapter that converts radar-specific data into standardized plots."""
 
-    def __init__(self, config: RadarConfig | None = None) -> None:
-        self.config = config or self.create_default_config()
+    def __init__(self, config: RadarConfig) -> None:
+        self.config = config
 
     @abstractmethod
-    def parse_raw_data(self, raw_data: dict[str, Any]) -> list[Any]:
-        """Parse inbound feed payload into one or more radar plot objects."""
+    def parse_raw_data(self, raw_data: Dict[str, Any]) -> List[RadarPlot]:
+        """Parse radar-specific raw data format into standardized RadarPlots."""
 
     @abstractmethod
     def create_default_config(self) -> RadarConfig:
-        """Create default configuration for this adapter implementation."""
+        """Return a default configuration for this radar type."""
+
+    def validate_plot(self, plot: RadarPlot) -> bool:
+        """Check if a plot falls within this radar's detection limits."""
+        if plot.range_m < self.config.min_range_m or plot.range_m > self.config.max_range_m:
+            return False
+        if self.config.has_elevation:
+            if (
+                plot.elevation_deg < self.config.min_elevation_deg
+                or plot.elevation_deg > self.config.max_elevation_deg
+            ):
+                return False
+        # Tactical cueing rejects weak returns to prevent false engagements.
+        if plot.snr_db < self.config.min_detectable_snr_db:
+            return False
+        return True
+
+    def filter_clutter(self, plots: List[RadarPlot]) -> List[RadarPlot]:
+        """Remove plots likely to be clutter based on radar-specific rules."""
+        return [p for p in plots if self.validate_plot(p)]
