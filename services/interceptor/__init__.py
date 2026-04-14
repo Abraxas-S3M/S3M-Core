@@ -1,30 +1,26 @@
-"""Interceptor guidance services package.
+"""Interceptor guidance package.
 
 Military context:
-This package contains data structures and logic for terminal air-to-air
-interceptor guidance workflows used by S3M command-and-control components.
+Exports validated guidance primitives used by interceptor drones to steer
+toward airborne threats during boost, midcourse, and terminal phases.
 """
 
+from services.interceptor.guidance_laws import LeadPursuit, ProportionalNavigation, PurePursuit
 from services.interceptor.models import (
     GuidanceMode,
     GuidancePhase,
-    GuidanceSolution,
-    HandoffCriteria,
     InterceptGeometry,
-    InterceptResult,
     InterceptorConfig,
-    InterceptorState,
     SteeringCommand,
 )
 
 __all__ = [
     "GuidanceMode",
     "GuidancePhase",
-    "GuidanceSolution",
-    "HandoffCriteria",
     "InterceptGeometry",
-    "InterceptResult",
     "InterceptorConfig",
-    "InterceptorState",
+    "LeadPursuit",
+    "ProportionalNavigation",
+    "PurePursuit",
     "SteeringCommand",
 ]

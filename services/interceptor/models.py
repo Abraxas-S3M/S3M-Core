@@ -1,224 +1,146 @@
-"""Core data models for interceptor drone guidance.
+"""Data models for interceptor guidance computations.
 
 Military context:
-These models represent the guidance-specific state that the Krechet 9C905-2
-terminal maintains for each active interception: interceptor state machine,
-guidance phase, computed steering commands, and intercept geometry. The existing
-S3M navigation models handle general UAV flight — these handle the unique
-requirements of air-to-air intercept guidance.
+These structures carry the validated geometry and steering commands used by
+the interceptor autopilot loop. Input validation is strict because malformed
+kinematics in tactical guidance code can create unsafe steering behavior.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple
-from uuid import uuid4
+from math import isfinite
+from typing import Tuple
 
 
-class InterceptorState(str, Enum):
-    """Interceptor drone lifecycle state matching Krechet operational flow."""
-
-    PRELAUNCH = "prelaunch"
-    LAUNCHED = "launched"
-    RADAR_ACQUIRED = "radar_acquired"
-    MIDCOURSE_GUIDED = "midcourse_guided"
-    TERMINAL_APPROACH = "terminal_approach"
-    AUTONOMOUS_HANDOFF = "autonomous_handoff"
-    ENGAGED = "engaged"
-    MISS = "miss"
-    RTB = "rtb"
-    LOST = "lost"
+def _validate_finite(value: float, *, field_name: str) -> float:
+    parsed = float(value)
+    if not isfinite(parsed):
+        raise ValueError(f"{field_name} must be finite")
+    return parsed
 
 
-class GuidancePhase(str, Enum):
-    """Active guidance computation phase."""
-
-    BOOST = "boost"  # Post-launch climb to intercept altitude
-    MIDCOURSE = "midcourse"  # C2-guided using radar updates (>300m from target)
-    TERMINAL = "terminal"  # Final approach (300-200m), tightening guidance
-    AUTONOMOUS = "autonomous"  # Onboard seeker lock (<200m), C2 monitors only
-    POST_ENGAGE = "post_engage"
+def _validate_vec3(value: Tuple[float, float, float], *, field_name: str) -> Tuple[float, float, float]:
+    if not isinstance(value, tuple) or len(value) != 3:
+        raise ValueError(f"{field_name} must be a 3-tuple")
+    return (
+        _validate_finite(value[0], field_name=f"{field_name}[0]"),
+        _validate_finite(value[1], field_name=f"{field_name}[1]"),
+        _validate_finite(value[2], field_name=f"{field_name}[2]"),
+    )
 
 
 class GuidanceMode(str, Enum):
-    """Guidance law selection."""
-
     PURE_PURSUIT = "pure_pursuit"
     LEAD_PURSUIT = "lead_pursuit"
     PROPORTIONAL_NAV = "proportional_nav"
-    AUGMENTED_PN = "augmented_pn"
+
+
+class GuidancePhase(str, Enum):
+    BOOST = "boost"
+    MIDCOURSE = "midcourse"
+    TERMINAL = "terminal"
 
 
 @dataclass
 class InterceptGeometry:
-    """Real-time intercept geometry between interceptor and target.
+    """Relative interceptor-target geometry at one guidance update."""
 
-    Military context:
-    The guidance computer recomputes this every update cycle. It contains
-    everything needed to determine if an intercept is feasible and what
-    steering corrections are required.
-    """
+    range_m: float
+    closing_velocity_mps: float
+    los_az_deg: float = 0.0
+    los_el_deg: float = 0.0
+    los_rate_az_dps: float = 0.0
+    los_rate_el_dps: float = 0.0
+    time_to_intercept_s: float = 0.0
 
-    range_m: float = 0.0  # Slant range interceptor-to-target
-    closing_velocity_mps: float = 0.0  # Rate of range decrease (positive = closing)
-    time_to_intercept_s: float = 0.0  # Estimated TGO (time to go)
-    line_of_sight_az_deg: float = 0.0  # LOS azimuth from interceptor to target
-    line_of_sight_el_deg: float = 0.0  # LOS elevation from interceptor to target
-    los_rate_az_dps: float = 0.0  # LOS azimuth rate (deg/s)
-    los_rate_el_dps: float = 0.0  # LOS elevation rate (deg/s)
-    lead_angle_deg: float = 0.0  # Required lead angle for collision course
-    predicted_miss_distance_m: float = 0.0  # Estimated miss if no correction applied
-    aspect_angle_deg: float = 0.0  # Angle off target's tail (0 = tail chase)
-    crossing_angle_deg: float = 0.0  # Angle between velocity vectors
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {k: round(v, 3) if isinstance(v, float) else v for k, v in self.__dict__.items()}
-
-
-@dataclass
-class SteeringCommand:
-    """Single guidance steering command output.
-
-    Military context:
-    This is the computed maneuver command sent to the interceptor's autopilot
-    every guidance update cycle. It specifies either a waypoint to fly toward
-    or acceleration commands in body/inertial frame.
-    """
-
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    commanded_heading_deg: float = 0.0
-    commanded_pitch_deg: float = 0.0
-    commanded_speed_mps: float = 0.0
-    commanded_position: Optional[Tuple[float, float, float]] = None
-    lateral_accel_mps2: float = 0.0  # Proportional nav lateral acceleration
-    vertical_accel_mps2: float = 0.0  # Proportional nav vertical acceleration
-    guidance_mode: GuidanceMode = GuidanceMode.PROPORTIONAL_NAV
-    phase: GuidancePhase = GuidancePhase.MIDCOURSE
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "timestamp": self.timestamp.isoformat(),
-            "heading_deg": round(self.commanded_heading_deg, 2),
-            "pitch_deg": round(self.commanded_pitch_deg, 2),
-            "speed_mps": round(self.commanded_speed_mps, 2),
-            "position": list(self.commanded_position) if self.commanded_position else None,
-            "lat_accel": round(self.lateral_accel_mps2, 3),
-            "vert_accel": round(self.vertical_accel_mps2, 3),
-            "mode": self.guidance_mode.value,
-            "phase": self.phase.value,
-        }
-
-
-@dataclass
-class HandoffCriteria:
-    """Criteria for transitioning to autonomous terminal guidance.
-
-    Military context:
-    The Krechet hands off to the interceptor's onboard seeker at 200-300m.
-    These thresholds are configurable per interceptor type.
-    """
-
-    handoff_range_m: float = 250.0  # Range at which C2 hands off to onboard
-    terminal_range_m: float = 500.0  # Range at which terminal phase begins
-    min_closing_velocity_mps: float = 10.0  # Abort if not closing fast enough
-    max_miss_distance_m: float = 100.0  # Abort if predicted miss too large
-    max_los_rate_dps: float = 30.0  # Abort if LOS rate exceeds seeker gimbal limit
+    def __post_init__(self) -> None:
+        self.range_m = _validate_finite(self.range_m, field_name="range_m")
+        self.closing_velocity_mps = _validate_finite(
+            self.closing_velocity_mps,
+            field_name="closing_velocity_mps",
+        )
+        self.los_az_deg = _validate_finite(self.los_az_deg, field_name="los_az_deg")
+        self.los_el_deg = _validate_finite(self.los_el_deg, field_name="los_el_deg")
+        self.los_rate_az_dps = _validate_finite(self.los_rate_az_dps, field_name="los_rate_az_dps")
+        self.los_rate_el_dps = _validate_finite(self.los_rate_el_dps, field_name="los_rate_el_dps")
+        self.time_to_intercept_s = _validate_finite(
+            self.time_to_intercept_s,
+            field_name="time_to_intercept_s",
+        )
+        if self.range_m < 0.0:
+            raise ValueError("range_m must be non-negative")
+        if self.time_to_intercept_s < 0.0:
+            raise ValueError("time_to_intercept_s must be non-negative")
 
 
 @dataclass
 class InterceptorConfig:
-    """Interceptor drone specifications.
+    """Autopilot and kinematic limits for interceptor guidance."""
 
-    Military context:
-    Each interceptor type (Titan, quadrotor, fixed-wing) has different
-    performance characteristics that affect guidance law parameters.
-    """
+    max_speed_mps: float = 250.0
+    max_acceleration_mps2: float = 35.0
+    nav_constant: float = 3.5
+    guidance_update_hz: float = 20.0
 
-    interceptor_id: str = field(default_factory=lambda: f"intc-{uuid4().hex[:8]}")
-    name_en: str = "Interceptor Drone"
-    name_ar: str = "طائرة اعتراض"
-    platform_type: str = "fixed_wing"  # fixed_wing, quadrotor, loitering
-
-    max_speed_mps: float = 80.0
-    cruise_speed_mps: float = 55.0
-    max_acceleration_mps2: float = 15.0
-    max_turn_rate_dps: float = 45.0
-    max_climb_rate_mps: float = 15.0
-    max_altitude_m: float = 12000.0
-    endurance_s: float = 600.0
-
-    # Guidance parameters
-    nav_constant: float = 4.0  # PN navigation ratio (typically 3-5)
-    guidance_update_hz: float = 10.0  # Guidance loop rate
-    handoff: HandoffCriteria = field(default_factory=HandoffCriteria)
-
-    # Engagement
-    kill_radius_m: float = 5.0  # Lethal radius (kinetic or proximity fuze)
-    seeker_fov_deg: float = 30.0  # Onboard seeker field of view
-    seeker_range_m: float = 500.0  # Onboard seeker detection range
-
-    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "interceptor_id": self.interceptor_id,
-            "name_en": self.name_en,
-            "name_ar": self.name_ar,
-            "platform_type": self.platform_type,
-            "max_speed_mps": self.max_speed_mps,
-            "nav_constant": self.nav_constant,
-            "guidance_update_hz": self.guidance_update_hz,
-            "handoff_range_m": self.handoff.handoff_range_m,
-            "kill_radius_m": self.kill_radius_m,
-        }
+    def __post_init__(self) -> None:
+        self.max_speed_mps = _validate_finite(self.max_speed_mps, field_name="max_speed_mps")
+        self.max_acceleration_mps2 = _validate_finite(
+            self.max_acceleration_mps2,
+            field_name="max_acceleration_mps2",
+        )
+        self.nav_constant = _validate_finite(self.nav_constant, field_name="nav_constant")
+        self.guidance_update_hz = _validate_finite(
+            self.guidance_update_hz,
+            field_name="guidance_update_hz",
+        )
+        if self.max_speed_mps <= 0.0:
+            raise ValueError("max_speed_mps must be positive")
+        if self.max_acceleration_mps2 <= 0.0:
+            raise ValueError("max_acceleration_mps2 must be positive")
+        if self.nav_constant <= 0.0:
+            raise ValueError("nav_constant must be positive")
+        if self.guidance_update_hz <= 0.0:
+            raise ValueError("guidance_update_hz must be positive")
 
 
 @dataclass
-class GuidanceSolution:
-    """Complete guidance solution for one update cycle."""
+class SteeringCommand:
+    """Autopilot steering command emitted by a guidance law."""
 
-    solution_id: str = field(default_factory=lambda: f"gsol-{uuid4().hex[:8]}")
-    interceptor_id: str = ""
-    target_id: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    cycle_number: int = 0
-    geometry: InterceptGeometry = field(default_factory=InterceptGeometry)
-    command: SteeringCommand = field(default_factory=SteeringCommand)
+    commanded_heading_deg: float
+    commanded_pitch_deg: float
+    commanded_speed_mps: float
+    commanded_position: Tuple[float, float, float]
+    lateral_accel_mps2: float = 0.0
+    vertical_accel_mps2: float = 0.0
+    guidance_mode: GuidanceMode = GuidanceMode.PURE_PURSUIT
     phase: GuidancePhase = GuidancePhase.MIDCOURSE
-    state: InterceptorState = InterceptorState.MIDCOURSE_GUIDED
-    feasible: bool = True
-    abort_reason: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "solution_id": self.solution_id,
-            "interceptor_id": self.interceptor_id,
-            "target_id": self.target_id,
-            "cycle": self.cycle_number,
-            "geometry": self.geometry.to_dict(),
-            "command": self.command.to_dict(),
-            "phase": self.phase.value,
-            "state": self.state.value,
-            "feasible": self.feasible,
-            "abort_reason": self.abort_reason,
-        }
-
-
-@dataclass
-class InterceptResult:
-    """Final outcome of an interception attempt."""
-
-    result_id: str = field(default_factory=lambda: f"ires-{uuid4().hex[:8]}")
-    interceptor_id: str = ""
-    target_id: str = ""
-    outcome: str = "pending"  # hit, miss, abort, lost_track
-    miss_distance_m: float = 0.0
-    engagement_time_s: float = 0.0
-    guidance_cycles: int = 0
-    final_phase: GuidancePhase = GuidancePhase.MIDCOURSE
-    final_range_m: float = 0.0
-    abort_reason: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    def __post_init__(self) -> None:
+        self.commanded_heading_deg = (
+            _validate_finite(self.commanded_heading_deg, field_name="commanded_heading_deg") % 360.0
+        )
+        self.commanded_pitch_deg = _validate_finite(
+            self.commanded_pitch_deg,
+            field_name="commanded_pitch_deg",
+        )
+        self.commanded_speed_mps = _validate_finite(
+            self.commanded_speed_mps,
+            field_name="commanded_speed_mps",
+        )
+        self.commanded_position = _validate_vec3(
+            self.commanded_position,
+            field_name="commanded_position",
+        )
+        self.lateral_accel_mps2 = _validate_finite(
+            self.lateral_accel_mps2,
+            field_name="lateral_accel_mps2",
+        )
+        self.vertical_accel_mps2 = _validate_finite(
+            self.vertical_accel_mps2,
+            field_name="vertical_accel_mps2",
+        )
+        if self.commanded_speed_mps < 0.0:
+            raise ValueError("commanded_speed_mps must be non-negative")
