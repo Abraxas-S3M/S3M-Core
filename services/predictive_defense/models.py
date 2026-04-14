@@ -159,6 +159,7 @@ class PrePositionCommand:
     intercept_window: InterceptWindow
     priority: int = 100
     command_mode: str = "predictive_preposition"
+    launch_now: bool = False
     name_en: str = "Predictive pre-position command"
     name_ar: str = "أمر تموضع استباقي"
     command_id: str = field(default_factory=lambda: f"ppc-{uuid4().hex[:10]}")
@@ -181,6 +182,7 @@ class PrePositionCommand:
             "launch_time_s": round(self.launch_time_s, 3),
             "intercept_time_s": round(self.intercept_time_s, 3),
             "priority": self.priority,
+            "launch_now": bool(self.launch_now),
             "intercept_window": self.intercept_window.to_dict(),
         }
 

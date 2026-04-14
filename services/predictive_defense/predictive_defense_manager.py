@@ -52,6 +52,9 @@ class InterceptorManagerLike(Protocol):
     def launch(self, interceptor_id: str) -> bool:
         ...
 
+    def radar_acquired(self, interceptor_id: str) -> bool:
+        ...
+
 
 def _utc_now_s() -> float:
     return datetime.now(timezone.utc).timestamp()
@@ -104,6 +107,7 @@ class PredictiveDefenseManager:
 
         self._interceptor_profiles: Dict[str, InterceptorProfile] = {}
         self._last_posture: Optional[DefensePosture] = None
+        self._genome_context_by_track: Dict[str, Dict[str, Any]] = {}
 
     def configure_interceptors(self, interceptor_profiles: List[InterceptorProfile]) -> None:
         with self._lock:
@@ -134,6 +138,17 @@ class PredictiveDefenseManager:
                 verdict = self.correlator.correlate(context.genome_observation)
                 matched_id = verdict.matched_genome_id or verdict.created_genome_id or ""
                 matched_genome = self._store.get_genome(matched_id) if matched_id else None
+                if verdict.decision == "matched" and matched_genome is not None:
+                    self.set_genome_context(
+                        context.track_id,
+                        self._extract_genome_behavioral_signatures(matched_genome),
+                    )
+                genome_context = self._genome_context_by_track.get(context.track_id)
+                if genome_context:
+                    context.behavior_context = {
+                        **context.behavior_context,
+                        "genome_context": dict(genome_context),
+                    }
                 trajectory_predictions.append(
                     self.trajectory_predictor.predict(
                         context=context,
@@ -182,6 +197,27 @@ class PredictiveDefenseManager:
         with self._lock:
             return self._last_posture
 
+    def process_tracks(self, tracks: Optional[List[Any]] = None, *, now_s: Optional[float] = None) -> DefensePosture:
+        """Compatibility wrapper used by radar/air-defense integrations."""
+        return self.process_cycle(tracks=tracks, now_s=now_s)
+
+    def set_genome_context(self, track_id: str, context: Dict[str, Any]) -> None:
+        """Persist per-track genome context for downstream trajectory cueing."""
+        track_key = str(track_id).strip()
+        if not track_key:
+            return
+        if not isinstance(context, dict):
+            return
+        with self._lock:
+            self._genome_context_by_track[track_key] = dict(context)
+
+    def get_genome_context(self, track_id: str) -> Dict[str, Any]:
+        track_key = str(track_id).strip()
+        if not track_key:
+            return {}
+        with self._lock:
+            return dict(self._genome_context_by_track.get(track_key, {}))
+
     def get_stats(self) -> Dict[str, Any]:
         with self._lock:
             correlator_stats = self.correlator.stats()
@@ -189,6 +225,7 @@ class PredictiveDefenseManager:
                 "correlator": correlator_stats,
                 "interceptor_profiles": len(self._interceptor_profiles),
                 "has_last_posture": self._last_posture is not None,
+                "genome_context_tracks": len(self._genome_context_by_track),
             }
 
     def _collect_tracks(self) -> List[Any]:
@@ -228,6 +265,8 @@ class PredictiveDefenseManager:
         for command in commands:
             assign_ok = False
             launch_ok = False
+            launch_now = bool(getattr(command, "launch_now", False))
+            radar_acquired_ok: Optional[bool] = None
             try:
                 assign_ok = bool(
                     self.interceptor_manager.assign_target(
@@ -236,6 +275,12 @@ class PredictiveDefenseManager:
                     )
                 )
                 launch_ok = bool(self.interceptor_manager.launch(command.interceptor_id))
+                if launch_now and launch_ok:
+                    radar_acquired = getattr(self.interceptor_manager, "radar_acquired", None)
+                    if callable(radar_acquired):
+                        # Tactical context: launch-now predictive commands must
+                        # transition immediately to radar-acquired guidance.
+                        radar_acquired_ok = bool(radar_acquired(command.interceptor_id))
             except Exception as exc:
                 actions.append(
                     {
@@ -251,9 +296,60 @@ class PredictiveDefenseManager:
                     "target_track_id": command.target_track_id,
                     "assign_ok": assign_ok,
                     "launch_ok": launch_ok,
+                    "launch_now": launch_now,
+                    "radar_acquired_ok": radar_acquired_ok,
                 }
             )
         return actions
+
+    @staticmethod
+    def _extract_genome_behavioral_signatures(matched_genome: Any) -> Dict[str, Any]:
+        approach_bearing: Optional[Any] = None
+        speed_range: Optional[Tuple[float, float]] = None
+        temporal_patterns: Dict[str, Any] = {}
+        signatures = getattr(matched_genome, "signatures", {}) or {}
+        for signature in signatures.values():
+            movement = dict(getattr(signature, "movement_patterns", {}) or {})
+            temporal = dict(getattr(signature, "temporal_patterns", {}) or {})
+            if approach_bearing is None:
+                if "approach_vector_deg" in movement:
+                    approach_bearing = float(movement["approach_vector_deg"])
+                elif "approach_bearing_deg" in movement:
+                    approach_bearing = float(movement["approach_bearing_deg"])
+                elif "heading_deg" in movement and isinstance(movement["heading_deg"], (list, tuple)):
+                    values = movement["heading_deg"]
+                    if len(values) == 2:
+                        approach_bearing = (float(values[0]), float(values[1]))
+                elif "bearing_range_deg" in movement and isinstance(movement["bearing_range_deg"], (list, tuple)):
+                    values = movement["bearing_range_deg"]
+                    if len(values) == 2:
+                        approach_bearing = (float(values[0]), float(values[1]))
+                elif "approach_vector_range_deg" in movement and isinstance(
+                    movement["approach_vector_range_deg"], (list, tuple)
+                ):
+                    values = movement["approach_vector_range_deg"]
+                    if len(values) == 2:
+                        approach_bearing = (float(values[0]), float(values[1]))
+            if speed_range is None:
+                if "speed_range_mps" in movement and isinstance(movement["speed_range_mps"], (list, tuple)):
+                    values = movement["speed_range_mps"]
+                    if len(values) == 2:
+                        speed_range = (float(values[0]), float(values[1]))
+                elif "speed_mps" in movement and isinstance(movement["speed_mps"], (list, tuple)):
+                    values = movement["speed_mps"]
+                    if len(values) == 2:
+                        speed_range = (float(values[0]), float(values[1]))
+                elif "speed_min_mps" in movement and "speed_max_mps" in movement:
+                    speed_range = (float(movement["speed_min_mps"]), float(movement["speed_max_mps"]))
+            if temporal and not temporal_patterns:
+                temporal_patterns = temporal
+        return {
+            "approach_bearing": approach_bearing,
+            "speed_range": speed_range,
+            "temporal_patterns": temporal_patterns,
+            "matched_genome_id": str(getattr(matched_genome, "genome_id", "")),
+            "matched_genome_name": str(getattr(matched_genome, "actor_name", "")),
+        }
 
     def _build_alerts(self, predictions: List[ThreatTrajectoryPrediction], swarm_predictions: List[Any]) -> List[PredictiveAlert]:
         alerts: List[PredictiveAlert] = []
