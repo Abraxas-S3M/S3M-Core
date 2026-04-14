@@ -1,61 +1,88 @@
-"""Defense zone management for layered air-defense coverage envelopes.
-
-Military context:
-Zones represent tactical responsibility rings around defended assets and are
-used to prioritize which defensive echelon should engage inbound threats.
-"""
+"""Zone manager for layered air-defense geometry."""
 
 from __future__ import annotations
-
-import math
-from collections import Counter
-from typing import Dict, List, Optional, Tuple
 
 from services.air_defense.models import DefenseEchelon, DefenseZone
 
 
 class ZoneManager:
-    """In-memory zone manager for edge-deployed command-and-control nodes."""
+    """Creates and manages tactical defense echelons around an asset."""
 
     def __init__(self) -> None:
-        self._zones: Dict[str, DefenseZone] = {}
+        self._zones: dict[str, DefenseZone] = {}
 
-    def register_zone(self, zone: DefenseZone) -> None:
-        """Register or update one defense zone."""
-        self._zones[zone.zone_id] = zone
+    def get_zone(self, zone_id: str) -> DefenseZone | None:
+        """Fetch zone by identifier."""
+        return self._zones.get(zone_id)
 
-    def list_zones(self, echelon: Optional[DefenseEchelon] = None) -> List[DefenseZone]:
-        """Return all zones or only those assigned to one echelon."""
-        zones = list(self._zones.values())
-        if echelon is None:
-            return zones
-        return [zone for zone in zones if zone.echelon == echelon]
+    def list_zones(self) -> list[DefenseZone]:
+        """List all managed zones."""
+        return list(self._zones.values())
 
-    def zones_covering_position(
-        self,
-        position: Tuple[float, float, float],
-        echelon: Optional[DefenseEchelon] = None,
-    ) -> List[DefenseZone]:
-        """Return zones covering a target position for tactical prioritization."""
-        px, py, pz = position
-        zones = self.list_zones(echelon=echelon)
-        covered: List[DefenseZone] = []
-        for zone in zones:
-            zx, zy, zz = zone.center
-            distance = math.dist((px, py, pz), (zx, zy, zz))
-            if distance <= zone.radius_m:
-                covered.append(zone)
-        return covered
+    def create_standard_echelons(
+        self, center: tuple[float, float, float]
+    ) -> list[DefenseZone]:
+        """Create default 4-layer tactical defense ring geometry."""
+        zones = [
+            DefenseZone(
+                echelon=DefenseEchelon.CLOSE,
+                center=center,
+                inner_radius_m=0,
+                outer_radius_m=4000,
+                min_altitude_m=0,
+                max_altitude_m=3000,
+            ),
+            DefenseZone(
+                echelon=DefenseEchelon.SHORT,
+                center=center,
+                inner_radius_m=4000,
+                outer_radius_m=18000,
+                min_altitude_m=0,
+                max_altitude_m=10000,
+            ),
+            DefenseZone(
+                echelon=DefenseEchelon.MEDIUM,
+                center=center,
+                inner_radius_m=18000,
+                outer_radius_m=50000,
+                min_altitude_m=0,
+                max_altitude_m=25000,
+            ),
+            DefenseZone(
+                echelon=DefenseEchelon.EXTENDED,
+                center=center,
+                inner_radius_m=50000,
+                outer_radius_m=80000,
+                min_altitude_m=0,
+                max_altitude_m=40000,
+            ),
+        ]
+        self._zones = {zone.zone_id: zone for zone in zones}
+        return zones
 
-    def get_coverage_report(self) -> Dict[str, object]:
-        """Build coverage metrics for operator mission displays."""
-        zones = list(self._zones.values())
-        by_echelon = Counter(zone.echelon.value for zone in zones)
-        defended_assets = sorted({zone.defended_asset for zone in zones})
-        return {
-            "zones_total": len(zones),
-            "zones_by_echelon": dict(by_echelon),
-            "max_radius_m": max((zone.radius_m for zone in zones), default=0.0),
-            "defended_assets": defended_assets,
-        }
+    def assign_effector_to_zone(self, zone_id: str, effector_id: str) -> None:
+        """Associate an effector with a defensive ring."""
+        zone = self.get_zone(zone_id)
+        if zone is None:
+            return
+        if effector_id not in zone.assigned_effector_ids:
+            zone.assigned_effector_ids.append(effector_id)
+
+    def find_zones_for_target(
+        self, target_position: tuple[float, float, float]
+    ) -> list[DefenseZone]:
+        """Return all zones that contain the target geometry."""
+        zones = [zone for zone in self.list_zones() if zone.contains_point(target_position)]
+        return sorted(zones, key=lambda zone: zone.outer_radius_m)
+
+    def get_coverage_report(self) -> dict[str, dict[str, int]]:
+        """Produce echelon coverage totals for tactical readiness views."""
+        report: dict[str, dict[str, int]] = {}
+        for zone in self.list_zones():
+            key = zone.echelon.value
+            report[key] = {
+                "zone_id": zone.zone_id,
+                "total_effectors": len(zone.assigned_effector_ids),
+            }
+        return report
 
