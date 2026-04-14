@@ -1,84 +1,112 @@
-<<<<<<< cursor/add-radar-base-adapter-09b3
-"""Tests for tactical radar model validation."""
+"""Unit tests for radar adapter data models.
+
+Military context:
+These tests verify radar plot normalization, scan timing semantics, and
+configuration guardrails that protect tactical sensor ingestion pipelines.
+"""
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
-from services.radar.models import RadarConfig, RadarPlot, RadarScan
+from services.radar.models import (
+    RCSClassification,
+    RadarBand,
+    RadarConfig,
+    RadarPlot,
+    RadarScan,
+    RadarStatus,
+    RadarType,
+    ScanMode,
+)
 
 
-def test_radar_config_rejects_invalid_range_envelope() -> None:
-    with pytest.raises(ValueError, match="max_range_m must be > min_range_m"):
-        RadarConfig(min_range_m=2_000.0, max_range_m=1_000.0)
+def test_radar_plot_rejects_negative_range():
+    with pytest.raises(ValueError, match="range_m must be non-negative"):
+        RadarPlot(range_m=-1.0)
 
 
-def test_radar_plot_rejects_negative_range() -> None:
-    with pytest.raises(ValueError, match="range_m must be >= 0.0"):
-        RadarPlot(range_m=-1.0, azimuth_deg=0.0)
-
-
-def test_radar_scan_normalizes_naive_timestamp_to_utc() -> None:
-    scan = RadarScan(
+def test_radar_plot_normalizes_azimuth_and_serializes():
+    plot = RadarPlot(
         radar_id="radar-1",
-        timestamp=datetime(2026, 4, 14, 12, 0, 0),
-        plots=[RadarPlot(range_m=1_500.0, azimuth_deg=25.0, snr_db=12.0)],
+        timestamp=datetime(2026, 4, 14, 8, 0, tzinfo=timezone.utc),
+        range_m=12_500.0,
+        azimuth_deg=725.123,
+        elevation_deg=5.4321,
+        radial_velocity_mps=-45.678,
+        rcs_dbsm=-10.55,
+        snr_db=18.1234,
+        position_cartesian=(1.1, 2.2, 3.3),
+        rcs_classification=RCSClassification.MEDIUM_UAV,
+        classification_confidence=0.87654,
+        correlated_track_id="trk-44",
     )
-    assert scan.timestamp.tzinfo is not None
-=======
-"""Unit tests for radar data model validation."""
 
-from __future__ import annotations
-
-import pytest
-
-from services.radar.models import RadarBand, RadarConfig, RadarType, ScanMode
+    payload = plot.to_dict()
+    assert plot.azimuth_deg == pytest.approx(5.123)
+    assert payload["azimuth_deg"] == 5.12
+    assert payload["position_cartesian"] == [1.1, 2.2, 3.3]
+    assert payload["rcs_classification"] == "medium_uav"
+    assert payload["classification_confidence"] == 0.877
 
 
-def test_rotating_radar_requires_scan_rate() -> None:
-    """Rotating tactical radars must declare sweep rate for track freshness."""
-    with pytest.raises(ValueError, match="scan_rate_rpm is required"):
-        RadarConfig(
-            name_en="RPS-82",
-            name_ar="RPS-82",
-            radar_type=RadarType.RPS_82,
-            band=RadarBand.X_BAND,
-            scan_mode=ScanMode.ROTATING,
-            position=(0.0, 0.0, 0.0),
-            max_range_m=10_000,
-        )
+def test_radar_plot_rcs_linear_conversion():
+    plot = RadarPlot(rcs_dbsm=10.0)
+    assert plot.rcs_linear_m2 == pytest.approx(10.0)
 
 
-def test_electronic_radar_requires_update_rate() -> None:
-    """Electronic arrays must define refresh rate for C3 track confidence."""
-    with pytest.raises(ValueError, match="update_rate_hz is required"):
-        RadarConfig(
-            name_en="AESA",
-            name_ar="AESA",
-            radar_type=RadarType.AESA_WESTERN,
-            band=RadarBand.C_BAND,
-            scan_mode=ScanMode.ELECTRONIC,
-            position=(0.0, 0.0, 0.0),
-            max_range_m=15_000,
-        )
+def test_radar_scan_plot_count_matches_plot_list():
+    scan = RadarScan(plots=[RadarPlot(), RadarPlot(), RadarPlot()])
+    assert scan.plot_count == 3
 
 
-def test_radar_config_accepts_valid_rotating_profile() -> None:
-    """Valid rotating sensor profiles should instantiate for offline exercises."""
+def test_radar_config_validates_range_limits():
+    with pytest.raises(ValueError, match="max_range_m must exceed min_range_m"):
+        RadarConfig(max_range_m=500.0, min_range_m=500.0)
+
+
+def test_radar_config_scan_period_prefers_scan_rate():
+    cfg = RadarConfig(scan_rate_rpm=12.0, update_rate_hz=9.0)
+    assert cfg.scan_period_s == pytest.approx(5.0)
+
+
+def test_radar_config_scan_period_uses_update_rate_when_needed():
+    cfg = RadarConfig(scan_rate_rpm=0.0, update_rate_hz=2.0)
+    assert cfg.scan_period_s == pytest.approx(0.5)
+
+
+def test_radar_config_scan_period_fallback_default():
+    cfg = RadarConfig(scan_rate_rpm=0.0, update_rate_hz=0.0)
+    assert cfg.scan_period_s == pytest.approx(10.0)
+
+
+def test_radar_config_to_dict_serializes_enums_and_position():
     cfg = RadarConfig(
-        name_en="RPS-202",
-        name_ar="RPS-202",
-        radar_type=RadarType.RPS_202,
+        radar_id="radar-9",
+        name_en="Krechet Unit 9",
+        name_ar="كريشت 9",
+        radar_type=RadarType.AESA_WESTERN,
         band=RadarBand.S_BAND,
-        scan_mode=ScanMode.ROTATING,
-        position=(10.0, 20.0, 5.0),
-        max_range_m=50_000,
-        min_range_m=100.0,
-        scan_rate_rpm=8.0,
+        scan_mode=ScanMode.ELECTRONIC,
+        position=(24.2, 46.7, 500.0),
+        max_range_m=120_000.0,
+        has_elevation=True,
+        has_doppler=True,
+        scan_rate_rpm=0.0,
+        update_rate_hz=4.0,
+        operational=False,
     )
+    payload = cfg.to_dict()
+    assert payload["radar_type"] == "aesa_western"
+    assert payload["band"] == "S"
+    assert payload["scan_mode"] == "electronic"
+    assert payload["position"] == [24.2, 46.7, 500.0]
+    assert payload["scan_period_s"] == 0.25
 
-    assert cfg.name_en == "RPS-202"
-    assert cfg.scan_rate_rpm == pytest.approx(8.0)
->>>>>>> main
+
+def test_radar_status_default_state():
+    status = RadarStatus()
+    assert status.operational is True
+    assert status.scans_received == 0
