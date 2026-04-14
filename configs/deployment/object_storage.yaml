@@ -1,27 +1,32 @@
 object_storage:
-  provider: "hetzner"
+  provider: "cloudflare_r2"
   bucket_name: "s3m-vault"
-  region: "fsn1"
-  endpoint: "https://fsn1.your-objectstorage.com"
+  region: "auto"
+  endpoint: "https://${S3M_CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+  egress_model: "free"
   sync_interval_minutes: 30
   max_retries: 3
 
-  # Hetzner Object Storage advantage:
-  # Internal traffic between Hetzner cloud servers and Object Storage
-  # in the same network zone (eu-central) is FREE.
-  # RunPod traffic still uses public internet (egress counted).
-  internal_network_zone: "eu-central"
-
   storage_budget:
-    fp16_models_gb: 435
-    q4_models_gb: 119
-    datasets_gb: 1291
-    vendor_code_gb: 12
-    adapters_gb: 50
-    checkpoints_gb: 50
+    # IMMUTABLE (seed once)
+    fp16_base_weights_gb: 435
+    q4_serving_weights_gb: 119
+    # DATASETS (seed once + pseudo-label growth)
+    datasets_registered_gb: 1291
+    datasets_pseudo_growth_per_month_gb: 20
+    # TRAINING ARTIFACTS (grow continuously — corrected from original)
+    lora_adapters_gb: 30          # 3 engines × 3 tracks × versions (was lumped into 50)
+    merged_fp16_models_gb: 810    # 3 engines × 3 tracks × 2 versions (was 0!)
+    checkpoints_gb: 607           # optimizer states 1.2× model size (was 50!)
+    # OPERATIONAL
+    eval_results_gb: 5
+    grok_verdicts_gb: 2
     gui_snapshots_gb: 1
-    total_budget_gb: 1958
-    plan_tb: 2
+    vendor_repos_gb: 12
+    # TOTALS
+    total_conservative_gb: 3312   # 2 merged versions + 30-day checkpoints
+    total_aggressive_gb: 2427     # 1 merged version + 7-day checkpoints
+    recommended_plan_tb: 5
 
   engines:
     phi3-medium:
@@ -29,6 +34,10 @@ object_storage:
       q4_hf_repo: "bartowski/Phi-3-medium-4k-instruct-GGUF"
       fp16_size_gb: 28
       q4_size_gb: 8.5
+      lora_adapter_size_gb: 0.15
+      merged_per_track_gb: 28
+      checkpoint_gpu_gb: 33.6
+      checkpoint_cpu_gb: 8.4
       trainable: true
       servable: true
     mistral-7b:
@@ -36,6 +45,10 @@ object_storage:
       q4_hf_repo: "TheBloke/Mixtral-8x7B-Instruct-v0.1-GGUF"
       fp16_size_gb: 93
       q4_size_gb: 26
+      lora_adapter_size_gb: 0.5
+      merged_per_track_gb: 93
+      checkpoint_gpu_gb: 111.6
+      checkpoint_cpu_gb: 27.9
       trainable: true
       servable: true
     allam-7b:
@@ -43,6 +56,10 @@ object_storage:
       q4_hf_repo: null
       fp16_size_gb: 14
       q4_size_gb: 4
+      lora_adapter_size_gb: 0.1
+      merged_per_track_gb: 14
+      checkpoint_gpu_gb: 16.8
+      checkpoint_cpu_gb: 4.2
       trainable: true
       servable: true
     grok-300b:
@@ -54,21 +71,51 @@ object_storage:
       servable: false
       role: "validation_oracle_only"
 
+  lifecycle:
+    checkpoints_runpod:
+      prefix: "checkpoints/runpod/"
+      ttl_days: 7
+    checkpoints_hetzner:
+      prefix: "checkpoints/hetzner/"
+      ttl_days: 30
+    merged_models:
+      prefix: "models/fp16-merged/"
+      max_versions_per_track: 2
+      cleanup_strategy: "manual"
+    adapters:
+      prefix: "models/fp16-adapters/"
+      max_versions_per_track: 10
+      ttl_days: 90
+    grok_verdicts_rejected:
+      prefix: "grok-verdicts/rejected/"
+      ttl_days: 7
+    grok_verdicts_pending:
+      prefix: "grok-verdicts/pending/"
+      ttl_days: 3
+    eval_results:
+      prefix: "eval-results/"
+      ttl_days: 180
+    gui_snapshots:
+      prefix: "gui-snapshots/"
+      ttl_days: 30
+
   access_rules:
     hetzner:
-      pulls_fp16: true
-      pulls_q4: true
-      pulls_datasets: true
-      pushes_checkpoints: true
-      pushes_q4: true
-      pushes_snapshots: true
+      pulls: ["fp16", "q4", "datasets", "adapters"]
+      pushes: ["checkpoints", "q4", "snapshots", "eval_results", "pseudo_labels"]
       blocked_engines: ["grok-300b"]
-      network: "internal_free"
+      initial_pull_estimate_gb: 1845
     runpod:
-      pulls_fp16: true
-      pulls_q4: false
-      pulls_datasets: true
-      pushes_adapters: true
-      pushes_checkpoints: true
+      pulls: ["fp16", "datasets", "adapters"]
+      pushes: ["adapters", "merged", "checkpoints"]
       blocked_engines: ["grok-300b"]
-      network: "public_egress"
+      per_job_transfer_phi3_gb: 95
+      per_job_transfer_mistral_gb: 310
+    cloudflare_pages:
+      pulls: ["gui_snapshots", "eval_results"]
+      network: "internal_r2_binding"
+
+  cost_model:
+    r2_storage_per_gb_month_usd: 0.015
+    monthly_estimate_3tb_usd: 45
+    monthly_estimate_5tb_usd: 75
