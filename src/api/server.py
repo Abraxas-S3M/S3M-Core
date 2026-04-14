@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 import yaml
 
 from services.air_defense.api_routes import router as air_defense_router
-from services.radar.api_routes import router as radar_router
+from services.interceptor.api_routes import router as interceptor_router
 from src.api.command_routes import command_router
 from src.api.cloud_training_routes import cloud_training_router
 from src.api.config import api_config, mission_command_lifespan
@@ -190,7 +190,7 @@ app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
 app.include_router(cloud_training_router, tags=["Cloud Training"])
 app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
 app.include_router(air_defense_router, tags=["Air Defense"])
-app.include_router(radar_router, tags=["Radar"])
+app.include_router(interceptor_router, tags=["Interceptor Guidance"])
 app.include_router(comms_router, tags=["Secure Communications"])
 app.include_router(command_router, tags=["Mission Command"])
 app.include_router(platform_router, tags=["Platform Integration"])
