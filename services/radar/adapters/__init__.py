@@ -1,5 +1,2 @@
-"""Radar adapter interfaces for vendor-specific ingest paths."""
+"""Radar adapter implementations for tactical sensor families."""
 
-from services.radar.adapters.base_adapter import BaseRadarAdapter
-
-__all__ = ["BaseRadarAdapter"]

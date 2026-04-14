@@ -1,4 +1,9 @@
-"""Abstract base class for radar type adapters."""
+"""Base contract for radar adapter implementations.
+
+Military context:
+Every radar family reports with different message formats; this abstract
+adapter enforces a common conversion path into validated tactical plots.
+"""
 
 from __future__ import annotations
 
@@ -9,34 +14,22 @@ from services.radar.models import RadarConfig, RadarPlot
 
 
 class BaseRadarAdapter(ABC):
-    """Abstract adapter that converts radar-specific data into standardized plots."""
+    """Common adapter interface used by tactical radar ingest pipelines."""
 
-    def __init__(self, config: RadarConfig) -> None:
-        self.config = config
+    def __init__(self, config: RadarConfig | None = None) -> None:
+        self.config = config or self.create_default_config()
+        if not isinstance(self.config, RadarConfig):
+            raise ValueError("config must be RadarConfig")
+        if not isinstance(self.config.radar_id, str) or not self.config.radar_id.strip():
+            raise ValueError("config.radar_id must be a non-empty string")
 
     @abstractmethod
     def parse_raw_data(self, raw_data: Dict[str, Any]) -> List[RadarPlot]:
-        """Parse radar-specific raw data format into standardized RadarPlots."""
+        """Convert vendor-native data payloads into standardized radar plots."""
+        raise NotImplementedError
 
     @abstractmethod
     def create_default_config(self) -> RadarConfig:
-        """Return a default configuration for this radar type."""
+        """Provide baseline tactical settings for a radar family."""
+        raise NotImplementedError
 
-    def validate_plot(self, plot: RadarPlot) -> bool:
-        """Check if a plot falls within this radar's detection limits."""
-        if plot.range_m < self.config.min_range_m or plot.range_m > self.config.max_range_m:
-            return False
-        if self.config.has_elevation:
-            if (
-                plot.elevation_deg < self.config.min_elevation_deg
-                or plot.elevation_deg > self.config.max_elevation_deg
-            ):
-                return False
-        # Tactical cueing rejects weak returns to prevent false engagements.
-        if plot.snr_db < self.config.min_detectable_snr_db:
-            return False
-        return True
-
-    def filter_clutter(self, plots: List[RadarPlot]) -> List[RadarPlot]:
-        """Remove plots likely to be clutter based on radar-specific rules."""
-        return [p for p in plots if self.validate_plot(p)]
