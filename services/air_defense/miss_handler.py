@@ -10,7 +10,7 @@ depth - every target gets multiple engagement opportunities.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from services.air_defense.effector_registry import EffectorRegistry
 from services.air_defense.models import (
@@ -167,6 +167,34 @@ class MissHandler:
             result.allocation.max_attempts = allocation.max_attempts
             result.reasoning = f"Re-allocated to {result.allocation.effector_id} after miss"
         return result
+
+    def report_interceptor_guidance_result(
+        self,
+        allocation: TargetAllocation,
+        guidance_result: Any,
+        *,
+        updated_target_position: Optional[Tuple[float, float, float]] = None,
+        updated_target_speed: Optional[float] = None,
+    ) -> Optional[AllocationResult]:
+        """Trigger miss fallback when interceptor guidance reports MISS.
+
+        Tactical context:
+        Guidance computers may report terminal outcomes as strings, enums, or
+        result objects. A MISS must enter the same doctrinal fallback chain:
+        interceptor drone -> SAM -> gun/MANPADS.
+        """
+        outcome = guidance_result
+        if hasattr(guidance_result, "outcome"):
+            outcome = getattr(guidance_result, "outcome")
+        if hasattr(outcome, "value"):
+            outcome = getattr(outcome, "value")
+        if str(outcome).strip().upper() != "MISS":
+            return None
+        return self.report_miss(
+            allocation=allocation,
+            updated_target_position=updated_target_position,
+            updated_target_speed=updated_target_speed,
+        )
 
     def report_kill(self, allocation: TargetAllocation) -> None:
         """Record a confirmed kill on the target."""

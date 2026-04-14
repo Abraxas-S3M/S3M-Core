@@ -36,6 +36,23 @@ class AirDefenseAllocator(Protocol):
         ...
 
 
+class InterceptorGuidanceManager(Protocol):
+    """Protocol for optional interceptor midcourse guidance integration."""
+
+    def get_active_interceptions(self) -> List[Dict[str, Any]]:
+        ...
+
+    def guide(
+        self,
+        interceptor_id: str,
+        interceptor_pos: Tuple[float, float, float],
+        interceptor_vel: Tuple[float, float, float],
+        target_pos: Tuple[float, float, float],
+        target_vel: Tuple[float, float, float],
+    ) -> Any:
+        ...
+
+
 ALLOCATABLE_TRACK_CLASSES = frozenset(
     {"ENEMY_UAV", "ENEMY_CRUISE_MISSILE", "ENEMY_HELICOPTER", "ENEMY_AIRCRAFT"}
 )
@@ -50,15 +67,31 @@ def _parse_xyz(raw_position: Any, *, field_name: str) -> Tuple[float, float, flo
         raise ValueError(f"{field_name} must contain numeric coordinates") from exc
 
 
+def _parse_optional_xyz(raw_position: Any) -> Optional[Tuple[float, float, float]]:
+    if raw_position is None:
+        return None
+    if not isinstance(raw_position, (list, tuple)) or len(raw_position) != 3:
+        return None
+    try:
+        return (float(raw_position[0]), float(raw_position[1]), float(raw_position[2]))
+    except (TypeError, ValueError):
+        return None
+
+
 class RadarManager:
     """Coordinate radar registration, scan ingest, and simple track fusion."""
 
-    def __init__(self, air_defense_allocator: Optional[AirDefenseAllocator] = None) -> None:
+    def __init__(
+        self,
+        air_defense_allocator: Optional[AirDefenseAllocator] = None,
+        interceptor_manager: Optional[InterceptorGuidanceManager] = None,
+    ) -> None:
         self._radars: Dict[str, RadarUnit] = {}
         self._status: Dict[str, RadarStatus] = {}
         self._plots_by_radar: Dict[str, List[RadarPlot]] = {}
         self._tracks: Dict[str, FusedTrack] = {}
         self._air_defense_allocator = air_defense_allocator
+        self._interceptor_manager = interceptor_manager
         self._allocated_track_ids: set[str] = set()
 
     def list_radars(self) -> List[RadarUnit]:
@@ -173,6 +206,7 @@ class RadarManager:
                 if existing.source_hits >= 2:
                     existing.state = TrackState.CONFIRMED
         self._allocate_confirmed_tracks()
+        self._guide_active_interceptions()
         return list(self._tracks.values())
 
     def _derive_track_classification(self, plot: RadarPlot) -> str:
@@ -219,6 +253,47 @@ class RadarManager:
                 target_classification=classification,
             )
             self._allocated_track_ids.add(track.track_id)
+
+    def _guide_active_interceptions(self) -> None:
+        if self._interceptor_manager is None:
+            return
+        active_interceptions = self._interceptor_manager.get_active_interceptions()
+        if not active_interceptions:
+            return
+
+        interceptor_ids_by_target: Dict[str, List[str]] = {}
+        for interception in active_interceptions:
+            target_id = str(interception.get("target_id", "")).strip()
+            interceptor_id = str(interception.get("interceptor_id", "")).strip()
+            if not target_id or not interceptor_id:
+                continue
+            interceptor_ids_by_target.setdefault(target_id, []).append(interceptor_id)
+        if not interceptor_ids_by_target:
+            return
+
+        for track in self._tracks.values():
+            if track.state is not TrackState.CONFIRMED:
+                continue
+            interceptor_ids = interceptor_ids_by_target.get(track.track_id)
+            if not interceptor_ids:
+                continue
+            # Tactical context: fused tracks drive each midcourse update so
+            # interceptor drones stay synchronized with the latest radar picture.
+            interceptor_pos = _parse_optional_xyz(track.metadata.get("interceptor_pos")) or (0.0, 0.0, 0.0)
+            interceptor_vel = _parse_optional_xyz(track.metadata.get("interceptor_vel")) or (0.0, 0.0, 0.0)
+            for interceptor_id in interceptor_ids:
+                try:
+                    self._interceptor_manager.guide(
+                        interceptor_id=interceptor_id,
+                        interceptor_pos=interceptor_pos,
+                        interceptor_vel=interceptor_vel,
+                        target_pos=track.position,
+                        target_vel=track.velocity,
+                    )
+                except Exception:
+                    # Tactical resilience: one guidance fault must not block fusion
+                    # updates for the rest of the air picture.
+                    continue
 
     def get_stats(self) -> Dict[str, Any]:
         scans_received = sum(status.scans_received for status in self._status.values())

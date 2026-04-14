@@ -127,3 +127,38 @@ def test_report_kill_marks_target_hit_and_releases_effector() -> None:
 
     assert alloc.status == "hit"
     assert registry.get("sam-1").state.value == "available"  # type: ignore[union-attr]
+
+
+def test_guidance_result_miss_triggers_existing_fallback_chain() -> None:
+    registry = EffectorRegistry()
+    drone = _effector("drone-1", EffectorCategory.INTERCEPTOR_DRONE)
+    sam = _effector("sam-1", EffectorCategory.SAM_MEDIUM)
+    registry.register_many([drone, sam])
+    handler = MissHandler(registry, TargetAllocator(registry))
+    alloc = _allocation(drone)
+    drone.begin_engagement(alloc.target_id)
+
+    class _GuidanceResult:
+        outcome = "MISS"
+
+    result = handler.report_interceptor_guidance_result(alloc, _GuidanceResult())
+
+    assert result is not None
+    assert result.allocated is True
+    assert result.allocation is not None
+    assert result.allocation.effector_id == "sam-1"
+    assert alloc.attempts == 1
+
+
+def test_guidance_result_non_miss_does_not_trigger_fallback() -> None:
+    registry = EffectorRegistry()
+    drone = _effector("drone-1", EffectorCategory.INTERCEPTOR_DRONE)
+    sam = _effector("sam-1", EffectorCategory.SAM_MEDIUM)
+    registry.register_many([drone, sam])
+    handler = MissHandler(registry, TargetAllocator(registry))
+    alloc = _allocation(drone)
+
+    result = handler.report_interceptor_guidance_result(alloc, {"outcome": "hit"})
+
+    assert result is None
+    assert alloc.attempts == 0
