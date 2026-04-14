@@ -1,207 +1,146 @@
-"""Radar manager for ingesting scans and producing fused tracks.
+"""In-memory radar manager for tactical sensor orchestration.
 
 Military context:
-Implements edge-local radar fusion that combines detections from layered sensors
-to preserve continuity of hostile air tracks as they penetrate defended airspace.
+The manager maintains a deterministic local radar picture suitable for
+offline command-post simulation on edge compute hardware.
 """
 
 from __future__ import annotations
 
-from collections import Counter
-from math import cos, radians, sin
-from typing import Any
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import uuid4
 
 from services.radar.models import (
     FusedTrack,
     RCSClassification,
     RadarConfig,
     RadarPlot,
+    RadarStatus,
+    RadarUnit,
     TrackState,
 )
 
 
+def _parse_xyz(raw_position: Any, *, field_name: str) -> Tuple[float, float, float]:
+    if not isinstance(raw_position, (list, tuple)) or len(raw_position) != 3:
+        raise ValueError(f"{field_name} must be [x_m, y_m, z_m]")
+    try:
+        return (float(raw_position[0]), float(raw_position[1]), float(raw_position[2]))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field_name} must contain numeric coordinates") from exc
+
+
 class RadarManager:
-    """Manage tactical radar registrations, scan ingest, and local track fusion."""
+    """Coordinate radar registration, scan ingest, and simple track fusion."""
 
     def __init__(self) -> None:
-        self._radars: dict[str, RadarConfig] = {}
-        self._plots_by_radar: dict[str, list[RadarPlot]] = {}
-        self._status: dict[str, dict[str, int]] = {}
-        self._pending_plots: list[RadarPlot] = []
+        self._radars: Dict[str, RadarUnit] = {}
+        self._status: Dict[str, RadarStatus] = {}
+        self._plots_by_radar: Dict[str, List[RadarPlot]] = {}
+        self._tracks: Dict[str, FusedTrack] = {}
 
-    def register_radar(self, config: RadarConfig, *, replace_existing: bool = False) -> None:
-        if config.radar_id in self._radars and not replace_existing:
-            raise ValueError(f"Radar {config.radar_id} already registered")
-        self._radars[config.radar_id] = config
-        self._plots_by_radar.setdefault(config.radar_id, [])
-        self._status.setdefault(config.radar_id, {"scans": 0, "plots": 0, "correlated": 0})
+    def list_radars(self) -> List[RadarUnit]:
+        return list(self._radars.values())
 
-    def get_radar(self, radar_id: str) -> RadarConfig | None:
-        return self._radars.get(radar_id)
+    def get_radar(self, radar_id: str) -> Optional[RadarUnit]:
+        return self._radars.get(str(radar_id))
 
-    def get_all_status(self) -> dict[str, dict[str, int]]:
-        return {rid: dict(stats) for rid, stats in self._status.items()}
+    def register_radar(self, config: RadarConfig) -> RadarUnit:
+        radar_id = str(uuid4())
+        unit = RadarUnit(radar_id=radar_id, config=config)
+        self._radars[radar_id] = unit
+        self._status[radar_id] = RadarStatus(radar_id=radar_id)
+        self._plots_by_radar.setdefault(radar_id, [])
+        return unit
 
-    def ingest_scan(self, radar_id: str, payload: dict[str, Any]) -> list[RadarPlot]:
-        radar = self._radars.get(radar_id)
-        if radar is None:
-            raise ValueError(f"Unknown radar_id: {radar_id}")
-        plots_payload = payload.get("plots")
-        if not isinstance(plots_payload, list):
-            raise ValueError("payload must include a list under key 'plots'")
+    def get_status(self, radar_id: str) -> Optional[RadarStatus]:
+        return self._status.get(str(radar_id))
 
-        self._status[radar_id]["scans"] += 1
-        accepted: list[RadarPlot] = []
-        for raw_plot in plots_payload:
+    def get_all_status(self) -> Dict[str, Any]:
+        statuses = [status.to_dict() for status in self._status.values()]
+        return {"radars": statuses, "count": len(statuses)}
+
+    def ingest_scan(self, radar_id: str, payload: Dict[str, Any]) -> List[RadarPlot]:
+        radar_key = str(radar_id)
+        if radar_key not in self._radars:
+            raise ValueError("Radar not found")
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be a JSON object")
+        raw_plots = payload.get("plots")
+        if not isinstance(raw_plots, list):
+            raise ValueError("plots must be a list")
+
+        now = datetime.now(timezone.utc)
+        produced_plots: List[RadarPlot] = []
+        correlated_hits = 0
+        for idx, raw_plot in enumerate(raw_plots):
             if not isinstance(raw_plot, dict):
-                continue
-            range_m = float(raw_plot.get("range_m", -1.0))
-            if range_m < 0.0 or range_m > radar.max_range_m:
-                continue
-            azimuth = float(raw_plot.get("azimuth_deg", 0.0))
-            elevation = float(raw_plot.get("elevation_deg", 0.0))
-            velocity = float(raw_plot.get("velocity_mps", 0.0))
-            rcs_dbsm = float(raw_plot.get("rcs_dbsm", -30.0))
-            snr_db = float(raw_plot.get("snr_db", 0.0))
-            position = self._to_cartesian(
-                radar_position=radar.position,
-                range_m=range_m,
-                azimuth_deg=azimuth,
-                elevation_deg=elevation,
-            )
-            rcs_classification, confidence = self._classify_rcs(rcs_dbsm=rcs_dbsm)
-            plot = RadarPlot(
-                radar_id=radar_id,
-                range_m=range_m,
-                azimuth_deg=azimuth,
-                elevation_deg=elevation,
-                velocity_mps=velocity,
-                rcs_dbsm=rcs_dbsm,
-                snr_db=snr_db,
-                position_cartesian=position,
-                rcs_classification=rcs_classification,
-                classification_confidence=confidence,
-            )
-            accepted.append(plot)
-            self._plots_by_radar[radar_id].append(plot)
-            self._pending_plots.append(plot)
-
-        self._status[radar_id]["plots"] += len(accepted)
-        return accepted
-
-    def process_fused_tracks(self) -> list[FusedTrack]:
-        if not self._pending_plots:
-            return []
-
-        grouped: list[list[RadarPlot]] = []
-        for plot in self._pending_plots:
-            placed = False
-            for group in grouped:
-                if self._is_same_track(plot, group):
-                    group.append(plot)
-                    placed = True
+                raise ValueError(f"plot[{idx}] must be an object")
+            position = _parse_xyz(raw_plot.get("position", [0.0, 0.0, 0.0]), field_name=f"plot[{idx}].position")
+            classification_text = str(raw_plot.get("rcs_classification", "unknown")).strip().lower()
+            classification = RCSClassification.UNKNOWN
+            for candidate in RCSClassification:
+                if candidate.value == classification_text:
+                    classification = candidate
                     break
-            if not placed:
-                grouped.append([plot])
+            track_id_raw = raw_plot.get("track_id") or raw_plot.get("correlated_track_id")
+            track_id = str(track_id_raw) if track_id_raw else None
+            if track_id:
+                correlated_hits += 1
 
-        tracks: list[FusedTrack] = []
-        for group_plots in grouped:
-            if not group_plots:
-                continue
-            sensors = sorted({plot.radar_id for plot in group_plots})
-            avg_position = (
-                sum(plot.position_cartesian[0] for plot in group_plots) / len(group_plots),
-                sum(plot.position_cartesian[1] for plot in group_plots) / len(group_plots),
-                sum(plot.position_cartesian[2] for plot in group_plots) / len(group_plots),
-            )
-            mean_velocity = sum(plot.velocity_mps for plot in group_plots) / len(group_plots)
-            avg_az = sum(plot.azimuth_deg for plot in group_plots) / len(group_plots)
-            avg_el = sum(plot.elevation_deg for plot in group_plots) / len(group_plots)
-            velocity_vector = self._to_velocity_vector(
-                speed_mps=mean_velocity,
-                azimuth_deg=avg_az,
-                elevation_deg=avg_el,
-            )
-            classification_counts = Counter(plot.rcs_classification for plot in group_plots)
-            dominant_class = classification_counts.most_common(1)[0][0]
-
-            # Tactical note: multi-radar corroboration upgrades a target from
-            # tentative to confirmed for downstream weapon-assignment logic.
-            state = TrackState.CONFIRMED if len(sensors) > 1 else TrackState.TENTATIVE
-            if state is TrackState.CONFIRMED:
-                for sensor_id in sensors:
-                    self._status[sensor_id]["correlated"] += 1
-
-            tracks.append(
-                FusedTrack(
-                    position=avg_position,
-                    velocity=velocity_vector,
-                    sensor_sources=sensors,
-                    classification=dominant_class.value,
-                    state=state,
+            produced_plots.append(
+                RadarPlot(
+                    plot_id=str(uuid4()),
+                    radar_id=radar_key,
+                    position=position,
+                    rcs_classification=classification,
+                    correlated_track_id=track_id,
+                    timestamp=now,
+                    attributes={k: v for k, v in raw_plot.items() if k not in {"position", "track_id", "correlated_track_id", "rcs_classification"}},
                 )
             )
 
-        self._pending_plots = []
-        return tracks
+        self._plots_by_radar.setdefault(radar_key, []).extend(produced_plots)
+        status = self._status[radar_key]
+        status.scans_received += 1
+        status.plots_received += len(produced_plots)
+        status.plots_correlated += correlated_hits
+        status.last_scan_time = now
+        return produced_plots
 
-    @staticmethod
-    def _is_same_track(candidate: RadarPlot, group: list[RadarPlot]) -> bool:
-        if not group:
-            return True
-        lead = group[0]
-        if candidate.rcs_classification is not lead.rcs_classification:
-            return False
-        mean_az = sum(plot.azimuth_deg for plot in group) / len(group)
-        mean_el = sum(plot.elevation_deg for plot in group) / len(group)
-        mean_velocity = sum(plot.velocity_mps for plot in group) / len(group)
-        # Tactical note: permissive angular gates preserve a single track while a
-        # low-RCS target closes rapidly through layered radar rings.
-        return (
-            abs(candidate.azimuth_deg - mean_az) <= 6.0
-            and abs(candidate.elevation_deg - mean_el) <= 4.0
-            and abs(candidate.velocity_mps - mean_velocity) <= 20.0
-        )
+    def process_fused_tracks(self) -> List[FusedTrack]:
+        now = datetime.now(timezone.utc)
+        for plots in self._plots_by_radar.values():
+            for plot in plots:
+                if not plot.correlated_track_id:
+                    continue
+                track_id = str(plot.correlated_track_id)
+                existing = self._tracks.get(track_id)
+                if existing is None:
+                    self._tracks[track_id] = FusedTrack(
+                        track_id=track_id,
+                        state=TrackState.TENTATIVE,
+                        last_update=now,
+                        source_hits=1,
+                    )
+                    continue
 
-    @staticmethod
-    def _classify_rcs(*, rcs_dbsm: float) -> tuple[RCSClassification, float]:
-        if rcs_dbsm <= -15.0:
-            return (RCSClassification.MICRO_UAV, 0.88)
-        if rcs_dbsm <= -8.0:
-            return (RCSClassification.SHAHED_CLASS_UAV, 0.83)
-        if rcs_dbsm <= -3.0:
-            return (RCSClassification.TACTICAL_UAV, 0.78)
-        if rcs_dbsm <= 8.0:
-            return (RCSClassification.CRUISE_MISSILE, 0.7)
-        return (RCSClassification.AIRCRAFT, 0.67)
+                existing.source_hits += 1
+                existing.last_update = now
+                if existing.source_hits >= 2:
+                    existing.state = TrackState.CONFIRMED
+        return list(self._tracks.values())
 
-    @staticmethod
-    def _to_cartesian(
-        *,
-        radar_position: tuple[float, float, float],
-        range_m: float,
-        azimuth_deg: float,
-        elevation_deg: float,
-    ) -> tuple[float, float, float]:
-        azimuth_rad = radians(azimuth_deg)
-        elevation_rad = radians(elevation_deg)
-        horizontal_range = range_m * cos(elevation_rad)
-        x = radar_position[0] + horizontal_range * cos(azimuth_rad)
-        y = radar_position[1] + horizontal_range * sin(azimuth_rad)
-        z = radar_position[2] + range_m * sin(elevation_rad)
-        return (x, y, z)
+    def get_stats(self) -> Dict[str, Any]:
+        scans_received = sum(status.scans_received for status in self._status.values())
+        plots_received = sum(status.plots_received for status in self._status.values())
+        plots_correlated = sum(status.plots_correlated for status in self._status.values())
+        return {
+            "radars_registered": len(self._radars),
+            "scans_received": scans_received,
+            "plots_received": plots_received,
+            "plots_correlated": plots_correlated,
+            "tracks": len(self._tracks),
+        }
 
-    @staticmethod
-    def _to_velocity_vector(
-        *,
-        speed_mps: float,
-        azimuth_deg: float,
-        elevation_deg: float,
-    ) -> tuple[float, float, float]:
-        azimuth_rad = radians(azimuth_deg)
-        elevation_rad = radians(elevation_deg)
-        horizontal_speed = speed_mps * cos(elevation_rad)
-        vx = horizontal_speed * cos(azimuth_rad)
-        vy = horizontal_speed * sin(azimuth_rad)
-        vz = speed_mps * sin(elevation_rad)
-        return (vx, vy, vz)

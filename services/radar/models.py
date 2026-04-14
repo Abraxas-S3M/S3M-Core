@@ -1,55 +1,48 @@
-"""Data models for tactical radar sensing and fused tracks.
+"""Data models for tactical radar management.
 
 Military context:
-These structures represent tactical radar detections and fused air tracks used
-to maintain a layered local air picture in contested low-altitude scenarios.
+These structures model radar assets, scan plots, and fused tracks used by a
+command post to build an air picture from distributed sensors.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from math import isfinite
-from typing import Tuple
-from uuid import uuid4
+from typing import Any, Dict, Optional, Tuple
 
 
-def _validate_finite(value: float, *, field_name: str) -> float:
-    numeric = float(value)
-    if not isfinite(numeric):
-        raise ValueError(f"{field_name} must be finite")
-    return numeric
-
-
-def _validate_non_negative(value: float, *, field_name: str) -> float:
-    numeric = _validate_finite(value, field_name=field_name)
-    if numeric < 0.0:
-        raise ValueError(f"{field_name} must be non-negative")
-    return numeric
-
-
-def _validate_position(position: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    if len(position) != 3:
-        raise ValueError("position must contain exactly three coordinates")
-    return (
-        _validate_finite(position[0], field_name="position_x"),
-        _validate_finite(position[1], field_name="position_y"),
-        _validate_finite(position[2], field_name="position_z"),
-    )
+def _iso(ts: datetime) -> str:
+    return ts.astimezone(timezone.utc).isoformat()
 
 
 class RadarType(str, Enum):
-    RPS_82 = "rps-82"
-    RPS_202 = "rps-202"
+    GENERIC_3D = "generic_3d"
     AESA = "aesa"
+    COUNTER_BATTERY = "counter_battery"
+    FIRE_CONTROL = "fire_control"
+
+
+class RadarBand(str, Enum):
+    L = "L"
+    S = "S"
+    C = "C"
+    X = "X"
+    KU = "Ku"
+
+
+class ScanMode(str, Enum):
+    VOLUME = "volume"
+    SECTOR = "sector"
+    TRACK = "track"
 
 
 class RCSClassification(str, Enum):
-    MICRO_UAV = "micro_uav"
-    SHAHED_CLASS_UAV = "shahed_class_uav"
-    TACTICAL_UAV = "tactical_uav"
-    CRUISE_MISSILE = "cruise_missile_like"
-    AIRCRAFT = "aircraft_like"
+    UNKNOWN = "unknown"
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
 
 
 class TrackState(str, Enum):
@@ -57,69 +50,86 @@ class TrackState(str, Enum):
     CONFIRMED = "confirmed"
 
 
-@dataclass(slots=True)
+@dataclass
 class RadarConfig:
-    radar_id: str
     name_en: str
+    name_ar: str
     radar_type: RadarType
+    band: RadarBand
     position: Tuple[float, float, float]
     max_range_m: float
+    scan_mode: ScanMode = ScanMode.VOLUME
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        if not self.name_en:
-            raise ValueError("name_en is required")
-        self.position = _validate_position(self.position)
-        self.max_range_m = _validate_non_negative(self.max_range_m, field_name="max_range_m")
-        if self.max_range_m == 0.0:
-            raise ValueError("max_range_m must be > 0")
+    def to_dict(self) -> Dict[str, Any]:
+        payload = asdict(self)
+        payload["radar_type"] = self.radar_type.value
+        payload["band"] = self.band.value
+        payload["scan_mode"] = self.scan_mode.value
+        return payload
 
 
-@dataclass(slots=True)
-class RadarPlot:
+@dataclass
+class RadarUnit:
     radar_id: str
-    range_m: float
-    azimuth_deg: float
-    elevation_deg: float
-    velocity_mps: float
-    rcs_dbsm: float
-    snr_db: float
-    position_cartesian: Tuple[float, float, float]
-    rcs_classification: RCSClassification
-    classification_confidence: float
+    config: RadarConfig
+    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        self.range_m = _validate_non_negative(self.range_m, field_name="range_m")
-        self.azimuth_deg = _validate_finite(self.azimuth_deg, field_name="azimuth_deg")
-        self.elevation_deg = _validate_finite(self.elevation_deg, field_name="elevation_deg")
-        self.velocity_mps = _validate_finite(self.velocity_mps, field_name="velocity_mps")
-        self.rcs_dbsm = _validate_finite(self.rcs_dbsm, field_name="rcs_dbsm")
-        self.snr_db = _validate_finite(self.snr_db, field_name="snr_db")
-        self.position_cartesian = _validate_position(self.position_cartesian)
-        self.classification_confidence = _validate_finite(
-            self.classification_confidence,
-            field_name="classification_confidence",
-        )
-        if not (0.0 <= self.classification_confidence <= 1.0):
-            raise ValueError("classification_confidence must be in [0.0, 1.0]")
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "radar_id": self.radar_id,
+            "registered_at": _iso(self.registered_at),
+            **self.config.to_dict(),
+        }
 
 
-@dataclass(slots=True)
-class FusedTrack:
+@dataclass
+class RadarStatus:
+    radar_id: str
+    operational: bool = True
+    scans_received: int = 0
+    plots_received: int = 0
+    plots_correlated: int = 0
+    last_scan_time: Optional[datetime] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "radar_id": self.radar_id,
+            "operational": self.operational,
+            "scans_received": self.scans_received,
+            "plots_received": self.plots_received,
+            "plots_correlated": self.plots_correlated,
+            "last_scan": _iso(self.last_scan_time) if self.last_scan_time else None,
+        }
+
+
+@dataclass
+class RadarPlot:
+    plot_id: str
+    radar_id: str
     position: Tuple[float, float, float]
-    velocity: Tuple[float, float, float]
-    sensor_sources: list[str]
-    classification: str
-    state: TrackState
-    track_id: str = field(default_factory=lambda: str(uuid4()))
+    rcs_classification: RCSClassification
+    correlated_track_id: Optional[str]
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    attributes: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self) -> None:
-        self.position = _validate_position(self.position)
-        self.velocity = _validate_position(self.velocity)
-        if not self.sensor_sources:
-            raise ValueError("sensor_sources must not be empty")
-        if not self.classification:
-            raise ValueError("classification is required")
+    def to_dict(self) -> Dict[str, Any]:
+        payload = asdict(self)
+        payload["timestamp"] = _iso(self.timestamp)
+        payload["rcs_classification"] = self.rcs_classification.value
+        return payload
+
+
+@dataclass
+class FusedTrack:
+    track_id: str
+    state: TrackState
+    last_update: datetime
+    source_hits: int = 1
+
+    def to_dict(self) -> Dict[str, Any]:
+        payload = asdict(self)
+        payload["state"] = self.state.value
+        payload["last_update"] = _iso(self.last_update)
+        return payload
+
