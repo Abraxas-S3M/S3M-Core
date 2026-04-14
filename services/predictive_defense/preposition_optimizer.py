@@ -1,178 +1,132 @@
-"""Interceptor pre-positioning optimizer.
+"""Interceptor pre-position optimization for predictive engagement windows.
 
 Military context:
-Given predicted threat positions at T+60/120s, this optimizer computes
-where and when to launch interceptor drones so they arrive at the
-predicted intercept point simultaneously with or before the threats.
-This is the operational advantage: instead of reacting when targets
-enter the defense zone, S3M pre-positions interceptors on predicted
-approach corridors 60-120 seconds early.
+The optimizer converts forecasted threat locations into immediate interceptor
+flight commands so defenders arrive before swarm ingress.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import math
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from services.predictive_defense.models import (
     InterceptWindow,
     PrePositionCommand,
-    SwarmPrediction,
     ThreatTrajectoryPrediction,
 )
 
 
+def _distance_m(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
+    dx = a[0] - b[0]
+    dy = a[1] - b[1]
+    dz = a[2] - b[2]
+    return math.sqrt(dx * dx + dy * dy + dz * dz)
+
+
+@dataclass
+class InterceptorProfile:
+    """Operational state required for pre-position timing calculations."""
+
+    interceptor_id: str
+    position_m: Tuple[float, float, float]
+    max_speed_mps: float
+    readiness: float = 1.0
+
+    def __post_init__(self) -> None:
+        self.position_m = (float(self.position_m[0]), float(self.position_m[1]), float(self.position_m[2]))
+        self.max_speed_mps = max(1.0, float(self.max_speed_mps))
+        self.readiness = max(0.0, min(1.0, float(self.readiness)))
+
+
 class PrePositionOptimizer:
-    """Compute optimal interceptor pre-positioning from threat predictions."""
+    """Compute predictive interceptor flight commands from threat forecasts."""
 
     def __init__(
         self,
-        interceptor_speed_mps: float = 60.0,
-        interceptor_launch_delay_s: float = 15.0,
-        defended_position: Tuple[float, float, float] = (0.0, 0.0, 0.0),
-        min_engagement_window_s: float = 20.0,
+        arrival_buffer_s: float = 5.0,
+        intercept_window_half_width_s: float = 10.0,
     ) -> None:
-        self.interceptor_speed = float(interceptor_speed_mps)
-        self.launch_delay = float(interceptor_launch_delay_s)
-        self.defended_position = self._validate_position(defended_position, "defended_position")
-        self.min_engagement_window = float(min_engagement_window_s)
+        self.arrival_buffer_s = max(0.0, float(arrival_buffer_s))
+        self.intercept_window_half_width_s = max(1.0, float(intercept_window_half_width_s))
 
-        if not math.isfinite(self.interceptor_speed) or self.interceptor_speed <= 0.0:
-            raise ValueError("interceptor_speed_mps must be a finite positive value")
-        if not math.isfinite(self.launch_delay) or self.launch_delay < 0.0:
-            raise ValueError("interceptor_launch_delay_s must be a finite non-negative value")
-        if not math.isfinite(self.min_engagement_window) or self.min_engagement_window < 0.0:
-            raise ValueError("min_engagement_window_s must be a finite non-negative value")
-
-    def compute_intercept_window(
+    def optimize(
         self,
-        prediction: ThreatTrajectoryPrediction,
-        interceptor_position: Tuple[float, float, float] = (0.0, 0.0, 0.0),
-    ) -> InterceptWindow:
-        """Compute the time/space window where an intercept is possible."""
-        intc_pos = self._validate_position(interceptor_position, "interceptor_position")
-
-        # Prioritize longer-horizon position to exploit tactical pre-positioning time.
-        intercept_pos = prediction.predicted_60s or prediction.predicted_30s or prediction.current_position
-        return self._compute_window_for_position(prediction, intc_pos, intercept_pos)
-
-    def optimize_preposition(
-        self,
-        predictions: List[ThreatTrajectoryPrediction],
-        available_interceptors: List[Dict],
-        swarm: Optional[SwarmPrediction] = None,
+        *,
+        trajectory_predictions: List[ThreatTrajectoryPrediction],
+        interceptor_profiles: List[InterceptorProfile],
+        now_s: float,
     ) -> List[PrePositionCommand]:
-        """Compute pre-position commands for available interceptors."""
+        """Generate feasible pre-position commands for predicted threat tracks."""
+        available = [profile for profile in interceptor_profiles if profile.readiness > 0.2]
+        if not available:
+            return []
+
         commands: List[PrePositionCommand] = []
+        used_interceptors: set[str] = set()
+        prioritized = sorted(trajectory_predictions, key=lambda item: item.risk_score, reverse=True)
+        for prediction in prioritized:
+            target_solutions = self._select_target_solutions(prediction)
+            if not target_solutions:
+                continue
+            best_profile: Optional[InterceptorProfile] = None
+            best_solution: Optional[Tuple[float, Tuple[float, float, float]]] = None
+            best_margin = -1e9
 
-        # Sort predictions by urgency (closest arrival first).
-        sorted_preds = sorted(predictions, key=lambda p: p.time_to_asset_s)
+            for profile in available:
+                if profile.interceptor_id in used_interceptors:
+                    continue
+                for horizon_s, intercept_point in target_solutions:
+                    threat_arrival_s = now_s + horizon_s
+                    travel_time_s = _distance_m(profile.position_m, intercept_point) / profile.max_speed_mps
+                    arrival_margin_s = (threat_arrival_s - self.arrival_buffer_s) - (now_s + travel_time_s)
+                    if arrival_margin_s > best_margin:
+                        best_margin = arrival_margin_s
+                        best_profile = profile
+                        best_solution = (horizon_s, intercept_point)
 
-        for i, pred in enumerate(sorted_preds):
-            if i >= len(available_interceptors):
-                break
+            if best_profile is None or best_solution is None or best_margin < 0.0:
+                continue
 
-            intc = available_interceptors[i]
-            intc_id = str(intc.get("interceptor_id", f"intc-{i}"))
-            intc_pos = self._validate_position(
-                intc.get("position", self.defended_position),
-                f"available_interceptors[{i}].position",
+            used_interceptors.add(best_profile.interceptor_id)
+            horizon_s, intercept_point = best_solution
+            threat_arrival_s = now_s + horizon_s
+            preferred_intercept_s = threat_arrival_s - self.arrival_buffer_s
+            window = InterceptWindow(
+                threat_id=prediction.track_id,
+                start_time_s=preferred_intercept_s - self.intercept_window_half_width_s,
+                end_time_s=preferred_intercept_s + self.intercept_window_half_width_s,
+                preferred_time_s=preferred_intercept_s,
+                intercept_point_m=intercept_point,
+                confidence=min(0.99, (prediction.forecast_confidence * 0.7) + (prediction.risk_score * 0.3)),
             )
-
-            window = self.compute_intercept_window(pred, intc_pos)
-            engagement_time = window.window_end_s - window.window_start_s
-
-            # If the initial station point is infeasible, retry a closer 30s forecast.
-            if engagement_time < self.min_engagement_window and pred.predicted_30s:
-                window = self._compute_window_for_position(pred, intc_pos, pred.predicted_30s)
-
-            launch_offset = max(0.0, window.optimal_launch_s)
-            launch_now = launch_offset < 5.0  # Execute immediate scramble when margin is minimal.
-
-            # Place the loiter point slightly inward toward defended assets to reduce terminal dash.
-            prepos = self._compute_preposition_point(window.intercept_position)
-
-            reasoning = (
-                f"Pre-position {intc_id} at predicted intercept point "
-                f"({prepos[0]:.0f}, {prepos[1]:.0f}, {prepos[2]:.0f}) "
-                f"for track {pred.track_id}"
+            commands.append(
+                PrePositionCommand(
+                    interceptor_id=best_profile.interceptor_id,
+                    target_track_id=prediction.track_id,
+                    launch_position_m=best_profile.position_m,
+                    intercept_point_m=intercept_point,
+                    launch_time_s=now_s,
+                    intercept_time_s=preferred_intercept_s,
+                    intercept_window=window,
+                    priority=max(1, int((1.0 - prediction.risk_score) * 100)),
+                )
             )
-            if pred.genome_match:
-                reasoning += f" (genome: {pred.genome_match})"
-            if swarm:
-                reasoning += f" | Swarm of {swarm.track_count}, intent: {swarm.intent.value}"
-
-            cmd = PrePositionCommand(
-                interceptor_id=intc_id,
-                target_track_id=pred.track_id,
-                launch_now=launch_now,
-                intercept_position=prepos,
-                loiter_altitude_m=prepos[2],
-                launch_time_offset_s=launch_offset,
-                time_to_station_s=window.window_start_s,
-                engagement_window_s=max(0.0, window.window_end_s - window.window_start_s),
-                reasoning=reasoning,
-                confidence=max(0.0, min(1.0, pred.prediction_confidence * window.closing_geometry_score)),
-            )
-            commands.append(cmd)
-
         return commands
 
-    def _compute_window_for_position(
-        self,
+    @staticmethod
+    def _select_target_solutions(
         prediction: ThreatTrajectoryPrediction,
-        interceptor_position: Tuple[float, float, float],
-        intercept_pos: Tuple[float, float, float],
-    ) -> InterceptWindow:
-        dist_to_intercept = self._distance(interceptor_position, intercept_pos)
-        time_to_station = self.launch_delay + dist_to_intercept / self.interceptor_speed
-        window_start = time_to_station
-        window_end = max(window_start, prediction.time_to_asset_s)
-
-        threat_bearing = prediction.current_heading_deg
-        intercept_bearing = self._bearing_from_to(interceptor_position, intercept_pos)
-        angle_off = abs(threat_bearing - intercept_bearing)
-        if angle_off > 180.0:
-            angle_off = 360.0 - angle_off
-        geometry_score = max(0.1, 1.0 - angle_off / 180.0)
-
-        return InterceptWindow(
-            window_start_s=window_start,
-            window_end_s=window_end,
-            optimal_launch_s=max(0.0, window_start - self.launch_delay),
-            intercept_position=intercept_pos,
-            intercept_altitude_m=intercept_pos[2],
-            closing_geometry_score=geometry_score,
-        )
-
-    def _compute_preposition_point(
-        self,
-        intercept_pos: Tuple[float, float, float],
-    ) -> Tuple[float, float, float]:
-        """Position interceptor slightly toward the defended asset from intercept point."""
-        offset_ratio = 0.2
-        x = intercept_pos[0] + (self.defended_position[0] - intercept_pos[0]) * offset_ratio
-        y = intercept_pos[1] + (self.defended_position[1] - intercept_pos[1]) * offset_ratio
-        z = intercept_pos[2]
-        return (x, y, z)
-
-    @staticmethod
-    def _validate_position(position: Any, field_name: str) -> Tuple[float, float, float]:
-        if not isinstance(position, (list, tuple)):
-            raise ValueError(f"{field_name} must be a 3D list/tuple")
-        if len(position) != 3:
-            raise ValueError(f"{field_name} must contain exactly 3 coordinates")
-        x, y, z = float(position[0]), float(position[1]), float(position[2])
-        if not all(math.isfinite(v) for v in (x, y, z)):
-            raise ValueError(f"{field_name} coordinates must be finite values")
-        return (x, y, z)
-
-    @staticmethod
-    def _distance(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
-        return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
-
-    @staticmethod
-    def _bearing_from_to(a: Tuple[float, float, float], b: Tuple[float, float, float]) -> float:
-        dx = b[0] - a[0]
-        dy = b[1] - a[1]
-        return math.degrees(math.atan2(dx, dy)) % 360.0
+    ) -> List[Tuple[float, Tuple[float, float, float]]]:
+        # Tactical doctrine: evaluate 60s first, then 120s, then any remaining.
+        selected: List[Tuple[float, Tuple[float, float, float]]] = []
+        for horizon_s in (60, 120):
+            point = prediction.predicted_positions_m.get(horizon_s)
+            if point is not None:
+                selected.append((float(horizon_s), point))
+        for horizon_s in sorted(prediction.predicted_positions_m.keys()):
+            if horizon_s in (60, 120):
+                continue
+            selected.append((float(horizon_s), prediction.predicted_positions_m[horizon_s]))
+        return selected

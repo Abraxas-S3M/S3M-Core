@@ -1,73 +1,130 @@
-"""FastAPI routes for predictive defense engine.
+"""FastAPI routes for predictive-defense trajectory-to-action workflows.
 
 Military context:
-These routes provide command-post access to tactical prediction products,
-swarm indicators, and posture-driven defensive recommendations.
+These endpoints expose local command-post control of predictive cueing without
+external dependencies, suitable for air-gapped defense operations.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
+from services.predictive_defense.preposition_optimizer import InterceptorProfile
 from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
 
-router = APIRouter(prefix="/predictive-defense", tags=["predictive_defense"])
-
-_manager = PredictiveDefenseManager()
-
-
-@router.get("/predictions")
-async def get_predictions() -> Dict[str, Any]:
-    preds = _manager.get_predictions()
-    return {"predictions": [p.to_dict() for p in preds], "count": len(preds)}
+router = APIRouter(prefix="/predictive-defense", tags=["predictive-defense"])
+_MANAGER = PredictiveDefenseManager()
 
 
-@router.get("/swarm")
-async def get_swarm() -> Dict[str, Any]:
-    swarm = _manager.get_swarm_analysis()
-    return {"swarm": swarm.to_dict() if swarm else None}
+@dataclass
+class _ApiTrack:
+    track_id: str
+    position: Tuple[float, float, float]
+    velocity: Tuple[float, float, float]
+    classification: str = "unknown"
+    confidence: float = 0.5
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    last_update: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
-@router.get("/commands")
-async def get_commands() -> Dict[str, Any]:
-    cmds = _manager.get_commands()
-    return {"commands": [c.to_dict() for c in cmds], "count": len(cmds)}
+def _parse_vec3(raw: Any, field_name: str) -> Tuple[float, float, float]:
+    if not isinstance(raw, (list, tuple)) or len(raw) != 3:
+        raise HTTPException(status_code=400, detail=f"{field_name} must be [x_m, y_m, z_m]")
+    try:
+        return (float(raw[0]), float(raw[1]), float(raw[2]))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"{field_name} must contain numeric values") from exc
 
 
-@router.get("/alerts")
-async def get_alerts(limit: int = Query(default=20, ge=1, le=200)) -> Dict[str, Any]:
-    alerts = _manager.get_alerts(limit)
-    return {"alerts": [a.to_dict() for a in alerts]}
+def _parse_tracks(raw_tracks: Any) -> List[_ApiTrack]:
+    if not isinstance(raw_tracks, list):
+        raise HTTPException(status_code=400, detail="tracks must be a list")
+    parsed: List[_ApiTrack] = []
+    for idx, raw in enumerate(raw_tracks):
+        if not isinstance(raw, dict):
+            raise HTTPException(status_code=400, detail=f"tracks[{idx}] must be an object")
+        track_id = str(raw.get("track_id", "")).strip()
+        if not track_id:
+            raise HTTPException(status_code=400, detail=f"tracks[{idx}].track_id is required")
+        parsed.append(
+            _ApiTrack(
+                track_id=track_id,
+                position=_parse_vec3(raw.get("position", [0.0, 0.0, 0.0]), f"tracks[{idx}].position"),
+                velocity=_parse_vec3(raw.get("velocity", [0.0, 0.0, 0.0]), f"tracks[{idx}].velocity"),
+                classification=str(raw.get("classification", "unknown")),
+                confidence=float(raw.get("confidence", 0.5)),
+                metadata=dict(raw.get("metadata", {})),
+            )
+        )
+    return parsed
+
+
+@router.get("/status")
+async def status() -> Dict[str, Any]:
+    posture = _MANAGER.get_last_posture()
+    return {
+        "status": "operational",
+        "stats": _MANAGER.get_stats(),
+        "last_posture_level": posture.posture_level if posture else None,
+    }
+
+
+@router.post("/defended-asset")
+async def update_defended_asset(payload: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        position = _parse_vec3(payload["position_m"], "position_m")
+        _MANAGER.update_defended_asset(
+            position_m=position,
+            name_en=payload.get("name_en"),
+            name_ar=payload.get("name_ar"),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=400, detail=f"missing field: {exc.args[0]}") from exc
+    return {"status": "updated"}
+
+
+@router.post("/interceptors/configure")
+async def configure_interceptors(payload: Dict[str, Any]) -> Dict[str, Any]:
+    profiles_raw = payload.get("profiles")
+    if not isinstance(profiles_raw, list):
+        raise HTTPException(status_code=400, detail="profiles must be a list")
+    profiles: List[InterceptorProfile] = []
+    for idx, profile_raw in enumerate(profiles_raw):
+        if not isinstance(profile_raw, dict):
+            raise HTTPException(status_code=400, detail=f"profiles[{idx}] must be an object")
+        try:
+            profiles.append(
+                InterceptorProfile(
+                    interceptor_id=str(profile_raw["interceptor_id"]),
+                    position_m=_parse_vec3(profile_raw["position_m"], f"profiles[{idx}].position_m"),
+                    max_speed_mps=float(profile_raw["max_speed_mps"]),
+                    readiness=float(profile_raw.get("readiness", 1.0)),
+                )
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=400, detail=f"missing field in profiles[{idx}]: {exc.args[0]}") from exc
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail=f"invalid profile {idx}: {exc}") from exc
+    _MANAGER.configure_interceptors(profiles)
+    return {"configured": len(profiles)}
+
+
+@router.post("/run-cycle")
+async def run_cycle(payload: Dict[str, Any]) -> Dict[str, Any]:
+    tracks: Optional[List[_ApiTrack]] = None
+    if "tracks" in payload:
+        tracks = _parse_tracks(payload["tracks"])
+    posture = _MANAGER.process_cycle(tracks=tracks)
+    return posture.to_dict()
 
 
 @router.get("/posture")
 async def get_posture() -> Dict[str, Any]:
-    alerts = _manager.get_alerts(1)
-    if alerts:
-        return {"posture": alerts[-1].posture.value, "severity": alerts[-1].severity}
-    return {"posture": "normal", "severity": "low"}
-
-
-@router.get("/stats")
-async def get_stats() -> Dict[str, Any]:
-    return _manager.get_stats()
-
-
-@router.post("/genome-context")
-async def set_genome_context(payload: Dict[str, Any]) -> Dict[str, Any]:
-    track_id = str(payload.get("track_id", "")).strip()
-    if not track_id:
-        raise HTTPException(status_code=400, detail="track_id required")
-
-    context_raw = payload.get("context", {})
-    if not isinstance(context_raw, dict):
-        raise HTTPException(status_code=400, detail="context must be an object")
-
-    try:
-        _manager.set_genome_context(track_id, dict(context_raw))
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"track_id": track_id, "status": "context_set"}
-
+    posture = _MANAGER.get_last_posture()
+    if posture is None:
+        raise HTTPException(status_code=404, detail="No posture has been computed yet")
+    return posture.to_dict()

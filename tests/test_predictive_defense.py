@@ -1,177 +1,219 @@
-"""Tests for S3M predictive threat trajectory engine."""
+"""Unit tests for predictive defense trajectory-to-action pipeline."""
 
-import sys
-import math
-sys.path.insert(0, ".")
+from __future__ import annotations
 
-from src.sensor_fusion.models import Track, TrackState
-from src.prediction.prediction_models import EntitySnapshot, HistoricalObservation
-from services.predictive_defense.track_genome_bridge import TrackGenomeBridge
-from services.predictive_defense.trajectory_predictor import TrajectoryPredictor
-from services.predictive_defense.swarm_analyzer import SwarmAnalyzer
-from services.predictive_defense.preposition_optimizer import PrePositionOptimizer
-from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
-from services.predictive_defense.models import DefensePosture, SwarmIntent
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Tuple
+
+from services.predictive_defense.preposition_optimizer import InterceptorProfile, PrePositionOptimizer
+from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
+from services.predictive_defense.swarm_analyzer import SwarmAnalyzer
+from services.predictive_defense.track_genome_bridge import TrackGenomeBridge
+from services.predictive_defense.trajectory_predictor import GenomeAwareTrajectoryPredictor
+from src.threat_genome.genome_store import ThreatGenomeStore
+from src.threat_genome.models import BehavioralSignature, SignatureType, ThreatGenome
 
 
-def _make_track(track_id, x, y, z, vx, vy, classification="ENEMY_UAV"):
-    return Track(
-        track_id=track_id,
-        state=TrackState.CONFIRMED,
-        position=(x, y, z),
-        velocity=(vx, vy, 0.0),
-        covariance=[[1.0 if i == j else 0.0 for j in range(6)] for i in range(6)],
-        last_update=datetime.now(timezone.utc),
-        sensor_sources=["radar-1"],
-        classification=classification,
-        confidence=0.85,
+@dataclass
+class _Track:
+    track_id: str
+    position: Tuple[float, float, float]
+    velocity: Tuple[float, float, float]
+    classification: str = "ENEMY_UAV"
+    confidence: float = 0.8
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    last_update: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class _Allocator:
+    def __init__(self) -> None:
+        self.calls: List[Dict[str, Any]] = []
+
+    def allocate(
+        self,
+        target_id: str,
+        target_position: Tuple[float, float, float],
+        target_speed_mps: float,
+        target_classification: str,
+    ) -> Dict[str, Any]:
+        payload = {
+            "allocated": True,
+            "target_id": target_id,
+            "target_position": target_position,
+            "target_speed_mps": target_speed_mps,
+            "target_classification": target_classification,
+        }
+        self.calls.append(payload)
+        return payload
+
+
+class _InterceptorManager:
+    def __init__(self) -> None:
+        self.actions: List[Dict[str, Any]] = []
+
+    def assign_target(self, interceptor_id: str, target_id: str) -> bool:
+        self.actions.append({"action": "assign_target", "interceptor_id": interceptor_id, "target_id": target_id})
+        return True
+
+    def launch(self, interceptor_id: str) -> bool:
+        self.actions.append({"action": "launch", "interceptor_id": interceptor_id})
+        return True
+
+
+def _houthi_genome() -> ThreatGenome:
+    genome = ThreatGenome(
+        actor_name="Houthi Drone Program",
+        actor_type="uav",
+        confidence=0.9,
+        regions={"red_sea"},
+        tags={"uav", "strike_run"},
+        threat_rating="high",
     )
-
-
-# --- Bridge Tests ---
-
-def test_bridge_converts_track_to_entity():
-    bridge = TrackGenomeBridge()
-    track = _make_track("trk-1", 20000, 30000, 800, -10, -40)
-    entity = bridge.track_to_entity_snapshot(track)
-    assert entity.entity_id == "trk-1"
-    assert entity.speed_mps > 0
-    assert entity.threat_level == "high"
-
-
-# --- Trajectory Predictor Tests ---
-
-def test_predictor_produces_positions():
-    predictor = TrajectoryPredictor(defended_position=(0, 0, 0))
-    entity = EntitySnapshot(
-        entity_id="e1", entity_type="ENEMY_UAV",
-        position=(30000, 0, 800), speed_mps=50, heading_deg=180,
-        threat_level="high", confidence=0.8,
-        history=[
-            HistoricalObservation(timestamp_s=i, position=(30000+50*i, 0, 800), speed_mps=50, heading_deg=180)
-            for i in range(5)
-        ],
+    genome.add_signature(
+        BehavioralSignature(
+            name="movement",
+            signature_type=SignatureType.MOVEMENT,
+            movement_patterns={"heading_deg": [170, 190], "speed_mps": [15, 25]},
+            confidence=0.95,
+        )
     )
-    pred = predictor.predict(entity)
-    assert pred.predicted_30s is not None
-    assert pred.predicted_60s is not None
-    assert pred.range_to_asset_now_m > 0
-    assert pred.time_to_asset_s > 0
-
-
-def test_predictor_with_genome_bias():
-    predictor = TrajectoryPredictor(defended_position=(0, 0, 0))
-    entity = EntitySnapshot(
-        entity_id="e2", entity_type="ENEMY_UAV",
-        position=(30000, 0, 800), speed_mps=50, heading_deg=180,
-        threat_level="high", confidence=0.8,
-        history=[HistoricalObservation(timestamp_s=i, position=(30000+50*i, 0, 800), speed_mps=50, heading_deg=180) for i in range(5)],
+    genome.add_signature(
+        BehavioralSignature(
+            name="temporal",
+            signature_type=SignatureType.TEMPORAL,
+            temporal_patterns={"hour_utc": [0, 23]},
+            confidence=0.85,
+        )
     )
-    genome_ctx = {
-        "actor_name": "Houthi Drone Program",
-        "confidence": 0.75,
-        "approach_bearing": 175,
-        "speed_range_mps": [15, 25],
-        "behavioral_pattern": "approach",
-    }
-    pred = predictor.predict(entity, genome_ctx)
-    assert pred.genome_bias_applied is True
-    assert pred.genome_match == "Houthi Drone Program"
+    return genome
 
 
-# --- Swarm Analyzer Tests ---
-
-def test_swarm_detection():
-    preds = []
-    for i in range(8):
-        from services.predictive_defense.models import ThreatTrajectoryPrediction
-        preds.append(ThreatTrajectoryPrediction(
-            track_id=f"trk-{i}",
-            current_position=(30000 + i*100, 500 * i, 800),
-            current_speed_mps=50 + i,
-            current_heading_deg=180 + i * 2,
-            predicted_60s=(15000 + i*50, 250*i, 800),
-            time_to_asset_s=300 - i * 10,
-        ))
-    analyzer = SwarmAnalyzer(min_swarm_size=3)
-    swarm = analyzer.analyze(preds, (0, 0, 0))
-    assert swarm is not None
-    assert swarm.track_count == 8
-    assert swarm.intent in {SwarmIntent.SATURATION, SwarmIntent.UNKNOWN, SwarmIntent.SEQUENTIAL}
-
-
-def test_no_swarm_below_threshold():
-    from services.predictive_defense.models import ThreatTrajectoryPrediction
-    preds = [ThreatTrajectoryPrediction(track_id="solo", current_position=(30000, 0, 800))]
-    analyzer = SwarmAnalyzer(min_swarm_size=3)
-    assert analyzer.analyze(preds, (0, 0, 0)) is None
-
-
-# --- Pre-Position Optimizer Tests ---
-
-def test_optimizer_produces_commands():
-    from services.predictive_defense.models import ThreatTrajectoryPrediction
-    pred = ThreatTrajectoryPrediction(
+def test_track_genome_bridge_builds_snapshot_and_history() -> None:
+    bridge = TrackGenomeBridge(history_limit=5)
+    track = _Track(
         track_id="trk-1",
-        current_position=(30000, 0, 800), current_speed_mps=50,
-        current_heading_deg=180,
-        predicted_30s=(28500, 0, 800), predicted_60s=(27000, 0, 800),
-        time_to_asset_s=600,
+        position=(1_000.0, 200.0, 120.0),
+        velocity=(-20.0, 0.0, 0.0),
+        metadata={"threat_level": "high", "regions": ["red_sea"]},
     )
-    opt = PrePositionOptimizer(interceptor_speed_mps=60, defended_position=(0, 0, 0))
-    cmds = opt.optimize_preposition(
-        [pred],
-        [{"interceptor_id": "intc-1", "position": (0, 0, 100)}],
+    first = bridge.to_context(track)
+    second = bridge.to_context(track)
+
+    assert first.entity_snapshot.entity_id == "trk-1"
+    assert second.entity_snapshot.history_depth == 2
+    assert second.genome_observation.classification == "ENEMY_UAV"
+    assert "uav" in second.entity_snapshot.behavior_tags
+
+
+def test_genome_aware_trajectory_predictor_uses_genome_bias() -> None:
+    bridge = TrackGenomeBridge()
+    track = _Track(
+        track_id="trk-2",
+        position=(5_000.0, 0.0, 130.0),
+        velocity=(-20.0, 0.0, 0.0),
+        metadata={"threat_level": "high", "regions": ["red_sea"]},
     )
-    assert len(cmds) == 1
-    assert cmds[0].interceptor_id == "intc-1"
-    assert cmds[0].intercept_position[0] > 0  # Ahead of defended position
+    context = bridge.to_context(track)
+    predictor = GenomeAwareTrajectoryPredictor()
+    prediction = predictor.predict(context=context, matched_genome=_houthi_genome())
+
+    assert prediction.matched_genome_name == "Houthi Drone Program"
+    assert prediction.predicted_positions_m
+    assert 60 in prediction.predicted_positions_m
+    assert prediction.forecast_confidence > 0.0
+    assert prediction.risk_score > 0.0
 
 
-# --- Full Pipeline Test ---
+def test_swarm_analyzer_classifies_saturation_attack() -> None:
+    from services.predictive_defense.models import ThreatTrajectoryPrediction
 
-def test_full_pipeline():
-    mgr = PredictiveDefenseManager(defended_position=(0, 0, 0))
-    mgr.set_genome_context("trk-1", {
-        "actor_name": "Houthi Drone Program",
-        "confidence": 0.75,
-        "approach_bearing": 180,
-        "speed_range_mps": [15, 25],
-        "behavioral_pattern": "approach",
-    })
+    predictions: List[ThreatTrajectoryPrediction] = []
+    for idx in range(8):
+        predictions.append(
+            ThreatTrajectoryPrediction(
+                track_id=f"sw-{idx}",
+                predicted_positions_m={60: (1_000.0 + idx * 150.0, idx * 80.0, 100.0)},
+                predicted_speeds_mps={60: 22.0},
+                risk_score=0.8,
+                forecast_confidence=0.85,
+            )
+        )
+    analyzer = SwarmAnalyzer(min_swarm_size=3, cluster_distance_m=2_500.0, saturation_threshold=6)
+    swarms = analyzer.analyze(
+        trajectory_predictions=predictions,
+        defended_asset_position_m=(0.0, 0.0, 0.0),
+        defended_asset_name_en="Asset",
+        defended_asset_name_ar="أصل",
+    )
+
+    assert swarms
+    assert swarms[0].intent_classification == "saturation attack"
+    assert swarms[0].threat_count >= 6
+
+
+def test_preposition_optimizer_generates_command() -> None:
+    from services.predictive_defense.models import ThreatTrajectoryPrediction
+
+    prediction = ThreatTrajectoryPrediction(
+        track_id="target-1",
+        predicted_positions_m={60: (2_000.0, 0.0, 100.0)},
+        predicted_speeds_mps={60: 20.0},
+        forecast_confidence=0.9,
+        risk_score=0.88,
+    )
+    optimizer = PrePositionOptimizer(arrival_buffer_s=5.0)
+    commands = optimizer.optimize(
+        trajectory_predictions=[prediction],
+        interceptor_profiles=[
+            InterceptorProfile("int-1", (1_600.0, 0.0, 100.0), 90.0, 1.0),
+            InterceptorProfile("int-2", (100.0, 0.0, 100.0), 80.0, 1.0),
+        ],
+        now_s=1_000.0,
+    )
+
+    assert len(commands) == 1
+    assert commands[0].interceptor_id == "int-1"
+    assert commands[0].target_track_id == "target-1"
+
+
+def test_predictive_defense_manager_pipeline_end_to_end() -> None:
+    store = ThreatGenomeStore()
+    store.add_genome(_houthi_genome())
+    allocator = _Allocator()
+    interceptor_manager = _InterceptorManager()
+    manager = PredictiveDefenseManager(
+        target_allocator=allocator,
+        interceptor_manager=interceptor_manager,
+        defended_asset_position_m=(0.0, 0.0, 0.0),
+        defended_asset_name_en="ARAMCO",
+        defended_asset_name_ar="أرامكو",
+        genome_store=store,
+    )
+    manager.configure_interceptors(
+        [
+            InterceptorProfile("titan-01", (1_500.0, -500.0, 100.0), 100.0, 1.0),
+            InterceptorProfile("titan-02", (1_500.0, 500.0, 100.0), 100.0, 1.0),
+            InterceptorProfile("titan-03", (1_400.0, 0.0, 100.0), 100.0, 1.0),
+        ]
+    )
 
     tracks = [
-        _make_track("trk-1", 35000, 1000, 800, -5, -50),
-        _make_track("trk-2", 34000, -500, 750, -3, -48),
-        _make_track("trk-3", 36000, 2000, 820, -4, -52),
+        _Track(
+            track_id=f"swarm-{idx}",
+            position=(2_000.0 + idx * 50.0, idx * 80.0, 120.0),
+            velocity=(-20.0, 0.0, 0.0),
+            metadata={"threat_level": "high", "regions": ["red_sea"], "behavior_tags": ["swarm"]},
+        )
+        for idx in range(6)
     ]
+    posture = manager.process_cycle(tracks=tracks, now_s=10_000.0)
 
-    interceptors = [
-        {"interceptor_id": "titan-1", "position": (0, -500, 100)},
-        {"interceptor_id": "titan-2", "position": (500, 0, 100)},
-        {"interceptor_id": "titan-3", "position": (-500, 500, 100)},
-    ]
-
-    alert = mgr.process_tracks(tracks, interceptors)
-    assert alert.threat_count == 3
-    assert alert.posture in {DefensePosture.ELEVATED, DefensePosture.PRE_POSITION, DefensePosture.IMMINENT}
-    assert len(alert.pre_position_commands) >= 1
-
-    preds = mgr.get_predictions()
-    assert len(preds) == 3
-    assert preds[0].genome_match == "Houthi Drone Program"
-
-    stats = mgr.get_stats()
-    assert stats["active_predictions"] == 3
-
-
-if __name__ == "__main__":
-    test_bridge_converts_track_to_entity()
-    test_predictor_produces_positions()
-    test_predictor_with_genome_bias()
-    test_swarm_detection()
-    test_no_swarm_below_threshold()
-    test_optimizer_produces_commands()
-    test_full_pipeline()
-    print("ALL PREDICTIVE DEFENSE TESTS PASSED")
+    assert posture.trajectory_predictions
+    assert posture.swarm_predictions
+    assert posture.preposition_commands
+    assert posture.allocator_outcomes
+    assert posture.interceptor_actions
+    assert posture.posture_level in {"elevated", "critical"}
+    payload = posture.to_dict()
+    assert payload["name_ar"] == "وضعية الدفاع التنبؤي"

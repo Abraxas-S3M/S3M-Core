@@ -1,24 +1,21 @@
-"""Predictive defense package for interceptor pre-positioning.
-
-Military context:
-Exports trajectory forecast models and tactical launch optimization used to
-stage interceptors on likely hostile approach corridors before incursion.
-"""
+"""Predictive defense subsystem for trajectory-to-action orchestration."""
 
 from services.predictive_defense.models import (
+    DefensePosture,
     InterceptWindow,
     PrePositionCommand,
-    SwarmIntent,
+    PredictiveAlert,
     SwarmPrediction,
     ThreatTrajectoryPrediction,
 )
-from services.predictive_defense.preposition_optimizer import PrePositionOptimizer
+from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
 
 __all__ = [
+    "DefensePosture",
     "InterceptWindow",
     "PrePositionCommand",
-    "PrePositionOptimizer",
-    "SwarmIntent",
+    "PredictiveAlert",
+    "PredictiveDefenseManager",
     "SwarmPrediction",
     "ThreatTrajectoryPrediction",
 ]
