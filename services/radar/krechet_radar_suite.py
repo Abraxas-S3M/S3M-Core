@@ -1,106 +1,114 @@
-"""Pre-built radar suite templates matching Krechet 9C905 configurations.
+"""Pre-built Krechet-like radar suite templates.
 
 Military context:
-The Krechet demo at the LIPA training ground used RPS-82 + RPS-202 as the
-radar reconnaissance equipment feeding the C3 VAN. This module creates
-equivalent radar configurations for S3M.
+This module provides deterministic multi-radar compositions to emulate command
+post deployments that integrate 10+ heterogeneous radar channels in one COP.
 """
 
 from __future__ import annotations
 
-from math import isfinite
-from typing import List, Tuple
+from dataclasses import dataclass
+from math import cos, radians
+from typing import List, Sequence, Tuple
 
-from services.radar.models import RadarBand, RadarConfig, RadarType, ScanMode
+from services.radar.models import RadarBand, RadarConfig, RadarType
 from services.radar.radar_manager import RadarManager
 
 
-def _validate_center(center: Tuple[float, float, float]) -> Tuple[float, float, float]:
-    if len(center) != 3:
-        raise ValueError("center must contain exactly three coordinates")
-    x, y, z = (float(center[0]), float(center[1]), float(center[2]))
-    if not (isfinite(x) and isfinite(y) and isfinite(z)):
-        raise ValueError("center coordinates must be finite numbers")
-    return (x, y, z)
+def _offset_lla(origin: Tuple[float, float, float], east_m: float, north_m: float, up_m: float = 0.0) -> Tuple[float, float, float]:
+    lat_deg, lon_deg, alt_m = origin
+    delta_lat = north_m / 111_320.0
+    lon_scale = max(0.1, cos(radians(lat_deg)))
+    delta_lon = east_m / (111_320.0 * lon_scale)
+    return (lat_deg + delta_lat, lon_deg + delta_lon, alt_m + up_m)
 
 
-def create_krechet_radar_suite(
+@dataclass(frozen=True)
+class KrechetRadarSuite:
+    """Container for a prebuilt tactical radar order of battle."""
+
+    suite_name: str
+    radar_configs: Sequence[RadarConfig]
+
+
+def build_krechet_demo_suite(
+    origin_lla: Tuple[float, float, float] = (24.7136, 46.6753, 620.0),
+) -> KrechetRadarSuite:
+    """Build a 10-radar mixed suite including RPS-82/RPS-202 and equivalents."""
+    configs: List[RadarConfig] = [
+        RadarConfig(
+            radar_id="rps82-alpha",
+            radar_type=RadarType.RPS_82,
+            radar_band=RadarBand.X_BAND,
+            name_en="RPS-82 Alpha",
+            name_ar="آر بي إس-82 ألفا",
+            position_lla=_offset_lla(origin_lla, -2_500.0, 800.0),
+            scan_rate_hz=1.2,
+            beam_width_az_deg=2.4,
+            beam_width_el_deg=6.0,
+            max_range_m=32_000.0,
+            doppler_resolution_mps=0.8,
+        ),
+        RadarConfig(
+            radar_id="rps202-bravo",
+            radar_type=RadarType.RPS_202,
+            radar_band=RadarBand.S_BAND,
+            name_en="RPS-202 Bravo",
+            name_ar="آر بي إس-202 برافو",
+            position_lla=_offset_lla(origin_lla, 3_200.0, -1_000.0),
+            scan_rate_hz=1.0,
+            beam_width_az_deg=1.4,
+            beam_width_el_deg=2.8,
+            max_range_m=75_000.0,
+            doppler_resolution_mps=0.45,
+        ),
+        RadarConfig(
+            radar_id="western-aesa-charlie",
+            radar_type=RadarType.WESTERN_AESA,
+            radar_band=RadarBand.S_BAND,
+            name_en="Western AESA Charlie",
+            name_ar="رادار مصفوفة غربي تشارلي",
+            position_lla=_offset_lla(origin_lla, 5_500.0, 3_000.0),
+            scan_rate_hz=1.6,
+            beam_width_az_deg=1.0,
+            beam_width_el_deg=2.0,
+            max_range_m=120_000.0,
+            doppler_resolution_mps=0.3,
+        ),
+    ]
+
+    # Military/tactical note:
+    # Add additional channels to mirror a Krechet-style multi-radar node with
+    # overlapping sectors and redundancy against jamming or local outages.
+    for index in range(7):
+        configs.append(
+            RadarConfig(
+                radar_id=f"generic3d-{index+1}",
+                radar_type=RadarType.GENERIC_3D,
+                radar_band=RadarBand.C_BAND if index % 2 == 0 else RadarBand.X_BAND,
+                name_en=f"Generic 3D Radar {index+1}",
+                name_ar=f"رادار ثلاثي الأبعاد {index+1}",
+                position_lla=_offset_lla(
+                    origin_lla,
+                    east_m=-6_000.0 + index * 1_600.0,
+                    north_m=-4_500.0 + index * 900.0,
+                ),
+                scan_rate_hz=0.8 + (index * 0.07),
+                beam_width_az_deg=1.5 + (index * 0.1),
+                beam_width_el_deg=3.0 + (index * 0.15),
+                max_range_m=45_000.0 + index * 4_000.0,
+                doppler_resolution_mps=0.5 + index * 0.05,
+            )
+        )
+    return KrechetRadarSuite(suite_name="krechet-demo-suite", radar_configs=configs)
+
+
+def load_krechet_suite(
     manager: RadarManager,
-    center: Tuple[float, float, float] = (0.0, 0.0, 0.0),
-) -> List[RadarConfig]:
-    """Create the Krechet demo radar suite: RPS-82 + RPS-202 + AESA.
-
-    Matches the LIPA training ground demo structure (slide 10 of the presentation).
-    """
-    if not isinstance(manager, RadarManager):
-        raise TypeError("manager must be a RadarManager instance")
-    center = _validate_center(center)
-    configs: List[RadarConfig] = []
-
-    # RPS-82 secures forward low-altitude warning in the tactical screen.
-    rps82 = RadarConfig(
-        name_en="RPS-82 Forward Radar",
-        name_ar="رادار RPS-82 أمامي",
-        radar_type=RadarType.RPS_82,
-        band=RadarBand.X_BAND,
-        scan_mode=ScanMode.ROTATING,
-        position=(center[0] + 1000.0, center[1] + 2000.0, center[2]),
-        max_range_m=20_000,
-        min_range_m=100,
-        max_elevation_deg=60.0,
-        has_elevation=True,
-        has_doppler=True,
-        beam_width_az_deg=2.5,
-        scan_rate_rpm=12.0,
-        min_detectable_rcs_dbsm=-15.0,
-        range_noise_std_m=75.0,
-        azimuth_noise_std_deg=1.0,
-        elevation_noise_std_deg=2.0,
-    )
-    configs.append(manager.register_radar(rps82))
-
-    # RPS-202 sits on the C3 vehicle to maintain medium-range track continuity.
-    rps202 = RadarConfig(
-        name_en="RPS-202 C3 VAN Radar",
-        name_ar="رادار RPS-202 عربة القيادة",
-        radar_type=RadarType.RPS_202,
-        band=RadarBand.S_BAND,
-        scan_mode=ScanMode.ROTATING,
-        position=(center[0], center[1], center[2] + 5.0),
-        max_range_m=50_000,
-        min_range_m=200,
-        max_elevation_deg=70.0,
-        has_elevation=True,
-        has_doppler=True,
-        beam_width_az_deg=1.8,
-        scan_rate_rpm=6.0,
-        min_detectable_rcs_dbsm=-10.0,
-        range_noise_std_m=50.0,
-        azimuth_noise_std_deg=0.7,
-        elevation_noise_std_deg=1.5,
-    )
-    configs.append(manager.register_radar(rps202))
-
-    # AESA augments small-target discrimination for layered defense rehearsals.
-    aesa = RadarConfig(
-        name_en="AESA Search Radar",
-        name_ar="رادار بحث إلكتروني متقدم",
-        radar_type=RadarType.AESA_WESTERN,
-        band=RadarBand.C_BAND,
-        scan_mode=ScanMode.ELECTRONIC,
-        position=(center[0] - 500.0, center[1] + 500.0, center[2] + 8.0),
-        max_range_m=75_000,
-        min_range_m=100,
-        max_elevation_deg=80.0,
-        has_elevation=True,
-        has_doppler=True,
-        beam_width_az_deg=0.8,
-        update_rate_hz=2.0,
-        min_detectable_rcs_dbsm=-20.0,
-        range_noise_std_m=15.0,
-        azimuth_noise_std_deg=0.3,
-        elevation_noise_std_deg=0.4,
-    )
-    configs.append(manager.register_radar(aesa))
-
-    return configs
+    origin_lla: Tuple[float, float, float] = (24.7136, 46.6753, 620.0),
+) -> KrechetRadarSuite:
+    """Register a full Krechet-like suite into a RadarManager."""
+    suite = build_krechet_demo_suite(origin_lla=origin_lla)
+    for config in suite.radar_configs:
+        manager.register_radar(config)
+    return suite

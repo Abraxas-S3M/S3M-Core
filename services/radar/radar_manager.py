@@ -1,18 +1,18 @@
-"""Central radar management and sensor fusion bridge.
+"""Central radar manager for multi-radar tactical integration.
 
 Military context:
-This is the Krechet-equivalent radar integration point. All registered radars
-feed through here: raw plots are parsed, converted to Cartesian, classified
-by RCS, correlated across scans, and output as standard SensorReadings into
-the existing SensorManager for EKF track fusion.
+This manager emulates a Krechet-like integration node by accepting multiple
+radar types, normalizing plots, and pushing unified readings into Layer 02.
 """
 
 from __future__ import annotations
 
-import threading
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Type
+from dataclasses import asdict
+from threading import RLock
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+from src.sensor_fusion.models import SensorReading, SensorType
+from src.sensor_fusion.sensor_manager import SensorManager
 from services.radar.adapters.base_adapter import BaseRadarAdapter
 from services.radar.adapters.generic_2d_radar import Generic2DRadarAdapter
 from services.radar.adapters.generic_3d_radar import Generic3DRadarAdapter
@@ -20,189 +20,142 @@ from services.radar.adapters.rps82_adapter import RPS82Adapter
 from services.radar.adapters.rps202_adapter import RPS202Adapter
 from services.radar.adapters.western_aesa_adapter import WesternAESAAdapter
 from services.radar.coordinate_converter import CoordinateConverter
-from services.radar.models import RadarConfig, RadarPlot, RadarStatus, RadarType
-from services.radar.noise_model import RadarNoiseModel
+from services.radar.models import PlotCorrelation, RadarConfig, RadarScan, RadarType
 from services.radar.plot_correlator import PlotCorrelator
-from services.radar.rcs_classifier import RCSClassifier
-from src.sensor_fusion.models import SensorType
-from src.sensor_fusion.sensor_manager import SensorManager
-
-
-ADAPTER_REGISTRY: Dict[RadarType, Type[BaseRadarAdapter]] = {
-    RadarType.RPS_82: RPS82Adapter,
-    RadarType.RPS_202: RPS202Adapter,
-    RadarType.GENERIC_2D: Generic2DRadarAdapter,
-    RadarType.GENERIC_3D: Generic3DRadarAdapter,
-    RadarType.AESA_WESTERN: WesternAESAAdapter,
-    RadarType.AESA_PANEL: WesternAESAAdapter,
-}
 
 
 class RadarManager:
-    """Central manager bridging heterogeneous radars to S3M sensor fusion."""
+    """Register radar adapters and ingest normalized sensor readings."""
 
-    def __init__(self, sensor_manager: Optional[SensorManager] = None) -> None:
-        self._lock = threading.RLock()
-        self._radars: Dict[str, RadarConfig] = {}
+    def __init__(
+        self,
+        sensor_manager: Optional[SensorManager] = None,
+        reference_origin_lla: Optional[Tuple[float, float, float]] = None,
+    ) -> None:
+        self._lock = RLock()
+        self._sensor_manager = sensor_manager or SensorManager()
+        self._reference_origin_lla = reference_origin_lla
         self._adapters: Dict[str, BaseRadarAdapter] = {}
-        self._status: Dict[str, RadarStatus] = {}
-        self._correlators: Dict[str, PlotCorrelator] = {}
+        self._configs: Dict[str, RadarConfig] = {}
+        self._plot_correlator = PlotCorrelator()
 
-        self.converter = CoordinateConverter()
-        self.classifier = RCSClassifier()
-        self.noise_model = RadarNoiseModel()
-        self.sensor_manager = sensor_manager or SensorManager()
-
-    def register_radar(self, config: RadarConfig) -> RadarConfig:
-        """Register a radar and create its typed adapter."""
-        if not isinstance(config, RadarConfig):
-            raise ValueError("config must be a RadarConfig instance")
-
-        adapter_cls = ADAPTER_REGISTRY.get(config.radar_type)
-        if adapter_cls is None:
-            adapter_cls = Generic3DRadarAdapter  # Fallback
-
-        adapter = adapter_cls(config)
-
+    def register_radar(self, config: RadarConfig) -> None:
         with self._lock:
-            self._radars[config.radar_id] = config
+            if config.radar_id in self._adapters:
+                raise ValueError(f"Radar '{config.radar_id}' is already registered")
+            adapter = self._build_adapter(config)
             self._adapters[config.radar_id] = adapter
-            self._status[config.radar_id] = RadarStatus(radar_id=config.radar_id)
-            self._correlators[config.radar_id] = PlotCorrelator()
-
-            # Tactical bridge: register each radar as a SensorManager feeder
-            # so radar detections enter the same fused COP track pipeline.
-            self.sensor_manager.register_sensor(
-                config.radar_id,
-                SensorType.RADAR,
-                {
-                    "radar_type": config.radar_type.value,
-                    "band": config.band.value,
-                    "max_range_m": config.max_range_m,
-                    "name_en": config.name_en,
-                },
+            self._configs[config.radar_id] = config
+            if self._reference_origin_lla is None:
+                self._reference_origin_lla = config.position_lla
+            self._sensor_manager.register_sensor(
+                sensor_id=config.radar_id,
+                sensor_type=SensorType.RADAR,
+                config=self._serialize_config(config),
             )
 
-        return config
-
-    def remove_radar(self, radar_id: str) -> bool:
+    def unregister_radar(self, radar_id: str) -> bool:
         with self._lock:
-            removed = self._radars.pop(radar_id, None) is not None
-            self._adapters.pop(radar_id, None)
-            self._status.pop(radar_id, None)
-            self._correlators.pop(radar_id, None)
-            return removed
+            removed = radar_id in self._adapters
+            if not removed:
+                return False
+            del self._adapters[radar_id]
+            del self._configs[radar_id]
+            self._plot_correlator.clear(radar_id=radar_id)
+            return True
 
-    def ingest_scan(self, radar_id: str, raw_data: Dict[str, Any]) -> List[RadarPlot]:
-        """Process a raw radar scan through the full pipeline.
-
-        Pipeline:
-        1. Parse raw data via typed adapter
-        2. Filter clutter
-        3. Convert polar to Cartesian
-        4. Classify by RCS
-        5. Correlate across scans
-        6. Output to SensorManager as SensorReadings
-        """
+    def ingest_scan(self, radar_id: str, scan_input: Union[Dict[str, Any], RadarScan]) -> List[SensorReading]:
         with self._lock:
-            config = self._radars.get(radar_id)
             adapter = self._adapters.get(radar_id)
-            status = self._status.get(radar_id)
-            correlator = self._correlators.get(radar_id)
+            if adapter is None:
+                raise ValueError(f"Radar '{radar_id}' is not registered")
+            scan = scan_input if isinstance(scan_input, RadarScan) else adapter.parse_raw_scan(scan_input)
+            correlations = self._plot_correlator.correlate(scan)
+            converter = self._build_converter()
+            normalized_readings = adapter.adapt_scan(scan=scan, converter=converter, correlations=correlations)
+            ingested: List[SensorReading] = []
+            for reading in normalized_readings:
+                ingested_reading = self._sensor_manager.ingest(
+                    sensor_id=reading.sensor_id,
+                    data=dict(reading.data),
+                    position=reading.position,
+                    confidence=reading.confidence,
+                )
+                ingested.append(ingested_reading)
+            return ingested
 
-        if config is None or adapter is None:
-            raise ValueError(f"Radar '{radar_id}' is not registered")
-
-        # Step 1: Parse
-        plots = adapter.parse_raw_data(raw_data)
-
-        # Step 2: Filter
-        plots = adapter.filter_clutter(plots)
-
-        # Step 3: Convert coordinates
-        for plot in plots:
-            self.converter.convert_plot(plot, config)
-
-        # Step 4: RCS classification
-        self.classifier.classify_plots(plots)
-
-        # Step 5: Plot correlation
-        if correlator:
-            plots = correlator.correlate(plots)
-
-        # Step 6: Bridge to SensorManager
-        for plot in plots:
-            if plot.position_cartesian is None:
-                continue
-            # Compute confidence from noise model
-            confidence = self.noise_model.compute_confidence(
-                plot.snr_db, plot.range_m, config.max_range_m
-            )
-            # Map RCS classification to tactical classification string
-            classification = RCSClassifier.rcs_class_to_threat_class(plot.rcs_classification)
-
-            self.sensor_manager.ingest(
-                sensor_id=radar_id,
-                data={
-                    "classification": classification,
-                    "rcs_dbsm": plot.rcs_dbsm,
-                    "rcs_class": plot.rcs_classification.value,
-                    "radial_velocity_mps": plot.radial_velocity_mps,
-                    "snr_db": plot.snr_db,
-                    "plot_id": plot.plot_id,
-                    "correlated_track": plot.correlated_track_id,
-                },
-                position=plot.position_cartesian,
-                confidence=confidence,
-            )
-
-        # Update status
+    def ingest_scan_with_correlations(
+        self,
+        radar_id: str,
+        scan_input: Union[Dict[str, Any], RadarScan],
+    ) -> Tuple[List[SensorReading], List[PlotCorrelation]]:
         with self._lock:
-            if status:
-                status.scans_received += 1
-                status.plots_received += len(plots)
-                status.plots_correlated += sum(1 for p in plots if p.correlated_track_id)
-                status.last_scan_time = datetime.now(timezone.utc)
+            adapter = self._adapters.get(radar_id)
+            if adapter is None:
+                raise ValueError(f"Radar '{radar_id}' is not registered")
+            scan = scan_input if isinstance(scan_input, RadarScan) else adapter.parse_raw_scan(scan_input)
+            correlations = self._plot_correlator.correlate(scan)
+            converter = self._build_converter()
+            normalized_readings = adapter.adapt_scan(scan=scan, converter=converter, correlations=correlations)
+            ingested: List[SensorReading] = []
+            for reading in normalized_readings:
+                ingested.append(
+                    self._sensor_manager.ingest(
+                        sensor_id=reading.sensor_id,
+                        data=dict(reading.data),
+                        position=reading.position,
+                        confidence=reading.confidence,
+                    )
+                )
+            return ingested, correlations
 
-        return plots
-
-    def process_fused_tracks(self):
-        """Trigger the SensorManager to fuse all pending readings into tracks."""
-        return self.sensor_manager.process()
-
-    def get_radar(self, radar_id: str) -> Optional[RadarConfig]:
+    def process_fusion(self):
         with self._lock:
-            return self._radars.get(radar_id)
+            return self._sensor_manager.process()
 
-    def list_radars(self) -> List[RadarConfig]:
+    def get_registered_radars(self) -> List[Dict[str, Any]]:
         with self._lock:
-            return list(self._radars.values())
+            return [self._serialize_config(cfg) for cfg in self._configs.values()]
 
-    def get_status(self, radar_id: str) -> Optional[RadarStatus]:
-        with self._lock:
-            return self._status.get(radar_id)
+    def get_sensor_manager(self) -> SensorManager:
+        return self._sensor_manager
 
-    def get_all_status(self) -> Dict[str, Any]:
+    def get_status(self) -> Dict[str, Any]:
         with self._lock:
             return {
-                rid: {
-                    "operational": s.operational,
-                    "scans": s.scans_received,
-                    "plots": s.plots_received,
-                    "correlated": s.plots_correlated,
-                    "last_scan": s.last_scan_time.isoformat() if s.last_scan_time else None,
-                }
-                for rid, s in self._status.items()
+                "registered_radars": len(self._adapters),
+                "radar_ids": sorted(self._adapters.keys()),
+                "reference_origin_lla": self._reference_origin_lla,
+                "sensor_manager": self._sensor_manager.health_check(),
             }
 
-    def get_stats(self) -> Dict[str, Any]:
-        with self._lock:
-            return {
-                "registered_radars": len(self._radars),
-                "total_scans": sum(s.scans_received for s in self._status.values()),
-                "total_plots": sum(s.plots_received for s in self._status.values()),
-                "active_correlations": sum(
-                    c.get_active_track_count() for c in self._correlators.values()
-                ),
-            }
+    def _build_converter(self) -> CoordinateConverter:
+        if self._reference_origin_lla is None:
+            raise RuntimeError("No reference origin configured; register at least one radar")
+        return CoordinateConverter(
+            reference_latitude_deg=self._reference_origin_lla[0],
+            reference_longitude_deg=self._reference_origin_lla[1],
+            reference_altitude_m=self._reference_origin_lla[2],
+        )
 
+    @staticmethod
+    def _serialize_config(config: RadarConfig) -> Dict[str, Any]:
+        payload = asdict(config)
+        payload["radar_type"] = config.radar_type.value
+        payload["radar_band"] = config.radar_band.value
+        payload["status"] = config.status.value
+        payload["position_lla"] = tuple(config.position_lla)
+        payload["orientation_deg"] = tuple(config.orientation_deg)
+        return payload
+
+    @staticmethod
+    def _build_adapter(config: RadarConfig) -> BaseRadarAdapter:
+        factory = {
+            RadarType.GENERIC_2D: Generic2DRadarAdapter,
+            RadarType.GENERIC_3D: Generic3DRadarAdapter,
+            RadarType.RPS_82: RPS82Adapter,
+            RadarType.RPS_202: RPS202Adapter,
+            RadarType.WESTERN_AESA: WesternAESAAdapter,
+        }
+        adapter_cls = factory[config.radar_type]
+        return adapter_cls(config)
