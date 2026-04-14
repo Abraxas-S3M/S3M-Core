@@ -1,14 +1,27 @@
-"""Predictive defense services.
+"""Predictive defense service package.
 
 Military context:
-Exposes genome-aware forecasting components used by tactical C2 loops to
-anticipate adversary approach doctrine before engagement commitment.
+Exports deterministic prediction primitives used to support tactical defensive
+posture decisions in disconnected command environments.
 """
 
-from services.predictive_defense.models import ThreatTrajectoryPrediction
-from services.predictive_defense.trajectory_predictor import TrajectoryPredictor
+from services.predictive_defense.models import (
+    DefenseAlert,
+    DefenseCommand,
+    DefensePrediction,
+    GenomeContext,
+    SwarmAnalysis,
+    ThreatPosture,
+)
+from services.predictive_defense.predictive_defense_manager import PredictiveDefenseManager
 
 __all__ = [
-    "ThreatTrajectoryPrediction",
-    "TrajectoryPredictor",
+    "DefenseAlert",
+    "DefenseCommand",
+    "DefensePrediction",
+    "GenomeContext",
+    "PredictiveDefenseManager",
+    "SwarmAnalysis",
+    "ThreatPosture",
 ]
+
