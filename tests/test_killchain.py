@@ -42,6 +42,47 @@ def test_targeting_creates_engagement_request_with_threat_assessment():
     assert "is_valid_target" in req.threat_assessment
 
 
+def test_targeting_uses_allocator_when_configured():
+    class StubAllocation:
+        effector_type = "sam_medium"
+        reasoning = "Layered interceptor selected"
+
+    class StubAllocationResult:
+        allocated = True
+        allocation = StubAllocation()
+        reasoning = "Allocated to SAM layer"
+
+    class StubAllocator:
+        def __init__(self):
+            self.calls = []
+
+        def allocate(self, **kwargs):
+            self.calls.append(kwargs)
+            return StubAllocationResult()
+
+    allocator = StubAllocator()
+    pipeline = F2T2EAPipeline(target_allocator=allocator)
+    t = TargetClassification(
+        target_id="T-ALLOC",
+        classification="ENEMY_UAV",
+        confidence=0.95,
+        position=(0.0, 0.0, 0.0),
+        velocity=(0.0, 0.0, 0.0),
+        source="yolo",
+        first_detected=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+        last_updated=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+        track_id="",
+        is_military_objective=None,
+        civilian_proximity_m=300.0,
+        collateral_risk="LOW",
+        image_evidence=None,
+    )
+    req = pipeline.target(t)
+    assert allocator.calls
+    assert req.weapon_type == "sam_medium"
+    assert "Allocated to SAM layer" in req.xai_explanation
+
+
 def test_hitl_requires_human_approval():
     pipeline = F2T2EAPipeline(authority_level=EngagementAuthority.HITL)
     t = pipeline.find({"image_path": "stub.jpg"})[0]

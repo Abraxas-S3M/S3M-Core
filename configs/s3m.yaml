@@ -13,6 +13,7 @@ system:
 
 training_mode: "hybrid"  # hybrid | gpu_only | cpu_only
 gpu_config: "configs/gpu_training.yaml"
+air_defense_config: "configs/scenarios/air_defense.yaml"
 
 memory:
   total_budget_gb: 48
@@ -58,7 +59,8 @@ logging:
 # configs/engines.yaml, configs/routing.yaml, configs/threat_detection.yaml,
 # configs/autonomy.yaml, configs/simulation.yaml, configs/navigation.yaml,
 # configs/dashboard.yaml, configs/security.yaml, configs/interop.yaml,
-# configs/apps.yaml, configs/datasets/registry.yaml
+# configs/apps.yaml, configs/datasets/registry.yaml,
+# configs/scenarios/air_defense.yaml
 
 gap_closure:
   command_engine: enabled

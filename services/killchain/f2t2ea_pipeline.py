@@ -8,7 +8,7 @@ XAI, and audit controls in sovereign air-gapped deployments.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 import uuid
 
 from services.killchain.models import (
@@ -32,11 +32,18 @@ from src.sensor_fusion.track_fuser import TrackFuser
 from src.threat_detection.object_detector import ObjectDetector
 from src.threat_detection.threat_classifier import ThreatClassifier
 
+if TYPE_CHECKING:
+    from services.air_defense.target_allocator import TargetAllocator
+
 
 class F2T2EAPipeline:
     """Core kill-chain processor with graduated authority enforcement."""
 
-    def __init__(self, authority_level: EngagementAuthority = EngagementAuthority.HITL):
+    def __init__(
+        self,
+        authority_level: EngagementAuthority = EngagementAuthority.HITL,
+        target_allocator: "TargetAllocator | None" = None,
+    ):
         self.authority_level = authority_level
         self.object_detector = ObjectDetector(model_path="models/yolov8n-military.pt", confidence_threshold=0.5)
         self.track_fuser = TrackFuser()
@@ -48,6 +55,7 @@ class F2T2EAPipeline:
         self.audit_log = SecureAuditLog(log_dir="data/security_audit/killchain")
         self.interlocks = KillChainSafetyInterlocks()
         self.pairing = WeaponTargetPairing()
+        self.target_allocator = target_allocator
         self.autopilot = AutopilotBridge(backend="simulated")
         self.autopilot.connect()
 
@@ -206,13 +214,31 @@ class F2T2EAPipeline:
 
     def target(self, target: TargetClassification) -> EngagementRequest:
         """Target phase: assess legality, collateral risk, and approval gating."""
-        weapon_options = [
-            {"type": "air_to_air_missile", "range_m": 5000, "collateral_radius_m": 30},
-            {"type": "electronic_kill", "range_m": 2000, "collateral_radius_m": 5},
-            {"type": "direct_fire", "range_m": 800, "collateral_radius_m": 50},
-        ]
-        pair = self.pairing.pair(target, weapon_options)
-        weapon = (pair.get("weapon") or {}).get("type", "direct_fire")
+        pairing_reasoning = ""
+        if self.target_allocator is not None:
+            target_speed_mps = float(sum(float(component) ** 2 for component in target.velocity) ** 0.5)
+            allocation_result = self.target_allocator.allocate(
+                target_id=target.target_id,
+                target_position=target.position,
+                target_speed_mps=target_speed_mps,
+                target_classification=target.classification,
+            )
+            allocation = getattr(allocation_result, "allocation", None)
+            if getattr(allocation_result, "allocated", False) and allocation is not None:
+                weapon = getattr(allocation, "effector_type", "direct_fire")
+                pairing_reasoning = str(getattr(allocation_result, "reasoning", "") or getattr(allocation, "reasoning", ""))
+            else:
+                weapon = "direct_fire"
+                pairing_reasoning = str(getattr(allocation_result, "reasoning", "No in-envelope effectors available"))
+        else:
+            weapon_options = [
+                {"type": "air_to_air_missile", "range_m": 5000, "collateral_radius_m": 30},
+                {"type": "electronic_kill", "range_m": 2000, "collateral_radius_m": 5},
+                {"type": "direct_fire", "range_m": 800, "collateral_radius_m": 50},
+            ]
+            pair = self.pairing.pair(target, weapon_options)
+            weapon = (pair.get("weapon") or {}).get("type", "direct_fire")
+            pairing_reasoning = str(pair.get("reasoning", "Weapon pairing selected"))
 
         threat_assessment = self._threat_assessment_text(target, roe="weapons_tight")
         collateral = self._collateral_estimate_text(target, weapon)
@@ -252,7 +278,7 @@ class F2T2EAPipeline:
             threat_assessment=threat_assessment,
             collateral_estimate=collateral,
             roe_compliant=roe_compliant,
-            xai_explanation=f"Targeting rationale: {pair.get('reasoning')}",
+            xai_explanation=f"Targeting rationale: {pairing_reasoning}",
             human_approval_required=human_required,
             human_approval_timeout_seconds=timeout,
             human_decision=None,
