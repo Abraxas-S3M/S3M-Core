@@ -369,6 +369,9 @@ const labels = {
         llm: "LLM Engines",
         threats: "Threat Intelligence",
         autonomy: "Autonomy & Swarm",
+        radar: "Radar",
+        radars: "Registered Radars",
+        fusedTracks: "Fused Air Picture Tracks",
         system: "System Health",
         approve: "APPROVE",
         reject: "REJECT",
@@ -400,6 +403,9 @@ const labels = {
         llm: "محركات الذكاء الاصطناعي",
         threats: "استخبارات التهديدات",
         autonomy: "الاستقلالية والسرب",
+        radar: "الرادار",
+        radars: "الرادارات المسجلة",
+        fusedTracks: "مسارات الصورة الجوية المدمجة",
         system: "صحة النظام",
         approve: "موافقة",
         reject: "رفض",
@@ -451,6 +457,9 @@ const state = {
     systemHealth: null,
     systemJetson: null,
     systemEdgeModels: [],
+    radarRadars: [],
+    radarStatus: [],
+    radarTracks: [],
     filters: { threatLevel: "", threatCategory: "" }
 };
 
@@ -598,11 +607,24 @@ async function loadSystem() {
     state.systemEdgeModels = (models && models.models) || [];
 }
 
+async function loadRadar() {
+    await fetch("/radar/radars/fuse", { method: "POST" }).catch(() => null);
+    const [radars, status, tracks] = await Promise.all([
+        fetchData("/radar/radars"),
+        fetchData("/radar/status"),
+        fetchData("/radar/tracks")
+    ]);
+    state.radarRadars = (radars && radars.radars) || [];
+    state.radarStatus = (status && status.radars) || [];
+    state.radarTracks = (tracks && tracks.tracks) || [];
+}
+
 async function loadTabData() {
     if (state.tab === "cop") await loadCOP();
     if (state.tab === "llm") await loadLLM();
     if (state.tab === "threats") await loadThreats();
     if (state.tab === "autonomy") await loadAutonomy();
+    if (state.tab === "radar") await loadRadar();
     if (state.tab === "system") await loadSystem();
 }
 
@@ -618,6 +640,7 @@ function setupRefreshLoops() {
     if (state.tab === "llm") refreshTimers.push(setInterval(async () => { await loadLLM(); renderApp(); }, 5000));
     if (state.tab === "threats") refreshTimers.push(setInterval(async () => { await loadThreats(); renderApp(); }, 2000));
     if (state.tab === "autonomy") refreshTimers.push(setInterval(async () => { await loadAutonomy(); renderApp(); }, 3000));
+    if (state.tab === "radar") refreshTimers.push(setInterval(async () => { await loadRadar(); renderApp(); }, 4000));
     if (state.tab === "system") refreshTimers.push(setInterval(async () => { await loadSystem(); renderApp(); }, 10000));
 }
 
@@ -719,6 +742,7 @@ function renderTabs() {
         ["llm", "LLM"],
         ["threats", "THREATS"],
         ["autonomy", "AUTONOMY"],
+        ["radar", "RADAR"],
         ["system", "SYSTEM"]
     ];
     return `
@@ -999,6 +1023,73 @@ function renderAutonomy() {
     `;
 }
 
+function renderRadar() {
+    const radars = state.radarRadars || [];
+    const statuses = state.radarStatus || [];
+    const tracks = state.radarTracks || [];
+    const statusByRadarId = new Map(statuses.map((s) => [s.radar_id, s]));
+    const confirmedTracks = tracks.filter((track) => String(track.state || "").toLowerCase() === "confirmed");
+    return `
+        <div class="view-wrap">
+            <div class="grid-4">
+                <div class="metric"><div class="label">${t("radars")}</div><div class="value">${radars.length}</div></div>
+                <div class="metric"><div class="label">${t("fusedTracks")}</div><div class="value">${tracks.length}</div></div>
+                <div class="metric"><div class="label">Confirmed Tracks</div><div class="value">${confirmedTracks.length}</div></div>
+                <div class="metric"><div class="label">Operational Radars</div><div class="value">${statuses.filter((s) => s.operational).length}</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("radars")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Radar ID</th><th>Name</th><th>Type</th><th>Band</th><th>Status</th><th>Scans</th><th>Plots</th><th>Correlated</th><th>Last Scan</th></tr></thead>
+                            <tbody>
+                                ${radars.map((r) => {
+                                    const s = statusByRadarId.get(r.radar_id) || {};
+                                    return `
+                                        <tr>
+                                            <td>${r.radar_id}</td>
+                                            <td>${r.name_en || "-"}</td>
+                                            <td>${r.radar_type || "-"}</td>
+                                            <td>${r.band || "-"}</td>
+                                            <td><span class="status-pill ${statusClass(s.operational === false ? "offline" : "operational")}">${s.operational === false ? "offline" : "operational"}</span></td>
+                                            <td>${s.scans_received || 0}</td>
+                                            <td>${s.plots_received || 0}</td>
+                                            <td>${s.plots_correlated || 0}</td>
+                                            <td>${fmtTime(s.last_scan_time)}</td>
+                                        </tr>
+                                    `;
+                                }).join("") || '<tr><td colspan="9" class="muted">No radars registered</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("fusedTracks")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Track ID</th><th>State</th><th>Classification</th><th>Source Hits</th><th>Position (m)</th><th>Sources</th><th>Last Update</th></tr></thead>
+                            <tbody>
+                                ${tracks.map((track) => `
+                                    <tr>
+                                        <td>${track.track_id}</td>
+                                        <td><span class="status-pill ${statusClass(track.state)}">${track.state}</span></td>
+                                        <td>${track.classification || "-"}</td>
+                                        <td>${track.source_hits || 0}</td>
+                                        <td>${Array.isArray(track.position) ? track.position.map((v) => Number(v).toFixed(1)).join(", ") : "-"}</td>
+                                        <td>${Array.isArray(track.sensor_sources) ? track.sensor_sources.join(", ") : "-"}</td>
+                                        <td>${fmtTime(track.last_update)}</td>
+                                    </tr>
+                                `).join("") || '<tr><td colspan="7" class="muted">No fused tracks</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function renderSystem() {
     const health = state.systemHealth || { layers: {}, api_health: { healthy: 0, unhealthy: 0 } };
     const jet = state.systemJetson || { gpu_util_pct: 0, memory_pct: 0, temperature_c: 0, power_w: 0, cuda_version: "unknown" };
@@ -1073,6 +1164,7 @@ function renderView() {
     if (state.tab === "llm") return renderLLM();
     if (state.tab === "threats") return renderThreats();
     if (state.tab === "autonomy") return renderAutonomy();
+    if (state.tab === "radar") return renderRadar();
     if (state.tab === "system") return renderSystem();
     return `<div class="view-wrap"><div class="panel">No view selected</div></div>`;
 }
