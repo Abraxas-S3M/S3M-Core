@@ -7,8 +7,13 @@ simultaneously and feed Layer 02 fusion with normalized tactical contacts.
 
 from __future__ import annotations
 
+import os
+import sys
 from datetime import datetime, timezone
 from pprint import pprint
+
+# Ensure script works when executed directly from repository root or scripts/ path.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.radar.krechet_radar_suite import load_krechet_suite
 from services.radar.radar_manager import RadarManager
