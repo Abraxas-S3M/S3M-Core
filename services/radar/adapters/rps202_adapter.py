@@ -96,7 +96,10 @@ class RPS202Adapter(BaseRadarAdapter):
 
     @staticmethod
     def _parse_float(value: Any, field_name: str) -> float:
-        parsed = float(value)
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{field_name} must be a finite number") from exc
         if not isfinite(parsed):
             raise ValueError(f"{field_name} must be a finite number")
         return parsed
