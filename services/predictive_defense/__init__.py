@@ -1,5 +1,21 @@
-"""Predictive defense service components."""
+"""Predictive defense trajectory and pre-positioning package."""
 
-from services.predictive_defense.track_genome_bridge import TrackGenomeBridge
+from services.predictive_defense.models import (
+    DefensePosture,
+    InterceptWindow,
+    PrePositionCommand,
+    PredictiveAlert,
+    SwarmIntent,
+    SwarmPrediction,
+    ThreatTrajectoryPrediction,
+)
 
-__all__ = ["TrackGenomeBridge"]
+__all__ = [
+    "DefensePosture",
+    "InterceptWindow",
+    "PrePositionCommand",
+    "PredictiveAlert",
+    "SwarmIntent",
+    "SwarmPrediction",
+    "ThreatTrajectoryPrediction",
+]
