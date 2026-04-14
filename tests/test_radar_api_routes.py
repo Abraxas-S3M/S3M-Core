@@ -105,3 +105,31 @@ def test_setup_krechet_suite_rejects_invalid_center() -> None:
     assert response.status_code == 400
     assert "center" in response.json()["detail"]
 
+
+def test_tracks_endpoint_exposes_fused_air_picture() -> None:
+    client = _build_client()
+    register = client.post("/radar/radars/register", json={})
+    radar_id = register.json()["radar_id"]
+
+    first_scan = client.post(
+        f"/radar/radars/{radar_id}/scan",
+        json={"plots": [{"position": [10.0, 20.0, 1000.0], "rcs_classification": "small_uav", "track_id": "trk-radar"}]},
+    )
+    assert first_scan.status_code == 200
+    client.post("/radar/radars/fuse")
+
+    second_scan = client.post(
+        f"/radar/radars/{radar_id}/scan",
+        json={"plots": [{"position": [11.0, 20.0, 1002.0], "rcs_classification": "small_uav", "track_id": "trk-radar"}]},
+    )
+    assert second_scan.status_code == 200
+    client.post("/radar/radars/fuse")
+
+    tracks = client.get("/radar/tracks")
+    assert tracks.status_code == 200
+    payload = tracks.json()
+    assert payload["count"] >= 1
+    assert payload["confirmed"] >= 1
+    fused_track = next(t for t in payload["tracks"] if t["track_id"] == "trk-radar")
+    assert fused_track["classification"] == "ENEMY_UAV"
+
