@@ -1,155 +1,203 @@
-"""Predictive defense orchestration manager.
+"""Orchestrates the full predictive defense pipeline.
 
 Military context:
-Maintains deterministic, offline-safe tactical prediction state that can be
-served to command-post clients without external service dependencies.
+This is the engine that gives S3M its doctrinal advantage. Every radar
+update cycle, it:
+1. Converts fused tracks to entity snapshots and genome observations
+2. Correlates tracks with threat genome library
+3. Produces genome-enhanced trajectory predictions
+4. Analyzes swarm behavior and convergence
+5. Computes interceptor pre-positioning commands
+6. Generates predictive alerts with recommended defense posture
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+import threading
+from typing import Any, Dict, List, Optional, Tuple
 
 from services.predictive_defense.models import (
-    DefenseAlert,
-    DefenseCommand,
-    DefensePrediction,
-    GenomeContext,
-    SwarmAnalysis,
-    ThreatPosture,
+    DefensePosture,
+    PredictiveAlert,
+    PrePositionCommand,
+    SwarmPrediction,
+    ThreatTrajectoryPrediction,
 )
-
-
-def _utcnow_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+from services.predictive_defense.preposition_optimizer import PrePositionOptimizer
+from services.predictive_defense.swarm_analyzer import SwarmAnalyzer
+from services.predictive_defense.track_genome_bridge import TrackGenomeBridge
+from services.predictive_defense.trajectory_predictor import TrajectoryPredictor
+from src.prediction.short_horizon_predictor import ShortHorizonPredictor
+from src.sensor_fusion.models import Track, TrackState
 
 
 class PredictiveDefenseManager:
-    """Stateful manager for tactical predictive-defense outputs."""
+    """Central orchestrator for predictive threat defense."""
 
-    def __init__(self) -> None:
-        self._genome_context_by_track: Dict[str, GenomeContext] = {}
-        self._predictions_by_track: Dict[str, DefensePrediction] = {}
-        self._commands_by_track: Dict[str, DefenseCommand] = {}
-        self._alerts: List[DefenseAlert] = []
+    def __init__(
+        self,
+        defended_position: Tuple[float, float, float] = (0.0, 0.0, 0.0),
+        outer_zone_radius_m: float = 40000.0,
+        interceptor_speed_mps: float = 60.0,
+    ) -> None:
+        self._lock = threading.RLock()
+        self.defended_position = defended_position
 
-    def get_predictions(self) -> List[DefensePrediction]:
-        return list(self._predictions_by_track.values())
-
-    def get_swarm_analysis(self) -> Optional[SwarmAnalysis]:
-        predictions = self.get_predictions()
-        if not predictions:
-            return None
-
-        average_threat = sum(p.threat_score for p in predictions) / len(predictions)
-        swarm_detected = len(predictions) >= 3 and average_threat >= 0.6
-        action = "maintain_surveillance"
-        if swarm_detected:
-            action = "activate_layered_intercept"
-        elif average_threat >= 0.45:
-            action = "prepare_interceptor_standby"
-
-        return SwarmAnalysis(
-            swarm_detected=swarm_detected,
-            track_count=len(predictions),
-            average_threat_score=average_threat,
-            recommended_action=action,
+        self.bridge = TrackGenomeBridge()
+        self.predictor = TrajectoryPredictor(
+            predictor=ShortHorizonPredictor(windows_s=[30.0, 60.0, 120.0]),
+            defended_position=defended_position,
+            outer_zone_radius_m=outer_zone_radius_m,
+        )
+        self.swarm_analyzer = SwarmAnalyzer()
+        self.optimizer = PrePositionOptimizer(
+            interceptor_speed_mps=interceptor_speed_mps,
+            defended_position=defended_position,
         )
 
-    def get_commands(self) -> List[DefenseCommand]:
-        return list(self._commands_by_track.values())
+        self._predictions: List[ThreatTrajectoryPrediction] = []
+        self._swarm: Optional[SwarmPrediction] = None
+        self._alerts: List[PredictiveAlert] = []
+        self._commands: List[PrePositionCommand] = []
 
-    def get_alerts(self, limit: int = 20) -> List[DefenseAlert]:
-        if limit <= 0:
-            return []
-        return self._alerts[-limit:]
-
-    def get_stats(self) -> Dict[str, Any]:
-        posture = ThreatPosture.NORMAL
-        severity = "low"
-        if self._alerts:
-            posture = self._alerts[-1].posture
-            severity = self._alerts[-1].severity
-        return {
-            "tracks_with_context": len(self._genome_context_by_track),
-            "predictions": len(self._predictions_by_track),
-            "commands": len(self._commands_by_track),
-            "alerts": len(self._alerts),
-            "posture": posture.value,
-            "severity": severity,
-        }
+        # Genome context cache: track_id -> genome features
+        self._genome_contexts: Dict[str, Dict[str, Any]] = {}
 
     def set_genome_context(self, track_id: str, context: Dict[str, Any]) -> None:
-        normalized_track = str(track_id).strip()
-        if not normalized_track:
-            raise ValueError("track_id required")
+        """Attach genome correlation context to a track."""
+        if not isinstance(track_id, str) or not track_id.strip():
+            raise ValueError("track_id must be a non-empty string")
         if not isinstance(context, dict):
-            raise ValueError("context must be an object")
+            raise ValueError("context must be a dictionary")
+        with self._lock:
+            self._genome_contexts[track_id] = context
 
-        normalized_context = dict(context)
-        self._genome_context_by_track[normalized_track] = GenomeContext(
-            track_id=normalized_track,
-            context=normalized_context,
-            updated_at=_utcnow_iso(),
-        )
+    def process_tracks(
+        self,
+        confirmed_tracks: List[Track],
+        available_interceptors: Optional[List[Dict[str, Any]]] = None,
+    ) -> PredictiveAlert:
+        """Run the full predictive defense pipeline on current tracks.
 
-        threat_score = self._coerce_score(normalized_context.get("threat_score"), default=0.35)
-        confidence = self._coerce_score(normalized_context.get("confidence"), default=0.65)
-        predicted_intent = str(normalized_context.get("predicted_intent", "observe")).strip() or "observe"
-        horizon_seconds = self._coerce_horizon(normalized_context.get("horizon_seconds"), default=120)
+        Returns a PredictiveAlert with recommended posture and pre-position commands.
+        """
+        with self._lock:
+            # Step 1-2: Convert tracks and predict trajectories
+            predictions = []
+            for track in confirmed_tracks:
+                if track.state != TrackState.CONFIRMED:
+                    continue
+                entity = self.bridge.track_to_entity_snapshot(track)
+                genome_ctx = self._genome_contexts.get(track.track_id)
+                pred = self.predictor.predict(entity, genome_ctx)
+                predictions.append(pred)
 
-        prediction = DefensePrediction(
-            track_id=normalized_track,
-            threat_score=threat_score,
-            confidence=confidence,
-            predicted_intent=predicted_intent,
-            horizon_seconds=horizon_seconds,
-        )
-        self._predictions_by_track[normalized_track] = prediction
+            self._predictions = predictions
 
-        posture = ThreatPosture.NORMAL
-        severity = "low"
-        action = "monitor_track"
-        if threat_score >= 0.8:
-            posture = ThreatPosture.HIGH
-            severity = "high"
-            action = "authorize_intercept_window"
-        elif threat_score >= 0.5:
-            posture = ThreatPosture.ELEVATED
-            severity = "medium"
-            action = "raise_air_defense_readiness"
+            # Step 3: Swarm analysis
+            self._swarm = self.swarm_analyzer.analyze(predictions, self.defended_position)
 
-        self._commands_by_track[normalized_track] = DefenseCommand(
-            command_id=f"cmd-{normalized_track}",
-            track_id=normalized_track,
-            action=action,
-            priority=severity,
-            rationale=f"Threat score {threat_score:.2f} with confidence {confidence:.2f}",
-        )
-        self._alerts.append(
-            DefenseAlert(
-                alert_id=f"alert-{normalized_track}-{len(self._alerts) + 1}",
-                track_id=normalized_track,
-                posture=posture,
-                severity=severity,
-                message=f"Track {normalized_track} posture set to {posture.value}",
-                timestamp=_utcnow_iso(),
+            # Step 4: Pre-positioning
+            interceptors = available_interceptors or []
+            if predictions and interceptors:
+                self._commands = self.optimizer.optimize_preposition(
+                    predictions, interceptors, self._swarm
+                )
+            else:
+                self._commands = []
+
+            # Step 5: Generate alert
+            alert = self._generate_alert(predictions, self._swarm, self._commands)
+            self._alerts.append(alert)
+
+            # Keep bounded
+            if len(self._alerts) > 200:
+                self._alerts = self._alerts[-100:]
+
+            return alert
+
+    def _generate_alert(
+        self,
+        predictions: List[ThreatTrajectoryPrediction],
+        swarm: Optional[SwarmPrediction],
+        commands: List[PrePositionCommand],
+    ) -> PredictiveAlert:
+        """Generate a predictive defense alert based on current analysis."""
+        if not predictions:
+            return PredictiveAlert(
+                severity="low",
+                posture=DefensePosture.NORMAL,
+                title_en="No active threats detected",
+                title_ar="لا توجد تهديدات نشطة",
             )
+
+        # Determine urgency from closest threat
+        min_time = min(p.time_to_asset_s for p in predictions) if predictions else 9999
+        threat_count = len(predictions)
+
+        if min_time < 30:
+            severity = "critical"
+            posture = DefensePosture.IMMINENT
+        elif min_time < 90:
+            severity = "high"
+            posture = DefensePosture.PRE_POSITION
+        elif min_time < 300:
+            severity = "medium"
+            posture = DefensePosture.ELEVATED
+        else:
+            severity = "low"
+            posture = DefensePosture.NORMAL
+
+        actions = []
+        if commands:
+            actions.append(f"Pre-position {len(commands)} interceptor(s)")
+            launch_now = [c for c in commands if c.launch_now]
+            if launch_now:
+                actions.append(f"LAUNCH NOW: {len(launch_now)} interceptor(s)")
+
+        if swarm:
+            actions.append(f"Swarm detected: {swarm.track_count} tracks, intent={swarm.intent.value}")
+            actions.append(f"Convergence in {swarm.convergence_time_s:.0f}s")
+
+        genome_names = list({p.genome_match for p in predictions if p.genome_match})
+        if genome_names:
+            actions.append(f"Genome match: {', '.join(genome_names)}")
+
+        return PredictiveAlert(
+            severity=severity,
+            posture=posture,
+            title_en=f"{threat_count} threat(s) predicted — {posture.value}",
+            title_ar=f"{threat_count} تهديد(ات) متوقعة — {posture.value}",
+            description=f"Predicted {threat_count} threats, closest arrival in {min_time:.0f}s",
+            threat_count=threat_count,
+            time_to_impact_s=min_time,
+            recommended_actions=actions,
+            pre_position_commands=commands,
         )
 
-    @staticmethod
-    def _coerce_score(raw_value: Any, default: float) -> float:
-        try:
-            score = float(raw_value)
-        except (TypeError, ValueError):
-            score = default
-        return max(0.0, min(1.0, score))
+    def get_predictions(self) -> List[ThreatTrajectoryPrediction]:
+        with self._lock:
+            return list(self._predictions)
 
-    @staticmethod
-    def _coerce_horizon(raw_value: Any, default: int) -> int:
-        try:
-            horizon = int(raw_value)
-        except (TypeError, ValueError):
-            horizon = default
-        return max(1, min(3600, horizon))
+    def get_swarm_analysis(self) -> Optional[SwarmPrediction]:
+        with self._lock:
+            return self._swarm
 
+    def get_commands(self) -> List[PrePositionCommand]:
+        with self._lock:
+            return list(self._commands)
+
+    def get_alerts(self, limit: int = 20) -> List[PredictiveAlert]:
+        with self._lock:
+            return self._alerts[-limit:]
+
+    def get_stats(self) -> Dict[str, Any]:
+        with self._lock:
+            return {
+                "active_predictions": len(self._predictions),
+                "swarm_detected": self._swarm is not None,
+                "swarm_size": self._swarm.track_count if self._swarm else 0,
+                "pre_position_commands": len(self._commands),
+                "alerts_generated": len(self._alerts),
+                "genome_contexts_cached": len(self._genome_contexts),
+            }

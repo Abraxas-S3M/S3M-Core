@@ -1,168 +1,129 @@
-"""Bridge between fused radar tracks and threat genome/prediction systems.
+"""Bridge fused tracks into predictor-ready entity snapshots.
 
 Military context:
-Converts Layer 02 Track objects into genome-correlation features and
-EntitySnapshot inputs for short-horizon prediction. This translation keeps
-threat cues consistent across modules so defensive doctrine can prioritize
-the most dangerous tracks first.
+This bridge translates radar-fusion track state into deterministic prediction
+input so doctrine logic can run fully offline during contested operations.
 """
 
 from __future__ import annotations
 
-import math
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from math import atan2, degrees, sqrt
+from typing import Any, Dict, List, Tuple
 
 from src.prediction.prediction_models import EntitySnapshot, HistoricalObservation
 from src.sensor_fusion.models import Track
 
 
+def _to_xyz(raw_position: Any) -> Tuple[float, float, float]:
+    if not isinstance(raw_position, (tuple, list)) or len(raw_position) != 3:
+        raise ValueError("position must contain exactly 3 numeric values")
+    return (float(raw_position[0]), float(raw_position[1]), float(raw_position[2]))
+
+
 class TrackGenomeBridge:
-    """Convert fused tracks to prediction-ready entities with genome context."""
-
-    _MAX_HISTORY_PER_TRACK = 50
-    _MAX_OBSERVATIONS_FOR_SNAPSHOT = 10
-
-    def __init__(self) -> None:
-        self._track_history: Dict[str, List[Dict[str, Any]]] = {}
+    """Converts sensor-fusion tracks to prediction-model snapshots."""
 
     def track_to_entity_snapshot(self, track: Track) -> EntitySnapshot:
-        """Convert a fused Track into an EntitySnapshot for ShortHorizonPredictor."""
-        self._validate_track(track)
-        speed, heading = self._compute_speed_heading(track)
+        if not isinstance(track, Track):
+            raise ValueError("track must be a Track instance")
 
-        history: List[HistoricalObservation] = []
-        track_hist = self._track_history.get(track.track_id, [])
-        for i, entry in enumerate(track_hist[-self._MAX_OBSERVATIONS_FOR_SNAPSHOT :]):
-            history.append(
-                HistoricalObservation(
-                    timestamp_s=float(i),
-                    position=entry["position"],
-                    speed_mps=entry.get("speed", speed),
-                    heading_deg=entry.get("heading", heading),
-                    threat_level=entry.get("threat_level", "unknown"),
-                )
-            )
-
-        # Tactical continuity: persist each new fused state for next forecast call.
-        self._update_history(track, speed, heading)
-
-        threat_level = self._classification_to_threat_level(track.classification or "")
-        behavior_tags = self._derive_behavior_tags(track.classification, speed)
+        speed_mps = sqrt(
+            (track.velocity[0] * track.velocity[0])
+            + (track.velocity[1] * track.velocity[1])
+            + (track.velocity[2] * track.velocity[2])
+        )
+        heading_deg = (degrees(atan2(track.velocity[1], track.velocity[0])) + 360.0) % 360.0
+        threat_level = self._classification_to_threat(track.classification)
+        history = self._build_history(track.history, fallback_position=track.position, fallback_speed=speed_mps)
+        behavior_tags = self._build_behavior_tags(track.classification, speed_mps)
 
         return EntitySnapshot(
             entity_id=track.track_id,
-            entity_type=track.classification or "unknown",
+            entity_type=self._classification_to_entity_type(track.classification),
             position=track.position,
-            speed_mps=speed,
-            heading_deg=heading,
+            speed_mps=speed_mps,
+            heading_deg=heading_deg,
             threat_level=threat_level,
             behavior_tags=behavior_tags,
             confidence=track.confidence,
-            volatility=self._compute_volatility(track.track_id),
+            volatility=self._estimate_volatility(history, speed_mps=speed_mps),
             history=history,
         )
 
-    def track_to_genome_features(self, track: Track) -> Dict[str, Any]:
-        """Extract genome-correlation features from a track."""
-        self._validate_track(track)
-        speed, heading = self._compute_speed_heading(track)
+    def _build_history(
+        self,
+        history: List[Dict[str, Any]],
+        *,
+        fallback_position: Tuple[float, float, float],
+        fallback_speed: float,
+    ) -> List[HistoricalObservation]:
+        out: List[HistoricalObservation] = []
+        for idx, entry in enumerate(history[-10:]):
+            if not isinstance(entry, dict):
+                continue
+            position_raw = entry.get("position", fallback_position)
+            velocity_raw = entry.get("velocity", (fallback_speed, 0.0, 0.0))
+            try:
+                position = _to_xyz(position_raw)
+                velocity = _to_xyz(velocity_raw)
+            except (TypeError, ValueError):
+                continue
+            speed = sqrt((velocity[0] * velocity[0]) + (velocity[1] * velocity[1]) + (velocity[2] * velocity[2]))
+            heading = (degrees(atan2(velocity[1], velocity[0])) + 360.0) % 360.0
+            threat_level = self._classification_to_threat(entry.get("classification"))
+            out.append(
+                HistoricalObservation(
+                    timestamp_s=float(idx),
+                    position=position,
+                    speed_mps=speed,
+                    heading_deg=heading,
+                    threat_level=threat_level,
+                )
+            )
+        return out
 
-        features: Dict[str, Any] = {
-            "source_type": "sensor_fusion",
-            "classification": track.classification or "unknown",
-            "behavior_tags": [],
-            "extracted_signature_features": {
-                "approach_bearing_range": heading,
-                "speed_range_mps": speed,
-            },
-            "raw_confidence": track.confidence,
-        }
-        if track.classification:
-            lowered = track.classification.lower()
-            features["behavior_tags"].append(lowered)
-            if "uav" in lowered:
-                features["behavior_tags"].extend(["drone", "uav"])
-        return features
+    def _estimate_volatility(self, history: List[HistoricalObservation], *, speed_mps: float) -> float:
+        if len(history) < 2:
+            return min(1.0, max(0.0, speed_mps / 120.0))
+        speed_changes = [abs(history[idx].speed_mps - history[idx - 1].speed_mps) for idx in range(1, len(history))]
+        heading_changes = [
+            min(
+                abs(history[idx].heading_deg - history[idx - 1].heading_deg),
+                360.0 - abs(history[idx].heading_deg - history[idx - 1].heading_deg),
+            )
+            for idx in range(1, len(history))
+        ]
+        avg_speed_delta = sum(speed_changes) / max(1, len(speed_changes))
+        avg_heading_delta = sum(heading_changes) / max(1, len(heading_changes))
+        return min(1.0, (avg_speed_delta / 40.0) + (avg_heading_delta / 180.0))
 
-    def _update_history(self, track: Track, speed: float, heading: float) -> None:
-        if track.track_id not in self._track_history:
-            self._track_history[track.track_id] = []
+    def _build_behavior_tags(self, classification: Any, speed_mps: float) -> List[str]:
+        tags: List[str] = []
+        classification_text = str(classification or "unknown").lower()
+        if "uav" in classification_text:
+            tags.append("uav")
+        if "missile" in classification_text:
+            tags.append("missile")
+        if speed_mps >= 70.0:
+            tags.append("high_speed")
+        return tags
 
-        self._track_history[track.track_id].append(
-            {
-                "position": track.position,
-                "speed": speed,
-                "heading": heading,
-                "threat_level": self._classification_to_threat_level(track.classification or ""),
-                "timestamp": self._timestamp_for_history(track.last_update),
-            }
-        )
+    def _classification_to_entity_type(self, classification: Any) -> str:
+        text = str(classification or "unknown").strip().lower()
+        if "uav" in text:
+            return "uav"
+        if "missile" in text:
+            return "missile"
+        if "aircraft" in text:
+            return "aircraft"
+        return "unknown"
 
-        if len(self._track_history[track.track_id]) > self._MAX_HISTORY_PER_TRACK:
-            self._track_history[track.track_id] = self._track_history[track.track_id][
-                -self._MAX_HISTORY_PER_TRACK :
-            ]
-
-    def _compute_volatility(self, track_id: str) -> float:
-        hist = self._track_history.get(track_id, [])
-        if len(hist) < 3:
-            return 0.3
-        headings = [float(h.get("heading", 0.0)) for h in hist[-self._MAX_OBSERVATIONS_FOR_SNAPSHOT :]]
-        speeds = [float(h.get("speed", 0.0)) for h in hist[-self._MAX_OBSERVATIONS_FOR_SNAPSHOT :]]
-        heading_var = self._variance(headings)
-        speed_var = self._variance(speeds)
-        return min(1.0, (heading_var / 180.0 + speed_var / 50.0) * 0.5)
-
-    @staticmethod
-    def _compute_speed_heading(track: Track) -> tuple[float, float]:
-        vx, vy, vz = track.velocity
-        speed = math.sqrt(vx * vx + vy * vy + vz * vz)
-        heading = math.degrees(math.atan2(vx, vy)) % 360.0
-        return speed, heading
-
-    @staticmethod
-    def _derive_behavior_tags(classification: str | None, speed: float) -> List[str]:
-        behavior_tags: List[str] = []
-        if classification:
-            behavior_tags.append(classification.lower())
-        if speed > 50:
-            behavior_tags.append("high_speed")
-        if speed < 10:
-            behavior_tags.append("loitering")
-        return behavior_tags
-
-    @staticmethod
-    def _validate_track(track: Track) -> None:
-        if not isinstance(track, Track):
-            raise ValueError("track must be a Track instance")
-        if not isinstance(track.track_id, str) or not track.track_id.strip():
-            raise ValueError("track.track_id must be a non-empty string")
-        if not (isinstance(track.velocity, tuple) and len(track.velocity) == 3):
-            raise ValueError("track.velocity must be a 3D tuple")
-        if not (isinstance(track.position, tuple) and len(track.position) == 3):
-            raise ValueError("track.position must be a 3D tuple")
-
-    @staticmethod
-    def _timestamp_for_history(last_update: datetime) -> str:
-        if last_update.tzinfo is None:
-            return last_update.replace(tzinfo=timezone.utc).isoformat()
-        return last_update.astimezone(timezone.utc).isoformat()
-
-    @staticmethod
-    def _variance(values: List[float]) -> float:
-        if not values:
-            return 0.0
-        mean = sum(values) / len(values)
-        return sum((v - mean) ** 2 for v in values) / len(values)
-
-    @staticmethod
-    def _classification_to_threat_level(classification: str) -> str:
-        c = classification.strip().upper()
-        if "CRUISE_MISSILE" in c or "BALLISTIC" in c:
+    def _classification_to_threat(self, classification: Any) -> str:
+        text = str(classification or "unknown").strip().upper()
+        if "CRUISE_MISSILE" in text:
             return "critical"
-        if "UAV" in c or "AIRCRAFT" in c or "HELICOPTER" in c:
+        if "ENEMY" in text or "HOSTILE" in text:
             return "high"
-        if c == "CLUTTER" or c == "UNKNOWN":
-            return "low"
-        return "medium"
+        if "UNKNOWN" not in text and text:
+            return "guarded"
+        return "unknown"
