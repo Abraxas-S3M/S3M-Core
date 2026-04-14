@@ -2,39 +2,22 @@
 # UNCLASSIFIED - FOUO
 #
 # Architecture:
-#   Tier 1: Local Server (4-10TB) — Weight Vault, source of truth, always on
-#   Tier 2: Hetzner CCX33 (CPU) — 24/7 CPU training, orchestration, pseudo-labeling
-#   Tier 3: RunPod RTX 4090 (GPU) — 2-4 hr/day burst fine-tuning, quantization
+#   Tier 0: Cloudflare R2 (s3m-vault) — Object storage source of truth, $0 egress
+#   Tier 1: Hetzner CCX33 (CPU) — 24/7 CPU training, orchestration, pseudo-labeling
+#   Tier 2: RunPod RTX 4090 (GPU) — 2-4 hr/day burst fine-tuning, merge, quantize
+#   Tier 3: Cloudflare Pages (S3M-GUI) — Operator dashboard reads gui-snapshots
+#
+# Storage budget corrected: merged FP16 = 810 GB, checkpoints = 607 GB
+# Total: 3.3 TB conservative, 2.4 TB aggressive. Plan for 5 TB.
 
-local_vault:
-  hostname: "s3m-vault"
-  storage:
-    mount_point: "/mnt/s3m-weights"
-    min_capacity_tb: 4
-    max_capacity_tb: 10
-    layout:
-      base_weights: "/mnt/s3m-weights/base/"
-      quantized: "/mnt/s3m-weights/quantized/"
-      lora_adapters: "/mnt/s3m-weights/adapters/"
-      merged: "/mnt/s3m-weights/merged/"
-      datasets: "/mnt/s3m-weights/datasets/"
-      eval_results: "/mnt/s3m-weights/eval/"
-      manifests: "/mnt/s3m-weights/manifests/"
-    weight_budget:
-      phi3_medium_fp16_gb: 28
-      grok1_fp16_gb: 300
-      mixtral_fp16_gb: 93
-      allam_fp16_gb: 14
-      total_fp16_gb: 435
-      total_q4_gb: 119
+cloudflare_r2:
+  bucket_name: "s3m-vault"
+  region: "auto"
+  endpoint: "https://${S3M_CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+  role: "sovereign_vault"
   sync:
-    protocol: "rsync+ssh"
-    port: 22
-    ssh_key_path: "/root/.ssh/s3m_sync_key"
-    bandwidth_limit_mbps: 100
-  services:
-    weight_api_port: 8877
-    monitoring_port: 9100
+    protocol: "s3api"
+    fallback_protocol: "rsync+ssh"
 
 hetzner_ccx33:
   hostname: "s3m-cpu-train"
@@ -45,20 +28,29 @@ hetzner_ccx33:
     gpu: none
   role: "cpu_training_orchestrator"
   sync:
-    pull_from_vault:
-      - source: "adapters/"
+    pull_from_r2:
+      - source: "models/fp16-adapters/"
         dest: "/opt/s3m/adapters/"
         interval_minutes: 30
       - source: "datasets/"
         dest: "/opt/s3m/datasets/"
         interval_hours: 6
-    push_to_vault:
-      - source: "/opt/s3m/gradients/"
-        dest: "adapters/federated/"
+      - source: "models/q4-gguf/"
+        dest: "/opt/s3m/models/"
+        interval_hours: 12
+    push_to_r2:
+      - source: "/opt/s3m/state/training/cloud_cpu/checkpoints/"
+        dest: "checkpoints/hetzner/"
         interval_minutes: 30
       - source: "/opt/s3m/pseudo_labels/"
         dest: "datasets/pseudo/"
         interval_hours: 2
+      - source: "/opt/s3m/state/training/cloud_cpu/metrics/"
+        dest: "eval-results/hetzner/"
+        interval_hours: 1
+      - source: "/opt/s3m/gui-snapshots/"
+        dest: "gui-snapshots/"
+        interval_minutes: 15
   cpu_training:
     federated_aggregation:
       enabled: true
@@ -84,28 +76,37 @@ runpod_4090:
     max_cost_usd: 16
     auto_shutdown: true
   boot_sequence:
-    - "rsync_pull base/{engine}/ from vault"
-    - "rsync_pull datasets/{engine}/ from vault"
-    - "rsync_pull adapters/{engine}/ from vault"
+    - "s3_pull models/fp16/{engine_id}/ from r2"
+    - "s3_pull datasets/{track}/ from r2"
+    - "s3_pull models/fp16-adapters/{engine_id}/{track}/ from r2"
   completion_sequence:
-    - "rsync_push adapters/{engine}/ to vault"
-    - "rsync_push merged/{engine}/ to vault"
-    - "rsync_push quantized/{engine}/ to vault"
+    - "s3_push adapters/ to models/fp16-adapters/{engine_id}/{track}/"
+    - "s3_push merged/ to models/fp16-merged/{engine_id}/{track}/"
+    - "s3_push checkpoints/ to checkpoints/runpod/{engine_id}/"
     - "shutdown_pod"
   training_profiles:
     phi3_medium:
       fits_single_4090: true
       qlora_vram_gb: 10
       estimated_hours: 2
+      per_job_push_gb: 62
     allam:
       fits_single_4090: true
       qlora_vram_gb: 6
       estimated_hours: 1.5
+      per_job_push_gb: 31
     mixtral:
       fits_single_4090: false
       strategy: "2x4090_pod_or_expert_parallel"
       estimated_hours: 4
+      per_job_push_gb: 206
     grok1:
       fits_single_4090: false
       strategy: "4xA100_80GB_or_distillation"
-      notes: "314B MoE too large for consumer GPUs"
+      notes: "314B MoE too large for consumer GPUs — validation oracle only"
+
+cloudflare_pages:
+  domain: "${S3M_GUI_DOMAIN}"
+  role: "operator_dashboard"
+  r2_binding: "S3M_VAULT"
+  reads: ["gui-snapshots/", "eval-results/", "manifests/"]

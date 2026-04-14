@@ -57,7 +57,7 @@ class ObjectStorageConnector:
         bucket_name: str | None = None,
         endpoint: str | None = None,
         endpoint_url: str | None = None,
-        region_name: str = "fsn1",
+        region_name: str = "auto",
         max_retries: int = 3,
         retry_base_seconds: float = 1.0,
         emulation_root: str | Path | None = None,
@@ -148,8 +148,39 @@ class ObjectStorageConnector:
             secret_key=section.get("secret_key") if isinstance(section.get("secret_key"), str) else None,
             bucket_name=section.get("bucket_name") if isinstance(section.get("bucket_name"), str) else None,
             endpoint=section.get("endpoint") if isinstance(section.get("endpoint"), str) else None,
-            region_name=section.get("region", "fsn1") if isinstance(section.get("region"), str) else "fsn1",
+            region_name=section.get("region", "auto") if isinstance(section.get("region"), str) else "auto",
             max_retries=int(section.get("max_retries", 3)),
+        )
+
+    @classmethod
+    def for_cloudflare_r2(
+        cls,
+        *,
+        account_id: str | None = None,
+        access_key: str | None = None,
+        secret_key: str | None = None,
+        bucket_name: str = "s3m-vault",
+    ) -> "ObjectStorageConnector":
+        """Construct connector pre-configured for Cloudflare R2.
+
+        Tactical context:
+            R2 provides zero-egress-cost artifact distribution, enabling
+            unconstrained model pulls from both Hetzner CPU and RunPod GPU
+            nodes without transfer budget pressure during high-tempo training.
+        """
+        resolved_account_id = (
+            account_id or os.getenv("S3M_CF_ACCOUNT_ID", "")
+        ).strip()
+        if not resolved_account_id:
+            raise ObjectStorageConfigError(
+                "Cloudflare R2 requires S3M_CF_ACCOUNT_ID"
+            )
+        return cls(
+            access_key=access_key or os.getenv("S3M_R2_ACCESS_KEY_ID"),
+            secret_key=secret_key or os.getenv("S3M_R2_SECRET_ACCESS_KEY"),
+            endpoint=f"https://{resolved_account_id}.r2.cloudflarestorage.com",
+            bucket_name=bucket_name,
+            region_name="auto",
         )
 
     @staticmethod
@@ -469,6 +500,98 @@ class ObjectStorageConnector:
 
         self._with_retries(f"delete_file key={key}", _operation)
         logger.info("Deleted storage://%s/%s", self.bucket_name, key)
+
+    def generate_presigned_url(
+        self,
+        remote_key: str,
+        *,
+        method: str = "get_object",
+        expires_in: int = 3600,
+    ) -> str:
+        """Generate a presigned URL for direct HTTP access from RunPod/Hetzner.
+
+        Tactical context:
+            Presigned URLs allow GPU workers to pull large model artifacts
+            directly via HTTP without needing boto3 credentials baked into
+            ephemeral RunPod containers. Reduces credential surface area.
+        """
+        key = self._normalize_key(remote_key)
+        if self._emulation_root is not None:
+            return f"file://{self._emulated_path(key)}"
+        return self._client.generate_presigned_url(
+            method,
+            Params={"Bucket": self.bucket_name, "Key": key},
+            ExpiresIn=expires_in,
+        )
+
+    def multipart_upload(
+        self,
+        local_path: str | Path,
+        remote_key: str,
+        *,
+        part_size_mb: int = 100,
+    ) -> dict[str, object]:
+        """Upload large files via S3 multipart upload for reliability.
+
+        Tactical context:
+            Model weight files (14-300GB) require multipart transfer to
+            survive transient network interruptions during vault seeding.
+            Merged FP16 models from RunPod are 28-93 GB each and MUST
+            use multipart to avoid timeout failures on single PUT.
+        """
+        source = Path(local_path)
+        if not source.exists() or not source.is_file():
+            raise ValueError(f"local_path must point to an existing file: {source}")
+        key = self._normalize_key(remote_key)
+        checksum = self._sha256_file(source)
+        part_size = part_size_mb * 1024 * 1024
+
+        if self._emulation_root is not None:
+            return self.upload_file(local_path, remote_key)
+
+        mpu = self._client.create_multipart_upload(
+            Bucket=self.bucket_name,
+            Key=key,
+            Metadata={"sha256": checksum},
+        )
+        upload_id = mpu["UploadId"]
+        parts: list[dict[str, object]] = []
+        try:
+            with source.open("rb") as fh:
+                part_number = 1
+                while True:
+                    data = fh.read(part_size)
+                    if not data:
+                        break
+                    resp = self._client.upload_part(
+                        Bucket=self.bucket_name,
+                        Key=key,
+                        UploadId=upload_id,
+                        PartNumber=part_number,
+                        Body=data,
+                    )
+                    parts.append({"PartNumber": part_number, "ETag": resp["ETag"]})
+                    logger.info("Uploaded part %d for %s", part_number, key)
+                    part_number += 1
+            self._client.complete_multipart_upload(
+                Bucket=self.bucket_name,
+                Key=key,
+                UploadId=upload_id,
+                MultipartUpload={"Parts": parts},
+            )
+        except Exception:
+            self._client.abort_multipart_upload(
+                Bucket=self.bucket_name, Key=key, UploadId=upload_id,
+            )
+            raise
+        logger.info("Multipart upload complete: %s (%d parts)", key, len(parts))
+        return {
+            "remote_key": key,
+            "etag": checksum,
+            "size_bytes": int(source.stat().st_size),
+            "parts": len(parts),
+            "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
 
     def get_file_size(self, remote_key: str) -> int:
         """Return object size in bytes for one object storage key.

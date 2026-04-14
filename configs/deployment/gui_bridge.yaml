@@ -2,6 +2,16 @@ gui_bridge:
   snapshot_publish_interval_minutes: 15
   full_snapshot_interval_hours: 2
   snapshot_prefix: "gui-snapshots/"
-  cloudflare_pages_domain: "demo.yourdomain.com"
-  api_base_url: "https://api.yourdomain.com/api/v1"
-  ws_url: "wss://api.yourdomain.com/ws"
+
+  cloudflare_pages_domain: "${S3M_GUI_DOMAIN:-s3m-gui.pages.dev}"
+  api_base_url: "https://${S3M_API_DOMAIN:-api.s3m.local}/api/v1"
+  ws_url: "wss://${S3M_API_DOMAIN:-api.s3m.local}/ws"
+
+  r2_binding:
+    variable_name: "S3M_VAULT"
+    bucket: "s3m-vault"
+    prefix: "gui-snapshots/"
+
+  cors_origins:
+    - "https://${S3M_GUI_DOMAIN:-s3m-gui.pages.dev}"
+    - "http://localhost:3000"

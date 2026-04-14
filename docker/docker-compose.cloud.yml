@@ -1,5 +1,5 @@
-# File: docker/docker-compose.cloud.yml
-# S3M Cloud CPU Deployment — Hetzner
+# S3M Cloud CPU Deployment — Hetzner CCX33 → Cloudflare R2
+# Usage: docker compose -f docker/docker-compose.cloud.yml up -d
 version: "3.8"
 
 services:
@@ -9,7 +9,7 @@ services:
       dockerfile: docker/Dockerfile.cpu
     container_name: s3m-api
     env_file:
-      - ../.env.cloud
+      - ../.env.r2
     environment:
       - OMP_NUM_THREADS=2
       - MKL_NUM_THREADS=2
@@ -27,7 +27,7 @@ services:
       dockerfile: docker/Dockerfile.cpu
     container_name: s3m-trainer
     env_file:
-      - ../.env.cloud
+      - ../.env.r2
     environment:
       - OMP_NUM_THREADS=6
       - MKL_NUM_THREADS=6
@@ -38,9 +38,30 @@ services:
       - s3m-data:/opt/s3m/data
       - s3m-state:/opt/s3m/state
       - s3m-models:/opt/s3m/models
+      - s3m-adapters:/opt/s3m/adapters
+    restart: unless-stopped
+
+  s3m-sync-daemon:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    container_name: s3m-sync-daemon
+    env_file:
+      - ../.env.r2
+    command: >
+      python scripts/infra/storage_sync_daemon.py
+      --config configs/deployment/object_storage.yaml
+    volumes:
+      - s3m-data:/opt/s3m/data
+      - s3m-state:/opt/s3m/state
+      - s3m-models:/opt/s3m/models
+      - s3m-adapters:/opt/s3m/adapters
+      - s3m-gui-snapshots:/opt/s3m/gui-snapshots
     restart: unless-stopped
 
 volumes:
   s3m-data:
   s3m-state:
   s3m-models:
+  s3m-adapters:
+  s3m-gui-snapshots:
