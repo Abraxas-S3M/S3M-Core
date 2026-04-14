@@ -53,6 +53,13 @@ class InterceptorGuidanceManager(Protocol):
         ...
 
 
+class PredictiveDefenseManagerLike(Protocol):
+    """Protocol for optional predictive-defense integration."""
+
+    def process_tracks(self, tracks: List[FusedTrack]) -> Any:
+        ...
+
+
 ALLOCATABLE_TRACK_CLASSES = frozenset(
     {"ENEMY_UAV", "ENEMY_CRUISE_MISSILE", "ENEMY_HELICOPTER", "ENEMY_AIRCRAFT"}
 )
@@ -85,6 +92,7 @@ class RadarManager:
         self,
         air_defense_allocator: Optional[AirDefenseAllocator] = None,
         interceptor_manager: Optional[InterceptorGuidanceManager] = None,
+        predictive_defense_manager: Optional[PredictiveDefenseManagerLike] = None,
     ) -> None:
         self._radars: Dict[str, RadarUnit] = {}
         self._status: Dict[str, RadarStatus] = {}
@@ -92,6 +100,7 @@ class RadarManager:
         self._tracks: Dict[str, FusedTrack] = {}
         self._air_defense_allocator = air_defense_allocator
         self._interceptor_manager = interceptor_manager
+        self._predictive_defense_manager = predictive_defense_manager
         self._allocated_track_ids: set[str] = set()
 
     def list_radars(self) -> List[RadarUnit]:
@@ -205,9 +214,23 @@ class RadarManager:
                     existing.classification = track_classification
                 if existing.source_hits >= 2:
                     existing.state = TrackState.CONFIRMED
+        confirmed_tracks = [track for track in self._tracks.values() if track.state is TrackState.CONFIRMED]
         self._allocate_confirmed_tracks()
+        self._process_predictive_defense(confirmed_tracks)
         self._guide_active_interceptions()
         return list(self._tracks.values())
+
+    def _process_predictive_defense(self, confirmed_tracks: List[FusedTrack]) -> None:
+        if self._predictive_defense_manager is None:
+            return
+        try:
+            # Tactical context: confirmed fused tracks cue predictive-defense
+            # pre-positioning while preserving radar fusion continuity.
+            self._predictive_defense_manager.process_tracks(confirmed_tracks)
+        except Exception:
+            # Tactical resilience: predictive-defense faults must not block
+            # radar fusion outputs needed by other engagement loops.
+            return
 
     def _derive_track_classification(self, plot: RadarPlot) -> str:
         attr_classification = (

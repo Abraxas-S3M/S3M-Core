@@ -397,6 +397,13 @@ const labels = {
         filters: "Filters",
         language: "Language",
         commandBar: "NL Command Bar"
+        ,
+        predictive: "Predictive",
+        defensePosture: "Current Defense Posture",
+        trajectoryPredictions: "Threat Trajectory Predictions",
+        genomeMatch: "Genome Match",
+        swarmAnalysis: "Swarm Analysis",
+        prepositionQueue: "Pre-position Command Queue"
     },
     ar: {
         cop: "الصورة التشغيلية المشتركة",
@@ -431,6 +438,13 @@ const labels = {
         filters: "المرشحات",
         language: "اللغة",
         commandBar: "شريط الأوامر اللغوية"
+        ,
+        predictive: "التنبؤي",
+        defensePosture: "وضعية الدفاع الحالية",
+        trajectoryPredictions: "توقعات مسارات التهديد",
+        genomeMatch: "مطابقة الجينوم",
+        swarmAnalysis: "تحليل السرب",
+        prepositionQueue: "طابور أوامر التموضع الاستباقي"
     }
 };
 
@@ -460,6 +474,7 @@ const state = {
     radarRadars: [],
     radarStatus: [],
     radarTracks: [],
+    predictivePosture: null,
     filters: { threatLevel: "", threatCategory: "" }
 };
 
@@ -619,12 +634,45 @@ async function loadRadar() {
     state.radarTracks = (tracks && tracks.tracks) || [];
 }
 
+async function loadPredictive() {
+    let posture = await fetchData("/predictive-defense/posture");
+    if (!posture) {
+        const tracks = await fetchData("/radar/tracks");
+        const radarTracks = (tracks && tracks.tracks) || [];
+        const confirmedTracks = radarTracks
+            .filter((track) => String(track.state || "").toLowerCase() === "confirmed")
+            .map((track) => ({
+                track_id: String(track.track_id || ""),
+                position: Array.isArray(track.position) ? track.position.map((v) => Number(v) || 0) : [0, 0, 0],
+                velocity: Array.isArray(track.velocity) ? track.velocity.map((v) => Number(v) || 0) : [0, 0, 0],
+                classification: String(track.classification || "unknown"),
+                confidence: Number(track.confidence || 0.5),
+                metadata: typeof track.metadata === "object" && track.metadata ? track.metadata : {}
+            }))
+            .filter((track) => track.track_id);
+        if (confirmedTracks.length > 0) {
+            try {
+                const response = await fetch("/predictive-defense/run-cycle", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tracks: confirmedTracks })
+                });
+                if (response.ok) posture = await response.json();
+            } catch (_e) {
+                posture = null;
+            }
+        }
+    }
+    state.predictivePosture = posture || null;
+}
+
 async function loadTabData() {
     if (state.tab === "cop") await loadCOP();
     if (state.tab === "llm") await loadLLM();
     if (state.tab === "threats") await loadThreats();
     if (state.tab === "autonomy") await loadAutonomy();
     if (state.tab === "radar") await loadRadar();
+    if (state.tab === "predictive") await loadPredictive();
     if (state.tab === "system") await loadSystem();
 }
 
@@ -641,6 +689,7 @@ function setupRefreshLoops() {
     if (state.tab === "threats") refreshTimers.push(setInterval(async () => { await loadThreats(); renderApp(); }, 2000));
     if (state.tab === "autonomy") refreshTimers.push(setInterval(async () => { await loadAutonomy(); renderApp(); }, 3000));
     if (state.tab === "radar") refreshTimers.push(setInterval(async () => { await loadRadar(); renderApp(); }, 4000));
+    if (state.tab === "predictive") refreshTimers.push(setInterval(async () => { await loadPredictive(); renderApp(); }, 4000));
     if (state.tab === "system") refreshTimers.push(setInterval(async () => { await loadSystem(); renderApp(); }, 10000));
 }
 
@@ -743,6 +792,7 @@ function renderTabs() {
         ["threats", "THREATS"],
         ["autonomy", "AUTONOMY"],
         ["radar", "RADAR"],
+        ["predictive", "PREDICTIVE"],
         ["system", "SYSTEM"]
     ];
     return `
@@ -1159,12 +1209,128 @@ function renderSystem() {
     `;
 }
 
+function renderPredictive() {
+    const posture = state.predictivePosture;
+    if (!posture) {
+        return `
+            <div class="view-wrap">
+                <div class="panel">
+                    <div class="panel-title">${t("predictive")}</div>
+                    <div class="muted">No predictive-defense posture available yet. Confirmed radar tracks are required to run the cycle.</div>
+                </div>
+            </div>
+        `;
+    }
+    const predictions = posture.trajectory_predictions || [];
+    const swarms = posture.swarm_predictions || [];
+    const commands = posture.preposition_commands || [];
+    const alerts = posture.alerts || [];
+    return `
+        <div class="view-wrap">
+            <div class="panel">
+                <div class="panel-title">${t("defensePosture")}</div>
+                <div class="grid-4">
+                    <div class="metric">
+                        <div class="label">POSTURE</div>
+                        <div class="value" style="color:${levelColor(posture.posture_level)}">${String(posture.posture_level || "guarded").toUpperCase()}</div>
+                    </div>
+                    <div class="metric"><div class="label">TRACK PREDICTIONS</div><div class="value">${predictions.length}</div></div>
+                    <div class="metric"><div class="label">SWARM GROUPS</div><div class="value">${swarms.length}</div></div>
+                    <div class="metric"><div class="label">QUEUED COMMANDS</div><div class="value">${commands.length}</div></div>
+                </div>
+                <div class="muted" style="margin-top:0.6rem;">${posture.summary_en || ""}</div>
+                <div class="muted">${posture.summary_ar || ""}</div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("trajectoryPredictions")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Track</th><th>${t("genomeMatch")}</th><th>Risk</th><th>Forecast</th><th>H+60 Position (m)</th></tr></thead>
+                            <tbody>
+                                ${predictions.map((prediction) => {
+                                    const p60 = prediction.predicted_positions_m && prediction.predicted_positions_m["60"];
+                                    const genomeMatched = String(prediction.matched_genome_name || "").trim().length > 0;
+                                    return `
+                                        <tr>
+                                            <td>${prediction.track_id || "-"}</td>
+                                            <td>
+                                                <span class="tiny-dot" style="background:${genomeMatched ? "var(--success)" : "var(--muted)"}"></span>
+                                                ${genomeMatched ? prediction.matched_genome_name : "no match"}
+                                            </td>
+                                            <td>${Number(prediction.risk_score || 0).toFixed(2)}</td>
+                                            <td>${Number(prediction.forecast_confidence || 0).toFixed(2)}</td>
+                                            <td>${Array.isArray(p60) ? p60.map((v) => Number(v).toFixed(1)).join(", ") : "-"}</td>
+                                        </tr>
+                                    `;
+                                }).join("") || '<tr><td colspan="5" class="muted">No trajectory predictions</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">${t("swarmAnalysis")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Swarm ID</th><th>Intent</th><th>Count</th><th>ETA (s)</th><th>Confidence</th></tr></thead>
+                            <tbody>
+                                ${swarms.map((swarm) => `
+                                    <tr>
+                                        <td>${swarm.swarm_id || "-"}</td>
+                                        <td>${swarm.intent_classification || "-"}</td>
+                                        <td>${swarm.threat_count || 0}</td>
+                                        <td>${Number(swarm.eta_to_asset_s || 0).toFixed(1)}</td>
+                                        <td>${Number(swarm.intent_confidence || 0).toFixed(2)}</td>
+                                    </tr>
+                                `).join("") || '<tr><td colspan="5" class="muted">No active swarm analysis</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="panel">
+                    <div class="panel-title">${t("prepositionQueue")}</div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Interceptor</th><th>Target</th><th>Launch Now</th><th>Launch (s)</th><th>Intercept (s)</th></tr></thead>
+                            <tbody>
+                                ${commands.map((command) => `
+                                    <tr>
+                                        <td>${command.interceptor_id || "-"}</td>
+                                        <td>${command.target_track_id || "-"}</td>
+                                        <td>${command.launch_now ? "YES" : "NO"}</td>
+                                        <td>${Number(command.launch_time_s || 0).toFixed(2)}</td>
+                                        <td>${Number(command.intercept_time_s || 0).toFixed(2)}</td>
+                                    </tr>
+                                `).join("") || '<tr><td colspan="5" class="muted">No pre-position commands queued</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <div class="panel-title">Predictive Alerts</div>
+                    <div class="feed-list">
+                        ${alerts.map((alert) => `
+                            <div class="feed-item">
+                                <div><span class="tiny-dot" style="background:${levelColor(alert.level)};"></span> ${(alert.level || "").toUpperCase()} | ${Number(alert.confidence || 0).toFixed(2)}</div>
+                                <div class="muted">${alert.message_en || ""}</div>
+                            </div>
+                        `).join("") || '<div class="muted">No predictive alerts</div>'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function renderView() {
     if (state.tab === "cop") return renderCOP();
     if (state.tab === "llm") return renderLLM();
     if (state.tab === "threats") return renderThreats();
     if (state.tab === "autonomy") return renderAutonomy();
     if (state.tab === "radar") return renderRadar();
+    if (state.tab === "predictive") return renderPredictive();
     if (state.tab === "system") return renderSystem();
     return `<div class="view-wrap"><div class="panel">No view selected</div></div>`;
 }

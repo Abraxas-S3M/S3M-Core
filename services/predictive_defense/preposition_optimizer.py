@@ -93,6 +93,9 @@ class PrePositionOptimizer:
             horizon_s, intercept_point = best_solution
             threat_arrival_s = now_s + horizon_s
             preferred_intercept_s = threat_arrival_s - self.arrival_buffer_s
+            travel_time_s = _distance_m(best_profile.position_m, intercept_point) / best_profile.max_speed_mps
+            launch_time_s = max(now_s, preferred_intercept_s - travel_time_s)
+            launch_now = launch_time_s <= (now_s + 1e-6)
             window = InterceptWindow(
                 threat_id=prediction.track_id,
                 start_time_s=preferred_intercept_s - self.intercept_window_half_width_s,
@@ -107,10 +110,11 @@ class PrePositionOptimizer:
                     target_track_id=prediction.track_id,
                     launch_position_m=best_profile.position_m,
                     intercept_point_m=intercept_point,
-                    launch_time_s=now_s,
+                    launch_time_s=launch_time_s,
                     intercept_time_s=preferred_intercept_s,
                     intercept_window=window,
                     priority=max(1, int((1.0 - prediction.risk_score) * 100)),
+                    launch_now=launch_now,
                 )
             )
         return commands

@@ -35,6 +35,15 @@ class _StubAllocator:
         return {"allocated": True}
 
 
+class _StubPredictiveDefenseManager:
+    def __init__(self) -> None:
+        self.calls: List[List[str]] = []
+
+    def process_tracks(self, tracks: List[Any]) -> Dict[str, Any]:
+        self.calls.append([str(getattr(track, "track_id", "")) for track in tracks])
+        return {"processed": len(tracks)}
+
+
 def test_confirmed_enemy_uav_track_triggers_single_allocation() -> None:
     allocator = _StubAllocator()
     manager = RadarManager(air_defense_allocator=allocator)
@@ -81,3 +90,23 @@ def test_confirmed_enemy_helicopter_classification_is_allocated() -> None:
 
     assert len(allocator.calls) == 1
     assert allocator.calls[0]["target_classification"] == "ENEMY_HELICOPTER"
+
+
+def test_confirmed_tracks_are_forwarded_to_predictive_defense_when_configured() -> None:
+    predictive_manager = _StubPredictiveDefenseManager()
+    manager = RadarManager(predictive_defense_manager=predictive_manager)
+    radar = manager.register_radar(config=RadarConfig(name_en="stub"))
+
+    manager.ingest_scan(
+        radar.radar_id,
+        {"plots": [{"position": [400.0, 120.0, 80.0], "track_id": "trk-predict", "rcs_classification": "small_uav"}]},
+    )
+    manager.process_fused_tracks()
+    assert predictive_manager.calls[-1] == []
+
+    manager.ingest_scan(
+        radar.radar_id,
+        {"plots": [{"position": [410.0, 120.0, 82.0], "track_id": "trk-predict", "rcs_classification": "small_uav"}]},
+    )
+    manager.process_fused_tracks()
+    assert predictive_manager.calls[-1] == ["trk-predict"]

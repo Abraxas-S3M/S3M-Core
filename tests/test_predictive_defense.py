@@ -60,6 +60,10 @@ class _InterceptorManager:
         self.actions.append({"action": "launch", "interceptor_id": interceptor_id})
         return True
 
+    def radar_acquired(self, interceptor_id: str) -> bool:
+        self.actions.append({"action": "radar_acquired", "interceptor_id": interceptor_id})
+        return True
+
 
 def _houthi_genome() -> ThreatGenome:
     genome = ThreatGenome(
@@ -217,3 +221,50 @@ def test_predictive_defense_manager_pipeline_end_to_end() -> None:
     assert posture.posture_level in {"elevated", "critical"}
     payload = posture.to_dict()
     assert payload["name_ar"] == "وضعية الدفاع التنبؤي"
+
+
+def test_launch_now_commands_trigger_radar_acquired_guidance_step() -> None:
+    @dataclass
+    class _LaunchCommand:
+        interceptor_id: str
+        target_track_id: str
+        launch_now: bool
+
+    interceptor_manager = _InterceptorManager()
+    manager = PredictiveDefenseManager(interceptor_manager=interceptor_manager)
+    actions = manager._cue_interceptors([_LaunchCommand("titan-01", "trk-launch", True)])
+
+    assert actions[0]["assign_ok"] is True
+    assert actions[0]["launch_ok"] is True
+    assert actions[0]["launch_now"] is True
+    assert actions[0]["radar_acquired_ok"] is True
+    assert interceptor_manager.actions == [
+        {"action": "assign_target", "interceptor_id": "titan-01", "target_id": "trk-launch"},
+        {"action": "launch", "interceptor_id": "titan-01"},
+        {"action": "radar_acquired", "interceptor_id": "titan-01"},
+    ]
+
+
+def test_matching_genome_updates_track_context_with_behavioral_signatures() -> None:
+    store = ThreatGenomeStore()
+    store.add_genome(_houthi_genome())
+    manager = PredictiveDefenseManager(genome_store=store)
+    manager.correlator.match_threshold = 0.0
+
+    manager.process_cycle(
+        tracks=[
+            _Track(
+                track_id="trk-ctx",
+                position=(2_000.0, 0.0, 130.0),
+                velocity=(-20.0, 0.0, 0.0),
+                metadata={"threat_level": "high", "regions": ["red_sea"], "behavior_tags": ["strike_run"]},
+            )
+        ],
+        now_s=1_000.0,
+    )
+    genome_context = manager.get_genome_context("trk-ctx")
+
+    assert genome_context["matched_genome_name"] == "Houthi Drone Program"
+    assert genome_context["approach_bearing"] == (170.0, 190.0)
+    assert genome_context["speed_range"] == (15.0, 25.0)
+    assert genome_context["temporal_patterns"]["hour_utc"] == [0, 23]
