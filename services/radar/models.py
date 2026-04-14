@@ -1,113 +1,56 @@
-"""Data models for tactical radar ingestion and normalization."""
+"""Data models for radar detections and radar site configuration."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from math import isfinite
+import math
+from typing import Optional, Tuple
 
 
-def _coerce_float(value: float, *, field_name: str) -> float:
-    number = float(value)
-    if not isfinite(number):
+def _require_finite(value: float, field_name: str) -> None:
+    if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
         raise ValueError(f"{field_name} must be a finite number")
-    return number
-
-
-def _coerce_non_negative(value: float, *, field_name: str) -> float:
-    number = _coerce_float(value, field_name=field_name)
-    if number < 0.0:
-        raise ValueError(f"{field_name} must be >= 0")
-    return number
-
-
-class RadarBand(str, Enum):
-    L_BAND = "l_band"
-    S_BAND = "s_band"
-    C_BAND = "c_band"
-    X_BAND = "x_band"
-    KU_BAND = "ku_band"
-
-
-class RadarType(str, Enum):
-    GENERIC_2D = "generic_2d"
-    GENERIC_3D = "generic_3d"
-
-
-class ScanMode(str, Enum):
-    ROTATING = "rotating"
-    SECTOR = "sector"
-    ELECTRONIC = "electronic"
-
-
-@dataclass
-class RadarConfig:
-    radar_id: str = "generic_2d_radar"
-    name_en: str = "Radar"
-    name_ar: str = "رادار"
-    radar_type: RadarType = RadarType.GENERIC_2D
-    band: RadarBand = RadarBand.S_BAND
-    scan_mode: ScanMode = ScanMode.ROTATING
-    max_range_m: float = 80_000.0
-    min_range_m: float = 0.0
-    has_elevation: bool = False
-    has_doppler: bool = False
-    beam_width_az_deg: float = 1.0
-    scan_rate_rpm: float = 6.0
-    range_noise_std_m: float = 100.0
-    azimuth_noise_std_deg: float = 1.0
-
-    def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        if not self.name_en:
-            raise ValueError("name_en is required")
-        self.max_range_m = _coerce_non_negative(self.max_range_m, field_name="max_range_m")
-        self.min_range_m = _coerce_non_negative(self.min_range_m, field_name="min_range_m")
-        if self.min_range_m > self.max_range_m:
-            raise ValueError("min_range_m must be <= max_range_m")
-        self.beam_width_az_deg = _coerce_non_negative(
-            self.beam_width_az_deg,
-            field_name="beam_width_az_deg",
-        )
-        self.scan_rate_rpm = _coerce_non_negative(self.scan_rate_rpm, field_name="scan_rate_rpm")
-        self.range_noise_std_m = _coerce_non_negative(
-            self.range_noise_std_m,
-            field_name="range_noise_std_m",
-        )
-        self.azimuth_noise_std_deg = _coerce_non_negative(
-            self.azimuth_noise_std_deg,
-            field_name="azimuth_noise_std_deg",
-        )
 
 
 @dataclass
 class RadarPlot:
-    radar_id: str
-    timestamp: datetime
+    """Single radar detection represented in native polar coordinates."""
+
     range_m: float
     azimuth_deg: float
     elevation_deg: float
-    radial_velocity_mps: float = 0.0
-    rcs_dbsm: float = 0.0
-    snr_db: float = 15.0
-    signal_strength: float = 0.0
+    position_cartesian: Optional[Tuple[float, float, float]] = None
+    position_wgs84: Optional[Tuple[float, float, float]] = None
 
     def __post_init__(self) -> None:
-        if not self.radar_id:
-            raise ValueError("radar_id is required")
-        if not isinstance(self.timestamp, datetime):
-            raise ValueError("timestamp must be a datetime")
-        if self.timestamp.tzinfo is None:
-            self.timestamp = self.timestamp.replace(tzinfo=timezone.utc)
-        self.range_m = _coerce_non_negative(self.range_m, field_name="range_m")
-        self.azimuth_deg = _coerce_float(self.azimuth_deg, field_name="azimuth_deg")
-        self.elevation_deg = _coerce_float(self.elevation_deg, field_name="elevation_deg")
-        self.radial_velocity_mps = _coerce_float(
-            self.radial_velocity_mps,
-            field_name="radial_velocity_mps",
-        )
-        self.rcs_dbsm = _coerce_float(self.rcs_dbsm, field_name="rcs_dbsm")
-        self.snr_db = _coerce_float(self.snr_db, field_name="snr_db")
-        self.signal_strength = _coerce_float(self.signal_strength, field_name="signal_strength")
+        _require_finite(self.range_m, "range_m")
+        _require_finite(self.azimuth_deg, "azimuth_deg")
+        _require_finite(self.elevation_deg, "elevation_deg")
+        if self.range_m < 0.0:
+            raise ValueError("range_m must be >= 0")
+        if not -90.0 <= self.elevation_deg <= 90.0:
+            raise ValueError("elevation_deg must be between -90 and 90")
+
+
+@dataclass
+class RadarConfig:
+    """Radar sensor mounting and georeference metadata."""
+
+    position: Tuple[float, float, float]
+    heading_deg: float = 0.0
+    uses_wgs84: bool = False
+
+    def __post_init__(self) -> None:
+        _require_finite(self.heading_deg, "heading_deg")
+        if len(self.position) != 3:
+            raise ValueError("position must be a 3-tuple")
+        _require_finite(self.position[0], "position[0]")
+        _require_finite(self.position[1], "position[1]")
+        _require_finite(self.position[2], "position[2]")
+
+        if self.uses_wgs84:
+            lat, lon, _ = self.position
+            if not -90.0 <= lat <= 90.0:
+                raise ValueError("WGS84 latitude must be between -90 and 90")
+            if not -180.0 <= lon <= 180.0:
+                raise ValueError("WGS84 longitude must be between -180 and 180")
