@@ -1,2 +1,1 @@
-"""Radar service package for tactical air-surveillance workflows."""
-
+"""Radar service modules for tactical sensing and track ingestion."""

@@ -1,135 +1,119 @@
-"""Data models for tactical radar management.
+"""Data models for tactical radar ingestion and track normalization.
 
 Military context:
-These structures model radar assets, scan plots, and fused tracks used by a
-command post to build an air picture from distributed sensors.
+These models represent near-real-time radar plots used by forward
+surveillance elements to feed command-and-control picture generation.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple
+from math import isfinite
 
 
-def _iso(ts: datetime) -> str:
-    return ts.astimezone(timezone.utc).isoformat()
+def _validate_finite(value: float, *, field_name: str) -> float:
+    parsed = float(value)
+    if not isfinite(parsed):
+        raise ValueError(f"{field_name} must be a finite number")
+    return parsed
 
 
 class RadarType(str, Enum):
-    GENERIC_3D = "generic_3d"
-    AESA = "aesa"
-    COUNTER_BATTERY = "counter_battery"
-    FIRE_CONTROL = "fire_control"
+    RPS_82 = "rps_82"
 
 
 class RadarBand(str, Enum):
-    L = "L"
-    S = "S"
-    C = "C"
-    X = "X"
-    KU = "Ku"
+    X_BAND = "x_band"
 
 
 class ScanMode(str, Enum):
-    VOLUME = "volume"
+    ROTATING = "rotating"
     SECTOR = "sector"
-    TRACK = "track"
-
-
-class RCSClassification(str, Enum):
-    UNKNOWN = "unknown"
-    SMALL = "small"
-    MEDIUM = "medium"
-    LARGE = "large"
-
-
-class TrackState(str, Enum):
-    TENTATIVE = "tentative"
-    CONFIRMED = "confirmed"
 
 
 @dataclass
 class RadarConfig:
-    name_en: str
-    name_ar: str
-    radar_type: RadarType
-    band: RadarBand
-    position: Tuple[float, float, float]
-    max_range_m: float
-    scan_mode: ScanMode = ScanMode.VOLUME
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    radar_id: str = "rps82-default"
+    name_en: str = ""
+    name_ar: str = ""
+    radar_type: RadarType = RadarType.RPS_82
+    band: RadarBand = RadarBand.X_BAND
+    scan_mode: ScanMode = ScanMode.ROTATING
+    max_range_m: float = 20_000.0
+    min_range_m: float = 0.0
+    max_elevation_deg: float = 60.0
+    has_elevation: bool = True
+    has_doppler: bool = True
+    beam_width_az_deg: float = 2.5
+    beam_width_el_deg: float = 3.0
+    scan_rate_rpm: float = 12.0
+    min_detectable_rcs_dbsm: float = -15.0
+    range_resolution_m: float = 75.0
+    range_noise_std_m: float = 75.0
+    azimuth_noise_std_deg: float = 1.0
+    elevation_noise_std_deg: float = 2.0
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload = asdict(self)
-        payload["radar_type"] = self.radar_type.value
-        payload["band"] = self.band.value
-        payload["scan_mode"] = self.scan_mode.value
-        return payload
-
-
-@dataclass
-class RadarUnit:
-    radar_id: str
-    config: RadarConfig
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "radar_id": self.radar_id,
-            "registered_at": _iso(self.registered_at),
-            **self.config.to_dict(),
-        }
-
-
-@dataclass
-class RadarStatus:
-    radar_id: str
-    operational: bool = True
-    scans_received: int = 0
-    plots_received: int = 0
-    plots_correlated: int = 0
-    last_scan_time: Optional[datetime] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "radar_id": self.radar_id,
-            "operational": self.operational,
-            "scans_received": self.scans_received,
-            "plots_received": self.plots_received,
-            "plots_correlated": self.plots_correlated,
-            "last_scan": _iso(self.last_scan_time) if self.last_scan_time else None,
-        }
+    def __post_init__(self) -> None:
+        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
+            raise ValueError("radar_id is required")
+        if not isinstance(self.name_en, str) or not self.name_en.strip():
+            raise ValueError("name_en is required")
+        self.max_range_m = _validate_finite(self.max_range_m, field_name="max_range_m")
+        self.min_range_m = _validate_finite(self.min_range_m, field_name="min_range_m")
+        if self.max_range_m <= 0.0:
+            raise ValueError("max_range_m must be positive")
+        if self.min_range_m < 0.0:
+            raise ValueError("min_range_m must be non-negative")
+        if self.max_range_m < self.min_range_m:
+            raise ValueError("max_range_m must be >= min_range_m")
+        self.max_elevation_deg = _validate_finite(self.max_elevation_deg, field_name="max_elevation_deg")
+        self.beam_width_az_deg = _validate_finite(self.beam_width_az_deg, field_name="beam_width_az_deg")
+        self.beam_width_el_deg = _validate_finite(self.beam_width_el_deg, field_name="beam_width_el_deg")
+        self.scan_rate_rpm = _validate_finite(self.scan_rate_rpm, field_name="scan_rate_rpm")
+        self.min_detectable_rcs_dbsm = _validate_finite(
+            self.min_detectable_rcs_dbsm,
+            field_name="min_detectable_rcs_dbsm",
+        )
+        self.range_resolution_m = _validate_finite(self.range_resolution_m, field_name="range_resolution_m")
+        self.range_noise_std_m = _validate_finite(self.range_noise_std_m, field_name="range_noise_std_m")
+        self.azimuth_noise_std_deg = _validate_finite(
+            self.azimuth_noise_std_deg,
+            field_name="azimuth_noise_std_deg",
+        )
+        self.elevation_noise_std_deg = _validate_finite(
+            self.elevation_noise_std_deg,
+            field_name="elevation_noise_std_deg",
+        )
 
 
 @dataclass
 class RadarPlot:
-    plot_id: str
     radar_id: str
-    position: Tuple[float, float, float]
-    rcs_classification: RCSClassification
-    correlated_track_id: Optional[str]
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime
+    range_m: float
+    azimuth_deg: float
+    elevation_deg: float
+    radial_velocity_mps: float
+    rcs_dbsm: float
+    snr_db: float
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload = asdict(self)
-        payload["timestamp"] = _iso(self.timestamp)
-        payload["rcs_classification"] = self.rcs_classification.value
-        return payload
+    def __post_init__(self) -> None:
+        if not isinstance(self.radar_id, str) or not self.radar_id.strip():
+            raise ValueError("radar_id is required")
+        if not isinstance(self.timestamp, datetime):
+            raise ValueError("timestamp must be a datetime")
+        if self.timestamp.tzinfo is None:
+            self.timestamp = self.timestamp.replace(tzinfo=timezone.utc)
+        else:
+            self.timestamp = self.timestamp.astimezone(timezone.utc)
 
-
-@dataclass
-class FusedTrack:
-    track_id: str
-    state: TrackState
-    last_update: datetime
-    source_hits: int = 1
-
-    def to_dict(self) -> Dict[str, Any]:
-        payload = asdict(self)
-        payload["state"] = self.state.value
-        payload["last_update"] = _iso(self.last_update)
-        return payload
-
+        self.range_m = _validate_finite(self.range_m, field_name="range_m")
+        if self.range_m < 0.0:
+            raise ValueError("range_m must be non-negative")
+        self.azimuth_deg = _validate_finite(self.azimuth_deg, field_name="azimuth_deg")
+        self.elevation_deg = _validate_finite(self.elevation_deg, field_name="elevation_deg")
+        self.radial_velocity_mps = _validate_finite(self.radial_velocity_mps, field_name="radial_velocity_mps")
+        self.rcs_dbsm = _validate_finite(self.rcs_dbsm, field_name="rcs_dbsm")
+        self.snr_db = _validate_finite(self.snr_db, field_name="snr_db")
