@@ -48,6 +48,7 @@ from src.api.sensor_analytics_routes import sensor_analytics_router
 from src.api.taxii_routes import taxii_router
 from src.api.readiness_routes import readiness_router
 from src.api.quantum_security_routes import router as qss_router
+from src.api.fmn_security_routes import fmn_security_router
 from src.api.safety_routes import safety_router
 from src.api.simulation_routes import simulation_router
 from src.api.threat_routes import threat_router, sensor_router
@@ -222,6 +223,7 @@ app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
 app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
 app.include_router(oth_router, tags=["OTH-Gold Maritime Gateway"])
+app.include_router(fmn_security_router, tags=["FMN Security"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(safety_router, tags=["Safety & Control Authority"])
