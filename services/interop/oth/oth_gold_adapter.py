@@ -243,7 +243,10 @@ class OTHGoldAdapter:
             return []
 
         parsed_tracks: List[Dict[str, Any]] = []
-        for track_node in root.findall(".//{*}track") + root.findall("track"):
+        track_nodes = root.findall(".//{*}track")
+        if not track_nodes:
+            track_nodes = root.findall("track")
+        for track_node in track_nodes:
             track_number = self._find_text(track_node, "trackNumber", "")
             identity = self._find_text(track_node, "identity", "UNKNOWN").upper()
             affiliation = self._IDENTITY_REVERSE_MAP.get(identity, "unknown")

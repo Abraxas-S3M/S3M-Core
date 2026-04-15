@@ -7,11 +7,25 @@ naval COP feeds remain trustworthy in contested and disconnected environments.
 
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import pytest
 
-from services.interop.oth import OTHGoldAdapter
+REPO_ROOT = Path(__file__).resolve().parents[1]
+MODULE_PATH = REPO_ROOT / "services" / "interop" / "oth" / "oth_gold_adapter.py"
+
+
+def _load_oth_gold_adapter() -> type:
+    spec = importlib.util.spec_from_file_location("tests.oth_gold_adapter", MODULE_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.OTHGoldAdapter
+
+
+OTHGoldAdapter = _load_oth_gold_adapter()
 
 
 def _text(node: ET.Element, path: str) -> str:
