@@ -12,6 +12,7 @@ class InteropRegistry:
     def __init__(self):
         self.capabilities: Dict[str, Dict[str, object]] = {}
         self.exercise_sessions: Dict[int, dict] = {}
+        self.register_capability("cot", "2.0", ["event_xml", "multicast", "tak_server", "dis_crossfeed"])
 
     def register_capability(self, protocol, version, features: List[str]):
         self.capabilities[str(protocol).lower()] = {

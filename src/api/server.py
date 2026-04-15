@@ -26,6 +26,7 @@ from services.predictive_defense.api_routes import router as predictive_router
 from src.api.command_routes import command_router
 from src.api.cloud_training_routes import cloud_training_router
 from src.api.config import api_config, mission_command_lifespan
+from src.api.cot_routes import cot_router
 from src.api.apps_routes import apps_router
 from src.api.autonomy_routes import autonomy_router
 from src.api.comms_routes import comms_router
@@ -211,6 +212,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
+app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(safety_router, tags=["Safety & Control Authority"])
