@@ -51,6 +51,7 @@ from src.api.training_sim_routes import training_sim_router
 from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
+from src.api.jreap_routes import jreap_router
 from src.api.gui_bridge import gui_bridge_router
 from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
 from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
@@ -211,6 +212,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
+app.include_router(jreap_router, tags=["Interoperability & JREAP-C"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(safety_router, tags=["Safety & Control Authority"])
