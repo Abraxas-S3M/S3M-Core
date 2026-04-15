@@ -23,6 +23,10 @@ jreap:
   crossfeed_to_cot: true
   crossfeed_to_dis: true
 
+link22:
+  enabled: false
+  mode: "stub"
+
 oth_gold:
   enabled: false
   gateway_url: null
