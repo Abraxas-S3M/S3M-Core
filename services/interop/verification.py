@@ -264,6 +264,7 @@ class InteropVerifier:
         c2 = self.verify_c2sim_conformance()
         mtf = self.verify_mtf_conformance()
         msdl = self.verify_msdl_conformance()
+        nffi = self.verify_nffi_conformance()
         coords = self.verify_coordinate_accuracy()
         total_passed = (
             dis["tests_passed"]
@@ -285,6 +286,7 @@ class InteropVerifier:
             "c2sim": c2,
             "mtf": mtf,
             "msdl": msdl,
+            "nffi": nffi,
             "coordinates": coords,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }

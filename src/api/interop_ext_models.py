@@ -124,6 +124,7 @@ class VerificationResponse(BaseModel):
     dis: Dict[str, Any]
     c2sim: Dict[str, Any]
     msdl: Dict[str, Any]
+    nffi: Dict[str, Any] = Field(default_factory=dict)
     coordinates: Dict[str, Any]
     timestamp: str
 
