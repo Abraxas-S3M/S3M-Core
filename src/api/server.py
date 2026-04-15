@@ -37,6 +37,7 @@ from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
+from src.api.nffi_routes import nffi_router
 from src.api.platform_routes import platform_router
 from src.api.portal_routes import router as portal_router
 from src.api.platform_routes import platform_router
@@ -211,6 +212,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
+app.include_router(nffi_router, tags=["Interoperability & NFFI"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])
 app.include_router(safety_router, tags=["Safety & Control Authority"])
