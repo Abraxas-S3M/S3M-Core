@@ -55,8 +55,12 @@ __all__ = [
     "C2SIMEngine",
     "C2SIMMessageFactory",
     "C2SIMServerAdapter",
+    "MTFFormatter",
+    "MTFTransport",
     "MSDLParser",
     "MSDLGenerator",
+    "NFFIMessageBuilder",
+    "NFFIGateway",
     "ORBATManager",
     "ORBATUnit",
     "ForceStructure",
@@ -77,4 +81,5 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
+    "OTHGoldAdapter",
 ]

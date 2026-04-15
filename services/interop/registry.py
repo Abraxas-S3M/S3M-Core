@@ -12,6 +12,11 @@ class InteropRegistry:
     def __init__(self):
         self.capabilities: Dict[str, Dict[str, object]] = {}
         self.exercise_sessions: Dict[int, dict] = {}
+        self.register_capability(
+            protocol="mtf",
+            version="APP-11D",
+            features=["INTSUM", "SITREP", "OPREP3", "POSREP", "WARNORD"],
+        )
 
     def register_capability(self, protocol, version, features: List[str]):
         self.capabilities[str(protocol).lower()] = {
@@ -45,6 +50,28 @@ class InteropRegistry:
             "Canada": 39,
             "Netherlands": 145,
             "Norway": 146,
+        }
+
+    def get_iso3_codes(self) -> dict:
+        _ = self.get_gcc_partner_codes()
+        _ = self.get_nato_partner_codes()
+        return {
+            178: "SAU",
+            223: "ARE",
+            117: "KWT",
+            16: "BHR",
+            164: "QAT",
+            154: "OMN",
+            225: "USA",
+            224: "GBR",
+            71: "FRA",
+            78: "DEU",
+            105: "ITA",
+            198: "ESP",
+            222: "TUR",
+            39: "CAN",
+            145: "NLD",
+            146: "NOR",
         }
 
     def health_check(self) -> dict:

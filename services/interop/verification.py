@@ -1,4 +1,4 @@
-"""Interoperability verification suites for DIS/C2SIM/MSDL conformance."""
+"""Interoperability verification suites for DIS/C2SIM/MSDL/MTF conformance."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
+from services.interop.mtf.mtf_formatter import MTFFormatter
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -30,6 +31,7 @@ class InteropVerifier:
         self.coord = DISCoordinateConverter()
         self.dr = DISDeadReckoning()
         self.c2 = C2SIMMessageFactory()
+        self.mtf = MTFFormatter(config={"originator": "S3M INTEL CENTER"})
         self.msdl_gen = MSDLGenerator()
         self.msdl_parser = MSDLParser()
 
@@ -193,6 +195,52 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
+    def verify_mtf_conformance(self) -> dict:
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        try:
+            xml = self.mtf.format_message(
+                report_type="INTSUM",
+                content={
+                    "summary_text": "Enemy coastal activity increased in sector bravo.",
+                    "assessment_text": "Pattern indicates reconnaissance prior to probing action.",
+                },
+                originator="S3M INTEL CENTER",
+                classification="SECRET",
+            )
+            parsed = self.mtf.parse_message(xml)
+            ok = parsed["message_type"] == "INTSUM"
+            results.append({"test": "mtf_intsum_roundtrip", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "mtf_intsum_roundtrip", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            dtg = self.mtf._build_dtg(datetime(2026, 4, 15, 14, 30, tzinfo=timezone.utc))
+            ok = dtg == "151430Z APR 2026"
+            results.append({"test": "mtf_dtg_format", "passed": ok, "value": dtg})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "mtf_dtg_format", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            mapped = self.mtf._classification_to_nato("TOP_SECRET")
+            ok = mapped == "COSMIC TOP SECRET"
+            results.append({"test": "mtf_classification_mapping", "passed": ok, "value": mapped})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "mtf_classification_mapping", "passed": False, "error": str(exc)})
+            failed += 1
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def verify_coordinate_accuracy(self) -> dict:
         tests = [
             ("Riyadh", 24.7136, 46.6753, 0.0),
@@ -214,15 +262,31 @@ class InteropVerifier:
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
+        mtf = self.verify_mtf_conformance()
         msdl = self.verify_msdl_conformance()
+        nffi = self.verify_nffi_conformance()
         coords = self.verify_coordinate_accuracy()
-        total_passed = dis["tests_passed"] + c2["tests_passed"] + msdl["tests_passed"] + coords["tests_passed"]
-        total_failed = dis["tests_failed"] + c2["tests_failed"] + msdl["tests_failed"] + coords["tests_failed"]
+        total_passed = (
+            dis["tests_passed"]
+            + c2["tests_passed"]
+            + mtf["tests_passed"]
+            + msdl["tests_passed"]
+            + coords["tests_passed"]
+        )
+        total_failed = (
+            dis["tests_failed"]
+            + c2["tests_failed"]
+            + mtf["tests_failed"]
+            + msdl["tests_failed"]
+            + coords["tests_failed"]
+        )
         return {
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
             "dis": dis,
             "c2sim": c2,
+            "mtf": mtf,
             "msdl": msdl,
+            "nffi": nffi,
             "coordinates": coords,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -235,7 +299,7 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "msdl", "coordinates"):
+        for suite_name in ("dis", "c2sim", "mtf", "msdl", "coordinates"):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):

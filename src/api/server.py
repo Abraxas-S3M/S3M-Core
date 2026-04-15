@@ -37,6 +37,7 @@ from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
+from src.api.nffi_routes import nffi_router
 from src.api.platform_routes import platform_router
 from src.api.portal_routes import router as portal_router
 from src.api.platform_routes import platform_router

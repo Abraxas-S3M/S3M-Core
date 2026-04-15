@@ -30,6 +30,11 @@ c2sim:
   inbox_dir: "data/interop/c2sim_inbox/"
   auto_send: true
 
+oth_gold:
+  enabled: false
+  gateway_url: null
+  publish_interval_seconds: 15
+
 msdl:
   scenarios_dir: "configs/interop/scenarios/"
   default_environment:
@@ -55,6 +60,15 @@ coalition:
     - {code: 16, name: "Bahrain", callsign: "PEARL"}
     - {code: 164, name: "Qatar", callsign: "ORYX"}
     - {code: 154, name: "Oman", callsign: "SHIELD"}
+
+nffi:
+  transport_profile: "IP-1"
+  gateway_url: null
+  publish_interval_seconds: 10
+  track_source_country: "SAU"
+  system_id: "S3M-FALCON"
+  outbox_dir: "data/interop/nffi_outbox/"
+  stale_threshold_seconds: 300
 
 verification:
   auto_run_on_startup: false
