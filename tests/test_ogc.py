@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import Any
 from urllib import error, parse
 
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import services.interop.ogc.wfs_client as wfs_module
 import services.interop.ogc.wms_client as wms_module
 from services.interop.ogc import GeoJSONAdapter, WFSClient, WMSClient
-from src.api.ogc_routes import _OGC_CONFIG
-from src.api.server import app
+from src.api.ogc_routes import _OGC_CONFIG, ogc_router
 
 
 class _MockHTTPResponse:
@@ -218,6 +218,8 @@ def test_geojson_adapter_mission_to_geojson() -> None:
 
 
 def test_ogc_routes_status_and_transforms(monkeypatch) -> None:
+    app = FastAPI()
+    app.include_router(ogc_router)
     client = TestClient(app)
 
     resp = client.get("/interop/ogc/status")
