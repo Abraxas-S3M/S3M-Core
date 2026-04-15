@@ -18,7 +18,41 @@ Architecture:
   Phase 14 Comms → TacticalMesh → Edge relay for exercise networks
 """
 
-from importlib import import_module
+from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
+from services.interop.coalition_dashboard import CoalitionDashboardProvider
+from services.interop.cot import CotBridge, CotEventFactory, CotTransport
+from services.interop.dis import (
+    DISCoordinateConverter,
+    DISDeadReckoning,
+    DISEngine,
+    DISNetworkManager,
+    DISPDUFactory,
+)
+from services.interop.exercise_manager import ExerciseManager
+from services.interop.jreap import JREAPBridge, JREAPHandler
+from services.interop.mtf import MTFFormatter, MTFTransport
+from services.interop.models import (
+    DISEntityID,
+    DISEntityType,
+    DISHeader,
+    DISLinearVelocity,
+    DISOrientation,
+    DISPDUType,
+    DISWorldCoordinate,
+    ExerciseSession,
+    ForceStructure,
+    MSDLScenario,
+    ORBATUnit,
+)
+from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
+from services.interop.nffi import NFFIGateway, NFFIMessageBuilder
+from services.interop.ogc import GeoJSONAdapter, WFSClient, WMSClient
+from services.interop.oth import OTHGoldAdapter
+from services.interop.registry import InteropRegistry
+from services.interop.stix import STIXTAXIIBridge, TAXIIClient
+from services.interop.symbology import SIDCGenerator, SymbologyMapper
+from services.interop.tactical_mesh import TacticalMeshAdapter
+from services.interop.verification import InteropVerifier
 
 __all__ = [
     "DISEngine",
@@ -35,6 +69,9 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
+    "WMSClient",
+    "WFSClient",
+    "GeoJSONAdapter",
     "MTFFormatter",
     "MTFTransport",
     "SIDCGenerator",
