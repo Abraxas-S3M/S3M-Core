@@ -31,6 +31,7 @@ from services.interop.dis import (
 from services.interop.exercise_manager import ExerciseManager
 from services.interop.jreap import JREAPBridge, JREAPHandler
 from services.interop.mtf import MTFFormatter, MTFTransport
+from services.interop.mip import MIPDataModel, MIPGateway, MIPObjectMapper
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -68,6 +69,9 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
+    "MIPDataModel",
+    "MIPObjectMapper",
+    "MIPGateway",
     "MTFFormatter",
     "MTFTransport",
     "SIDCGenerator",

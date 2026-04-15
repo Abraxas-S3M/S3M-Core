@@ -93,6 +93,14 @@ nffi:
   outbox_dir: "data/interop/nffi_outbox/"
   stale_threshold_seconds: 300
 
+mip:
+  baseline: "4.3"
+  data_model: "MIM"
+  gateway_url: null
+  oig_categories: ["operations", "intelligence", "logistics", "plans", "cop"]
+  publish_interval_seconds: 10
+  outbox_dir: "data/interop/mip_outbox/"
+
 mtf:
   namespace: "urn:nato:mtf:app11d"
   originator: "S3M INTEL CENTER"
