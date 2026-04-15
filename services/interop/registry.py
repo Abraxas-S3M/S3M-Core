@@ -25,6 +25,15 @@ class InteropRegistry:
             "symbology": ("MIL-STD-2525D", ["sidc_generation", "cot_sidc_mapping", "dis_sidc_mapping"]),
             "mtf": ("APP-11(D)", ["xml_message_formatting", "dtg_generation", "offline_message_queue"]),
             "taxii": ("2.1", ["stix_bundle_publish", "stix_bundle_poll", "offline_outbox", "offline_inbox_cache"]),
+            "nsili": (
+                "STANAG-4559-Ed3",
+                [
+                    "local_catalog_query",
+                    "local_product_retrieval",
+                    "offline_xml_export",
+                    "partner_catalog_sync_phase1",
+                ],
+            ),
             "jreap": ("JREAP-C", ["j_series_ingest", "cot_crossfeed", "dis_crossfeed"]),
             "oth_gold": ("3.0", ["maritime_track_publish", "maritime_track_ingest"]),
         }

@@ -46,6 +46,7 @@ from services.interop.models import (
 )
 from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
 from services.interop.nffi import NFFIGateway, NFFIMessageBuilder
+from services.interop.nsili import NSILICatalog, NSILIProductManager
 from services.interop.oth import OTHGoldAdapter
 from services.interop.registry import InteropRegistry
 from services.interop.stix import STIXTAXIIBridge, TAXIIClient
@@ -68,6 +69,8 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
+    "NSILICatalog",
+    "NSILIProductManager",
     "MTFFormatter",
     "MTFTransport",
     "SIDCGenerator",
