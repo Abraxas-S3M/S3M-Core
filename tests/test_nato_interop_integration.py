@@ -7,7 +7,18 @@ paths while remaining offline-capable for austere deployment rehearsals.
 
 from __future__ import annotations
 
+from services.interop.cot import CotBridge, CotEventFactory, CotTransport
 from src.security.interop import InteropManager
+
+
+class _OfflineCotTransport(CotTransport):
+    """Deterministic CoT transport for offline CWIX rehearsal validation."""
+
+    def send(self, xml: str) -> bool:
+        return bool(str(xml).strip())
+
+    def receive(self) -> str | None:
+        return None
 
 
 def test_nato_interop_wiring_end_to_end(tmp_path) -> None:
@@ -15,6 +26,12 @@ def test_nato_interop_wiring_end_to_end(tmp_path) -> None:
 
     # Enable NATO adapters and required bridge endpoints in offline-safe mode.
     assert manager.enable_protocol("cot", {"transport": "offline"}) is True
+    cot_transport = _OfflineCotTransport({"cot": {"outbox_dir": str(tmp_path / "cot_outbox")}})
+    cot_factory = CotEventFactory({})
+    manager._cot_transport = cot_transport
+    manager._cot_event_factory = cot_factory
+    manager.cot_bridge = CotBridge(transport=cot_transport, event_factory=cot_factory)
+    manager._status["cot"]["connected"] = True
     assert manager.enable_protocol("mtf", {"gateway_url": None}) is True
     assert manager.enable_protocol("fmn_security", {"enforce_labels": True, "releasable_to_default": ["SAU", "USA"]}) is True
     assert manager.enable_protocol("hla", {"rti_type": "stub", "federation_name": "S3M_NATO_TEST"}) is True
