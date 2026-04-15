@@ -135,3 +135,9 @@ taxii:
   outbox_dir: "data/interop/taxii_outbox/"
   inbox_dir: "data/interop/taxii_inbox/"
   auto_contribute: false
+
+nsili:
+  catalog_dir: "data/interop/nsili_catalog/"
+  max_products: 10000
+  default_classification: "UNCLASSIFIED"
+  partner_catalogs: []
