@@ -28,6 +28,7 @@ from services.interop.dis import (
     DISPDUFactory,
 )
 from services.interop.exercise_manager import ExerciseManager
+from services.interop.mtf import MTFFormatter, MTFTransport
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -54,6 +55,8 @@ __all__ = [
     "C2SIMEngine",
     "C2SIMMessageFactory",
     "C2SIMServerAdapter",
+    "MTFFormatter",
+    "MTFTransport",
     "MSDLParser",
     "MSDLGenerator",
     "ORBATManager",
