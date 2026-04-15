@@ -77,4 +77,5 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
+    "OTHGoldAdapter",
 ]
