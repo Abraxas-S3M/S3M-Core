@@ -139,12 +139,17 @@ class NFFIMessageBuilder:
         return f"{{{self.namespace}}}{tag}"
 
     def _find_node(self, node: ET.Element, tag: str) -> ET.Element | None:
-        return node.find(self._tag(tag)) or node.find(tag)
+        first = node.find(self._tag(tag))
+        if first is not None:
+            return first
+        return node.find(tag)
 
     def _find_text(self, node: ET.Element | None, tag: str, default: str = "") -> str:
         if node is None:
             return default
-        child = node.find(self._tag(tag)) or node.find(tag)
+        child = node.find(self._tag(tag))
+        if child is None:
+            child = node.find(tag)
         if child is None or child.text is None:
             return default
         return child.text.strip()
