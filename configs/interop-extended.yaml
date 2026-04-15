@@ -16,12 +16,25 @@ dis:
   max_entities: 5000
   pdu_types_enabled: [1, 2, 3, 13, 14, 22, 26]
 
+hla:
+  rti_type: "stub"  # certi | pitch | mak | stub
+  rti_host: "localhost"
+  rti_port: 11000
+  federation_name: "S3M_Coalition"
+  fom_path: "configs/interop/s3m_fom.xml"
+  time_step_seconds: 0.1
+  auto_bridge_dis: true
+
 jreap:
   enabled: false
   listen_port: 5555
   supported_j_series: ["J2.2", "J3.2", "J3.5", "J13.2"]
   crossfeed_to_cot: true
   crossfeed_to_dis: true
+
+link22:
+  enabled: false
+  mode: "stub"
 
 oth_gold:
   enabled: false
@@ -105,6 +118,11 @@ mtf:
   start_serial: 1
   gateway_url: null
 
+fmv:
+  klv_standard: "MISB_0601"
+  embed_in_stream: false
+  register_in_nsili: true
+
 verification:
   auto_run_on_startup: false
   coordinate_accuracy_threshold_meters: 1.0
@@ -115,3 +133,9 @@ taxii:
   outbox_dir: "data/interop/taxii_outbox/"
   inbox_dir: "data/interop/taxii_inbox/"
   auto_contribute: false
+
+nsili:
+  catalog_dir: "data/interop/nsili_catalog/"
+  max_products: 10000
+  default_classification: "UNCLASSIFIED"
+  partner_catalogs: []
