@@ -23,6 +23,12 @@ jreap:
   crossfeed_to_cot: true
   crossfeed_to_dis: true
 
+oth_gold:
+  enabled: false
+  gateway_url: null
+  publish_interval_seconds: 15
+  enforce_maritime_only: true
+
 c2sim:
   server_url: null  # Set when C2SIM server is deployed
   namespace: "http://www.sisostds.org/schemas/C2SIM/1.1"
@@ -60,12 +66,23 @@ exercises:
 
 coalition:
   gcc_partners:
-    - {code: 178, name: "Saudi Arabia", callsign: "FALCON"}
-    - {code: 223, name: "United Arab Emirates", callsign: "HAWK"}
-    - {code: 117, name: "Kuwait", callsign: "DESERT"}
-    - {code: 16, name: "Bahrain", callsign: "PEARL"}
-    - {code: 164, name: "Qatar", callsign: "ORYX"}
-    - {code: 154, name: "Oman", callsign: "SHIELD"}
+    - {code: 178, iso3: "SAU", name: "Saudi Arabia", callsign: "FALCON"}
+    - {code: 223, iso3: "ARE", name: "United Arab Emirates", callsign: "HAWK"}
+    - {code: 117, iso3: "KWT", name: "Kuwait", callsign: "DESERT"}
+    - {code: 16, iso3: "BHR", name: "Bahrain", callsign: "PEARL"}
+    - {code: 164, iso3: "QAT", name: "Qatar", callsign: "ORYX"}
+    - {code: 154, iso3: "OMN", name: "Oman", callsign: "SHIELD"}
+  nato_partners:
+    - {code: 225, iso3: "USA", name: "United States", callsign: "EAGLE"}
+    - {code: 224, iso3: "GBR", name: "United Kingdom", callsign: "LANCER"}
+    - {code: 71, iso3: "FRA", name: "France", callsign: "TRIDENT"}
+    - {code: 78, iso3: "DEU", name: "Germany", callsign: "IRON"}
+    - {code: 105, iso3: "ITA", name: "Italy", callsign: "ROMA"}
+    - {code: 198, iso3: "ESP", name: "Spain", callsign: "TORO"}
+    - {code: 222, iso3: "TUR", name: "Turkey", callsign: "ANKA"}
+    - {code: 39, iso3: "CAN", name: "Canada", callsign: "MAPLE"}
+    - {code: 145, iso3: "NLD", name: "Netherlands", callsign: "ORANGE"}
+    - {code: 146, iso3: "NOR", name: "Norway", callsign: "VIKING"}
 
 nffi:
   transport_profile: "IP-1"
@@ -75,6 +92,12 @@ nffi:
   system_id: "S3M-FALCON"
   outbox_dir: "data/interop/nffi_outbox/"
   stale_threshold_seconds: 300
+
+mtf:
+  namespace: "urn:nato:mtf:app11d"
+  originator: "S3M INTEL CENTER"
+  start_serial: 1
+  gateway_url: null
 
 verification:
   auto_run_on_startup: false

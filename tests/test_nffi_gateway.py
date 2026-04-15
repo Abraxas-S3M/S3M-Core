@@ -156,6 +156,20 @@ def test_iso3_codes_all_nato_partners():
         assert iso3[code] == alpha3
 
 
+def test_registry_partner_code_merges():
+    registry = InteropRegistry()
+    merged = registry.get_all_partner_codes()
+    assert merged["Saudi Arabia"] == 178
+    assert merged["United States"] == 225
+
+
+def test_registry_auto_registers_interop_capabilities():
+    registry = InteropRegistry()
+    capabilities = registry.get_capabilities()
+    for protocol in ("dis", "c2sim", "msdl", "cot", "nffi", "symbology", "mtf", "taxii", "jreap", "oth_gold"):
+        assert protocol in capabilities
+
+
 def test_nffi_status_mapping():
     builder = NFFIMessageBuilder()
     assert builder._status_to_nffi("active") == "OPERATIONAL"

@@ -33,3 +33,8 @@ def test_run_full_verification_combined_report():
     assert "summary" in payload
     assert "tests_passed" in payload["summary"]
     assert payload["summary"]["tests_passed"] > 0
+    assert payload["summary"]["tests_failed"] == 0
+    assert "cot" in payload
+    assert "nffi" in payload
+    assert "symbology" in payload
+    assert "mtf" in payload
