@@ -30,10 +30,16 @@ c2sim:
   inbox_dir: "data/interop/c2sim_inbox/"
   auto_send: true
 
-oth_gold:
-  enabled: false
-  gateway_url: null
-  publish_interval_seconds: 15
+cot:
+  multicast_address: "239.2.3.1"
+  multicast_port: 6969
+  tak_server_url: null
+  tak_protocol_version: 0
+  stale_seconds: 120
+  publish_interval_seconds: 5
+  callsign_prefix: "S3M"
+  dis_crossfeed_enabled: true
+  outbox_dir: "data/interop/cot_outbox/"
 
 msdl:
   scenarios_dir: "configs/interop/scenarios/"

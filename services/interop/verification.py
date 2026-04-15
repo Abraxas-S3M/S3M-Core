@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import math
 from typing import Dict, List
 
+from services.interop.cot.cot_event import CotEventFactory
 from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
@@ -21,6 +22,7 @@ from services.interop.models import (
 )
 from services.interop.msdl.generator import MSDLGenerator
 from services.interop.msdl.parser import MSDLParser
+from src.security.interop.dis_adapter import DIS_ENTITY_MAP
 
 
 class InteropVerifier:
@@ -31,7 +33,7 @@ class InteropVerifier:
         self.coord = DISCoordinateConverter()
         self.dr = DISDeadReckoning()
         self.c2 = C2SIMMessageFactory()
-        self.mtf = MTFFormatter(config={"originator": "S3M INTEL CENTER"})
+        self.cot = CotEventFactory()
         self.msdl_gen = MSDLGenerator()
         self.msdl_parser = MSDLParser()
 
@@ -168,6 +170,82 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
+    def verify_cot_conformance(self) -> dict:
+        """Verify CoT gateway correctness for tactical ATAK interoperability."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        try:
+            sample = {
+                "unit_id": "cot-1",
+                "entity_type": "FRIENDLY_UGV",
+                "affiliation": "friendly",
+                "domain": "ground",
+                "position": [24.7136, 46.6753, 620.0],
+                "heading": 90.0,
+                "speed": 11.0,
+                "callsign": "S3M-COT1",
+                "time": "2026-01-01T00:00:00Z",
+            }
+            xml = self.cot.build_event(sample)
+            parsed = self.cot.parse_event(xml)
+            ok = parsed["uid"] == "cot-1" and parsed["affiliation"] == "friendly"
+            results.append({"test": "cot_roundtrip", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "cot_roundtrip", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            ok = True
+            for key, payload in DIS_ENTITY_MAP.items():
+                upper = key.upper()
+                if upper.startswith("FRIENDLY_"):
+                    affiliation = "friendly"
+                elif upper.startswith("ENEMY_"):
+                    affiliation = "hostile"
+                elif upper.startswith("UNKNOWN"):
+                    affiliation = "unknown"
+                else:
+                    affiliation = "neutral"
+                domain = {2: "air", 3: "surface"}.get(int(payload.get("domain", 1)), "ground")
+                cot_type = self.cot._s3m_type_to_cot(key, affiliation, domain)
+                if not cot_type.startswith("a-"):
+                    ok = False
+                    break
+            results.append({"test": "cot_type_mapping_all_entities", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "cot_type_mapping_all_entities", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            # Tactical geolocation fidelity check for CENTCOM common reference point.
+            riyadh_track = {
+                "unit_id": "riyadh-ref",
+                "entity_type": "FRIENDLY_UGV",
+                "affiliation": "friendly",
+                "domain": "ground",
+                "lat": 24.7136,
+                "lon": 46.6753,
+                "hae": 612.0,
+            }
+            xml = self.cot.build_event(riyadh_track)
+            parsed = self.cot.parse_event(xml)
+            err = self._distance_lla(24.7136, 46.6753, 612.0, parsed["lat"], parsed["lon"], parsed["hae"])
+            ok = err < 0.5
+            results.append({"test": "cot_coordinate_accuracy_riyadh", "passed": ok, "error_m": err})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "cot_coordinate_accuracy_riyadh", "passed": False, "error": str(exc)})
+            failed += 1
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def verify_msdl_conformance(self) -> dict:
         results: List[dict] = []
         passed = 0
@@ -262,21 +340,21 @@ class InteropVerifier:
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
-        mtf = self.verify_mtf_conformance()
+        cot = self.verify_cot_conformance()
         msdl = self.verify_msdl_conformance()
         nffi = self.verify_nffi_conformance()
         coords = self.verify_coordinate_accuracy()
         total_passed = (
             dis["tests_passed"]
             + c2["tests_passed"]
-            + mtf["tests_passed"]
+            + cot["tests_passed"]
             + msdl["tests_passed"]
             + coords["tests_passed"]
         )
         total_failed = (
             dis["tests_failed"]
             + c2["tests_failed"]
-            + mtf["tests_failed"]
+            + cot["tests_failed"]
             + msdl["tests_failed"]
             + coords["tests_failed"]
         )
@@ -284,7 +362,7 @@ class InteropVerifier:
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
             "dis": dis,
             "c2sim": c2,
-            "mtf": mtf,
+            "cot": cot,
             "msdl": msdl,
             "nffi": nffi,
             "coordinates": coords,
@@ -299,7 +377,7 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "mtf", "msdl", "coordinates"):
+        for suite_name in ("dis", "c2sim", "cot", "msdl", "coordinates"):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):

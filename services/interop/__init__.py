@@ -20,6 +20,7 @@ Architecture:
 
 from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
 from services.interop.coalition_dashboard import CoalitionDashboardProvider
+from services.interop.cot import CotBridge, CotEventFactory, CotTransport
 from services.interop.dis import (
     DISCoordinateConverter,
     DISDeadReckoning,
@@ -55,8 +56,9 @@ __all__ = [
     "C2SIMEngine",
     "C2SIMMessageFactory",
     "C2SIMServerAdapter",
-    "MTFFormatter",
-    "MTFTransport",
+    "CotEventFactory",
+    "CotTransport",
+    "CotBridge",
     "MSDLParser",
     "MSDLGenerator",
     "NFFIMessageBuilder",
