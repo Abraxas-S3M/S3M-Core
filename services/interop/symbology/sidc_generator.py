@@ -4,8 +4,23 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from services.interop.models import DISEntityType
-from src.security.interop.dis_adapter import DIS_ENTITY_MAP
+try:
+    from src.security.interop.dis_adapter import DIS_ENTITY_MAP as _DIS_ENTITY_MAP
+except Exception:  # pragma: no cover - fallback for minimal environments
+    _DIS_ENTITY_MAP: Dict[str, Dict[str, int]] = {
+        "FRIENDLY_UAV": {"kind": 1, "domain": 2, "country": 178, "category": 1, "subcategory": 0},
+        "FRIENDLY_UGV": {"kind": 1, "domain": 1, "country": 178, "category": 1, "subcategory": 0},
+        "FRIENDLY_SHIP": {"kind": 1, "domain": 3, "country": 178, "category": 1, "subcategory": 0},
+        "ENEMY_UAV": {"kind": 1, "domain": 2, "country": 0, "category": 1, "subcategory": 0},
+        "ENEMY_UGV": {"kind": 1, "domain": 1, "country": 0, "category": 1, "subcategory": 0},
+        "ENEMY_SHIP": {"kind": 1, "domain": 3, "country": 0, "category": 1, "subcategory": 0},
+        "ENEMY_INFANTRY": {"kind": 3, "domain": 1, "country": 0, "category": 1, "subcategory": 0},
+        "CIVILIAN": {"kind": 3, "domain": 1, "country": 0, "category": 0, "subcategory": 0},
+        "OBSTACLE": {"kind": 2, "domain": 1, "country": 0, "category": 0, "subcategory": 0},
+        "WAYPOINT": {"kind": 9, "domain": 0, "country": 0, "category": 0, "subcategory": 0},
+        "BASE": {"kind": 1, "domain": 1, "country": 178, "category": 2, "subcategory": 0},
+        "UNKNOWN": {"kind": 0, "domain": 0, "country": 0, "category": 0, "subcategory": 0},
+    }
 
 
 class SIDCGenerator:
@@ -125,6 +140,8 @@ class SIDCGenerator:
         "space": "p",
     }
 
+    _DIS_ENTITY_MAP: Dict[str, Dict[str, int]] = _DIS_ENTITY_MAP
+
     _DIS_ENTITY_LOOKUP: Dict[tuple[int, int, int, int, int], str] = {
         (
             int(payload["kind"]),
@@ -133,7 +150,7 @@ class SIDCGenerator:
             int(payload["category"]),
             int(payload.get("subcategory", 0)),
         ): key
-        for key, payload in DIS_ENTITY_MAP.items()
+        for key, payload in _DIS_ENTITY_MAP.items()
     }
 
     @classmethod
@@ -184,7 +201,7 @@ class SIDCGenerator:
         return "10110000000000000000"
 
     @classmethod
-    def from_dis_entity_type(cls, dis_type: DISEntityType, force_id: int) -> str:
+    def from_dis_entity_type(cls, dis_type: Any, force_id: int) -> str:
         """Map DIS entity type fields into a SIDC."""
 
         kind = int(getattr(dis_type, "kind", 0))

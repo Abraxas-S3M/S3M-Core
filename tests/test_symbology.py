@@ -2,7 +2,6 @@
 
 from services.interop.models import DISEntityType
 from services.interop.symbology.sidc_generator import SIDCGenerator
-from src.security.interop.dis_adapter import DIS_ENTITY_MAP
 
 
 def _force_id_for_entity(entity_name: str) -> int:
@@ -14,7 +13,7 @@ def _force_id_for_entity(entity_name: str) -> int:
 
 
 def test_generate_sidc_all_dis_entity_map_entries():
-    for entity_name, payload in DIS_ENTITY_MAP.items():
+    for entity_name, payload in SIDCGenerator._DIS_ENTITY_MAP.items():
         dis_type = DISEntityType(
             kind=payload["kind"],
             domain=payload["domain"],
