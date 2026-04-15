@@ -52,6 +52,7 @@ from services.interop.registry import InteropRegistry
 from services.interop.stix import STIXTAXIIBridge, TAXIIClient
 from services.interop.symbology import SIDCGenerator, SymbologyMapper
 from services.interop.tactical_mesh import TacticalMeshAdapter
+from services.interop.uas4586 import UAS4586Interface, UAS4586MessageHandler
 from services.interop.verification import InteropVerifier
 
 __all__ = [
@@ -69,9 +70,8 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
-    "WMSClient",
-    "WFSClient",
-    "GeoJSONAdapter",
+    "UAS4586Interface",
+    "UAS4586MessageHandler",
     "MTFFormatter",
     "MTFTransport",
     "SIDCGenerator",

@@ -58,6 +58,7 @@ from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
 from src.api.jreap_routes import jreap_router
+from src.api.uas4586_routes import uas4586_router
 from src.api.gui_bridge import gui_bridge_router
 from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
 from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
@@ -222,6 +223,7 @@ app.include_router(interop_ext_router, tags=["Interoperability & Standards (Exte
 app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
 app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
+app.include_router(uas4586_router, tags=["STANAG 4586 UAS Interoperability"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
 app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
 app.include_router(oth_router, tags=["OTH-Gold Maritime Gateway"])
