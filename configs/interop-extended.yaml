@@ -23,6 +23,11 @@ c2sim:
   inbox_dir: "data/interop/c2sim_inbox/"
   auto_send: true
 
+oth_gold:
+  enabled: false
+  gateway_url: null
+  publish_interval_seconds: 15
+
 msdl:
   scenarios_dir: "configs/interop/scenarios/"
   default_environment:

@@ -42,6 +42,7 @@ from services.interop.models import (
     ORBATUnit,
 )
 from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
+from services.interop.oth import OTHGoldAdapter
 from services.interop.registry import InteropRegistry
 from services.interop.tactical_mesh import TacticalMeshAdapter
 from services.interop.verification import InteropVerifier
@@ -74,4 +75,5 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
+    "OTHGoldAdapter",
 ]
