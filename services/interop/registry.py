@@ -12,7 +12,17 @@ class InteropRegistry:
     def __init__(self):
         self.capabilities: Dict[str, Dict[str, object]] = {}
         self.exercise_sessions: Dict[int, dict] = {}
-        self.register_capability("cot", "2.0", ["event_xml", "multicast", "tak_server", "dis_crossfeed"])
+        self._register_default_capabilities()
+
+    def _register_default_capabilities(self) -> None:
+        self.register_capability("dis", "IEEE-1278.1", ["entity_state_pdu", "dead_reckoning"])
+        self.register_capability("c2sim", "1.1", ["order_exchange", "report_exchange", "offline_outbox"])
+        self.register_capability("msdl", "1.0", ["scenario_import", "scenario_export"])
+        self.register_capability(
+            "taxii",
+            "2.1",
+            ["stix_bundle_publish", "stix_bundle_poll", "offline_outbox", "offline_inbox_cache"],
+        )
 
     def register_capability(self, protocol, version, features: List[str]):
         self.capabilities[str(protocol).lower()] = {

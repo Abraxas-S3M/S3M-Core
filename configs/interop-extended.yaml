@@ -79,3 +79,10 @@ nffi:
 verification:
   auto_run_on_startup: false
   coordinate_accuracy_threshold_meters: 1.0
+
+taxii:
+  servers: []
+  poll_interval_seconds: 300
+  outbox_dir: "data/interop/taxii_outbox/"
+  inbox_dir: "data/interop/taxii_inbox/"
+  auto_contribute: false

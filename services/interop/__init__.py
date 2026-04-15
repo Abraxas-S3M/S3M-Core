@@ -45,6 +45,7 @@ from services.interop.models import (
 )
 from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
 from services.interop.registry import InteropRegistry
+from services.interop.stix import STIXTAXIIBridge, TAXIIClient
 from services.interop.tactical_mesh import TacticalMeshAdapter
 from services.interop.verification import InteropVerifier
 
@@ -72,8 +73,8 @@ __all__ = [
     "InteropVerifier",
     "TacticalMeshAdapter",
     "InteropRegistry",
-    "JREAPBridge",
-    "JREAPHandler",
+    "TAXIIClient",
+    "STIXTAXIIBridge",
     "DISHeader",
     "DISEntityID",
     "DISWorldCoordinate",
