@@ -38,6 +38,7 @@ from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
+from src.api.nffi_routes import nffi_router
 from src.api.platform_routes import platform_router
 from src.api.portal_routes import router as portal_router
 from src.api.platform_routes import platform_router
@@ -52,6 +53,7 @@ from src.api.training_sim_routes import training_sim_router
 from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
+from src.api.jreap_routes import jreap_router
 from src.api.gui_bridge import gui_bridge_router
 from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
 from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status

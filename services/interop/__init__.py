@@ -29,6 +29,7 @@ from services.interop.dis import (
     DISPDUFactory,
 )
 from services.interop.exercise_manager import ExerciseManager
+from services.interop.jreap import JREAPBridge, JREAPHandler
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -60,6 +61,8 @@ __all__ = [
     "CotBridge",
     "MSDLParser",
     "MSDLGenerator",
+    "NFFIMessageBuilder",
+    "NFFIGateway",
     "ORBATManager",
     "ORBATUnit",
     "ForceStructure",
@@ -69,6 +72,8 @@ __all__ = [
     "InteropVerifier",
     "TacticalMeshAdapter",
     "InteropRegistry",
+    "JREAPBridge",
+    "JREAPHandler",
     "DISHeader",
     "DISEntityID",
     "DISWorldCoordinate",
@@ -78,4 +83,5 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
+    "OTHGoldAdapter",
 ]

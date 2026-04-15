@@ -19,6 +19,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUITracksData,
 )
 from src.api.gui_bridge.training_emitter import emit_training_record
+from services.interop.symbology import SIDCGenerator
 
 
 def _now_iso() -> str:
@@ -692,34 +693,11 @@ class COPAdapter:
 
     @classmethod
     def _resolve_sidc(cls, affiliation: Any, domain: Any, entity_type: Any) -> str:
-        fallback_sidc = generate_sidc(
-            affiliation=str(affiliation) if affiliation is not None else None,
-            domain=str(domain) if domain is not None else None,
-            entity_type=str(entity_type) if entity_type is not None else None,
+        return SIDCGenerator.generate(
+            affiliation=str(affiliation) if affiliation is not None else "unknown",
+            domain=str(domain) if domain is not None else "land",
+            entity_type=str(entity_type) if entity_type is not None else "UNKNOWN",
         )
-        if military_symbol is None:
-            return fallback_sidc
-
-        symbol_name = cls._domain_to_symbol_name(affiliation=affiliation, domain=domain, entity_type=entity_type)
-        if not symbol_name:
-            return fallback_sidc
-
-        try:
-            # Tactical context: using local symbol generation keeps COP symbology
-            # deterministic even when operators are fully disconnected.
-            military_symbol.get_symbol_svg_string_from_name(symbol_name)
-            symbol_obj_getter = getattr(military_symbol, "get_symbol_class_from_name", None)
-            if callable(symbol_obj_getter):
-                symbol_obj = symbol_obj_getter(name=symbol_name)
-                sidc_getter = getattr(symbol_obj, "get_sidc", None)
-                if callable(sidc_getter):
-                    sidc_candidate = str(sidc_getter()).strip()
-                    if sidc_candidate.isdigit() and len(sidc_candidate) == 20:
-                        return sidc_candidate
-        except Exception:
-            return fallback_sidc
-
-        return fallback_sidc
 
     @classmethod
     def _domain_to_symbol_name(cls, affiliation: Any, domain: Any, entity_type: Any) -> str:
