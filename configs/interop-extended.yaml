@@ -16,6 +16,15 @@ dis:
   max_entities: 5000
   pdu_types_enabled: [1, 2, 3, 13, 14, 22, 26]
 
+hla:
+  rti_type: "stub"  # certi | pitch | mak | stub
+  rti_host: "localhost"
+  rti_port: 11000
+  federation_name: "S3M_Coalition"
+  fom_path: "configs/interop/s3m_fom.xml"
+  time_step_seconds: 0.1
+  auto_bridge_dis: true
+
 jreap:
   enabled: false
   listen_port: 5555

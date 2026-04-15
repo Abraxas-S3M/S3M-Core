@@ -12,6 +12,7 @@ from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
+from services.interop.hla.federate_adapter import HLAFederateAdapter
 from services.interop.mtf import MTFFormatter
 from services.interop.nffi import NFFIMessageBuilder
 from services.interop.registry import InteropRegistry
@@ -27,7 +28,19 @@ from services.interop.models import (
 )
 from services.interop.msdl.generator import MSDLGenerator
 from services.interop.msdl.parser import MSDLParser
-from src.security.interop.dis_adapter import DIS_ENTITY_MAP
+try:
+    from src.security.interop.dis_adapter import DIS_ENTITY_MAP
+except ModuleNotFoundError:
+    # Tactical offline fallback: allow protocol verification to run even when
+    # optional API dependencies are absent from austere test environments.
+    DIS_ENTITY_MAP = {
+        "FRIENDLY_UAV": {"kind": 1, "domain": 2, "country": 178, "category": 1},
+        "FRIENDLY_UGV": {"kind": 1, "domain": 1, "country": 178, "category": 1},
+        "FRIENDLY_SHIP": {"kind": 1, "domain": 3, "country": 178, "category": 1},
+        "ENEMY_UAV": {"kind": 1, "domain": 2, "country": 0, "category": 1},
+        "ENEMY_UGV": {"kind": 1, "domain": 1, "country": 0, "category": 1},
+        "ENEMY_SHIP": {"kind": 1, "domain": 3, "country": 0, "category": 1},
+    }
 
 
 class InteropVerifier:
@@ -477,6 +490,81 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
+    def verify_hla_conformance(self) -> dict:
+        """Verify offline HLA federate behavior for coalition simulation drills."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        try:
+            adapter = HLAFederateAdapter({"rti_type": "stub", "time_step_seconds": 0.1})
+            ok = adapter.create_federation("S3M_Verification", "configs/interop/s3m_fom.xml")
+            results.append({"test": "hla_create_federation_stub", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "hla_create_federation_stub", "passed": False, "error": str(exc)})
+            failed += 1
+            adapter = None
+
+        if adapter is not None:
+            try:
+                joined = adapter.join_federation("S3M_Verification")
+                results.append({"test": "hla_join_federation_stub", "passed": joined})
+                passed += int(joined)
+                failed += int(not joined)
+            except Exception as exc:
+                results.append({"test": "hla_join_federation_stub", "passed": False, "error": str(exc)})
+                failed += 1
+
+            try:
+                reflected = []
+                adapter.subscribe_object_class("Aircraft", ["Position", "Velocity", "Marking"])
+                adapter.publish_object_class("Aircraft", ["Position", "Velocity", "Marking"])
+                adapter.reflect_object(lambda payload: reflected.append(payload))
+                updated = adapter.update_object(
+                    "Aircraft",
+                    99,
+                    {
+                        "Position": {"lat": 24.7136, "lon": 46.6753, "alt": 620.0},
+                        "Velocity": {"x": 10.0, "y": 0.0, "z": 0.0},
+                        "Marking": "VERIFY-AIR-99",
+                    },
+                )
+                ok = bool(updated) and len(reflected) == 1
+                results.append({"test": "hla_reflection_loopback_stub", "passed": ok})
+                passed += int(ok)
+                failed += int(not ok)
+            except Exception as exc:
+                results.append({"test": "hla_reflection_loopback_stub", "passed": False, "error": str(exc)})
+                failed += 1
+
+            try:
+                interactions = []
+                adapter.receive_interaction(lambda payload: interactions.append(payload))
+                sent = adapter.send_interaction("WeaponFire", {"FiringObjectIdentifier": "99"})
+                ok = bool(sent) and len(interactions) == 1
+                results.append({"test": "hla_interaction_loopback_stub", "passed": ok})
+                passed += int(ok)
+                failed += int(not ok)
+            except Exception as exc:
+                results.append({"test": "hla_interaction_loopback_stub", "passed": False, "error": str(exc)})
+                failed += 1
+
+            try:
+                step_ok = adapter.advance_time(0.1)
+                health = adapter.health_check()
+                logical_time = float(health.get("backend", {}).get("logical_time", 0.0))
+                ok = bool(step_ok) and logical_time >= 0.1
+                results.append({"test": "hla_time_management_stub", "passed": ok, "logical_time": logical_time})
+                passed += int(ok)
+                failed += int(not ok)
+            except Exception as exc:
+                results.append({"test": "hla_time_management_stub", "passed": False, "error": str(exc)})
+                failed += 1
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
@@ -487,6 +575,7 @@ class InteropVerifier:
         msdl = self.verify_msdl_conformance()
         coords = self.verify_coordinate_accuracy()
         taxii = self.verify_taxii_transport_readiness()
+        hla = self.verify_hla_conformance()
         total_passed = (
             dis["tests_passed"]
             + c2["tests_passed"]
@@ -497,6 +586,7 @@ class InteropVerifier:
             + msdl["tests_passed"]
             + coords["tests_passed"]
             + taxii["tests_passed"]
+            + hla["tests_passed"]
         )
         total_failed = (
             dis["tests_failed"]
@@ -508,6 +598,7 @@ class InteropVerifier:
             + msdl["tests_failed"]
             + coords["tests_failed"]
             + taxii["tests_failed"]
+            + hla["tests_failed"]
         )
         return {
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
@@ -520,6 +611,7 @@ class InteropVerifier:
             "msdl": msdl,
             "coordinates": coords,
             "taxii": taxii,
+            "hla": hla,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -531,7 +623,18 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "cot", "nffi", "symbology", "mtf", "msdl", "coordinates", "taxii"):
+        for suite_name in (
+            "dis",
+            "c2sim",
+            "cot",
+            "nffi",
+            "symbology",
+            "mtf",
+            "msdl",
+            "coordinates",
+            "taxii",
+            "hla",
+        ):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):
