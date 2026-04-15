@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from urllib import error, request
 
 from services.interop.nsili.nsili_catalog import NSILICatalog
 from src.apps.intel.models import ReportType
@@ -86,7 +85,7 @@ class NSILIProductManager:
 
         try:
             xml_payload = self._read_partner_catalog(url_text)
-        except (ValueError, OSError, error.URLError, TimeoutError):
+        except (ValueError, OSError, TimeoutError):
             return 0
 
         entries = self.catalog.from_nsili_xml(xml_payload)
@@ -161,13 +160,7 @@ class NSILIProductManager:
 
     def _read_partner_catalog(self, partner_url: str) -> str:
         if partner_url.startswith(("http://", "https://")):
-            req = request.Request(
-                url=partner_url,
-                method="GET",
-                headers={"Accept": "application/xml, text/xml"},
-            )
-            with request.urlopen(req, timeout=6.0) as response:
-                return response.read().decode("utf-8", errors="ignore")
+            raise ValueError("HTTP(S) partner sync is disabled for air-gapped NSILI operation")
 
         # Tactical context: air-gapped exchanges can arrive as removable-media files.
         path = Path(partner_url)
