@@ -42,6 +42,7 @@ from src.api.portal_routes import router as portal_router
 from src.api.platform_routes import platform_router
 from src.api.security_routes import security_router
 from src.api.sensor_analytics_routes import sensor_analytics_router
+from src.api.taxii_routes import taxii_router
 from src.api.readiness_routes import readiness_router
 from src.api.quantum_security_routes import router as qss_router
 from src.api.safety_routes import safety_router
@@ -210,6 +211,7 @@ app.add_middleware(SecurityMiddleware, config=security_config)
 # Add security routes
 app.include_router(security_router, tags=["Security & Compliance"])
 app.include_router(cyber_router, tags=["Cyber Defense Operations"])
+app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
 app.include_router(readiness_router, tags=["Personnel & Readiness"])

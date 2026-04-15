@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import math
+from pathlib import Path
 from typing import Dict, List
 
 from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
+from services.interop.stix.taxii_client import TAXIIClient
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -211,19 +213,56 @@ class InteropVerifier:
             failed += int(not ok)
         return {"tests_passed": passed, "tests_failed": failed, "results": rows}
 
+    def verify_taxii_transport_readiness(self) -> dict:
+        """Validate local TAXII transport readiness without external network calls."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        client = TAXIIClient(server_url="http://localhost", collection_id="default")
+        outbox_ok = Path(client.outbox_dir).exists()
+        inbox_ok = Path(client.inbox_dir).exists()
+        status = client.health_check()
+
+        checks = [
+            ("taxii_outbox_available", outbox_ok),
+            ("taxii_inbox_available", inbox_ok),
+            ("taxii_health_shape", {"offline_outbox_count", "cached_inbox_count", "connected"}.issubset(status.keys())),
+        ]
+        for name, ok in checks:
+            results.append({"test": name, "passed": bool(ok)})
+            passed += int(bool(ok))
+            failed += int(not bool(ok))
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
         msdl = self.verify_msdl_conformance()
         coords = self.verify_coordinate_accuracy()
-        total_passed = dis["tests_passed"] + c2["tests_passed"] + msdl["tests_passed"] + coords["tests_passed"]
-        total_failed = dis["tests_failed"] + c2["tests_failed"] + msdl["tests_failed"] + coords["tests_failed"]
+        taxii = self.verify_taxii_transport_readiness()
+        total_passed = (
+            dis["tests_passed"]
+            + c2["tests_passed"]
+            + msdl["tests_passed"]
+            + coords["tests_passed"]
+            + taxii["tests_passed"]
+        )
+        total_failed = (
+            dis["tests_failed"]
+            + c2["tests_failed"]
+            + msdl["tests_failed"]
+            + coords["tests_failed"]
+            + taxii["tests_failed"]
+        )
         return {
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
             "dis": dis,
             "c2sim": c2,
             "msdl": msdl,
             "coordinates": coords,
+            "taxii": taxii,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -235,7 +274,7 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "msdl", "coordinates"):
+        for suite_name in ("dis", "c2sim", "msdl", "coordinates", "taxii"):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):
