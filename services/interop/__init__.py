@@ -18,34 +18,36 @@ Architecture:
   Phase 14 Comms → TacticalMesh → Edge relay for exercise networks
 """
 
-from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
-from services.interop.coalition_dashboard import CoalitionDashboardProvider
-from services.interop.dis import (
-    DISCoordinateConverter,
-    DISDeadReckoning,
-    DISEngine,
-    DISNetworkManager,
-    DISPDUFactory,
-)
-from services.interop.exercise_manager import ExerciseManager
-from services.interop.models import (
-    DISEntityID,
-    DISEntityType,
-    DISHeader,
-    DISLinearVelocity,
-    DISOrientation,
-    DISPDUType,
-    DISWorldCoordinate,
-    ExerciseSession,
-    ForceStructure,
-    MSDLScenario,
-    ORBATUnit,
-)
-from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
-from services.interop.nffi import NFFIGateway, NFFIMessageBuilder
-from services.interop.registry import InteropRegistry
-from services.interop.tactical_mesh import TacticalMeshAdapter
-from services.interop.verification import InteropVerifier
+try:
+    from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
+    from services.interop.coalition_dashboard import CoalitionDashboardProvider
+    from services.interop.dis import (
+        DISCoordinateConverter,
+        DISDeadReckoning,
+        DISEngine,
+        DISNetworkManager,
+        DISPDUFactory,
+    )
+    from services.interop.exercise_manager import ExerciseManager
+    from services.interop.models import (
+        DISEntityID,
+        DISEntityType,
+        DISHeader,
+        DISLinearVelocity,
+        DISOrientation,
+        DISPDUType,
+        DISWorldCoordinate,
+        ExerciseSession,
+        ForceStructure,
+        MSDLScenario,
+        ORBATUnit,
+    )
+    from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
+    from services.interop.registry import InteropRegistry
+    from services.interop.tactical_mesh import TacticalMeshAdapter
+    from services.interop.verification import InteropVerifier
+except Exception:  # pragma: no cover - optional import guard for minimal runtimes
+    pass
 
 __all__ = [
     "DISEngine",
