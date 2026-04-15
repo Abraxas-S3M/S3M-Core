@@ -99,6 +99,11 @@ mtf:
   start_serial: 1
   gateway_url: null
 
+fmv:
+  klv_standard: "MISB_0601"
+  embed_in_stream: false
+  register_in_nsili: true
+
 verification:
   auto_run_on_startup: false
   coordinate_accuracy_threshold_meters: 1.0
