@@ -35,6 +35,7 @@ from src.api.engagement_routes import engagement_router
 from src.api.edge_runtime_routes import router as edge_router
 from src.api.cyber_routes import cyber_router
 from src.api.dashboard_routes import dashboard_router
+from src.api.fmv_routes import fmv_router
 from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
@@ -225,6 +226,7 @@ app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
 app.include_router(mip_router, tags=["MIP NATO Interoperability Gateway"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
+app.include_router(fmv_router, tags=["STANAG 4609 FMV Metadata"])
 app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
 app.include_router(oth_router, tags=["OTH-Gold Maritime Gateway"])
 app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
