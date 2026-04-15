@@ -43,6 +43,7 @@ from src.api.navigation_routes import navigation_router
 from src.api.mtf_routes import mtf_router
 from src.api.mip_routes import mip_router
 from src.api.nffi_routes import nffi_router
+from src.api.nvg_routes import nvg_router
 from src.api.oth_routes import oth_router
 from src.api.platform_routes import platform_router
 from src.api.portal_routes import router as portal_router
@@ -227,7 +228,7 @@ app.include_router(interop_ext_router, tags=["Interoperability & Standards (Exte
 app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
 app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
-app.include_router(mip_router, tags=["MIP NATO Interoperability Gateway"])
+app.include_router(nvg_router, tags=["NATO Vector Graphics (NVG)"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
 app.include_router(fmv_router, tags=["STANAG 4609 FMV Metadata"])
 app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])

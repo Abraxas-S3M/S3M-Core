@@ -106,13 +106,11 @@ nffi:
   outbox_dir: "data/interop/nffi_outbox/"
   stale_threshold_seconds: 300
 
-mip:
-  baseline: "4.3"
-  data_model: "MIM"
-  gateway_url: null
-  oig_categories: ["operations", "intelligence", "logistics", "plans", "cop"]
+nvg:
+  version: "2.0"
+  namespace: "http://tide.act.nato.int/schemas/2012/10/nvg"
   publish_interval_seconds: 10
-  outbox_dir: "data/interop/mip_outbox/"
+  outbox_dir: "data/interop/nvg_outbox/"
 
 mtf:
   namespace: "urn:nato:mtf:app11d"
