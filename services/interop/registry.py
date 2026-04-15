@@ -15,14 +15,22 @@ class InteropRegistry:
         self._register_default_capabilities()
 
     def _register_default_capabilities(self) -> None:
-        self.register_capability("dis", "IEEE-1278.1", ["entity_state_pdu", "dead_reckoning"])
-        self.register_capability("c2sim", "1.1", ["order_exchange", "report_exchange", "offline_outbox"])
-        self.register_capability("msdl", "1.0", ["scenario_import", "scenario_export"])
-        self.register_capability(
-            "taxii",
-            "2.1",
-            ["stix_bundle_publish", "stix_bundle_poll", "offline_outbox", "offline_inbox_cache"],
-        )
+        capabilities = {
+            "dis": ("IEEE-1278.1", ["entity_state_pdu", "dead_reckoning", "exercise_control_pdus"]),
+            "c2sim": ("1.1", ["order_exchange", "report_exchange", "offline_outbox"]),
+            "bml": ("SISO-BML", ["sitrep_generation", "aar_reporting", "order_parsing"]),
+            "msdl": ("1.0", ["scenario_import", "scenario_export"]),
+            "cot": ("2.0", ["tak_multicast", "track_publish", "track_ingest"]),
+            "nffi": ("STANAG-5527-1.4", ["blue_force_publish", "coalition_track_ingest", "offline_outbox"]),
+            "symbology": ("MIL-STD-2525D", ["sidc_generation", "cot_sidc_mapping", "dis_sidc_mapping"]),
+            "mtf": ("APP-11(D)", ["xml_message_formatting", "dtg_generation", "offline_message_queue"]),
+            "taxii": ("2.1", ["stix_bundle_publish", "stix_bundle_poll", "offline_outbox", "offline_inbox_cache"]),
+            "jreap": ("JREAP-C", ["j_series_ingest", "cot_crossfeed", "dis_crossfeed"]),
+            "oth_gold": ("3.0", ["maritime_track_publish", "maritime_track_ingest"]),
+        }
+        for protocol, declaration in capabilities.items():
+            version, features = declaration
+            self.register_capability(protocol, version, features)
 
     def register_capability(self, protocol, version, features: List[str]):
         self.capabilities[str(protocol).lower()] = {
@@ -59,8 +67,7 @@ class InteropRegistry:
         }
 
     def get_iso3_codes(self) -> dict:
-        _ = self.get_gcc_partner_codes()
-        _ = self.get_nato_partner_codes()
+        """Return numeric country-code to ISO3 mapping for GCC and NATO partners."""
         return {
             178: "SAU",
             223: "ARE",
@@ -79,6 +86,11 @@ class InteropRegistry:
             145: "NLD",
             146: "NOR",
         }
+
+    def get_all_partner_codes(self) -> dict:
+        merged = dict(self.get_gcc_partner_codes())
+        merged.update(self.get_nato_partner_codes())
+        return merged
 
     def health_check(self) -> dict:
         return {

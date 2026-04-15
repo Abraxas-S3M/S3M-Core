@@ -171,6 +171,91 @@ Implemented in `src/api/interop_ext_routes.py` and included in `src/api/server.p
 - `GET /interop/status`
 - `GET /interop/partners`
 
+## New Adapter Integration (Phase 16.1)
+
+### CoT / TAK Gateway (`services/interop/cot/`)
+- **Purpose**: Exchange coalition track updates with TAK-compatible clients and gateways.
+- **API endpoints**:
+  - `POST /interop/cot/connect`
+  - `POST /interop/cot/disconnect`
+  - `POST /interop/cot/publish`
+  - `GET /interop/cot/tracks`
+  - `GET /interop/cot/stats`
+  - `GET /interop/cot/status`
+- **Config keys**: `cot.multicast_address`, `cot.multicast_port`, `cot.tak_server_url`, `cot.stale_seconds`.
+- **Usage**: Enable CoT in `InteropManager`, then send coalition tracks via `send_cot_tracks()`.
+
+### NFFI Blue Force Tracking (`services/interop/nffi/`)
+- **Purpose**: Share friendly-force track positions with coalition BFT consumers (STANAG 5527 profile).
+- **API endpoints**:
+  - `POST /interop/nffi/connect`
+  - `POST /interop/nffi/disconnect`
+  - `POST /interop/nffi/publish`
+  - `GET /interop/nffi/tracks`
+  - `GET /interop/nffi/status`
+- **Config keys**: `nffi.transport_profile`, `nffi.gateway_url`, `nffi.track_source_country`, `nffi.system_id`.
+- **Usage**: Enable NFFI and publish validated blue-force tracks via `send_nffi_tracks()`.
+
+### APP-6D / 2525D Symbology (`services/interop/symbology/`)
+- **Purpose**: Normalize all coalition tracks to valid SIDC values for COP rendering and protocol mapping.
+- **Integration points**:
+  - `SymbologyMapper.map_track_symbology()`
+  - `SIDCGenerator.from_dis_entity_type()`
+- **Usage**: COP adapter applies `SymbologyMapper` before returning `GUIThreatTrack` objects.
+
+### APP-11 Message Text Format (`services/interop/mtf/`)
+- **Purpose**: Generate and parse APP-11 XML-MTF operational/intelligence reports (e.g., INTSUM).
+- **API endpoints**:
+  - `POST /interop/mtf/send`
+  - `GET /interop/mtf/outbox`
+  - `GET /interop/mtf/status`
+- **Config keys**: `mtf.namespace`, `mtf.originator`, `mtf.start_serial`, `mtf.gateway_url`.
+- **Usage**: Use `InteropManager.send_mtf_message()` for unified message generation + delivery queueing.
+
+### STIX / TAXII Transport (`services/interop/stix/`)
+- **Purpose**: Exchange cyber threat intelligence bundles with coalition TAXII 2.1 sources.
+- **API endpoints**:
+  - `POST /interop/taxii/connect`
+  - `POST /interop/taxii/poll`
+  - `POST /interop/taxii/contribute`
+  - `GET /interop/taxii/status`
+  - `GET /interop/taxii/collections`
+- **Config keys**: `taxii.servers`, `taxii.poll_interval_seconds`, `taxii.outbox_dir`, `taxii.inbox_dir`.
+- **Usage**: Enable TAXII transport in `InteropManager`, then submit STIX bundles via `send_taxii_bundle()`.
+
+### JREAP-C Link 16 Bridge (`services/interop/jreap/`)
+- **Purpose**: Ingest J-series tactical tracks and bridge them to S3M COP / interop gateways.
+- **API endpoints**:
+  - `POST /interop/jreap/start`
+  - `POST /interop/jreap/stop`
+  - `GET /interop/jreap/tracks`
+  - `GET /interop/jreap/stats`
+  - `GET /interop/jreap/status`
+- **Config keys**: `jreap.listen_port`, `jreap.supported_j_series`, `jreap.crossfeed_to_cot`, `jreap.crossfeed_to_dis`.
+- **Usage**: Enable JREAP and pull decoded tracks through `receive_all()` or `send_jreap_tracks()`.
+
+### OTH-Gold Maritime (`services/interop/oth/`)
+- **Purpose**: Exchange maritime tracks over OTH-Gold transport for coalition naval COP alignment.
+- **API endpoints**:
+  - `POST /interop/oth/connect`
+  - `POST /interop/oth/publish`
+  - `GET /interop/oth/tracks`
+  - `GET /interop/oth/status`
+- **Config keys**: `oth_gold.gateway_url`, `oth_gold.publish_interval_seconds`, `oth_gold.enforce_maritime_only`.
+- **Usage**: Enable OTH-Gold and publish maritime-only tracks via `send_oth_gold_tracks()`.
+
+## CENTCOM / KSA / NATO Compliance Matrix
+
+| Adapter | CENTCOM Ops Alignment | KSA/GCC Interop Requirement | NATO/Coalition Standard |
+|---|---|---|---|
+| CoT/TAK | Forward observer and COP relay over constrained links | TAK-compatible C2 picture sharing | CoT 2.0 profile |
+| NFFI | Blue-force deconfliction and coalition maneuver safety | GCC partner country code + ISO3 mapping | STANAG 5527 (NFFI 1.4) |
+| Symbology | Common tactical iconography under mixed feeds | KSA force structures mapped to valid SIDC | APP-6D / MIL-STD-2525D |
+| MTF | Structured operational intelligence reporting | KSA command reporting workflows | APP-11(D) XML-MTF |
+| STIX/TAXII | CTI fusion for cyber defense in theater | Offline queueing for sovereign deployments | STIX 2.1 / TAXII 2.1 |
+| JREAP-C | Link 16 situational awareness ingestion | Coalition air/surface data ingest | JREAP-C + J-series |
+| OTH-Gold | Maritime over-the-horizon track coordination | Gulf maritime COP interoperability | OTH-Gold 3.0 |
+
 ## Configuration
 
 `configs/interop-extended.yaml` provides defaults for:

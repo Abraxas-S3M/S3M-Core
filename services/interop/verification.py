@@ -1,18 +1,22 @@
-"""Interoperability verification suites for DIS/C2SIM/MSDL/MTF conformance."""
+"""Interoperability verification suites for coalition protocol conformance."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 import math
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 from services.interop.cot.cot_event import CotEventFactory
 from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
+from services.interop.mtf import MTFFormatter
+from services.interop.nffi import NFFIMessageBuilder
+from services.interop.registry import InteropRegistry
 from services.interop.stix.taxii_client import TAXIIClient
+from services.interop.symbology import SIDCGenerator, SymbologyMapper
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -35,6 +39,8 @@ class InteropVerifier:
         self.dr = DISDeadReckoning()
         self.c2 = C2SIMMessageFactory()
         self.cot = CotEventFactory()
+        self.nffi = NFFIMessageBuilder()
+        self.mtf = MTFFormatter()
         self.msdl_gen = MSDLGenerator()
         self.msdl_parser = MSDLParser()
 
@@ -247,6 +253,116 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
+    def verify_nffi_conformance(self) -> dict:
+        """Verify NFFI build/parse behavior for coalition blue-force exchange."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        try:
+            tracks = [
+                {
+                    "unit_id": "falcon-11",
+                    "position": [24.7136, 46.6753, 620.0],
+                    "role": "friendly_armor",
+                    "status": "active",
+                    "updated_at": "2026-04-15T12:30:45+00:00",
+                }
+            ]
+            xml = self.nffi.build_message(tracks=tracks, country_iso3="SAU", system_id="S3M-FALCON")
+            parsed = self.nffi.parse_message(xml)
+            ok = len(parsed) == 1 and parsed[0]["unit_id"] == "falcon-11"
+            results.append({"test": "nffi_roundtrip", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "nffi_roundtrip", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            registry = InteropRegistry()
+            iso3 = registry.get_iso3_codes()
+            ok = iso3.get(178) == "SAU" and iso3.get(223) == "ARE" and iso3.get(225) == "USA"
+            results.append({"test": "nffi_country_code_mapping", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "nffi_country_code_mapping", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            ok = (
+                self.nffi._status_to_nffi("active") == "OPERATIONAL"
+                and self.nffi._status_to_nffi("damaged") == "DEGRADED"
+                and self.nffi._status_to_nffi("destroyed") == "DESTROYED"
+                and self.nffi._nffi_to_status("DEGRADED") == "damaged"
+            )
+            results.append({"test": "nffi_status_mapping", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "nffi_status_mapping", "passed": False, "error": str(exc)})
+            failed += 1
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_symbology_conformance(self) -> dict:
+        """Verify SIDC generation and validation across known entity catalogs."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+
+        try:
+            all_valid = True
+            for entity_name in DIS_ENTITY_MAP:
+                sidc = SymbologyMapper.map_track_symbology(
+                    {
+                        "entity_type": entity_name,
+                        "type": entity_name,
+                        "affiliation": "friendly" if entity_name.startswith("FRIENDLY_") else "hostile",
+                        "domain": "land",
+                    }
+                )
+                if not SIDCGenerator.is_valid_sidc(sidc):
+                    all_valid = False
+                    break
+            results.append({"test": "sidc_generation_all_entity_types", "passed": all_valid})
+            passed += int(all_valid)
+            failed += int(not all_valid)
+        except Exception as exc:
+            results.append({"test": "sidc_generation_all_entity_types", "passed": False, "error": str(exc)})
+            failed += 1
+
+        try:
+            all_dis_valid = True
+            for entity_name, payload in DIS_ENTITY_MAP.items():
+                dis_type = DISEntityType(
+                    kind=int(payload["kind"]),
+                    domain=int(payload["domain"]),
+                    country=int(payload["country"]),
+                    category=int(payload["category"]),
+                    subcategory=int(payload.get("subcategory", 0)),
+                    specific=0,
+                    extra=0,
+                )
+                sidc = SymbologyMapper.map_track_symbology(
+                    {
+                        "dis_entity_type": dis_type,
+                        "force_id": 1 if entity_name.startswith("FRIENDLY_") else 2,
+                    }
+                )
+                if not SIDCGenerator.is_valid_sidc(sidc):
+                    all_dis_valid = False
+                    break
+            results.append({"test": "sidc_from_dis_entity_type", "passed": all_dis_valid})
+            passed += int(all_dis_valid)
+            failed += int(not all_dis_valid)
+        except Exception as exc:
+            results.append({"test": "sidc_from_dis_entity_type", "passed": False, "error": str(exc)})
+            failed += 1
+
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def verify_msdl_conformance(self) -> dict:
         results: List[dict] = []
         passed = 0
@@ -365,13 +481,19 @@ class InteropVerifier:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
         cot = self.verify_cot_conformance()
-        msdl = self.verify_msdl_conformance()
         nffi = self.verify_nffi_conformance()
+        symbology = self.verify_symbology_conformance()
+        mtf = self.verify_mtf_conformance()
+        msdl = self.verify_msdl_conformance()
         coords = self.verify_coordinate_accuracy()
         taxii = self.verify_taxii_transport_readiness()
         total_passed = (
             dis["tests_passed"]
             + c2["tests_passed"]
+            + cot["tests_passed"]
+            + nffi["tests_passed"]
+            + symbology["tests_passed"]
+            + mtf["tests_passed"]
             + msdl["tests_passed"]
             + coords["tests_passed"]
             + taxii["tests_passed"]
@@ -379,6 +501,10 @@ class InteropVerifier:
         total_failed = (
             dis["tests_failed"]
             + c2["tests_failed"]
+            + cot["tests_failed"]
+            + nffi["tests_failed"]
+            + symbology["tests_failed"]
+            + mtf["tests_failed"]
             + msdl["tests_failed"]
             + coords["tests_failed"]
             + taxii["tests_failed"]
@@ -388,8 +514,10 @@ class InteropVerifier:
             "dis": dis,
             "c2sim": c2,
             "cot": cot,
-            "msdl": msdl,
             "nffi": nffi,
+            "symbology": symbology,
+            "mtf": mtf,
+            "msdl": msdl,
             "coordinates": coords,
             "taxii": taxii,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -403,7 +531,7 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "msdl", "coordinates", "taxii"):
+        for suite_name in ("dis", "c2sim", "cot", "nffi", "symbology", "mtf", "msdl", "coordinates", "taxii"):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):

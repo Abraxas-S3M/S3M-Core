@@ -30,6 +30,7 @@ from services.interop.dis import (
 )
 from services.interop.exercise_manager import ExerciseManager
 from services.interop.jreap import JREAPBridge, JREAPHandler
+from services.interop.mtf import MTFFormatter, MTFTransport
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -44,8 +45,11 @@ from services.interop.models import (
     ORBATUnit,
 )
 from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
+from services.interop.nffi import NFFIGateway, NFFIMessageBuilder
+from services.interop.oth import OTHGoldAdapter
 from services.interop.registry import InteropRegistry
 from services.interop.stix import STIXTAXIIBridge, TAXIIClient
+from services.interop.symbology import SIDCGenerator, SymbologyMapper
 from services.interop.tactical_mesh import TacticalMeshAdapter
 from services.interop.verification import InteropVerifier
 
@@ -64,6 +68,13 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
+    "MTFFormatter",
+    "MTFTransport",
+    "SIDCGenerator",
+    "SymbologyMapper",
+    "JREAPHandler",
+    "JREAPBridge",
+    "OTHGoldAdapter",
     "ORBATManager",
     "ORBATUnit",
     "ForceStructure",
@@ -84,5 +95,4 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
-    "OTHGoldAdapter",
 ]

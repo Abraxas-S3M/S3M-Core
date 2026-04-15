@@ -19,7 +19,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     GUITracksData,
 )
 from src.api.gui_bridge.training_emitter import emit_training_record
-from services.interop.symbology import SIDCGenerator
+from services.interop.symbology import SIDCGenerator, SymbologyMapper
 
 
 def _now_iso() -> str:
@@ -44,32 +44,39 @@ class COPAdapter:
             pass
 
     def get_tracks(self) -> GUITracksData:
+        gui_tracks: List[GUIThreatTrack] = []
         if self._store is not None and self._use_store_tracks:
             stored_tracks = self._store.get_all("tracks")
-            if stored_tracks:
-                return GUITracksData(
-                    tracks=[GUIThreatTrack(**row) for row in stored_tracks if isinstance(row, dict)],
-                    updatedAt=_now_iso(),
+            for row in stored_tracks:
+                if isinstance(row, dict):
+                    gui_tracks.append(GUIThreatTrack(**row))
+
+        if not gui_tracks:
+            raw_tracks = self._cop.get_tracks()
+            for t in raw_tracks:
+                domain = self._infer_domain(t)
+                affiliation = self._infer_affiliation(t)
+                gui_tracks.append(
+                    GUIThreatTrack(
+                        id=t.get("id", "UNKNOWN"),
+                        domain=domain,
+                        sidc=self._resolve_sidc(
+                            affiliation=affiliation,
+                            domain=domain,
+                            entity_type=t.get("type"),
+                        ),
+                        confidence=self._to_percent(t.get("confidence", 0)),
+                        severity=self._to_percent(t.get("threat_score", t.get("confidence", 0))),
+                        correlatedTrackIds=list(t.get("correlated", [])),
+                        summary=t.get("classification", t.get("type", "Unknown track")),
+                        lastSeen=t.get("last_update", _now_iso()),
+                    )
                 )
-        raw_tracks = self._cop.get_tracks()
-        gui_tracks = []
-        for t in raw_tracks:
-            domain = self._infer_domain(t)
-            affiliation = self._infer_affiliation(t)
-            gui_tracks.append(GUIThreatTrack(
-                id=t.get("id", "UNKNOWN"),
-                domain=domain,
-                sidc=self._resolve_sidc(
-                    affiliation=affiliation,
-                    domain=domain,
-                    entity_type=t.get("type"),
-                ),
-                confidence=self._to_percent(t.get("confidence", 0)),
-                severity=self._to_percent(t.get("threat_score", t.get("confidence", 0))),
-                correlatedTrackIds=list(t.get("correlated", [])),
-                summary=t.get("classification", t.get("type", "Unknown track")),
-                lastSeen=t.get("last_update", _now_iso()),
-            ))
+
+        # Tactical COP requirement: include inbound coalition tracks from all interop gateways.
+        interop_tracks = self._collect_inbound_coalition_tracks()
+        if interop_tracks:
+            gui_tracks = self._merge_gui_tracks(gui_tracks, interop_tracks)
         self._persist_rows("tracks", gui_tracks)
         result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
         emit_training_record("cop", {"query": "tracks"}, result)
@@ -113,6 +120,212 @@ class COPAdapter:
         result = GUITracksData(tracks=gui_tracks, updatedAt=_now_iso())
         emit_training_record("cop", {"query": "threat_tracks"}, result)
         return result
+
+    def _collect_inbound_coalition_tracks(self) -> List[GUIThreatTrack]:
+        inbound: List[GUIThreatTrack] = []
+        for source, tracks in (
+            ("cot", self._poll_cot_tracks()),
+            ("nffi", self._poll_nffi_tracks()),
+            ("jreap", self._poll_jreap_tracks()),
+            ("oth_gold", self._poll_oth_tracks()),
+        ):
+            for track in tracks:
+                gui_track = self._interop_track_to_gui_track(source=source, track=track)
+                if gui_track is not None:
+                    inbound.append(gui_track)
+        return inbound
+
+    @staticmethod
+    def _poll_cot_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import cot_routes
+
+            bridge = getattr(cot_routes, "_bridge", None)
+            if bridge is None or not hasattr(bridge, "ingest_received"):
+                return []
+            rows = bridge.ingest_received()
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_nffi_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import nffi_routes
+
+            gateway = getattr(nffi_routes, "_nffi_gateway", None)
+            if gateway is None or not hasattr(gateway, "receive_coalition_tracks"):
+                return []
+            rows = gateway.receive_coalition_tracks()
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_jreap_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import jreap_routes
+
+            bridge = getattr(jreap_routes, "_jreap_bridge", None)
+            if bridge is None:
+                return []
+            if hasattr(bridge, "process_received"):
+                bridge.process_received()
+            if not hasattr(bridge, "get_tracks"):
+                return []
+            rows = bridge.get_tracks()
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_oth_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import oth_routes
+
+            adapter = getattr(oth_routes, "_oth_adapter", None)
+            if adapter is None or not hasattr(adapter, "receive"):
+                return []
+            rows = adapter.receive()
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    def _interop_track_to_gui_track(self, source: str, track: Dict[str, Any]) -> Optional[GUIThreatTrack]:
+        if not isinstance(track, dict):
+            return None
+
+        track_id = str(
+            track.get("id")
+            or track.get("unit_id")
+            or track.get("track_id")
+            or track.get("uid")
+            or f"{source}-unknown"
+        ).strip()
+        if not track_id:
+            return None
+
+        lat, lon, alt = self._extract_interop_position(track)
+        domain = self._interop_domain(source=source, track=track)
+        affiliation = self._infer_affiliation(track)
+        summary = str(track.get("summary") or track.get("role") or track.get("entity_type") or f"{source} track")
+        speed, heading = self._extract_interop_kinematics(track)
+        sidc = self._resolve_sidc(
+            affiliation=affiliation,
+            domain=domain,
+            entity_type=summary,
+        )
+        return GUIThreatTrack(
+            id=track_id,
+            domain=domain,
+            sidc=sidc,
+            confidence=self._to_percent(track.get("confidence", 0.8)),
+            severity=self._to_percent(track.get("severity", track.get("confidence", 0.7))),
+            correlatedTrackIds=self._safe_str_list(track.get("correlatedTrackIds", [])),
+            summary=summary,
+            lastSeen=str(track.get("lastSeen", track.get("updated_at", track.get("timestamp", _now_iso())))),
+            latitude=lat,
+            longitude=lon,
+            altitude=alt,
+            speed=speed,
+            heading=heading,
+            sourceAttribution=[source],
+        )
+
+    @classmethod
+    def _extract_interop_position(cls, track: Dict[str, Any]) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+        if isinstance(track.get("position"), (list, tuple)) and len(track.get("position")) >= 2:
+            pos = track["position"]
+            try:
+                return (
+                    float(pos[0]),
+                    float(pos[1]),
+                    float(pos[2]) if len(pos) > 2 else 0.0,
+                )
+            except Exception:
+                return (None, None, None)
+
+        pos_obj = track.get("position")
+        if isinstance(pos_obj, dict):
+            try:
+                return (
+                    float(pos_obj.get("lat", pos_obj.get("latitude"))),
+                    float(pos_obj.get("lon", pos_obj.get("longitude"))),
+                    float(pos_obj.get("alt", pos_obj.get("altitude", 0.0))),
+                )
+            except Exception:
+                return (None, None, None)
+
+        lat = track.get("lat", track.get("latitude"))
+        lon = track.get("lon", track.get("longitude"))
+        alt = track.get("hae", track.get("altitude", track.get("alt", 0.0)))
+        try:
+            if lat is None or lon is None:
+                return (None, None, None)
+            return (float(lat), float(lon), float(alt))
+        except Exception:
+            return (None, None, None)
+
+    @staticmethod
+    def _interop_domain(source: str, track: Dict[str, Any]) -> str:
+        raw_domain = str(track.get("domain", "")).strip().lower()
+        if raw_domain in {"air", "surface", "subsurface", "space"}:
+            return raw_domain
+        if raw_domain in {"maritime", "sea"}:
+            return "surface"
+        if source == "oth_gold":
+            return "surface"
+        if source == "jreap":
+            return str(track.get("domain", "air")).strip().lower() or "air"
+        return "land"
+
+    @staticmethod
+    def _extract_interop_kinematics(track: Dict[str, Any]) -> Tuple[Optional[float], Optional[float]]:
+        speed = track.get("speed", track.get("speed_mps"))
+        if speed is None and isinstance(track.get("kinematics"), dict):
+            speed = track["kinematics"].get("speed_mps")
+        heading = track.get("heading", track.get("course", track.get("course_deg")))
+        if heading is None and isinstance(track.get("kinematics"), dict):
+            heading = track["kinematics"].get("course_deg")
+        try:
+            speed_value = round(float(speed), 2) if speed is not None else None
+        except Exception:
+            speed_value = None
+        try:
+            heading_value = round(float(heading), 1) if heading is not None else None
+        except Exception:
+            heading_value = None
+        return speed_value, heading_value
+
+    @staticmethod
+    def _merge_gui_tracks(base_tracks: List[GUIThreatTrack], inbound_tracks: List[GUIThreatTrack]) -> List[GUIThreatTrack]:
+        merged: Dict[str, GUIThreatTrack] = {track.id: track for track in base_tracks}
+        for inbound in inbound_tracks:
+            existing = merged.get(inbound.id)
+            if existing is None:
+                merged[inbound.id] = inbound
+                continue
+            if inbound.latitude is not None:
+                existing.latitude = inbound.latitude
+            if inbound.longitude is not None:
+                existing.longitude = inbound.longitude
+            if inbound.altitude is not None:
+                existing.altitude = inbound.altitude
+            if inbound.speed is not None:
+                existing.speed = inbound.speed
+            if inbound.heading is not None:
+                existing.heading = inbound.heading
+            existing.lastSeen = inbound.lastSeen
+            existing.summary = inbound.summary or existing.summary
+            existing.confidence = max(existing.confidence, inbound.confidence)
+            existing.severity = max(existing.severity, inbound.severity)
+            if inbound.sourceAttribution:
+                current_sources = set(existing.sourceAttribution or [])
+                current_sources.update(inbound.sourceAttribution)
+                existing.sourceAttribution = sorted(current_sources)
+            if not existing.sidc and inbound.sidc:
+                existing.sidc = inbound.sidc
+        return list(merged.values())
 
     def get_enriched_tracks(self) -> GUITracksData:
         """Pull from OperationalPictureService for full track enrichment."""
@@ -693,6 +906,15 @@ class COPAdapter:
 
     @classmethod
     def _resolve_sidc(cls, affiliation: Any, domain: Any, entity_type: Any) -> str:
+        sidc = SymbologyMapper.map_track_symbology(
+            {
+                "affiliation": str(affiliation) if affiliation is not None else "unknown",
+                "domain": str(domain) if domain is not None else "land",
+                "entity_type": str(entity_type) if entity_type is not None else "UNKNOWN",
+            }
+        )
+        if SIDCGenerator.is_valid_sidc(sidc):
+            return sidc
         return SIDCGenerator.generate(
             affiliation=str(affiliation) if affiliation is not None else "unknown",
             domain=str(domain) if domain is not None else "land",

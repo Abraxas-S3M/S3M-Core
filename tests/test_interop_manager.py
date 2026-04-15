@@ -31,6 +31,12 @@ class TestInteropManager(unittest.TestCase):
         self.assertIn("dis", status)
         self.assertIn("c2sim", status)
         self.assertIn("bml", status)
+        self.assertIn("cot", status)
+        self.assertIn("nffi", status)
+        self.assertIn("mtf", status)
+        self.assertIn("taxii", status)
+        self.assertIn("jreap", status)
+        self.assertIn("oth_gold", status)
 
     def test_send_entity_update_routes_to_enabled_only(self):
         manager = InteropManager()
@@ -52,6 +58,28 @@ class TestInteropManager(unittest.TestCase):
         self.assertEqual(health["status"], "operational")
         self.assertIn("protocols", health)
         self.assertIn("dis", health["protocols"])
+
+    def test_enable_disable_new_protocols(self):
+        manager = InteropManager()
+        self.assertTrue(manager.enable_protocol("cot", {"transport": "offline"}))
+        self.assertTrue(manager.enable_protocol("nffi"))
+        self.assertTrue(manager.enable_protocol("mtf"))
+        self.assertIn(manager.enable_protocol("taxii", {"server_url": "http://localhost"}), {True, False})
+        self.assertIn(manager.enable_protocol("jreap", {"auto_start": False}), {True, False})
+        self.assertIn(manager.enable_protocol("oth_gold"), {True, False})
+        manager.disable_protocol("cot")
+        manager.disable_protocol("nffi")
+        manager.disable_protocol("mtf")
+        manager.disable_protocol("taxii")
+        manager.disable_protocol("jreap")
+        manager.disable_protocol("oth_gold")
+        status = manager.get_protocol_status()
+        self.assertFalse(status["cot"]["enabled"])
+        self.assertFalse(status["nffi"]["enabled"])
+        self.assertFalse(status["mtf"]["enabled"])
+        self.assertFalse(status["taxii"]["enabled"])
+        self.assertFalse(status["jreap"]["enabled"])
+        self.assertFalse(status["oth_gold"]["enabled"])
 
 
 if __name__ == "__main__":
