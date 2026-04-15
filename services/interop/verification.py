@@ -1,4 +1,4 @@
-"""Interoperability verification suites for DIS/C2SIM/MSDL conformance."""
+"""Interoperability verification suites for DIS/C2SIM/MSDL/MTF conformance."""
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
-from services.interop.nffi import NFFIMessageBuilder
-from services.interop.registry import InteropRegistry
+from services.interop.mtf.mtf_formatter import MTFFormatter
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -32,8 +31,7 @@ class InteropVerifier:
         self.coord = DISCoordinateConverter()
         self.dr = DISDeadReckoning()
         self.c2 = C2SIMMessageFactory()
-        self.nffi = NFFIMessageBuilder()
-        self.registry = InteropRegistry()
+        self.mtf = MTFFormatter(config={"originator": "S3M INTEL CENTER"})
         self.msdl_gen = MSDLGenerator()
         self.msdl_parser = MSDLParser()
 
@@ -197,57 +195,48 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
-    def verify_nffi_conformance(self) -> dict:
+    def verify_mtf_conformance(self) -> dict:
         results: List[dict] = []
         passed = 0
         failed = 0
 
         try:
-            xml = self.nffi.build_message(
-                tracks=[
-                    {
-                        "unit_id": "falcon-1",
-                        "position": [24.7136, 46.6753, 620.0],
-                        "role": "friendly_armor",
-                        "status": "active",
-                        "updated_at": "2026-04-15T12:30:45+00:00",
-                    }
-                ],
-                country_iso3="SAU",
-                system_id="S3M-FALCON",
+            xml = self.mtf.format_message(
+                report_type="INTSUM",
+                content={
+                    "summary_text": "Enemy coastal activity increased in sector bravo.",
+                    "assessment_text": "Pattern indicates reconnaissance prior to probing action.",
+                },
+                originator="S3M INTEL CENTER",
+                classification="SECRET",
             )
-            parsed = self.nffi.parse_message(xml)
-            ok = (
-                len(parsed) == 1
-                and parsed[0]["unit_id"] == "falcon-1"
-                and abs(parsed[0]["position"][0] - 24.7136) < 1e-6
-                and parsed[0]["status"] == "active"
-            )
-            results.append({"test": "nffi_roundtrip", "passed": ok})
+            parsed = self.mtf.parse_message(xml)
+            ok = parsed["message_type"] == "INTSUM"
+            results.append({"test": "mtf_intsum_roundtrip", "passed": ok})
             passed += int(ok)
             failed += int(not ok)
         except Exception as exc:
-            results.append({"test": "nffi_roundtrip", "passed": False, "error": str(exc)})
+            results.append({"test": "mtf_intsum_roundtrip", "passed": False, "error": str(exc)})
             failed += 1
 
         try:
-            dt = self.nffi._iso_to_nffi_datetime("2026-04-15T12:30:45+00:00")
-            ok = len(dt) == 14 and dt.isdigit()
-            results.append({"test": "datetime_14digit_utc", "passed": ok, "value": dt})
+            dtg = self.mtf._build_dtg(datetime(2026, 4, 15, 14, 30, tzinfo=timezone.utc))
+            ok = dtg == "151430Z APR 2026"
+            results.append({"test": "mtf_dtg_format", "passed": ok, "value": dtg})
             passed += int(ok)
             failed += int(not ok)
         except Exception as exc:
-            results.append({"test": "datetime_14digit_utc", "passed": False, "error": str(exc)})
+            results.append({"test": "mtf_dtg_format", "passed": False, "error": str(exc)})
             failed += 1
 
         try:
-            iso3 = self.registry.get_iso3_codes()
-            ok = iso3.get(178) == "SAU" and iso3.get(225) == "USA" and len(iso3) == 16
-            results.append({"test": "iso3_registry_merge", "passed": ok})
+            mapped = self.mtf._classification_to_nato("TOP_SECRET")
+            ok = mapped == "COSMIC TOP SECRET"
+            results.append({"test": "mtf_classification_mapping", "passed": ok, "value": mapped})
             passed += int(ok)
             failed += int(not ok)
         except Exception as exc:
-            results.append({"test": "iso3_registry_merge", "passed": False, "error": str(exc)})
+            results.append({"test": "mtf_classification_mapping", "passed": False, "error": str(exc)})
             failed += 1
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
@@ -273,27 +262,29 @@ class InteropVerifier:
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
+        mtf = self.verify_mtf_conformance()
         msdl = self.verify_msdl_conformance()
         nffi = self.verify_nffi_conformance()
         coords = self.verify_coordinate_accuracy()
         total_passed = (
             dis["tests_passed"]
             + c2["tests_passed"]
+            + mtf["tests_passed"]
             + msdl["tests_passed"]
-            + nffi["tests_passed"]
             + coords["tests_passed"]
         )
         total_failed = (
             dis["tests_failed"]
             + c2["tests_failed"]
+            + mtf["tests_failed"]
             + msdl["tests_failed"]
-            + nffi["tests_failed"]
             + coords["tests_failed"]
         )
         return {
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
             "dis": dis,
             "c2sim": c2,
+            "mtf": mtf,
             "msdl": msdl,
             "nffi": nffi,
             "coordinates": coords,
@@ -308,7 +299,7 @@ class InteropVerifier:
             f"Failed: {summary.get('tests_failed', 0)}",
             "",
         ]
-        for suite_name in ("dis", "c2sim", "msdl", "nffi", "coordinates"):
+        for suite_name in ("dis", "c2sim", "mtf", "msdl", "coordinates"):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")
             for row in suite.get("results", []):
