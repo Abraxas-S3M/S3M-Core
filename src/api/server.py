@@ -39,6 +39,7 @@ from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
 from src.api.mtf_routes import mtf_router
+from src.api.hla_routes import hla_router
 from src.api.nffi_routes import nffi_router
 from src.api.oth_routes import oth_router
 from src.api.platform_routes import platform_router
@@ -218,6 +219,7 @@ app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
+app.include_router(hla_router, tags=["HLA IEEE-1516 Federation"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
 app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
