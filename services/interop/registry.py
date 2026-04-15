@@ -36,6 +36,7 @@ class InteropRegistry:
             ),
             "jreap": ("JREAP-C", ["j_series_ingest", "cot_crossfeed", "dis_crossfeed"]),
             "oth_gold": ("3.0", ["maritime_track_publish", "maritime_track_ingest"]),
+            "hla": ("IEEE-1516-2010", ["rpr_fom_2.0", "stub_rti", "dis_bridge", "time_management"]),
         }
         for protocol, declaration in capabilities.items():
             version, features = declaration

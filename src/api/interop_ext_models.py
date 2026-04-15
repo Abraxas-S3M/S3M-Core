@@ -126,6 +126,7 @@ class VerificationResponse(BaseModel):
     cot: Optional[Dict[str, Any]] = None
     msdl: Dict[str, Any]
     nffi: Dict[str, Any] = Field(default_factory=dict)
+    hla: Optional[Dict[str, Any]] = None
     coordinates: Dict[str, Any]
     timestamp: str
 
