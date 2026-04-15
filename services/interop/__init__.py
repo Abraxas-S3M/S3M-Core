@@ -28,7 +28,7 @@ from services.interop.dis import (
     DISPDUFactory,
 )
 from services.interop.exercise_manager import ExerciseManager
-from services.interop.mtf import MTFFormatter, MTFTransport
+from services.interop.jreap import JREAPBridge, JREAPHandler
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -70,6 +70,8 @@ __all__ = [
     "InteropVerifier",
     "TacticalMeshAdapter",
     "InteropRegistry",
+    "JREAPBridge",
+    "JREAPHandler",
     "DISHeader",
     "DISEntityID",
     "DISWorldCoordinate",
