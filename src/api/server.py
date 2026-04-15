@@ -27,6 +27,7 @@ from src.api.command_routes import command_router
 from src.api.cloud_training_routes import cloud_training_router
 from src.api.config import api_config, mission_command_lifespan
 from src.api.cot_routes import cot_router
+from src.api.ogc_routes import ogc_router
 from src.api.apps_routes import apps_router
 from src.api.autonomy_routes import autonomy_router
 from src.api.comms_routes import comms_router
@@ -57,6 +58,7 @@ from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
 from src.api.interop_ext_routes import interop_ext_router
 from src.api.jreap_routes import jreap_router
+from src.api.uas4586_routes import uas4586_router
 from src.api.gui_bridge import gui_bridge_router
 from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
 from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
@@ -219,6 +221,7 @@ app.include_router(cyber_router, tags=["Cyber Defense Operations"])
 app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
+app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
 app.include_router(mip_router, tags=["MIP NATO Interoperability Gateway"])
 app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
