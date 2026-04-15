@@ -35,6 +35,7 @@ jreap:
 link22:
   enabled: false
   mode: "stub"
+  network_address: null
 
 oth_gold:
   enabled: false
@@ -112,6 +113,16 @@ nvg:
   publish_interval_seconds: 10
   outbox_dir: "data/interop/nvg_outbox/"
 
+mip:
+  baseline: "4.3"
+  data_model: "MIM"
+  gateway_url: null
+  partner_gateway_url: null
+  oig_categories: ["operations", "intelligence", "logistics", "plans", "cop"]
+  publish_interval_seconds: 10
+  outbox_dir: "data/interop/mip_outbox/"
+  inbox_dir: "data/interop/mip_inbox/"
+
 mtf:
   namespace: "urn:nato:mtf:app11d"
   originator: "S3M INTEL CENTER"
@@ -122,6 +133,11 @@ fmv:
   klv_standard: "MISB_0601"
   embed_in_stream: false
   register_in_nsili: true
+
+uas4586:
+  max_loi: 3
+  publish_interval_seconds: 1
+  registered_uavs: []
 
 verification:
   auto_run_on_startup: false
@@ -139,3 +155,34 @@ nsili:
   max_products: 10000
   default_classification: "UNCLASSIFIED"
   partner_catalogs: []
+
+fmn_security:
+  classification_default: "NATO UNCLASSIFIED"
+  releasable_to_default: ["SAU", "USA"]
+  enforce_labels: true
+
+ogc:
+  default_srs: "EPSG:4326"
+  wms_servers: []
+  wfs_servers: []
+  cache_dir: "data/interop/ogc_cache/"
+
+cross_connectivity:
+  hla_dis_bridge:
+    enabled: true
+    mode: "bidirectional_entity_sync"
+  mip_nvg_bridge:
+    enabled: true
+    mode: "cop_oig_overlay_parity"
+  nsili_fmv_bridge:
+    enabled: true
+    mode: "video_catalog_registration"
+  uas4586_cot_bridge:
+    enabled: true
+    mode: "drone_position_to_atak"
+  fmn_security_labeling:
+    enabled: true
+    mode: "label_every_outgoing_message"
+  geospatial_bridge:
+    enabled: true
+    mode: "nvg_geojson_ogc_wfs_flow"

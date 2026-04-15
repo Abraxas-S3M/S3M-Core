@@ -244,6 +244,29 @@ Implemented in `src/api/interop_ext_routes.py` and included in `src/api/server.p
 - **Config keys**: `oth_gold.gateway_url`, `oth_gold.publish_interval_seconds`, `oth_gold.enforce_maritime_only`.
 - **Usage**: Enable OTH-Gold and publish maritime-only tracks via `send_oth_gold_tracks()`.
 
+## NATO Interoperability Wiring (CWIX Readiness)
+
+The NATO adapter set is wired into the same orchestration path used by existing CENTCOM/KSA adapters:
+
+- `services/interop/hla/` (HLA federation + DIS bridge)
+- `services/interop/mip/` (MIP gateway and COP OIG exchange)
+- `services/interop/nvg/` (NATO Vector Graphics)
+- `services/interop/nsili/` (STANAG 4559 ISR catalog)
+- `services/interop/uas4586/` (STANAG 4586 UAS)
+- `services/interop/fmv/` (STANAG 4609 metadata)
+- `services/interop/fmn_security/` (FMN security labels)
+- `services/interop/ogc/` (WMS/WFS + GeoJSON transforms)
+- `services/interop/link22/` (Link 22 stub contract)
+
+### Cross-connected flows
+
+- **HLA ↔ DIS**: `DISHLABridge` mirrors DIS entity updates into HLA and reflects HLA objects back into DIS updates.
+- **MIP COP OIG ↔ NVG overlay**: COP tracks are published as MIP COP OIG and mirrored as NVG overlays.
+- **NSILI catalog ↔ FMV metadata**: FMV metadata packets are registered as NSILI VIDEO products.
+- **UAS 4586 status ↔ CoT events**: Vehicle status updates are mapped to CoT tracks for ATAK visibility.
+- **FMN labels ↔ outbound messages**: Outbound interop history records are wrapped with NATO security labels when enabled.
+- **NVG ↔ GeoJSON ↔ OGC WFS**: Tracks flow through shared GeoJSON transforms for NATO/OGC geospatial parity.
+
 ## CENTCOM / KSA / NATO Compliance Matrix
 
 | Adapter | CENTCOM Ops Alignment | KSA/GCC Interop Requirement | NATO/Coalition Standard |
@@ -255,6 +278,15 @@ Implemented in `src/api/interop_ext_routes.py` and included in `src/api/server.p
 | STIX/TAXII | CTI fusion for cyber defense in theater | Offline queueing for sovereign deployments | STIX 2.1 / TAXII 2.1 |
 | JREAP-C | Link 16 situational awareness ingestion | Coalition air/surface data ingest | JREAP-C + J-series |
 | OTH-Gold | Maritime over-the-horizon track coordination | Gulf maritime COP interoperability | OTH-Gold 3.0 |
+| HLA Federation | Live-virtual-constructive federation sync | Joint exercise DIS/HLA bridgeability | IEEE 1516 / RPR-FOM |
+| MIP Gateway | Coalition COP object exchange | OIG-aligned data exchange workflows | MIP Baseline 4.3 |
+| NVG | Shared tactical overlays across partners | Common mission graphics representation | NATO NVG 2.0 |
+| NSILI | ISR product catalog federation | Catalog query and retrieval workflows | STANAG 4559 Ed.3 |
+| UAS 4586 | Coalition UAS telemetry exchange | LOI 1-3 interoperable control/data | STANAG 4586 |
+| FMV 4609 | Drone video metadata interoperability | FMV metadata + catalog registration | STANAG 4609 / MISB 0601 |
+| FMN Security | Coalition release control for all payloads | Security labels on outbound interop traffic | FMN security profile |
+| OGC Geospatial | Geospatial service interoperability | WMS/WFS and GeoJSON transforms | OGC WMS/WFS |
+| Link 22 Stub | Tactical data-link integration contract | Stubbed workflow compatibility pre-classified stack | STANAG 5522 |
 
 ## Configuration
 
@@ -266,17 +298,21 @@ Implemented in `src/api/interop_ext_routes.py` and included in `src/api/server.p
 - Exercise lifecycle controls
 - GCC partner metadata and callsigns
 - Verification thresholds
+- NATO CWIX cross-connect toggles under `cross_connectivity`
+- NATO adapter defaults (`mip`, `nvg`, `nsili`, `uas4586`, `fmv`, `fmn_security`, `ogc`, `hla`, `link22`)
 
 ## Scripts
 
 - `scripts/demo_dis_protocol.py`: DIS PDU, coordinate, and dead reckoning walkthrough
 - `scripts/run_interop_demo.py`: full exercise lifecycle demonstration from ORBAT template through verification
+- `scripts/demo_nato_cwix_readiness.py`: CWIX-style readiness walkthrough across all NATO adapters and bridges
 
 ## Integration Notes
 
 - Phase 10 adapters are untouched and continue functioning.
 - Phase 16 services are additive and can be delegated to by Phase 10 surface adapters.
 - No external protocol libraries are bundled; implementation uses Python stdlib and lightweight project dependencies.
+- All NATO wiring remains offline-capable for Jetson AGX Orin deployments (no external API dependency).
 
 ## Forward Look (Phase 17)
 

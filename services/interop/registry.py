@@ -37,6 +37,13 @@ class InteropRegistry:
             "jreap": ("JREAP-C", ["j_series_ingest", "cot_crossfeed", "dis_crossfeed"]),
             "oth_gold": ("3.0", ["maritime_track_publish", "maritime_track_ingest"]),
             "hla": ("IEEE-1516-2010", ["rpr_fom_2.0", "stub_rti", "dis_bridge", "time_management"]),
+            "mip": ("MIP-4.3", ["dem_handshake", "cop_oig_publish", "offline_oig_outbox"]),
+            "nvg": ("NVG-2.0", ["cop_overlay_publish", "overlay_import", "geojson_bridge"]),
+            "uas4586": ("STANAG-4586", ["vehicle_status", "payload_status", "isr_product", "cot_crossfeed"]),
+            "fmv": ("STANAG-4609", ["misb_0601_klv", "metadata_parse", "nsili_registration"]),
+            "fmn_security": ("FMN-Profile", ["nato_security_label", "release_policy", "interop_message_labeling"]),
+            "ogc": ("OGC-WMS-WFS", ["geojson_transform", "nvg_bridge", "wfs_feature_exchange"]),
+            "link22": ("STANAG-5522", ["f_series_contract", "track_stub_publish", "future_transport_stub"]),
         }
         for protocol, declaration in capabilities.items():
             version, features = declaration

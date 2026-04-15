@@ -18,6 +18,8 @@ Architecture:
   Phase 14 Comms → TacticalMesh → Edge relay for exercise networks
 """
 
+from importlib import import_module
+
 from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
 from services.interop.coalition_dashboard import CoalitionDashboardProvider
 from services.interop.cot import CotBridge, CotEventFactory, CotTransport
@@ -29,7 +31,11 @@ from services.interop.dis import (
     DISPDUFactory,
 )
 from services.interop.exercise_manager import ExerciseManager
+from services.interop.fmn_security import CoalitionIdentityProvider, FMNSecurityManager, NATOSecurityLabel
+from services.interop.fmv import FMVMetadataBuilder, KLVEncoder
+from services.interop.hla import DISHLABridge
 from services.interop.jreap import JREAPBridge, JREAPHandler
+from services.interop.link22 import Link22Adapter
 from services.interop.mtf import MTFFormatter, MTFTransport
 from services.interop.mip import MIPDataModel, MIPGateway, MIPObjectMapper
 from services.interop.models import (
@@ -48,6 +54,8 @@ from services.interop.models import (
 from services.interop.msdl import MSDLGenerator, MSDLParser, ORBATManager
 from services.interop.nffi import NFFIGateway, NFFIMessageBuilder
 from services.interop.nvg import NVGBuilder, NVGOverlayExchange, NVGParser
+from services.interop.nsili import NSILICatalog, NSILIProductManager
+from services.interop.ogc import GeoJSONAdapter, WFSClient, WMSClient
 from services.interop.oth import OTHGoldAdapter
 from services.interop.registry import InteropRegistry
 from services.interop.stix import STIXTAXIIBridge, TAXIIClient
@@ -71,9 +79,25 @@ __all__ = [
     "MSDLGenerator",
     "NFFIMessageBuilder",
     "NFFIGateway",
+    "MIPDataModel",
+    "MIPGateway",
+    "MIPObjectMapper",
     "NVGBuilder",
     "NVGParser",
     "NVGOverlayExchange",
+    "NSILICatalog",
+    "NSILIProductManager",
+    "UAS4586Interface",
+    "UAS4586MessageHandler",
+    "FMVMetadataBuilder",
+    "KLVEncoder",
+    "FMNSecurityManager",
+    "NATOSecurityLabel",
+    "CoalitionIdentityProvider",
+    "GeoJSONAdapter",
+    "WMSClient",
+    "WFSClient",
+    "Link22Adapter",
     "MTFFormatter",
     "MTFTransport",
     "SIDCGenerator",
@@ -82,6 +106,7 @@ __all__ = [
     "JREAPBridge",
     "HLAFederateAdapter",
     "HLAStubRTI",
+    "DISHLABridge",
     "OTHGoldAdapter",
     "ORBATManager",
     "ORBATUnit",
@@ -120,6 +145,25 @@ _EXPORT_MAP = {
     "MSDLGenerator": ("services.interop.msdl", "MSDLGenerator"),
     "NFFIMessageBuilder": ("services.interop.nffi", "NFFIMessageBuilder"),
     "NFFIGateway": ("services.interop.nffi", "NFFIGateway"),
+    "MIPDataModel": ("services.interop.mip", "MIPDataModel"),
+    "MIPGateway": ("services.interop.mip", "MIPGateway"),
+    "MIPObjectMapper": ("services.interop.mip", "MIPObjectMapper"),
+    "NVGBuilder": ("services.interop.nvg", "NVGBuilder"),
+    "NVGParser": ("services.interop.nvg", "NVGParser"),
+    "NVGOverlayExchange": ("services.interop.nvg", "NVGOverlayExchange"),
+    "NSILICatalog": ("services.interop.nsili", "NSILICatalog"),
+    "NSILIProductManager": ("services.interop.nsili", "NSILIProductManager"),
+    "UAS4586Interface": ("services.interop.uas4586", "UAS4586Interface"),
+    "UAS4586MessageHandler": ("services.interop.uas4586", "UAS4586MessageHandler"),
+    "FMVMetadataBuilder": ("services.interop.fmv", "FMVMetadataBuilder"),
+    "KLVEncoder": ("services.interop.fmv", "KLVEncoder"),
+    "FMNSecurityManager": ("services.interop.fmn_security", "FMNSecurityManager"),
+    "NATOSecurityLabel": ("services.interop.fmn_security", "NATOSecurityLabel"),
+    "CoalitionIdentityProvider": ("services.interop.fmn_security", "CoalitionIdentityProvider"),
+    "GeoJSONAdapter": ("services.interop.ogc", "GeoJSONAdapter"),
+    "WMSClient": ("services.interop.ogc", "WMSClient"),
+    "WFSClient": ("services.interop.ogc", "WFSClient"),
+    "Link22Adapter": ("services.interop.link22", "Link22Adapter"),
     "MTFFormatter": ("services.interop.mtf", "MTFFormatter"),
     "MTFTransport": ("services.interop.mtf", "MTFTransport"),
     "SIDCGenerator": ("services.interop.symbology", "SIDCGenerator"),
@@ -128,6 +172,7 @@ _EXPORT_MAP = {
     "JREAPBridge": ("services.interop.jreap", "JREAPBridge"),
     "HLAFederateAdapter": ("services.interop.hla", "HLAFederateAdapter"),
     "HLAStubRTI": ("services.interop.hla", "HLAStubRTI"),
+    "DISHLABridge": ("services.interop.hla", "DISHLABridge"),
     "OTHGoldAdapter": ("services.interop.oth", "OTHGoldAdapter"),
     "ORBATManager": ("services.interop.msdl", "ORBATManager"),
     "ORBATUnit": ("services.interop.models", "ORBATUnit"),
