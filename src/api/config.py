@@ -143,6 +143,11 @@ class APIConfig:
     data_dir: str = "data"
     checkpoint_dir: str = "data/checkpoints"
 
+    # APP-11 XML-MTF interoperability defaults
+    mtf_originator: str = "S3M INTEL CENTER"
+    mtf_namespace: str = "urn:nato:mtf:app11d"
+    mtf_gateway_url: Optional[str] = None
+
     # CPU threading defaults
     omp_num_threads: int = 8
     mkl_num_threads: int = 8
@@ -217,6 +222,9 @@ def _build_config() -> APIConfig:
         model_dir=os.environ.get("S3M_MODEL_DIR", "models"),
         data_dir=os.environ.get("S3M_DATA_DIR", "data"),
         checkpoint_dir=os.environ.get("S3M_CHECKPOINT_DIR", "data/checkpoints"),
+        mtf_originator=os.environ.get("S3M_MTF_ORIGINATOR", "S3M INTEL CENTER"),
+        mtf_namespace=os.environ.get("S3M_MTF_NAMESPACE", "urn:nato:mtf:app11d"),
+        mtf_gateway_url=os.environ.get("S3M_MTF_GATEWAY_URL"),
     )
 
     # Tactical cloud demo policy: always CPU-only for predictable public runtime.

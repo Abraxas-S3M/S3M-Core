@@ -58,6 +58,10 @@ interop:
     namespace: "http://www.sisostds.org/schemas/C2SIM/1.1"
     outbox_dir: "data/interop/c2sim_outbox/"
     inbox_dir: "data/interop/c2sim_inbox/"
+  oth_gold:
+    enabled: false
+    gateway_url: null
+    publish_interval_seconds: 15
   bml:
     enabled: false
     report_types: ["SITREP", "SPOTREP", "INTREP"]

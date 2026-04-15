@@ -20,6 +20,7 @@ Architecture:
 
 from services.interop.c2sim import C2SIMEngine, C2SIMMessageFactory, C2SIMServerAdapter
 from services.interop.coalition_dashboard import CoalitionDashboardProvider
+from services.interop.cot import CotBridge, CotEventFactory, CotTransport
 from services.interop.dis import (
     DISCoordinateConverter,
     DISDeadReckoning,
@@ -28,6 +29,7 @@ from services.interop.dis import (
     DISPDUFactory,
 )
 from services.interop.exercise_manager import ExerciseManager
+from services.interop.jreap import JREAPBridge, JREAPHandler
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -55,8 +57,13 @@ __all__ = [
     "C2SIMEngine",
     "C2SIMMessageFactory",
     "C2SIMServerAdapter",
+    "CotEventFactory",
+    "CotTransport",
+    "CotBridge",
     "MSDLParser",
     "MSDLGenerator",
+    "NFFIMessageBuilder",
+    "NFFIGateway",
     "ORBATManager",
     "ORBATUnit",
     "ForceStructure",
@@ -77,4 +84,5 @@ __all__ = [
     "DISPDUType",
     "MSDLScenario",
     "DISNetworkManager",
+    "OTHGoldAdapter",
 ]

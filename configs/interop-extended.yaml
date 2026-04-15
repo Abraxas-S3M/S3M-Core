@@ -16,12 +16,30 @@ dis:
   max_entities: 5000
   pdu_types_enabled: [1, 2, 3, 13, 14, 22, 26]
 
+jreap:
+  enabled: false
+  listen_port: 5555
+  supported_j_series: ["J2.2", "J3.2", "J3.5", "J13.2"]
+  crossfeed_to_cot: true
+  crossfeed_to_dis: true
+
 c2sim:
   server_url: null  # Set when C2SIM server is deployed
   namespace: "http://www.sisostds.org/schemas/C2SIM/1.1"
   outbox_dir: "data/interop/c2sim_outbox/"
   inbox_dir: "data/interop/c2sim_inbox/"
   auto_send: true
+
+cot:
+  multicast_address: "239.2.3.1"
+  multicast_port: 6969
+  tak_server_url: null
+  tak_protocol_version: 0
+  stale_seconds: 120
+  publish_interval_seconds: 5
+  callsign_prefix: "S3M"
+  dis_crossfeed_enabled: true
+  outbox_dir: "data/interop/cot_outbox/"
 
 msdl:
   scenarios_dir: "configs/interop/scenarios/"
@@ -48,6 +66,15 @@ coalition:
     - {code: 16, name: "Bahrain", callsign: "PEARL"}
     - {code: 164, name: "Qatar", callsign: "ORYX"}
     - {code: 154, name: "Oman", callsign: "SHIELD"}
+
+nffi:
+  transport_profile: "IP-1"
+  gateway_url: null
+  publish_interval_seconds: 10
+  track_source_country: "SAU"
+  system_id: "S3M-FALCON"
+  outbox_dir: "data/interop/nffi_outbox/"
+  stale_threshold_seconds: 300
 
 verification:
   auto_run_on_startup: false
