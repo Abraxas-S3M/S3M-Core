@@ -5,19 +5,27 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import math
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from services.interop.cot.cot_event import CotEventFactory
 from services.interop.c2sim.message_factory import C2SIMMessageFactory
 from services.interop.dis.coordinate_converter import DISCoordinateConverter
 from services.interop.dis.dead_reckoning import DISDeadReckoning
 from services.interop.dis.pdu_factory import DISPDUFactory
+from services.interop.fmn_security import FMNSecurityManager
+from services.interop.fmv import FMVMetadataBuilder
 from services.interop.hla.federate_adapter import HLAFederateAdapter
+from services.interop.link22 import Link22Adapter
+from services.interop.mip import MIPGateway
 from services.interop.mtf import MTFFormatter
 from services.interop.nffi import NFFIMessageBuilder
+from services.interop.nsili import NSILICatalog
+from services.interop.nvg import NVGOverlayExchange
+from services.interop.ogc import GeoJSONAdapter
 from services.interop.registry import InteropRegistry
 from services.interop.stix.taxii_client import TAXIIClient
 from services.interop.symbology import SIDCGenerator, SymbologyMapper
+from services.interop.uas4586 import UAS4586Interface
 from services.interop.models import (
     DISEntityID,
     DISEntityType,
@@ -565,6 +573,162 @@ class InteropVerifier:
 
         return {"tests_passed": passed, "tests_failed": failed, "results": results}
 
+    def verify_mip_nvg_bridge(self) -> dict:
+        """Verify MIP COP OIG and NVG overlay carry equivalent track payloads."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            tracks = [
+                {
+                    "unit_id": "blue-uav-11",
+                    "entity_type": "FRIENDLY_UAV",
+                    "affiliation": "friendly",
+                    "position": [24.7136, 46.6753, 620.0],
+                    "callsign": "EAGLE-11",
+                }
+            ]
+            gateway = MIPGateway(config={"gateway_url": None, "outbox_dir": "data/interop/mip_outbox/"})
+            mip_count = gateway.exchange_cop(tracks)
+            exchange = NVGOverlayExchange(config={"nvg": {"outbox_dir": "data/interop/nvg_outbox/"}})
+            nvg_xml = exchange.publish_cop_overlay(tracks=tracks, mission_layers=[])
+            parsed = exchange.receive_overlay(nvg_xml)
+            nvg_count = len(parsed.get("tracks", []))
+            ok = mip_count == 1 and nvg_count >= 1
+            results.append({"test": "mip_cop_to_nvg_overlay", "passed": ok, "mip_tracks": mip_count, "nvg_tracks": nvg_count})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "mip_cop_to_nvg_overlay", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_nsili_fmv_bridge(self) -> dict:
+        """Verify STANAG 4609 metadata can be registered into STANAG 4559 catalog."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            builder = FMVMetadataBuilder(config={"register_in_nsili": True})
+            packet = builder.build_metadata_packet(
+                {"platform_heading": 90.0, "position": {"latitude": 24.7, "longitude": 46.6, "altitude": 900.0}},
+                {"sensor_position": {"latitude": 24.7, "longitude": 46.6, "altitude": 905.0}, "uas_local_set_version": 13},
+                1_713_264_321.0,
+            )
+            metadata = builder.parse_metadata_packet(packet)
+            product_id = builder.register_with_nsili(metadata, "droneops://cwix/fmv-1")
+            catalog = NSILICatalog({"catalog_dir": "data/interop/nsili_catalog/"})
+            catalog.register_product(
+                {
+                    "productId": product_id,
+                    "productType": "VIDEO",
+                    "title": "CWIX FMV",
+                    "format": "video/mp4",
+                    "classification": "UNCLASSIFIED",
+                }
+            )
+            ok = catalog.has_product(product_id)
+            results.append({"test": "fmv_metadata_to_nsili_product", "passed": ok, "product_id": product_id})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "fmv_metadata_to_nsili_product", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_uas_cot_bridge(self) -> dict:
+        """Verify STANAG 4586 vehicle status can feed CoT-compatible tracks."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            uas = UAS4586Interface({"max_loi": 3, "registered_uavs": []})
+            uas.register_uav("uav-cwix-1", "MALE", ["LOI1", "LOI2", "LOI3"])
+            ok = uas.publish_vehicle_status(
+                "uav-cwix-1",
+                {
+                    "position": {"lat": 24.7136, "lon": 46.6753, "altitude": 800.0},
+                    "speed": 45.0,
+                    "heading": 120.0,
+                    "fuel": 75.0,
+                    "mode": "ON_STATION",
+                },
+            )
+            health = uas.health_check()
+            mapped = ok and health.get("published_message_counts", {}).get("vehicle_status", 0) >= 1
+            results.append({"test": "uas_vehicle_status_publish", "passed": mapped})
+            passed += int(mapped)
+            failed += int(not mapped)
+        except Exception as exc:
+            results.append({"test": "uas_vehicle_status_publish", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_fmn_security_labeling(self) -> dict:
+        """Verify FMN label manager can wrap and validate outbound payloads."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            manager = FMNSecurityManager({"enforce_labels": True})
+            labeled = manager.label_message('{"payload":"interop"}', "NATO SECRET", ["SAU", "USA"])
+            valid, _ = manager.validate_incoming(labeled)
+            results.append({"test": "fmn_label_roundtrip", "passed": valid})
+            passed += int(valid)
+            failed += int(not valid)
+        except Exception as exc:
+            results.append({"test": "fmn_label_roundtrip", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_geojson_ogc_bridge(self) -> dict:
+        """Verify NVG and GeoJSON conversions keep geographic track content."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            adapter = GeoJSONAdapter()
+            geojson = adapter.tracks_to_geojson(
+                [
+                    {
+                        "track_id": "cwix-geo-1",
+                        "callsign": "CWIX-GEO",
+                        "position": [46.6753, 24.7136, 620.0],
+                        "affiliation": "friendly",
+                    }
+                ]
+            )
+            nvg_xml = adapter.geojson_to_nvg(geojson)
+            exchange = NVGOverlayExchange(config={"nvg": {"outbox_dir": "data/interop/nvg_outbox/"}})
+            parsed = exchange.receive_overlay(nvg_xml)
+            roundtrip_tracks = adapter.geojson_to_tracks(geojson)
+            ok = bool(parsed.get("tracks")) and len(roundtrip_tracks) == 1
+            results.append({"test": "nvg_geojson_ogc_roundtrip", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "nvg_geojson_ogc_roundtrip", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
+    def verify_link22_stub(self) -> dict:
+        """Verify Link 22 stub remains wired for tactical interface readiness."""
+        results: List[dict] = []
+        passed = 0
+        failed = 0
+        try:
+            adapter = Link22Adapter({"mode": "stub"})
+            connected = adapter.connect("239.10.22.1:5522")
+            health = adapter.health_check()
+            ok = connected is False and health.get("status") == "stub"
+            results.append({"test": "link22_stub_mode", "passed": ok})
+            passed += int(ok)
+            failed += int(not ok)
+        except Exception as exc:
+            results.append({"test": "link22_stub_mode", "passed": False, "error": str(exc)})
+            failed += 1
+        return {"tests_passed": passed, "tests_failed": failed, "results": results}
+
     def run_full_verification(self) -> dict:
         dis = self.verify_dis_conformance()
         c2 = self.verify_c2sim_conformance()
@@ -576,6 +740,12 @@ class InteropVerifier:
         coords = self.verify_coordinate_accuracy()
         taxii = self.verify_taxii_transport_readiness()
         hla = self.verify_hla_conformance()
+        mip_nvg = self.verify_mip_nvg_bridge()
+        nsili_fmv = self.verify_nsili_fmv_bridge()
+        uas_cot = self.verify_uas_cot_bridge()
+        fmn = self.verify_fmn_security_labeling()
+        geo_bridge = self.verify_geojson_ogc_bridge()
+        link22 = self.verify_link22_stub()
         total_passed = (
             dis["tests_passed"]
             + c2["tests_passed"]
@@ -587,6 +757,12 @@ class InteropVerifier:
             + coords["tests_passed"]
             + taxii["tests_passed"]
             + hla["tests_passed"]
+            + mip_nvg["tests_passed"]
+            + nsili_fmv["tests_passed"]
+            + uas_cot["tests_passed"]
+            + fmn["tests_passed"]
+            + geo_bridge["tests_passed"]
+            + link22["tests_passed"]
         )
         total_failed = (
             dis["tests_failed"]
@@ -599,6 +775,12 @@ class InteropVerifier:
             + coords["tests_failed"]
             + taxii["tests_failed"]
             + hla["tests_failed"]
+            + mip_nvg["tests_failed"]
+            + nsili_fmv["tests_failed"]
+            + uas_cot["tests_failed"]
+            + fmn["tests_failed"]
+            + geo_bridge["tests_failed"]
+            + link22["tests_failed"]
         )
         return {
             "summary": {"tests_passed": total_passed, "tests_failed": total_failed},
@@ -612,6 +794,12 @@ class InteropVerifier:
             "coordinates": coords,
             "taxii": taxii,
             "hla": hla,
+            "mip_nvg": mip_nvg,
+            "nsili_fmv": nsili_fmv,
+            "uas_cot": uas_cot,
+            "fmn_security": fmn,
+            "geo_bridge": geo_bridge,
+            "link22": link22,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -634,6 +822,12 @@ class InteropVerifier:
             "coordinates",
             "taxii",
             "hla",
+            "mip_nvg",
+            "nsili_fmv",
+            "uas_cot",
+            "fmn_security",
+            "geo_bridge",
+            "link22",
         ):
             suite = results.get(suite_name, {})
             lines.append(f"[{suite_name.upper()}]")

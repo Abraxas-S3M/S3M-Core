@@ -36,6 +36,7 @@ from src.api.edge_runtime_routes import router as edge_router
 from src.api.cyber_routes import cyber_router
 from src.api.dashboard_routes import dashboard_router
 from src.api.fmv_routes import fmv_router
+from src.api.hla_routes import hla_router
 from src.api.intel_routes import intel_router
 from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
@@ -226,6 +227,8 @@ app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
 app.include_router(nsili_router, tags=["NSILI ISR Interoperability"])
 app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
 app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
+app.include_router(hla_router, tags=["HLA Federation Interoperability"])
+app.include_router(mip_router, tags=["MIP Gateway Interoperability"])
 app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
 app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
 app.include_router(nvg_router, tags=["NATO Vector Graphics (NVG)"])

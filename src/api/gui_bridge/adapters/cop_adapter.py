@@ -128,6 +128,11 @@ class COPAdapter:
             ("nffi", self._poll_nffi_tracks()),
             ("jreap", self._poll_jreap_tracks()),
             ("oth_gold", self._poll_oth_tracks()),
+            ("hla", self._poll_hla_tracks()),
+            ("mip", self._poll_mip_tracks()),
+            ("nvg", self._poll_nvg_tracks()),
+            ("uas4586", self._poll_uas4586_tracks()),
+            ("link22", self._poll_link22_tracks()),
         ):
             for track in tracks:
                 gui_track = self._interop_track_to_gui_track(source=source, track=track)
@@ -187,6 +192,156 @@ class COPAdapter:
             if adapter is None or not hasattr(adapter, "receive"):
                 return []
             rows = adapter.receive()
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_hla_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import hla_routes
+
+            adapter = getattr(hla_routes, "_hla_adapter", None)
+            if adapter is None or not hasattr(adapter, "get_objects"):
+                return []
+            rows = adapter.get_objects()
+            if not isinstance(rows, list):
+                return []
+            tracks: List[Dict[str, Any]] = []
+            for obj in rows:
+                if not isinstance(obj, dict):
+                    continue
+                attrs = obj.get("attributes", {})
+                if not isinstance(attrs, dict):
+                    attrs = {}
+                pos = str(attrs.get("Position", "0,0,0"))
+                chunks = [part.strip() for part in pos.split(",")]
+                lat = float(chunks[0]) if len(chunks) > 0 and chunks[0] else 0.0
+                lon = float(chunks[1]) if len(chunks) > 1 and chunks[1] else 0.0
+                alt = float(chunks[2]) if len(chunks) > 2 and chunks[2] else 0.0
+                track_id = f"hla-{obj.get('class_name', 'object')}-{obj.get('object_handle', '0')}"
+                tracks.append(
+                    {
+                        "unit_id": track_id,
+                        "position": [lat, lon, alt],
+                        "entity_type": str(obj.get("class_name", "HLA_OBJECT")),
+                        "status": str(attrs.get("DamageState", "active")).lower(),
+                        "domain": "air" if "air" in str(obj.get("class_name", "")).lower() else "ground",
+                        "callsign": str(attrs.get("Marking", track_id)),
+                    }
+                )
+            return tracks
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_mip_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import mip_routes
+
+            gateway = getattr(mip_routes, "_mip_gateway", None)
+            if gateway is None:
+                return []
+            updates = gateway.receive_updates() if hasattr(gateway, "receive_updates") else []
+            if isinstance(updates, list):
+                for update in updates:
+                    if not isinstance(update, dict):
+                        continue
+                    xml = update.get("xml")
+                    if isinstance(xml, str) and xml.strip() and hasattr(gateway.data_model, "from_xml"):
+                        gateway.data_model.from_xml(xml)
+            tracks: List[Dict[str, Any]] = []
+            object_items = getattr(gateway.data_model, "object_items", {})
+            locations = getattr(gateway.data_model, "locations", {})
+            if not isinstance(locations, dict):
+                return []
+            for object_id, loc in locations.items():
+                obj = object_items.get(object_id) if isinstance(object_items, dict) else None
+                hostility = str(getattr(obj, "hostility_status", "unknown"))
+                affiliation = "friendly" if hostility == "friend" else ("hostile" if hostility == "hostile" else "unknown")
+                tracks.append(
+                    {
+                        "unit_id": str(object_id),
+                        "position": [float(getattr(loc, "latitude", 0.0)), float(getattr(loc, "longitude", 0.0)), float(getattr(loc, "altitude", 0.0))],
+                        "heading": float(getattr(loc, "bearing", 0.0)),
+                        "speed": float(getattr(loc, "speed", 0.0)),
+                        "affiliation": affiliation,
+                        "entity_type": str(getattr(obj, "name", "MIP_TRACK")),
+                        "domain": "ground",
+                    }
+                )
+            return tracks
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_nvg_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import nvg_routes
+
+            exchange = getattr(nvg_routes, "_nvg_exchange", None)
+            if exchange is None or not hasattr(exchange, "get_latest_cop_xml"):
+                return []
+            xml = exchange.get_latest_cop_xml()
+            if not isinstance(xml, str) or not xml.strip():
+                return []
+            parser = getattr(exchange, "parser", None)
+            if parser is None or not hasattr(parser, "parse") or not hasattr(parser, "to_tracks"):
+                return []
+            parsed = parser.parse(xml)
+            rows = parser.to_tracks(parsed)
+            return rows if isinstance(rows, list) else []
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_uas4586_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import uas4586_routes
+
+            interface = getattr(uas4586_routes, "_uas4586", None)
+            if interface is None or not hasattr(interface, "get_published_messages"):
+                return []
+            xml_rows = interface.get_published_messages("vehicle_status")
+            if not isinstance(xml_rows, list):
+                return []
+            handler = getattr(interface, "message_handler", None)
+            if handler is None or not hasattr(handler, "parse_vehicle_status"):
+                return []
+            tracks: List[Dict[str, Any]] = []
+            for xml in xml_rows:
+                if not isinstance(xml, str) or not xml.strip():
+                    continue
+                parsed = handler.parse_vehicle_status(xml)
+                if not isinstance(parsed, dict):
+                    continue
+                position = parsed.get("position", [0.0, 0.0])
+                lat = float(position[0]) if isinstance(position, (list, tuple)) and len(position) > 0 else 0.0
+                lon = float(position[1]) if isinstance(position, (list, tuple)) and len(position) > 1 else 0.0
+                tracks.append(
+                    {
+                        "unit_id": str(parsed.get("uav_id", "uas4586-uav")),
+                        "position": [lat, lon, float(parsed.get("altitude", 0.0))],
+                        "speed": float(parsed.get("speed", 0.0)),
+                        "heading": float(parsed.get("heading", 0.0)),
+                        "affiliation": "friendly",
+                        "entity_type": "FRIENDLY_UAV",
+                        "domain": "air",
+                    }
+                )
+            return tracks
+        except Exception:
+            return []
+
+    @staticmethod
+    def _poll_link22_tracks() -> List[Dict[str, Any]]:
+        try:
+            from src.api import link22_routes
+
+            adapter = getattr(link22_routes, "_link22_adapter", None)
+            if adapter is None or not hasattr(adapter, "receive_tracks"):
+                return []
+            rows = adapter.receive_tracks()
             return rows if isinstance(rows, list) else []
         except Exception:
             return []
@@ -277,6 +432,24 @@ class COPAdapter:
             return "surface"
         if source == "jreap":
             return str(track.get("domain", "air")).strip().lower() or "air"
+        if source == "uas4586":
+            return "air"
+        if source == "hla":
+            role = str(track.get("role", track.get("entity_type", ""))).lower()
+            if "air" in role:
+                return "air"
+            if "surface" in role or "ship" in role:
+                return "surface"
+            return "land"
+        if source == "mip":
+            return "land"
+        if source == "link22":
+            kind = str(track.get("entity_type", "")).lower()
+            if "uav" in kind or "air" in kind:
+                return "air"
+            if "ship" in kind or "surface" in kind:
+                return "surface"
+            return "land"
         return "land"
 
     @staticmethod
