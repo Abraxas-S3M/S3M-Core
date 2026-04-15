@@ -93,6 +93,11 @@ nffi:
   outbox_dir: "data/interop/nffi_outbox/"
   stale_threshold_seconds: 300
 
+uas4586:
+  max_loi: 3
+  registered_uavs: []
+  publish_interval_seconds: 1
+
 mtf:
   namespace: "urn:nato:mtf:app11d"
   originator: "S3M INTEL CENTER"
