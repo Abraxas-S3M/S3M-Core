@@ -40,6 +40,7 @@ from src.api.maintenance_routes import maintenance_router
 from src.api.mission_routes import mission_router
 from src.api.navigation_routes import navigation_router
 from src.api.mtf_routes import mtf_router
+from src.api.hla_routes import hla_router
 from src.api.nffi_routes import nffi_router
 from src.api.oth_routes import oth_router
 from src.api.platform_routes import platform_router
