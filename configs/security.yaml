@@ -65,3 +65,9 @@ interop:
   bml:
     enabled: false
     report_types: ["SITREP", "SPOTREP", "INTREP"]
+
+fmn_security:
+  classification_default: "NATO UNCLASSIFIED"
+  releasable_to_default: ["SAU"]
+  enforce_labels: false  # Set true for classified coalition networks
+  certificate_store: "configs/security/coalition_certs/"
