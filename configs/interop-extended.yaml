@@ -49,6 +49,15 @@ coalition:
     - {code: 164, name: "Qatar", callsign: "ORYX"}
     - {code: 154, name: "Oman", callsign: "SHIELD"}
 
+nffi:
+  transport_profile: "IP-1"
+  gateway_url: null
+  publish_interval_seconds: 10
+  track_source_country: "SAU"
+  system_id: "S3M-FALCON"
+  outbox_dir: "data/interop/nffi_outbox/"
+  stale_threshold_seconds: 300
+
 verification:
   auto_run_on_startup: false
   coordinate_accuracy_threshold_meters: 1.0
