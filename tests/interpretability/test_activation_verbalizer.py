@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Sequence
 
-import torch
+import pytest
+
+torch = pytest.importorskip("torch")
 import torch.nn as nn
 
 from s3m_core.interpretability.verbalizer.inference import AVMonitor
