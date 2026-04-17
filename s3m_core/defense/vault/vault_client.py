@@ -65,6 +65,15 @@ class VaultClient:
         self._access_log: List[SecretAccess] = []
         self._active_leases: Dict[str, _LeaseState] = {}
 
+    def __getstate__(self) -> Dict[str, object]:
+        state = dict(self.__dict__)
+        state.pop("_lock", None)
+        return state
+
+    def __setstate__(self, state: Dict[str, object]) -> None:
+        self.__dict__.update(state)
+        self._lock = threading.RLock()
+
     def register_secret(self, path: str, value: str) -> None:
         """Registers an offline secret path for edge-runtime operation."""
         if not path or not path.strip():
@@ -82,17 +91,27 @@ class VaultClient:
             raise ValueError("session_id must be provided")
         normalized_path = path.strip()
         secret_value = self._fetch_secret(normalized_path)
+        self.log_access(session_id=session_id.strip(), path=normalized_path, access_type="static_secret")
+        return secret_value
+
+    def log_access(self, session_id: str, path: str, access_type: str) -> None:
+        """Adds an audit record without ever storing secret values."""
+        if not session_id or not session_id.strip():
+            raise ValueError("session_id must be provided")
+        if not path or not path.strip():
+            raise ValueError("path must be provided")
+        if not access_type or not access_type.strip():
+            raise ValueError("access_type must be provided")
         with self._lock:
             # Tactical context: operators need immutable access trails for incident review.
             self._access_log.append(
                 SecretAccess(
                     session_id=session_id.strip(),
-                    path=normalized_path,
+                    path=path.strip(),
                     accessed_at=_utc_now().isoformat(),
-                    access_type="static_secret",
+                    access_type=access_type.strip(),
                 )
             )
-        return secret_value
 
     def get_dynamic_credential(self, service: str, ttl_seconds: int = 300) -> DynamicCredential:
         """Issues a short-lived credential with lease tracking for revocation."""

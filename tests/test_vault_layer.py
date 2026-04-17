@@ -10,7 +10,6 @@ import pytest
 
 from s3m_core.defense.vault import (
     CredentialProxy,
-    DynamicCredential,
     ServiceConfig,
     TokenManager,
     VaultClient,
@@ -58,27 +57,11 @@ def test_vault_client_records_access_without_secret_value_in_audit_log() -> None
     assert "mission-sensitive-value" not in repr(access_log[0])
 
 
-def test_credential_proxy_runs_authenticated_request_and_sanitizes_echo(monkeypatch) -> None:
+def test_credential_proxy_runs_authenticated_request_and_sanitizes_echo() -> None:
     server, thread = _start_server()
     port = server.server_port
 
     vault = VaultClient(vault_addr="https://vault.local")
-    revoked_leases: list[str] = []
-
-    def _fake_dynamic(service: str, ttl_seconds: int = 300) -> DynamicCredential:
-        return DynamicCredential(
-            credential="credential-alpha",
-            lease_id="lease-alpha",
-            ttl=ttl_seconds,
-            service=service,
-        )
-
-    def _fake_revoke(lease_id: str) -> None:
-        revoked_leases.append(lease_id)
-
-    monkeypatch.setattr(vault, "get_dynamic_credential", _fake_dynamic)
-    monkeypatch.setattr(vault, "revoke", _fake_revoke)
-
     proxy = CredentialProxy(
         vault_client=vault,
         allowed_services={
@@ -106,24 +89,16 @@ def test_credential_proxy_runs_authenticated_request_and_sanitizes_echo(monkeypa
 
     assert response.status_code == 200
     assert response.credential_used is True
-    assert "credential-alpha" not in response.body
+    assert "Bearer [REDACTED]" in response.body
     assert "Authorization" not in response.headers
-    assert revoked_leases == ["lease-alpha"]
+    access_log = vault.list_access_log("session-bravo")
+    assert len(access_log) == 1
+    assert access_log[0].path == "kv/tactical/intel-api"
+    assert access_log[0].access_type == "proxy_dynamic_credential"
 
 
-def test_credential_proxy_enforces_service_and_endpoint_allow_list(monkeypatch) -> None:
+def test_credential_proxy_enforces_service_and_endpoint_allow_list() -> None:
     vault = VaultClient(vault_addr="https://vault.local")
-
-    def _fake_dynamic(service: str, ttl_seconds: int = 300) -> DynamicCredential:
-        return DynamicCredential(
-            credential="credential-bravo",
-            lease_id="lease-bravo",
-            ttl=ttl_seconds,
-            service=service,
-        )
-
-    monkeypatch.setattr(vault, "get_dynamic_credential", _fake_dynamic)
-    monkeypatch.setattr(vault, "revoke", lambda lease_id: None)
 
     proxy = CredentialProxy(
         vault_client=vault,

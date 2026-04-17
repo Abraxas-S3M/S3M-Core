@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import fnmatch
 import multiprocessing as mp
+from multiprocessing.connection import Connection
 from typing import Dict, List, Mapping, Optional
 import urllib.error
 import urllib.request
@@ -32,33 +33,91 @@ class ProxyResponse:
     credential_used: bool
 
 
+def _build_auth_header(auth_type: str, credential: str) -> str:
+    if auth_type == "bearer":
+        return f"Bearer {credential}"
+    if auth_type == "basic":
+        return f"Basic {credential}"
+    if auth_type == "api_key":
+        return credential
+    raise ValueError(f"Unsupported auth_type: {auth_type}")
+
+
+def _sanitize_response(
+    headers: Mapping[str, str], body: str, credential: str, auth_header: str
+) -> tuple[Dict[str, str], str]:
+    auth_header_lower = auth_header.lower()
+    sanitized_headers: Dict[str, str] = {}
+    for key, value in headers.items():
+        lower_key = key.lower()
+        if lower_key in {auth_header_lower, "authorization", "proxy-authorization"}:
+            continue
+        sanitized_headers[key] = str(value).replace(credential, "[REDACTED]")
+    return sanitized_headers, body.replace(credential, "[REDACTED]")
+
+
 def _proxy_worker(
+    vault_client: VaultClient,
+    service: str,
+    service_config: ServiceConfig,
     method: str,
     path: str,
     body: Optional[str],
     headers: Dict[str, str],
-    connection: mp.connection.Connection,
+    connection: Connection,
 ) -> None:
+    dynamic_credential: DynamicCredential | None = None
     try:
+        dynamic_credential = vault_client.get_dynamic_credential(service=service, ttl_seconds=300)
+        request_headers = dict(headers)
+        request_headers[service_config.header_name] = _build_auth_header(
+            auth_type=service_config.auth_type,
+            credential=dynamic_credential.credential,
+        )
+
         encoded_body = body.encode("utf-8") if body is not None else None
-        request = urllib.request.Request(url=path, data=encoded_body, headers=headers, method=method)
+        request = urllib.request.Request(url=path, data=encoded_body, headers=request_headers, method=method)
         with urllib.request.urlopen(request, timeout=15) as response:
-            payload = {
-                "status_code": int(response.getcode()),
-                "headers": {key: value for key, value in response.headers.items()},
-                "body": response.read().decode("utf-8", errors="replace"),
-            }
-            connection.send(payload)
+            raw_headers = {key: value for key, value in response.headers.items()}
+            raw_body = response.read().decode("utf-8", errors="replace")
+            sanitized_headers, sanitized_body = _sanitize_response(
+                headers=raw_headers,
+                body=raw_body,
+                credential=dynamic_credential.credential,
+                auth_header=service_config.header_name,
+            )
+            connection.send(
+                {
+                    "status_code": int(response.getcode()),
+                    "headers": sanitized_headers,
+                    "body": sanitized_body,
+                    "credential_used": True,
+                }
+            )
     except urllib.error.HTTPError as error:
-        payload = {
-            "status_code": int(error.code),
-            "headers": {key: value for key, value in error.headers.items()},
-            "body": error.read().decode("utf-8", errors="replace"),
-        }
-        connection.send(payload)
+        raw_headers = {key: value for key, value in error.headers.items()}
+        raw_body = error.read().decode("utf-8", errors="replace")
+        credential = "" if dynamic_credential is None else dynamic_credential.credential
+        sanitized_headers, sanitized_body = _sanitize_response(
+            headers=raw_headers,
+            body=raw_body,
+            credential=credential,
+            auth_header=service_config.header_name,
+        )
+        connection.send(
+            {
+                "status_code": int(error.code),
+                "headers": sanitized_headers,
+                "body": sanitized_body,
+                "credential_used": dynamic_credential is not None,
+            }
+        )
     except Exception as error:  # pragma: no cover - defensive transport guard.
         connection.send({"error": str(error)})
     finally:
+        if dynamic_credential is not None:
+            # Tactical context: revoke credentials immediately to shrink breach window.
+            vault_client.revoke(dynamic_credential.lease_id)
         connection.close()
 
 
@@ -92,38 +151,31 @@ class CredentialProxy:
         if not path or not path.strip():
             raise ValueError("path must be provided")
 
-        config = self._require_service(service.strip())
-        self._validate_endpoint(path=path.strip(), allowed_endpoints=config.allowed_endpoints)
-        request_headers = self._normalize_headers(headers)
+        normalized_service = service.strip()
+        normalized_path = path.strip()
+        normalized_method = method.strip().upper()
+        config = self._require_service(normalized_service)
+        self._validate_endpoint(path=normalized_path, allowed_endpoints=config.allowed_endpoints)
+        self.vault_client.log_access(
+            session_id=session_id.strip(),
+            path=config.vault_path,
+            access_type="proxy_dynamic_credential",
+        )
 
-        dynamic_credential: DynamicCredential | None = None
-        try:
-            dynamic_credential = self.vault_client.get_dynamic_credential(service=service.strip(), ttl_seconds=300)
-            auth_value = self._build_auth_header(auth_type=config.auth_type, credential=dynamic_credential.credential)
-            request_headers[config.header_name] = auth_value
-
-            raw_response = self._execute_in_proxy_process(
-                method=method.strip().upper(),
-                path=path.strip(),
-                body=body,
-                headers=request_headers,
-            )
-            sanitized_headers, sanitized_body = self._sanitize_response(
-                headers=raw_response["headers"],
-                body=raw_response["body"],
-                credential=dynamic_credential.credential,
-                auth_header=config.header_name,
-            )
-            return ProxyResponse(
-                status_code=int(raw_response["status_code"]),
-                headers=sanitized_headers,
-                body=sanitized_body,
-                credential_used=True,
-            )
-        finally:
-            if dynamic_credential is not None:
-                # Tactical context: revoke credentials immediately to shrink breach window.
-                self.vault_client.revoke(dynamic_credential.lease_id)
+        raw_response = self._execute_in_proxy_process(
+            service=normalized_service,
+            service_config=config,
+            method=normalized_method,
+            path=normalized_path,
+            body=body,
+            headers=self._normalize_headers(headers),
+        )
+        return ProxyResponse(
+            status_code=int(raw_response["status_code"]),
+            headers=dict(raw_response["headers"]),
+            body=str(raw_response["body"]),
+            credential_used=bool(raw_response.get("credential_used", False)),
+        )
 
     def get_available_services(self) -> List[str]:
         return sorted(self.allowed_services.keys())
@@ -176,21 +228,25 @@ class CredentialProxy:
                 normalized[str(key)] = str(value)
         return normalized
 
-    def _build_auth_header(self, auth_type: str, credential: str) -> str:
-        if auth_type == "bearer":
-            return f"Bearer {credential}"
-        if auth_type == "basic":
-            return f"Basic {credential}"
-        if auth_type == "api_key":
-            return credential
-        raise ValueError(f"Unsupported auth_type: {auth_type}")
-
     def _execute_in_proxy_process(
-        self, method: str, path: str, body: Optional[str], headers: Dict[str, str]
+        self,
+        service: str,
+        service_config: ServiceConfig,
+        method: str,
+        path: str,
+        body: Optional[str],
+        headers: Dict[str, str],
     ) -> Dict[str, object]:
-        context = mp.get_context("spawn")
+        try:
+            context = mp.get_context("spawn")
+        except ValueError:  # pragma: no cover - fallback for constrained runtimes.
+            context = mp.get_context("fork")
         parent_conn, child_conn = context.Pipe(duplex=False)
-        process = context.Process(target=_proxy_worker, args=(method, path, body, headers, child_conn), daemon=True)
+        process = context.Process(
+            target=_proxy_worker,
+            args=(self.vault_client, service, service_config, method, path, body, headers, child_conn),
+            daemon=True,
+        )
         process.start()
         child_conn.close()
         process.join(timeout=self._request_timeout_seconds)
@@ -204,15 +260,3 @@ class CredentialProxy:
         if "error" in payload:
             raise RuntimeError(f"Proxy process failed: {payload['error']}")
         return payload
-
-    def _sanitize_response(
-        self, headers: Mapping[str, str], body: str, credential: str, auth_header: str
-    ) -> tuple[Dict[str, str], str]:
-        auth_header_lower = auth_header.lower()
-        sanitized_headers: Dict[str, str] = {}
-        for key, value in headers.items():
-            lower_key = key.lower()
-            if lower_key in {auth_header_lower, "authorization", "proxy-authorization"}:
-                continue
-            sanitized_headers[key] = str(value).replace(credential, "[REDACTED]")
-        return sanitized_headers, body.replace(credential, "[REDACTED]")
