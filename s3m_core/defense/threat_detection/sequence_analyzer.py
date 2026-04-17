@@ -61,7 +61,7 @@ class CommandSequenceAnalyzer:
                 (
                     "suspicious_file_read",
                     (
-                        r"\b(cat|less|more|sed|awk)\b.*\b(\.env|id_rsa|credentials|shadow|passwd|\.aws)\b",
+                        r"\b(cat|less|more|sed|awk)\b.*(\.env|id_rsa|credentials|shadow|passwd|\.aws)",
                     ),
                 ),
                 (

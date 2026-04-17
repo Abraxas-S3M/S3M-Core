@@ -169,7 +169,9 @@ class AttackPatternLibrary:
         if rule.rule_type == "command_regex":
             return self._score_command_regex(rule.pattern, event.command)
         if rule.rule_type == "network":
-            return self._score_command_regex(rule.pattern, event.network_target)
+            # Tactical exfil indicators may appear in command text before parsed network metadata.
+            network_surface = f"{event.network_target} {event.command}".strip()
+            return self._score_command_regex(rule.pattern, network_surface)
         if rule.rule_type == "behavioral":
             return self._score_behavioral(rule.pattern, event)
         if rule.rule_type == "sequence":
