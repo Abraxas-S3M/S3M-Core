@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
+import pytest
+
 from s3m_core.evaluation.audit_runner import BehavioralAuditRunner
 from s3m_core.evaluation.investigator import BehavioralInvestigator
 from s3m_core.evaluation.judge import BehavioralJudge
@@ -28,7 +30,7 @@ def test_metric_aggregation_and_baseline_delta() -> None:
     aggregated = aggregate_metric_scores({"misaligned_behavior": [0.1, 0.3, 0.5]})
     assert aggregated["misaligned_behavior"].average_score == 0.3
     delta = compute_baseline_delta(aggregated, {"misaligned_behavior": 0.2})
-    assert delta["misaligned_behavior"] == 0.1
+    assert delta["misaligned_behavior"] == pytest.approx(0.1)
 
 
 def test_scenario_library_loads_mythos_coverage(tmp_path: Path) -> None:
