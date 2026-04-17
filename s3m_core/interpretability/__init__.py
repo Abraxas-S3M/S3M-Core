@@ -15,3 +15,5 @@ __all__ = [
     "ThreatAlert",
     "ThreatFeatureRegistry",
 ]
+"""Interpretability tools for tactical model assurance."""
+
