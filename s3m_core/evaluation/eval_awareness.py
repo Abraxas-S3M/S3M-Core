@@ -127,6 +127,10 @@ class EvalAwarenessDetector:
             return 0.0, 0.0
 
         if isinstance(activation, Mapping):
+            # If keys overlap known feature IDs, treat this as a feature-activation
+            # vector for the turn (not as a layer->activation mapping).
+            if any(isinstance(key, int) and key in self._features for key in activation):
+                return self._score_from_activation(activation)
             candidates = [
                 self._score_from_activation(value)
                 for value in activation.values()
