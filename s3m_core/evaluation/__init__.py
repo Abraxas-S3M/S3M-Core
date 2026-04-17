@@ -1,3 +1,19 @@
+"""Evaluation tooling for mission-safe model behavior analysis."""
+
+from .eval_awareness import (
+    EvalAwarenessDetector,
+    EvalAwarenessScore,
+    EvalAwarenessSuppressor,
+    SandbagDetector,
+    SandbagReport,
+)
+
+__all__ = [
+    "EvalAwarenessScore",
+    "EvalAwarenessDetector",
+    "EvalAwarenessSuppressor",
+    "SandbagReport",
+    "SandbagDetector",
 """Evaluation utilities for measuring mission-assistant effectiveness."""
 
 from .regression_tracker import Regression, RegressionTracker
