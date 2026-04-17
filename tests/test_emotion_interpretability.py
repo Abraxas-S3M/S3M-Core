@@ -7,12 +7,36 @@ import os
 import sys
 import unittest
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+except ModuleNotFoundError:  # pragma: no cover - environment-dependent fallback
+    torch = None
+    class _NNStub:  # pragma: no cover - used only when torch is unavailable
+        class Module:
+            pass
+
+        class ModuleList(list):
+            pass
+
+        @staticmethod
+        def Parameter(*_args, **_kwargs):
+            return None
+
+    nn = _NNStub()
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from s3m_core.interpretability.emotion import EmotionProbe, EmotionSteering, EmotionVectorExtractor
+if torch is not None:
+    from s3m_core.interpretability.emotion import (
+        EmotionProbe,
+        EmotionSteering,
+        EmotionVectorExtractor,
+    )
+else:  # pragma: no cover - environment-dependent fallback
+    EmotionProbe = None
+    EmotionSteering = None
+    EmotionVectorExtractor = None
 
 
 class DummyTokenizer:
@@ -85,6 +109,7 @@ class DummyHookManager:
         return self.activations[layer]
 
 
+@unittest.skipUnless(torch is not None, "torch is required for emotion interpretability tests")
 class TestEmotionVectorExtractor(unittest.TestCase):
     def setUp(self):
         self.model = DummyModel(hidden_size=4, num_layers=2)
@@ -139,6 +164,7 @@ class TestEmotionVectorExtractor(unittest.TestCase):
         self.assertGreater(float(valence[0][0].item()), 0.0)
 
 
+@unittest.skipUnless(torch is not None, "torch is required for emotion interpretability tests")
 class TestEmotionProbe(unittest.TestCase):
     def test_probe_scores_and_profile(self):
         emotion_vectors = {
@@ -158,6 +184,7 @@ class TestEmotionProbe(unittest.TestCase):
         self.assertTrue(profile.risk_flag)
 
 
+@unittest.skipUnless(torch is not None, "torch is required for emotion interpretability tests")
 class TestEmotionSteering(unittest.TestCase):
     def setUp(self):
         self.model = DummyModel(hidden_size=3, num_layers=2)

@@ -46,34 +46,21 @@ class EmotionSteering:
 
         sign = 1.0 if direction == "positive" else -1.0
         concept_vectors = self.emotion_vectors[emotion_name]
+        applied_layers: List[int] = []
         for layer in self.target_layers:
             if layer not in concept_vectors:
                 continue
             layer_module = self._resolve_layer_module(layer)
             steering_direction = concept_vectors[layer].detach().clone()
 
-            def _hook(_module: nn.Module, _inputs: Any, output: Any) -> Any:
-                residual = self._extract_tensor(output)
-                if residual.numel() == 0:
-                    return output
-                residual_norm = residual.norm(dim=-1, keepdim=True).mean().detach()
-                direction_tensor = steering_direction.to(device=residual.device, dtype=residual.dtype)
-                direction_norm = torch.norm(direction_tensor).clamp_min(1e-8)
-                scaling = float(sign * strength) * residual_norm / direction_norm
-                delta = scaling * direction_tensor
-                while delta.dim() < residual.dim():
-                    delta = delta.unsqueeze(0)
-                adjusted = residual + delta
-                if torch.is_tensor(output):
-                    return adjusted
-                if isinstance(output, tuple):
-                    return (adjusted, *output[1:])
-                if isinstance(output, list):
-                    return [adjusted, *output[1:]]
-                return adjusted
-
-            handle = layer_module.register_forward_hook(_hook)
+            handle = layer_module.register_forward_hook(
+                self._build_steering_hook(
+                    steering_direction=steering_direction,
+                    signed_strength=float(sign * strength),
+                )
+            )
             self._active_hook_handles.append(handle)
+            applied_layers.append(layer)
 
         self._record_audit(
             action="apply_steering",
@@ -81,7 +68,7 @@ class EmotionSteering:
                 "emotion_name": emotion_name,
                 "strength": float(strength),
                 "direction": direction,
-                "target_layers": list(self.target_layers),
+                "target_layers": applied_layers,
             },
         )
 
@@ -139,6 +126,32 @@ class EmotionSteering:
         }
         self.audit_trail.append(event)
         self.logger.info("emotion_steering_audit %s", event)
+
+    @staticmethod
+    def _build_steering_hook(steering_direction: torch.Tensor, signed_strength: float):
+        direction_reference = steering_direction.detach().clone()
+
+        def _hook(_module: nn.Module, _inputs: Any, output: Any) -> Any:
+            residual = EmotionSteering._extract_tensor(output)
+            if residual.numel() == 0:
+                return output
+            residual_norm = residual.norm(dim=-1, keepdim=True).mean().detach()
+            direction_tensor = direction_reference.to(device=residual.device, dtype=residual.dtype)
+            direction_norm = torch.norm(direction_tensor).clamp_min(1e-8)
+            scaling = signed_strength * residual_norm / direction_norm
+            delta = scaling * direction_tensor
+            while delta.dim() < residual.dim():
+                delta = delta.unsqueeze(0)
+            adjusted = residual + delta
+            if torch.is_tensor(output):
+                return adjusted
+            if isinstance(output, tuple):
+                return (adjusted, *output[1:])
+            if isinstance(output, list):
+                return [adjusted, *output[1:]]
+            return adjusted
+
+        return _hook
 
     def _resolve_layer_module(self, layer_index: int) -> nn.Module:
         layer_paths: Sequence[Sequence[str]] = (
