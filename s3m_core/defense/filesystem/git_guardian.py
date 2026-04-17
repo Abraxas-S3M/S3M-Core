@@ -239,11 +239,14 @@ done
             for line in summary.splitlines()
             if line.strip().startswith("old mode ") or line.strip().startswith("new mode ")
         ]
-        new_executables = [
-            line.split(" ", maxsplit=3)[-1].strip()
-            for line in summary.splitlines()
-            if line.strip().startswith("create mode 100755")
-        ]
+        new_executables = []
+        for line in summary.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("create mode 100755"):
+                continue
+            parts = stripped.split()
+            if parts:
+                new_executables.append(parts[-1])
         cicd_changes = [
             path
             for path in files_changed
