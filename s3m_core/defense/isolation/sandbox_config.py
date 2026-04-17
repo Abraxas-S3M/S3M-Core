@@ -94,7 +94,7 @@ class SandboxConfig:
             # so this flag is surfaced as intent for the runtime orchestrator.
             args.extend(["--security-opt", "s3m.procfs-hidepid=2"])
         if self.disable_ptrace:
-            args.extend(["--security-opt", "apparmor=unconfined"])
+            args.extend(["--security-opt", "s3m.disable-ptrace=true"])
             args.extend(["--cap-drop=SYS_PTRACE"])
 
         for device in self.allowed_devices:
