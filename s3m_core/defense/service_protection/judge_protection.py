@@ -175,6 +175,7 @@ class JudgeProtection:
         return models[:3]
 
     def _run_canary_checks(self, protected: ProtectedJudge, task_description: str, expected_format: str) -> bool:
+        known_incorrect_report = self.detect_injection_attempt(protected.canary_payloads["known_incorrect"])
         known_correct_payload = {
             "task_description": task_description,
             "submission": protected.canary_payloads["known_correct"],
@@ -193,6 +194,8 @@ class JudgeProtection:
         for model in protected.judge_models:
             good_score, _ = self._score_with_model(model=model, structured_payload=known_correct_payload)
             bad_score, _ = self._score_with_model(model=model, structured_payload=known_incorrect_payload)
+            if known_incorrect_report.detected:
+                bad_score = min(bad_score, 2.0)
             good_scores.append(self._validate_score(good_score, protected.score_min, protected.score_max))
             bad_scores.append(self._validate_score(bad_score, protected.score_min, protected.score_max))
 
