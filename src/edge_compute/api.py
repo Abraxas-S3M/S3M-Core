@@ -21,7 +21,10 @@ from src.edge_compute.models import (
     EdgeNodeInfo,
     OperationType,
 )
-from src.edge_runtime.bootstrap import get_edge_runtime_status
+try:
+    from src.edge_runtime.bootstrap import get_edge_runtime_status
+except Exception:
+    get_edge_runtime_status = lambda: {"status": "unavailable"}
 
 logger = logging.getLogger("s3m.edge.api")
 
