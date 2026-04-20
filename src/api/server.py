@@ -20,53 +20,190 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import yaml
 
-from services.air_defense.api_routes import router as air_defense_router
-from services.interceptor.api_routes import router as interceptor_router
-from services.predictive_defense.api_routes import router as predictive_router
-from src.api.command_routes import command_router
-from src.api.cloud_training_routes import cloud_training_router
+try:
+    from services.air_defense.api_routes import router as air_defense_router
+except Exception:
+    air_defense_router = None
+try:
+    from services.interceptor.api_routes import router as interceptor_router
+except Exception:
+    interceptor_router = None
+try:
+    from services.predictive_defense.api_routes import router as predictive_router
+except Exception:
+    predictive_router = None
+try:
+    from src.api.command_routes import command_router
+except Exception:
+    command_router = None
+try:
+    from src.api.cloud_training_routes import cloud_training_router
+except Exception:
+    cloud_training_router = None
 from src.api.config import api_config, mission_command_lifespan
-from src.api.cot_routes import cot_router
-from src.api.ogc_routes import ogc_router
-from src.api.apps_routes import apps_router
-from src.api.autonomy_routes import autonomy_router
-from src.api.comms_routes import comms_router
-from src.api.engagement_routes import engagement_router
-from src.api.edge_runtime_routes import router as edge_router
-from src.api.cyber_routes import cyber_router
-from src.api.dashboard_routes import dashboard_router
-from src.api.fmv_routes import fmv_router
-from src.api.hla_routes import hla_router
-from src.api.intel_routes import intel_router
-from src.api.maintenance_routes import maintenance_router
-from src.api.mission_routes import mission_router
-from src.api.navigation_routes import navigation_router
-from src.api.mtf_routes import mtf_router
-from src.api.mip_routes import mip_router
-from src.api.nffi_routes import nffi_router
-from src.api.nvg_routes import nvg_router
-from src.api.oth_routes import oth_router
-from src.api.platform_routes import platform_router
-from src.api.portal_routes import router as portal_router
-from src.api.security_routes import security_router
-from src.api.sensor_analytics_routes import sensor_analytics_router
-from src.api.taxii_routes import taxii_router
-from src.api.nsili_routes import nsili_router
-from src.api.readiness_routes import readiness_router
-from src.api.quantum_security_routes import router as qss_router
-from src.api.fmn_security_routes import fmn_security_router
-from src.api.safety_routes import safety_router
-from src.api.simulation_routes import simulation_router
-from src.api.threat_routes import threat_router, sensor_router
-from src.api.training_sim_routes import training_sim_router
+try:
+    from src.api.cot_routes import cot_router
+except Exception:
+    cot_router = None
+try:
+    from src.api.ogc_routes import ogc_router
+except Exception:
+    ogc_router = None
+try:
+    from src.api.apps_routes import apps_router
+except Exception:
+    apps_router = None
+try:
+    from src.api.autonomy_routes import autonomy_router
+except Exception:
+    autonomy_router = None
+try:
+    from src.api.comms_routes import comms_router
+except Exception:
+    comms_router = None
+try:
+    from src.api.engagement_routes import engagement_router
+except Exception:
+    engagement_router = None
+try:
+    from src.api.edge_runtime_routes import router as edge_router
+except Exception:
+    edge_router = None
+try:
+    from src.api.cyber_routes import cyber_router
+except Exception:
+    cyber_router = None
+try:
+    from src.api.dashboard_routes import dashboard_router
+except Exception:
+    dashboard_router = None
+try:
+    from src.api.fmv_routes import fmv_router
+except Exception:
+    fmv_router = None
+try:
+    from src.api.hla_routes import hla_router
+except Exception:
+    hla_router = None
+try:
+    from src.api.intel_routes import intel_router
+except Exception:
+    intel_router = None
+try:
+    from src.api.maintenance_routes import maintenance_router
+except Exception:
+    maintenance_router = None
+try:
+    from src.api.mission_routes import mission_router
+except Exception:
+    mission_router = None
+try:
+    from src.api.navigation_routes import navigation_router
+except Exception:
+    navigation_router = None
+try:
+    from src.api.mtf_routes import mtf_router
+except Exception:
+    mtf_router = None
+try:
+    from src.api.mip_routes import mip_router
+except Exception:
+    mip_router = None
+try:
+    from src.api.nffi_routes import nffi_router
+except Exception:
+    nffi_router = None
+try:
+    from src.api.nvg_routes import nvg_router
+except Exception:
+    nvg_router = None
+try:
+    from src.api.oth_routes import oth_router
+except Exception:
+    oth_router = None
+try:
+    from src.api.platform_routes import platform_router
+except Exception:
+    platform_router = None
+try:
+    from src.api.portal_routes import router as portal_router
+except Exception:
+    portal_router = None
+try:
+    from src.api.security_routes import security_router
+except Exception:
+    security_router = None
+try:
+    from src.api.sensor_analytics_routes import sensor_analytics_router
+except Exception:
+    sensor_analytics_router = None
+try:
+    from src.api.taxii_routes import taxii_router
+except Exception:
+    taxii_router = None
+try:
+    from src.api.nsili_routes import nsili_router
+except Exception:
+    nsili_router = None
+try:
+    from src.api.readiness_routes import readiness_router
+except Exception:
+    readiness_router = None
+try:
+    from src.api.quantum_security_routes import router as qss_router
+except Exception:
+    qss_router = None
+try:
+    from src.api.fmn_security_routes import fmn_security_router
+except Exception:
+    fmn_security_router = None
+try:
+    from src.api.safety_routes import safety_router
+except Exception:
+    safety_router = None
+try:
+    from src.api.simulation_routes import simulation_router
+except Exception:
+    simulation_router = None
+try:
+    from src.api.threat_routes import threat_router, sensor_router
+except Exception:
+    threat_router = None
+    sensor_router = None
+try:
+    from src.api.training_sim_routes import training_sim_router
+except Exception:
+    training_sim_router = None
 from src.api.edge_compute_mount import mount_edge_compute
 from src.security.middleware import SecurityMiddleware
-from src.api.interop_ext_routes import interop_ext_router
-from src.api.jreap_routes import jreap_router
-from src.api.uas4586_routes import uas4586_router
-from src.api.gui_bridge import gui_bridge_router
-from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
-from src.edge_runtime.bootstrap import get_edge_runtime, get_edge_runtime_status
+try:
+    from src.api.interop_ext_routes import interop_ext_router
+except Exception:
+    interop_ext_router = None
+try:
+    from src.api.jreap_routes import jreap_router
+except Exception:
+    jreap_router = None
+try:
+    from src.api.uas4586_routes import uas4586_router
+except Exception:
+    uas4586_router = None
+try:
+    from src.api.gui_bridge import gui_bridge_router
+except Exception:
+    gui_bridge_router = None
+try:
+    from src.api.gui_bridge.ws_bridge import ws_router as gui_ws_router
+except Exception:
+    gui_ws_router = None
+try:
+    from src.edge_runtime.bootstrap import get_edge_runtime
+except Exception:
+    get_edge_runtime = lambda: None
+try:
+    from src.edge_runtime.bootstrap import get_edge_runtime_status
+except Exception:
+    get_edge_runtime_status = lambda: {"status": "unavailable"}
 
 LOGGER = logging.getLogger(__name__)
 
@@ -182,8 +319,10 @@ app = FastAPI(
     lifespan=app_lifespan,
 )
 
-app.include_router(edge_router)
-app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
+if edge_router:
+    app.include_router(edge_router)
+if autonomy_router:
+    app.include_router(autonomy_router, tags=["Autonomy & Swarm"])
 
 app.add_middleware(
     CORSMiddleware,
@@ -193,22 +332,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(threat_router, tags=["Threat Detection"])
-app.include_router(sensor_router, tags=["Sensor Fusion"])
-app.include_router(navigation_router, tags=["Navigation & Edge AI"])
-app.include_router(dashboard_router, tags=["Dashboard"])
-app.include_router(simulation_router, tags=["Simulation & Wargaming"])
-app.include_router(apps_router, tags=["Domain Applications"])
-app.include_router(intel_router, tags=["Intelligence & OSINT Briefings"])
-app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
-app.include_router(cloud_training_router, tags=["Cloud Training"])
-app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
-app.include_router(air_defense_router, tags=["Air Defense"])
-app.include_router(interceptor_router, tags=["Interceptor Guidance"])
-app.include_router(predictive_router, tags=["Predictive Defense"])
-app.include_router(comms_router, tags=["Secure Communications"])
-app.include_router(command_router, tags=["Mission Command"])
-app.include_router(platform_router, tags=["Platform Integration"])
+if threat_router:
+    app.include_router(threat_router, tags=["Threat Detection"])
+if sensor_router:
+    app.include_router(sensor_router, tags=["Sensor Fusion"])
+if navigation_router:
+    app.include_router(navigation_router, tags=["Navigation & Edge AI"])
+if dashboard_router:
+    app.include_router(dashboard_router, tags=["Dashboard"])
+if simulation_router:
+    app.include_router(simulation_router, tags=["Simulation & Wargaming"])
+if apps_router:
+    app.include_router(apps_router, tags=["Domain Applications"])
+if intel_router:
+    app.include_router(intel_router, tags=["Intelligence & OSINT Briefings"])
+if training_sim_router:
+    app.include_router(training_sim_router, tags=["Training & Simulation Advanced"])
+if cloud_training_router:
+    app.include_router(cloud_training_router, tags=["Cloud Training"])
+if sensor_analytics_router:
+    app.include_router(sensor_analytics_router, tags=["Sensor & Remote Sensing Analytics"])
+if air_defense_router:
+    app.include_router(air_defense_router, tags=["Air Defense"])
+if interceptor_router:
+    app.include_router(interceptor_router, tags=["Interceptor Guidance"])
+if predictive_router:
+    app.include_router(predictive_router, tags=["Predictive Defense"])
+if comms_router:
+    app.include_router(comms_router, tags=["Secure Communications"])
+if command_router:
+    app.include_router(command_router, tags=["Mission Command"])
+if platform_router:
+    app.include_router(platform_router, tags=["Platform Integration"])
 
 # Load security config
 security_config = {}
@@ -221,29 +376,51 @@ if os.path.exists(security_config_path):
 app.add_middleware(SecurityMiddleware, config=security_config)
 
 # Add security routes
-app.include_router(security_router, tags=["Security & Compliance"])
-app.include_router(cyber_router, tags=["Cyber Defense Operations"])
-app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
-app.include_router(nsili_router, tags=["NSILI ISR Interoperability"])
-app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
-app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
-app.include_router(hla_router, tags=["HLA Federation Interoperability"])
-app.include_router(mip_router, tags=["MIP Gateway Interoperability"])
-app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
-app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
-app.include_router(nvg_router, tags=["NATO Vector Graphics (NVG)"])
-app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
-app.include_router(fmv_router, tags=["STANAG 4609 FMV Metadata"])
-app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
-app.include_router(oth_router, tags=["OTH-Gold Maritime Gateway"])
-app.include_router(fmn_security_router, tags=["FMN Security"])
-app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
-app.include_router(readiness_router, tags=["Personnel & Readiness"])
-app.include_router(safety_router, tags=["Safety & Control Authority"])
-app.include_router(portal_router, tags=["Portal RBAC"])
+if security_router:
+    app.include_router(security_router, tags=["Security & Compliance"])
+if cyber_router:
+    app.include_router(cyber_router, tags=["Cyber Defense Operations"])
+if taxii_router:
+    app.include_router(taxii_router, tags=["Cyber Threat Intelligence Exchange"])
+if nsili_router:
+    app.include_router(nsili_router, tags=["NSILI ISR Interoperability"])
+if interop_ext_router:
+    app.include_router(interop_ext_router, tags=["Interoperability & Standards (Extended)"])
+if cot_router:
+    app.include_router(cot_router, tags=["Cursor-on-Target / TAK Gateway"])
+if hla_router:
+    app.include_router(hla_router, tags=["HLA Federation Interoperability"])
+if mip_router:
+    app.include_router(mip_router, tags=["MIP Gateway Interoperability"])
+if ogc_router:
+    app.include_router(ogc_router, tags=["OGC Geospatial Interoperability"])
+if nffi_router:
+    app.include_router(nffi_router, tags=["NFFI Blue Force Tracking"])
+if nvg_router:
+    app.include_router(nvg_router, tags=["NATO Vector Graphics (NVG)"])
+if mtf_router:
+    app.include_router(mtf_router, tags=["APP-11 XML Message Text Format"])
+if fmv_router:
+    app.include_router(fmv_router, tags=["STANAG 4609 FMV Metadata"])
+if jreap_router:
+    app.include_router(jreap_router, tags=["JREAP-C Link 16 Gateway"])
+if oth_router:
+    app.include_router(oth_router, tags=["OTH-Gold Maritime Gateway"])
+if fmn_security_router:
+    app.include_router(fmn_security_router, tags=["FMN Security"])
+if maintenance_router:
+    app.include_router(maintenance_router, tags=["Procurement & Maintenance"])
+if readiness_router:
+    app.include_router(readiness_router, tags=["Personnel & Readiness"])
+if safety_router:
+    app.include_router(safety_router, tags=["Safety & Control Authority"])
+if portal_router:
+    app.include_router(portal_router, tags=["Portal RBAC"])
 # GUI Bridge — provides /api/v1/* endpoints for S3M-GUI frontend
-app.include_router(gui_bridge_router, prefix="/api/v1", tags=["GUI Bridge"])
-app.include_router(gui_ws_router, tags=["GUI WebSocket"])
+if gui_bridge_router:
+    app.include_router(gui_bridge_router, prefix="/api/v1", tags=["GUI Bridge"])
+if gui_ws_router:
+    app.include_router(gui_ws_router, tags=["GUI WebSocket"])
 # Bootstrap austere runtime before optional edge service managers are mounted.
 try:
     get_edge_runtime()
