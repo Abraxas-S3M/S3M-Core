@@ -433,7 +433,7 @@ class TrainerService:
         )
         self._resume_mgr = ResumeManager(paths)
         self._promotion_gate = PromotionGate(
-            global_config_path=Path("configs/training/promotion_gate.yaml"),
+            config_path=Path("configs/training/promotion_gate.yaml"),
             track_config_path=Path(f"configs/training/{track.value}.yaml"),
         )
         self._metrics = MetricsStore(paths.metrics)
@@ -441,7 +441,7 @@ class TrainerService:
         self._router = TrackRouter(paths)
         self._scheduler = JobScheduler()
 
-        self._state = TrainerState(run_id=self._run_id)
+        self._state = TrainerState()
         self._running = False
         self._paused = False
         self._last_checkpoint_step = 0
