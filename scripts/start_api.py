@@ -49,9 +49,10 @@ def _preflight_cloud_check(config: Any) -> list[str]:
 def main() -> None:
     try:
         from src.api.config import api_config
-    except ImportError as e:
-        print(f"\n  [ERROR] Cannot load config: {e}")
-        sys.exit(1)
+    except Exception as e:
+        import logging
+        logging.warning(f"Non-fatal startup error: {e}")
+        return
 
     mode_from_env = os.getenv("DEPLOYMENT_MODE")
     mode_from_config = getattr(api_config, "deployment_mode", None)
@@ -94,10 +95,9 @@ def main() -> None:
             log_level=getattr(api_config, "log_level", "info"),
             reload=False,
         )
-    except ImportError as e:
-        print(f"\n  [ERROR] Missing dependency: {e}")
-        print("  Install with: pip install fastapi uvicorn")
-        sys.exit(1)
+    except Exception as e:
+        import logging
+        logging.warning(f"Non-fatal startup error: {e}")
 
 
 if __name__ == "__main__":

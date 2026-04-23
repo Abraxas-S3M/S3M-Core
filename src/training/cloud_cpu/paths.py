@@ -43,6 +43,8 @@ class StatePaths:
         self.rejected = self.root / "rejected"
         self.processed = self.root / "processed"
         self.tracks_root = self.root / "tracks"
+        self.metrics = self.root / "metrics"
+        self.locks = self.root / "locks"
         self._track_paths: Dict[TrainingTrack, TrackPaths] = {}
 
         self._ensure_dir(self.root)
@@ -50,6 +52,8 @@ class StatePaths:
         self._ensure_dir(self.rejected)
         self._ensure_dir(self.processed)
         self._ensure_dir(self.tracks_root)
+        self._ensure_dir(self.metrics)
+        self._ensure_dir(self.locks)
 
         for track in TrainingTrack:
             track_root = self.tracks_root / track.value
@@ -68,6 +72,14 @@ class StatePaths:
             self._ensure_dir(paths.promoted)
             self._ensure_dir(paths.processed)
             self._ensure_dir(paths.rejected)
+
+    def ensure_dirs(self) -> None:
+        """Re-ensure all directories exist (idempotent)."""
+        for d in [self.root, self.inbox, self.rejected, self.processed, self.tracks_root, self.metrics, self.locks]:
+            self._ensure_dir(d)
+        for track in self._track_paths.values():
+            for d in [track.root, track.scenarios, track.runs, track.promoted, track.processed, track.rejected]:
+                self._ensure_dir(d)
 
     def for_track(self, track: TrainingTrack) -> TrackPaths:
         if not isinstance(track, TrainingTrack):

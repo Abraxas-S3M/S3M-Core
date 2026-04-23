@@ -2,7 +2,7 @@ object_storage:
   provider: "cloudflare_r2"
   bucket_name: "s3m-vault"
   region: "auto"
-  endpoint: "https://${S3M_CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+  endpoint: "${S3M_STORAGE_ENDPOINT}"
   egress_model: "free"
   sync_interval_minutes: 30
   max_retries: 3

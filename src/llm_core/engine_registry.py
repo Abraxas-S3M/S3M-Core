@@ -228,9 +228,9 @@ ENGINE_CONFIGS: Dict[EngineID, EngineConfig] = {
 
 
 DOMAIN_ROUTING = {
-    TaskDomain.TACTICAL: EngineID.PHI3_MEDIUM,
-    TaskDomain.REASONING: EngineID.GROK1,
-    TaskDomain.PLANNING: EngineID.MIXTRAL,
+    TaskDomain.TACTICAL: EngineID.PHI3,
+    TaskDomain.REASONING: EngineID.GROK,
+    TaskDomain.PLANNING: EngineID.MISTRAL,
     TaskDomain.ARABIC_NLP: EngineID.ALLAM,
 }
 
