@@ -21,7 +21,7 @@ _SCENARIO_DIR_RE = re.compile(r"^scenario-(\d{5})$")
 _ARABIC_RE = re.compile(r"[\u0600-\u06FF]")
 _ENGLISH_RE = re.compile(r"[A-Za-z]")
 
-_ALLOWED_TRACKS = {"saudi_mod", "ukraine_mod", "nato", "shared"}
+_ALLOWED_TRACKS = {"saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod", "shared"}
 _ALLOWED_DATA_CLASSES = {"command", "cop_intel", "risk_readiness", "bilingual"}
 _ALLOWED_SOURCES = {"manual", "claude_generated", "synthetic"}
 

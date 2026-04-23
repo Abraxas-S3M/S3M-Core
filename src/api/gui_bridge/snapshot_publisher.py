@@ -396,7 +396,7 @@ class SnapshotPublisher:
         }
 
     def _collect_training_tracks(self) -> Dict[str, Dict[str, Any]]:
-        track_names = {"saudi_mod", "ukraine_mod", "nato"}
+        track_names = {"saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod"}
         if self._metrics_dir.exists():
             for metric_file in self._metrics_dir.glob("*.jsonl"):
                 track_names.add(metric_file.stem)
@@ -663,7 +663,7 @@ class SnapshotPublisher:
         if self._metrics_dir.exists():
             for path in self._metrics_dir.glob("*.jsonl"):
                 names.add(path.stem)
-        return sorted(names or {"saudi_mod", "ukraine_mod", "nato"})
+        return sorted(names or {"saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod"})
 
     @staticmethod
     def _duration_to_hours(duration_text: str) -> float:

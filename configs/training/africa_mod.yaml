@@ -1,0 +1,23 @@
+# Africa track profile for multi-theater stabilization and peacekeeping readiness.
+track: africa_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - Sahel counterinsurgency operations
+  - Horn of Africa maritime and littoral security
+  - Nigeria and Libya instability response
+  - peacekeeping mission coordination
+eval_suite:
+  - field_readiness
+  - conflict_adaptation
+  - mission_report_compliance
+promotion_thresholds:
+  field_readiness: 0.70
+  conflict_adaptation: 0.68
+  overall: 0.67
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200

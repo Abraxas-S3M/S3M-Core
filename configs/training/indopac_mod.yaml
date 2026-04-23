@@ -1,0 +1,20 @@
+# Indo-Pacific track profile for multi-theater command adaptation and coalition readiness.
+track: indopac_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - maritime and littoral coordination
+  - multinational coalition interoperability
+  - escalation control in contested border scenarios
+  - multilingual mission clarity
+eval_suite:
+  - format_compliance
+  - doctrinal_consistency
+  - recommendation_stability
+promotion_thresholds:
+  format_compliance: 0.85
+  doctrinal: 0.75
+  overall: 0.70

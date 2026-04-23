@@ -12,7 +12,7 @@ BIN_PATH="${S3M_ROOT}/bin"
 LOG_PATH="${S3M_ROOT}/logs"
 WORKSPACE_ROOT="/workspace"
 REPO_SRC="${S3M_REPO_SRC:-$(pwd)}"
-TRACKS=("saudi_mod" "ukraine_mod" "nato" "shared")
+TRACKS=("saudi_mod" "ukraine_mod" "nato" "indopac_mod" "southam_mod" "africa_mod" "shared")
 
 banner() {
   echo

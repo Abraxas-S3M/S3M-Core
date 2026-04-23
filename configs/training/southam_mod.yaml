@@ -1,0 +1,22 @@
+# South America track profile for regional doctrine and bilingual readiness.
+track: southam_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - narco-insurgency scenario adaptation
+  - cross-border force coordination
+  - multilingual reporting quality
+eval_suite:
+  - command_clarity
+  - intel_consistency
+  - escalation_readiness
+promotion_thresholds:
+  command_clarity: 0.72
+  intel_consistency: 0.70
+  overall: 0.68
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200
