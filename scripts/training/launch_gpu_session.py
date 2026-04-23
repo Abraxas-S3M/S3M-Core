@@ -33,7 +33,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--track",
         required=True,
-        choices=["saudi_mod", "ukraine_mod", "nato"],
+        choices=["saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod"],
         help="Training data track.",
     )
     parser.add_argument(

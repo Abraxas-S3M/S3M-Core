@@ -37,7 +37,10 @@ class StorageSyncDaemon:
         self.config = self._load_config(self.config_path)
         self.sync_cfg = self.config.get("sync", {}) if isinstance(self.config.get("sync"), dict) else {}
 
-        self.tracks = self._string_list(self.sync_cfg.get("tracks"), default=["saudi_mod", "ukraine_mod", "nato"])
+        self.tracks = self._string_list(
+            self.sync_cfg.get("tracks"),
+            default=["saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod"],
+        )
         self.quantized_pull_engines = self._string_list(
             self.sync_cfg.get("quantized_pull_engines"),
             default=["phi3-medium", "mistral-7b"],

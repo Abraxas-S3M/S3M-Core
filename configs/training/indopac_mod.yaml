@@ -1,0 +1,23 @@
+# Indo-Pacific MOD track profile for coalition command resilience across Asia-Pacific partners.
+track: indopac_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - coalition maritime coordination
+  - cross-border escalation awareness
+  - logistics and readiness continuity
+  - bilingual operational clarity
+eval_suite:
+  - command_quality
+  - structured_output_validity
+  - risk_report_consistency
+promotion_thresholds:
+  command_quality: 0.72
+  structured_output: 0.78
+  overall: 0.68
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200

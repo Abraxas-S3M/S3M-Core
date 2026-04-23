@@ -1,0 +1,23 @@
+# Africa track profile for contested-terrain readiness and peacekeeping adaptation.
+track: africa_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - Sahel operations continuity
+  - Horn of Africa maritime-land coordination
+  - Nigeria and Libya instability response
+  - peacekeeping force interoperability
+eval_suite:
+  - force_protection_alignment
+  - civilian_risk_controls
+  - logistics_resilience
+promotion_thresholds:
+  force_protection_alignment: 0.72
+  civilian_risk_controls: 0.70
+  overall: 0.68
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200

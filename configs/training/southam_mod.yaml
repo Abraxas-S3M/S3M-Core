@@ -1,0 +1,23 @@
+# South America track profile for regional readiness and irregular conflict adaptation.
+track: southam_mod
+data_classes:
+  - command
+  - cop_intel
+  - risk_readiness
+  - bilingual
+emphasis:
+  - Brazil force integration and command tempo
+  - Colombia security coordination
+  - Venezuela cross-border contingency planning
+  - narco-insurgency disruption intelligence
+eval_suite:
+  - command_stability
+  - intelligence_cohesion
+  - readiness_signal_quality
+promotion_thresholds:
+  command_stability: 0.74
+  intelligence_cohesion: 0.72
+  overall: 0.70
+micro_batch_size: 4
+checkpoint_every_n_steps: 50
+eval_every_n_steps: 200

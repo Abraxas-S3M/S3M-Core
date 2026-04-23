@@ -90,7 +90,14 @@ class SyncManager:
             if isinstance(value, list):
                 candidates.extend(str(item).strip() for item in value if str(item).strip())
         if not candidates:
-            candidates = ["saudi_mod", "ukraine_mod", "nato"]
+            candidates = [
+                "saudi_mod",
+                "ukraine_mod",
+                "nato",
+                "indopac_mod",
+                "southam_mod",
+                "africa_mod",
+            ]
         return candidates
 
     def _resolve_engines(self, distributed: Dict[str, Any]) -> list[str]:

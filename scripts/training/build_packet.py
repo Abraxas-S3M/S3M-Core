@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--input", type=Path, help="Raw JSONL input file to convert into scenario packets.")
     parser.add_argument(
         "--track",
-        choices=["saudi_mod", "ukraine_mod", "nato", "shared"],
+        choices=["saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod", "shared"],
         help="Target training track for generated packets.",
     )
     parser.add_argument(
