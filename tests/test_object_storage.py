@@ -301,6 +301,54 @@ def test_from_config_defaults_region_to_auto(mocked_client: tuple[MagicMock, Mag
     )
 
 
+def test_from_config_resolves_endpoint_env_template(
+    monkeypatch: pytest.MonkeyPatch,
+    mocked_client: tuple[MagicMock, MagicMock],
+) -> None:
+    """Endpoint templates resolve from env for resilient field deployments."""
+    monkeypatch.setenv("S3M_STORAGE_ENDPOINT", "https://env.objectstorage.test")
+    ObjectStorageConnector.from_config(
+        {
+            "object_storage": {
+                "access_key": "cfg-key",
+                "secret_key": "cfg-secret",
+                "endpoint": "${S3M_STORAGE_ENDPOINT}",
+            }
+        }
+    )
+
+    _client_factory(mocked_client).assert_called_once_with(
+        "s3",
+        endpoint_url="https://env.objectstorage.test",
+        aws_access_key_id="cfg-key",
+        aws_secret_access_key="cfg-secret",
+        region_name="auto",
+    )
+
+
+def test_from_config_keeps_unknown_endpoint_env_template_literal(
+    mocked_client: tuple[MagicMock, MagicMock],
+) -> None:
+    """Unknown endpoint placeholders remain literal for deterministic diagnosis."""
+    ObjectStorageConnector.from_config(
+        {
+            "object_storage": {
+                "access_key": "cfg-key",
+                "secret_key": "cfg-secret",
+                "endpoint": "${S3M_UNKNOWN_ENDPOINT}",
+            }
+        }
+    )
+
+    _client_factory(mocked_client).assert_called_once_with(
+        "s3",
+        endpoint_url="${S3M_UNKNOWN_ENDPOINT}",
+        aws_access_key_id="cfg-key",
+        aws_secret_access_key="cfg-secret",
+        region_name="auto",
+    )
+
+
 def test_for_cloudflare_r2_uses_account_and_r2_env_credentials(
     monkeypatch: pytest.MonkeyPatch,
     mocked_client: tuple[MagicMock, MagicMock],

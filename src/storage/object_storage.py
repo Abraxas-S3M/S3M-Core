@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import shutil
 import time
 import warnings
@@ -26,6 +27,15 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger("s3m.storage.object_storage")
 
 T = TypeVar("T")
+
+
+def _resolve_env(value: str) -> str:
+    """Resolve ${VAR} patterns from environment."""
+
+    def replacer(match: re.Match[str]) -> str:
+        return os.environ.get(match.group(1), match.group(0))
+
+    return re.sub(r"\$\{(\w+)\}", replacer, value)
 
 
 class ObjectStorageError(RuntimeError):
@@ -143,11 +153,12 @@ class ObjectStorageConnector:
         """Construct connector from object storage config payload."""
         payload = config.get("object_storage", {}) if isinstance(config, dict) else {}
         section = payload if isinstance(payload, dict) else {}
+        endpoint = section.get("endpoint") if isinstance(section.get("endpoint"), str) else None
         return cls(
             access_key=section.get("access_key") if isinstance(section.get("access_key"), str) else None,
             secret_key=section.get("secret_key") if isinstance(section.get("secret_key"), str) else None,
             bucket_name=section.get("bucket_name") if isinstance(section.get("bucket_name"), str) else None,
-            endpoint=section.get("endpoint") if isinstance(section.get("endpoint"), str) else None,
+            endpoint=_resolve_env(endpoint) if endpoint is not None else None,
             region_name=section.get("region", "auto") if isinstance(section.get("region"), str) else "auto",
             max_retries=int(section.get("max_retries", 3)),
         )

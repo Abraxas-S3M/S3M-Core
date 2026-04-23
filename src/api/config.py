@@ -255,16 +255,26 @@ async def mission_command_lifespan(app: FastAPI):
     """
     mce = MissionCommandEngine()
     app.state.mce = mce
-    mce_task = asyncio.create_task(mce.start(), name="mission-command-engine")
+    mce_task: Optional[asyncio.Task] = None
+    if hasattr(mce, "start"):
+        try:
+            mce_task = asyncio.create_task(mce.start(), name="mission-command-engine")
+        except Exception:
+            pass
     try:
         yield
     finally:
-        mce.stop()
-        if not mce_task.done():
-            mce_task.cancel()
-        try:
-            await mce_task
-        except asyncio.CancelledError:
-            pass
-        except Exception as exc:  # pragma: no cover - defensive shutdown logging
-            LOGGER.warning("Mission Command Engine shutdown warning: %s", exc)
+        if hasattr(mce, "stop"):
+            try:
+                mce.stop()
+            except Exception:
+                pass
+        if mce_task is not None:
+            if not mce_task.done():
+                mce_task.cancel()
+            try:
+                await mce_task
+            except asyncio.CancelledError:
+                pass
+            except Exception as exc:  # pragma: no cover - defensive shutdown logging
+                LOGGER.warning("Mission Command Engine shutdown warning: %s", exc)

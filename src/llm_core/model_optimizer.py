@@ -123,9 +123,9 @@ RUNTIME_PROFILES: Dict[str, Dict[str, object]] = {
     RuntimeProfile.SERVER_FULL.value: {
         "name": "Server Full Quad",
         "engines": [
-            EngineID.PHI3_MEDIUM.value,
-            EngineID.GROK1.value,
-            EngineID.MIXTRAL.value,
+            EngineID.PHI3.value,
+            EngineID.GROK.value,
+            EngineID.MISTRAL.value,
             EngineID.ALLAM.value,
         ],
         "strategy": "CONSENSUS",
@@ -564,10 +564,10 @@ class ModelOptimizer:
             engine_id: LoadCategory.NEVER_LOADED for engine_id in EngineID
         }
 
-        if EngineID.PHI3_MEDIUM in allocated_engines:
-            plan[EngineID.PHI3_MEDIUM] = LoadCategory.ALWAYS_LOADED
+        if EngineID.PHI3 in allocated_engines:
+            plan[EngineID.PHI3] = LoadCategory.ALWAYS_LOADED
 
-        for engine_id in (EngineID.MIXTRAL, EngineID.GROK1):
+        for engine_id in (EngineID.MISTRAL, EngineID.GROK):
             if engine_id in allocated_engines and plan[engine_id] == LoadCategory.NEVER_LOADED:
                 plan[engine_id] = LoadCategory.OPPORTUNISTIC
 

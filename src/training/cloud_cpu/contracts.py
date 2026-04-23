@@ -119,3 +119,31 @@ class CheckpointMeta:
     is_complete: bool
     source: str = ""
 
+
+@dataclass
+class PromotionDecision:
+    """Decision on whether to promote a trained adapter to the merged model pool."""
+
+    adapter_id: str
+    engine_id: str
+    track: str
+    promoted: bool
+    reason: str
+    eval_score: float = 0.0
+    grok_verdict: str = ""
+    timestamp: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "adapter_id": self.adapter_id,
+            "engine_id": self.engine_id,
+            "track": self.track,
+            "promoted": self.promoted,
+            "reason": self.reason,
+            "eval_score": float(self.eval_score),
+            "grok_verdict": self.grok_verdict,
+            "timestamp": self.timestamp,
+            "metadata": dict(self.metadata),
+        }
+
