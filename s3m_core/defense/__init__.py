@@ -1,1 +1,1 @@
-"""Defensive containment modules for S3M runtime security."""
+"""Defense components for S3M tactical runtime safety."""
