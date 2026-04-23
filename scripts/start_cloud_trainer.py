@@ -70,7 +70,7 @@ def main() -> int:
         logger.error("Unknown S3M_TRAINING_TRACK=%s", track_env)
         return 1
 
-    paths = StatePaths()
+    paths = StatePaths(root="/opt/s3m/state/training/cloud_cpu")
     paths.ensure_dirs()
 
     for track in tracks:

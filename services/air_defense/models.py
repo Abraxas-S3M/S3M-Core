@@ -175,3 +175,49 @@ class AllocationResult:
     allocation: Optional[TargetAllocation] = None
     reasoning: str = ""
     echelon_used: Optional[str] = None
+
+
+class DefenseEchelon(str, Enum):
+    POINT = "POINT"
+    SHORAD = "SHORAD"
+    MRAD = "MRAD"
+    HIMAD = "HIMAD"
+    STRATEGIC = "STRATEGIC"
+
+
+@dataclass
+class DefenseZone:
+    zone_id: str
+    echelon: DefenseEchelon
+    center_lat: float
+    center_lon: float
+    radius_km: float
+    active: bool = True
+
+
+class EffectorType(str, Enum):
+    MISSILE = "MISSILE"
+    GUN = "GUN"
+    LASER = "LASER"
+    EW = "EW"
+    DECOY = "DECOY"
+
+
+@dataclass
+class EngagementEnvelope:
+    min_range_km: float
+    max_range_km: float
+    min_alt_m: float
+    max_alt_m: float
+    max_speed_mach: float
+
+
+@dataclass
+class AirDefenseUnit:
+    unit_id: str
+    name: str
+    zone_id: str
+    effector_type: EffectorType
+    envelope: EngagementEnvelope
+    ammo_count: int
+    ready: bool = True

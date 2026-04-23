@@ -248,9 +248,9 @@ class UnifiedRuntime:
             return list(EngineID), RuntimeMode.CONSENSUS
 
         domain = self._classify_domain(prompt=prompt, mission_type=request.mission_type)
-        primary = DOMAIN_ROUTING.get(domain, EngineID.PHI3_MEDIUM)
+        primary = DOMAIN_ROUTING.get(domain, EngineID.PHI3)
         # Tactical context: include one backup engine for degraded resilience.
-        backup = EngineID.MIXTRAL if primary != EngineID.MIXTRAL else EngineID.GROK1
+        backup = EngineID.MISTRAL if primary != EngineID.MISTRAL else EngineID.GROK
         return [primary, backup], RuntimeMode.DOMAIN
 
     @staticmethod

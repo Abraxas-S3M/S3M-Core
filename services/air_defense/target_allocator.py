@@ -34,9 +34,11 @@ class TargetAllocator:
         self,
         registry: EffectorRegistry,
         interceptor_manager: Optional["InterceptorManagerProtocol"] = None,
+        zone_manager=None,
     ) -> None:
         self.registry = registry
         self._interceptor_manager = interceptor_manager
+        self.zone_manager = zone_manager
 
     def allocate(
         self,
