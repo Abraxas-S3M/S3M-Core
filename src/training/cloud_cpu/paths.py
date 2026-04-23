@@ -19,6 +19,9 @@ class TrainingTrack(str, Enum):
     SAUDI_MOD = "saudi_mod"
     UKRAINE_MOD = "ukraine_mod"
     NATO = "nato"
+    INDOPAC_MOD = "indopac_mod"
+    SOUTHAM_MOD = "southam_mod"
+    AFRICA_MOD = "africa_mod"
     SHARED = "shared"
 
 

@@ -125,7 +125,7 @@ connector = ObjectStorageConnector(
 base_root = os.environ["BASE_ROOT"]
 dataset_root = os.environ["DATASET_ROOT"]
 adapter_root = os.environ["ADAPTER_ROOT"]
-tracks = ("saudi_mod", "ukraine_mod", "nato", "shared")
+tracks = ("saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod", "shared")
 
 connector.sync_prefix_to_local(prefix=f"base-weights/{engine}/", local_dir=base_root)
 for track in tracks:

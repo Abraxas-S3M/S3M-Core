@@ -29,7 +29,7 @@ GROK_BLOCK_MESSAGE = (
     "Grok-300B is too large for GPU training. "
     "It remains in Cloudflare R2 as a validation oracle only."
 )
-SUPPORTED_TRACKS = {"saudi_mod", "ukraine_mod", "nato"}
+SUPPORTED_TRACKS = {"saudi_mod", "ukraine_mod", "nato", "indopac_mod", "southam_mod", "africa_mod"}
 ENGINE_ALIASES = {
     "phi3-medium": "phi3",
     "phi3": "phi3",

@@ -50,12 +50,18 @@ class StubTrainingBackend:
             "saudi_mod": 2.8,
             "ukraine_mod": 2.6,
             "nato": 2.7,
+            "indopac_mod": 2.65,
+            "southam_mod": 2.7,
+            "africa_mod": 2.75,
             "shared": 2.9,
         }.get(self._track, 2.9)
         self._decay = {
             "saudi_mod": 0.028,
             "ukraine_mod": 0.030,
             "nato": 0.026,
+            "indopac_mod": 0.027,
+            "southam_mod": 0.026,
+            "africa_mod": 0.025,
             "shared": 0.022,
         }.get(self._track, 0.022)
 
