@@ -721,7 +721,7 @@ class AdvancedOrchestrator:
             if domain == TaskDomain.ARABIC_NLP:
                 return [EngineID.ALLAM], False
             if max_latency_ms is not None and max_latency_ms < 300.0:
-                return [EngineID.PHI3_MEDIUM], False
+                return [EngineID.PHI3], False
             return [sorted_engines[0]], False
 
         if strategy == RoutingStrategy.HIERARCHICAL:
