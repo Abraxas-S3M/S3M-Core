@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from dataclasses import asdict, is_dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List
@@ -19,6 +21,21 @@ class MetricsStore:
     def __init__(self, metrics_dir: Path) -> None:
         self.metrics_dir = metrics_dir
         self.metrics_dir.mkdir(parents=True, exist_ok=True)
+
+    def write_cycle(self, metrics: Any) -> None:
+        """Persist one cycle telemetry record for a track."""
+        payload = self._normalize_payload(metrics)
+        track = str(payload.get("track", "")).strip()
+        if not track:
+            track = "unknown"
+        self._append_jsonl(self.metrics_dir / f"{track}.jsonl", payload)
+
+    def write_promotion(self, decision: Any) -> None:
+        """Persist one promotion decision record."""
+        payload = self._normalize_payload(decision)
+        if not payload.get("timestamp"):
+            payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+        self._append_jsonl(self.metrics_dir / "promotions.jsonl", payload)
 
     def get_latest(self, track: str, n: int = 100) -> List[Dict[str, Any]]:
         """Return up to ``n`` latest telemetry records for a track."""
@@ -123,3 +140,26 @@ class MetricsStore:
         except OSError:
             return []
         return rows
+
+    @staticmethod
+    def _normalize_payload(payload: Any) -> Dict[str, Any]:
+        if hasattr(payload, "model_dump"):
+            normalized = payload.model_dump()
+        elif hasattr(payload, "to_dict"):
+            normalized = payload.to_dict()
+        elif is_dataclass(payload):
+            normalized = asdict(payload)
+        elif isinstance(payload, dict):
+            normalized = payload
+        else:
+            normalized = dict(payload)
+        if not isinstance(normalized, dict):
+            raise TypeError("metrics payload must serialize to a dictionary")
+        return dict(normalized)
+
+    @staticmethod
+    def _append_jsonl(path: Path, payload: Dict[str, Any]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, default=str))
+            handle.write("\n")
