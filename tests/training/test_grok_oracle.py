@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from src.storage.object_storage import ObjectStorageConnector
@@ -203,3 +204,39 @@ def test_api_mode_parses_response_into_verdict(monkeypatch, tmp_path: Path) -> N
     assert verdict.score == 0.8
     assert verdict.reason == "High quality output"
     assert verdict.criteria_scores["factual_consistency"] == 0.9
+
+
+def test_evaluate_artifact_appends_validation_log(tmp_path: Path) -> None:
+    connector = _build_connector(tmp_path)
+    validation_log_path = tmp_path / "state/training/validation_log.jsonl"
+    connector.put_json(
+        "grok-verdicts/pending/artifacts/loggable.json",
+        {"output": '{"status":"ok","doctrine":"NATO compliant"}'},
+    )
+    connector.put_json(
+        "training-sessions/session-log/metadata.json",
+        {"eval_scores": {"format_compliance": 0.9, "doctrinal": 0.9, "overall": 0.9}},
+    )
+    oracle = GrokValidationOracle(
+        mode="offline",
+        object_storage_connector=connector,
+        validation_log_path=validation_log_path,
+    )
+    request = VerdictRequest(
+        artifact_id="loggable",
+        engine_id="phi3",
+        track="nato",
+        artifact_type="generated_text",
+        object_key="grok-verdicts/pending/artifacts/loggable.json",
+        session_id="session-log",
+        created_at="2026-04-09T00:00:00+00:00",
+    )
+
+    verdict = oracle.evaluate_artifact(request, validation_stage="stage_2_gpu")
+
+    assert verdict.passed is True
+    rows = [line for line in validation_log_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert rows
+    payload = json.loads(rows[-1])
+    assert payload["artifact_id"] == "loggable"
+    assert payload["validation_stage"] == "stage_2_gpu"
