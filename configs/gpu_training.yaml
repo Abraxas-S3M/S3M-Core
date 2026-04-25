@@ -118,3 +118,10 @@ hybrid:
     backend: "filesystem"  # filesystem | redis
     queue_dir: "state/training/job_queue"
     poll_interval_seconds: 30
+
+  # Two-stage adapter ladder controls. These prefixes are consumed by the
+  # Hetzner CPU -> RunPod GPU promotion bridge and stay within sovereign vault.
+  stage_pipeline:
+    cpu_cleared_prefix: "training/stage1/cpu_cleared"
+    artifact_prefix: "training/artifacts"
+    recycle_prefix: "training/stage1/recycle"

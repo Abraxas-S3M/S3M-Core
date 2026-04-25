@@ -244,30 +244,106 @@ class CheckpointMeta:
         return CheckpointMeta(**payload)
 
 
-@dataclass
+@dataclass(init=False)
 class PromotionDecision:
-    """Decision on whether to promote a trained adapter to the merged model pool."""
+    """Promotion decision supporting both checkpoint and adapter flows."""
 
-    adapter_id: str
-    engine_id: str
-    track: str
-    promoted: bool
-    reason: str
+    checkpoint_id: str = ""
+    adapter_id: str = ""
+    engine_id: str = ""
+    track: str = ""
+    passed: bool = False
+    promoted: bool = False
+    reason: str = ""
+    eval_scores: Dict[str, float] = field(default_factory=dict)
+    thresholds: Dict[str, float] = field(default_factory=dict)
+    promoted_at: Optional[str] = None
+    regression_vs_previous: Dict[str, float] = field(default_factory=dict)
     eval_score: float = 0.0
     grok_verdict: str = ""
     timestamp: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    def __init__(
+        self,
+        checkpoint_id: str = "",
+        track: str = "",
+        passed: Optional[bool] = None,
+        eval_scores: Optional[Dict[str, Any]] = None,
+        thresholds: Optional[Dict[str, Any]] = None,
+        promoted_at: Optional[str] = None,
+        reason: str = "",
+        regression_vs_previous: Optional[Dict[str, Any]] = None,
+        adapter_id: str = "",
+        engine_id: str = "",
+        promoted: Optional[bool] = None,
+        eval_score: Optional[float] = None,
+        grok_verdict: str = "",
+        timestamp: str = "",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        self.checkpoint_id = str(checkpoint_id or adapter_id or "")
+        self.adapter_id = str(adapter_id or checkpoint_id or "")
+        self.engine_id = str(engine_id)
+        self.track = str(track)
+
+        if passed is None:
+            resolved_passed = bool(promoted) if promoted is not None else False
+        else:
+            resolved_passed = bool(passed)
+        self.passed = resolved_passed
+        self.promoted = bool(promoted) if promoted is not None else resolved_passed
+        self.reason = str(reason)
+
+        self.eval_scores = self._coerce_float_map(eval_scores)
+        self.thresholds = self._coerce_float_map(thresholds)
+        self.regression_vs_previous = self._coerce_float_map(regression_vs_previous)
+
+        if eval_score is None:
+            eval_score = float(self.eval_scores.get("overall", 0.0))
+        self.eval_score = float(eval_score)
+        if not self.eval_scores:
+            self.eval_scores = {"overall": self.eval_score}
+
+        self.promoted_at = str(promoted_at) if promoted_at else None
+        self.timestamp = str(timestamp or promoted_at or "")
+        self.grok_verdict = str(grok_verdict)
+        self.metadata = dict(metadata or {})
+
+    @staticmethod
+    def _coerce_float_map(payload: Optional[Dict[str, Any]]) -> Dict[str, float]:
+        if not isinstance(payload, dict):
+            return {}
+        return {
+            str(key): float(value)
+            for key, value in payload.items()
+            if isinstance(value, (int, float))
+        }
+
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "checkpoint_id": self.checkpoint_id,
             "adapter_id": self.adapter_id,
             "engine_id": self.engine_id,
             "track": self.track,
-            "promoted": self.promoted,
+            "passed": bool(self.passed),
+            "promoted": bool(self.promoted),
             "reason": self.reason,
+            "eval_scores": dict(self.eval_scores),
+            "thresholds": dict(self.thresholds),
+            "promoted_at": self.promoted_at,
+            "regression_vs_previous": dict(self.regression_vs_previous),
             "eval_score": float(self.eval_score),
             "grok_verdict": self.grok_verdict,
             "timestamp": self.timestamp,
             "metadata": dict(self.metadata),
         }
+
+    def model_dump(self) -> Dict[str, Any]:
+        return self.to_dict()
+
+    def model_copy(self, update: Optional[Dict[str, Any]] = None) -> "PromotionDecision":
+        payload = self.to_dict()
+        payload.update(update or {})
+        return PromotionDecision(**payload)
 

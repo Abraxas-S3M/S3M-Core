@@ -73,6 +73,7 @@ class GrokValidationOracle:
         mode: str = "offline",  # "api" or "offline"
         xai_api_key: Optional[str] = None,
         object_storage_connector: Optional[ObjectStorageConnector] = None,
+        validation_log_path: Path | str = Path("state/training/validation_log.jsonl"),
     ) -> None:
         normalized_mode = str(mode or "offline").strip().lower()
         if normalized_mode not in {"api", "offline"}:
@@ -87,6 +88,7 @@ class GrokValidationOracle:
         self._pending_manifest_keys: dict[str, str] = {}
         self._request_payload_cache: dict[str, dict[str, Any]] = {}
         self._track_cfg_cache: dict[str, dict[str, Any]] = {}
+        self._validation_log_path = Path(validation_log_path)
 
     def scan_pending(self) -> List[VerdictRequest]:
         """Scan grok-verdicts/pending/ in object storage for unreviewed artifacts."""
@@ -130,7 +132,7 @@ class GrokValidationOracle:
         identity_fields = ("artifact_id", "object_key", "engine_id")
         return any(str(payload.get(field, "")).strip() for field in identity_fields)
 
-    def evaluate_artifact(self, request: VerdictRequest) -> Verdict:
+    def evaluate_artifact(self, request: VerdictRequest, validation_stage: str = "") -> Verdict:
         """Score a single training artifact.
 
         Evaluation criteria:
@@ -144,10 +146,14 @@ class GrokValidationOracle:
         """
         if self.mode == "api" and self.xai_api_key:
             try:
-                return self._evaluate_api(request)
+                verdict = self._evaluate_api(request)
+                self._append_validation_log(request=request, verdict=verdict, validation_stage=validation_stage)
+                return verdict
             except Exception as exc:
                 logger.warning("API evaluation failed for %s, falling back offline: %s", request.artifact_id, exc)
-        return self._evaluate_offline(request)
+        verdict = self._evaluate_offline(request)
+        self._append_validation_log(request=request, verdict=verdict, validation_stage=validation_stage)
+        return verdict
 
     def process_all_pending(self) -> List[Verdict]:
         """Process all pending verdicts and move to approved/rejected."""
@@ -749,6 +755,32 @@ class GrokValidationOracle:
                 value = getattr(connector, method_name)(key)
                 return int(value)
         return len(self._read_bytes(key))
+
+    def _append_validation_log(self, request: VerdictRequest, verdict: Verdict, validation_stage: str = "") -> None:
+        self._validation_log_path.parent.mkdir(parents=True, exist_ok=True)
+        cached_payload = self._request_payload_cache.get(request.artifact_id, {})
+        stage_name = (
+            str(validation_stage).strip()
+            or str(cached_payload.get("validation_stage", "")).strip()
+            or "unspecified"
+        )
+        payload = {
+            "artifact_id": request.artifact_id,
+            "engine_id": request.engine_id,
+            "track": request.track,
+            "artifact_type": request.artifact_type,
+            "session_id": request.session_id,
+            "validation_stage": stage_name,
+            "passed": bool(verdict.passed),
+            "score": float(verdict.score),
+            "reason": verdict.reason,
+            "criteria_scores": dict(verdict.criteria_scores),
+            "oracle_mode": verdict.oracle_mode,
+            "evaluated_at": verdict.evaluated_at,
+        }
+        with self._validation_log_path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, ensure_ascii=False))
+            handle.write("\n")
 
     @staticmethod
     def _clamp(value: float, low: float, high: float) -> float:
