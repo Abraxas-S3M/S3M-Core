@@ -429,9 +429,9 @@ class TrainingLoop:
         )
         self._write_json(
             f"grok-verdicts/pending/{adapter_id}.request.json",
-            {**asdict(request), "validation_stage": "stage_1_cpu"},
+            {**asdict(request), "validation_stage": "cpu_stage1"},
         )
-        verdict = self._oracle.evaluate_artifact(request, validation_stage="stage_1_cpu")
+        verdict = self._oracle.evaluate_artifact(request, validation_stage="cpu_stage1")
         gate_passed, gate_reason = self._promotion_gate_passed(metrics=metrics, verdict_score=verdict.score)
         final_passed = bool(verdict.passed) and gate_passed
 
