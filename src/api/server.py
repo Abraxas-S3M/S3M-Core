@@ -197,6 +197,11 @@ try:
 except Exception:
     gui_ws_router = None
 try:
+    from src.demo.demo_room_service import demo_ws_endpoint, router as demo_router
+except Exception:
+    demo_router = None
+    demo_ws_endpoint = None
+try:
     from src.edge_runtime.bootstrap import get_edge_runtime
 except Exception:
     get_edge_runtime = lambda: None
@@ -326,7 +331,13 @@ if autonomy_router:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=api_config.cors_origins + ["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=api_config.cors_origins
+    + [
+        "https://s3m-gui.pages.dev",
+        "https://*.s3m-gui.pages.dev",
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -421,6 +432,10 @@ if gui_bridge_router:
     app.include_router(gui_bridge_router, prefix="/api/v1", tags=["GUI Bridge"])
 if gui_ws_router:
     app.include_router(gui_ws_router, tags=["GUI WebSocket"])
+if demo_router:
+    app.include_router(demo_router)
+if demo_ws_endpoint:
+    app.add_api_websocket_route("/ws/demo-room", demo_ws_endpoint)
 # Bootstrap austere runtime before optional edge service managers are mounted.
 try:
     get_edge_runtime()
