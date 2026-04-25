@@ -67,6 +67,31 @@ class GrokValidationOracle:
     PENDING_PREFIX = "grok-verdicts/pending/"
     APPROVED_PREFIX = "grok-verdicts/approved/"
     REJECTED_PREFIX = "grok-verdicts/rejected/"
+    _CANONICAL_STAGES = ("cpu_stage1", "gpu_stage2")
+    _LEGACY_STAGE_ALIASES = {
+        "stage_1_cpu": "cpu_stage1",
+        "stage1_cpu": "cpu_stage1",
+        "cpu_stage_1": "cpu_stage1",
+        "stage_2_gpu": "gpu_stage2",
+        "stage2_gpu": "gpu_stage2",
+        "gpu_stage_2": "gpu_stage2",
+    }
+    _SCORING_WEIGHTS = {
+        # Existing quality-gate criteria are down-weighted to prioritize novelty/value criteria.
+        "adapter_integrity": 0.0225,
+        "factual_consistency": 0.03,
+        "language_quality": 0.0225,
+        "format_compliance": 0.0225,
+        "doctrinal_alignment": 0.0225,
+        "degraded_input_handling": 0.015,
+        "threshold_compliance": 0.015,
+        # Strategic/doctrinal value criteria are primary promotion drivers.
+        "doctrinal_novelty": 0.25,
+        "strategic_effectiveness": 0.20,
+        "autonomous_decision_value": 0.15,
+        "cross_theater_awareness": 0.15,
+        "predictive_insight": 0.10,
+    }
 
     def __init__(
         self,
@@ -144,15 +169,16 @@ class GrokValidationOracle:
 
         Returns Verdict with: passed (bool), score (0-1), reason (str)
         """
+        normalized_stage = self._resolve_validation_stage(request=request, validation_stage=validation_stage)
         if self.mode == "api" and self.xai_api_key:
             try:
-                verdict = self._evaluate_api(request)
-                self._append_validation_log(request=request, verdict=verdict, validation_stage=validation_stage)
+                verdict = self._evaluate_api(request, validation_stage=normalized_stage)
+                self._append_validation_log(request=request, verdict=verdict, validation_stage=normalized_stage)
                 return verdict
             except Exception as exc:
                 logger.warning("API evaluation failed for %s, falling back offline: %s", request.artifact_id, exc)
-        verdict = self._evaluate_offline(request)
-        self._append_validation_log(request=request, verdict=verdict, validation_stage=validation_stage)
+        verdict = self._evaluate_offline(request, validation_stage=normalized_stage)
+        self._append_validation_log(request=request, verdict=verdict, validation_stage=normalized_stage)
         return verdict
 
     def process_all_pending(self) -> List[Verdict]:
@@ -211,12 +237,13 @@ class GrokValidationOracle:
 
         logger.info("Promoted %d approved adapters to live path", promoted_count)
 
-    def _evaluate_offline(self, request: VerdictRequest) -> Verdict:
+    def _evaluate_offline(self, request: VerdictRequest, validation_stage: str = "cpu_stage1") -> Verdict:
         track_cfg = self._load_track_config(request.track)
         thresholds = self._extract_thresholds(track_cfg)
         metadata = self._load_session_metadata(request)
         eval_scores = self._extract_eval_scores(metadata)
         sample_text = self._load_sample_text(request, metadata)
+        stage_gate = self._stage_gate(validation_stage)
 
         criteria_scores: dict[str, float] = {
             "adapter_integrity": self._score_adapter_integrity(request),
@@ -226,20 +253,17 @@ class GrokValidationOracle:
             "doctrinal_alignment": self._score_doctrinal_alignment(request.track, sample_text, eval_scores),
             "degraded_input_handling": self._score_degraded_input_handling(request.track, sample_text, eval_scores),
             "threshold_compliance": self._score_threshold_compliance(eval_scores, thresholds),
+            "doctrinal_novelty": self._score_doctrinal_novelty(sample_text, eval_scores),
+            "strategic_effectiveness": self._score_strategic_effectiveness(sample_text, eval_scores),
+            "autonomous_decision_value": self._score_autonomous_decision_value(sample_text, eval_scores),
+            "cross_theater_awareness": self._score_cross_theater_awareness(sample_text, eval_scores),
+            "predictive_insight": self._score_predictive_insight(sample_text, eval_scores),
         }
 
-        weights = {
-            "adapter_integrity": 0.15,
-            "factual_consistency": 0.2,
-            "language_quality": 0.15,
-            "format_compliance": 0.15,
-            "doctrinal_alignment": 0.15,
-            "degraded_input_handling": 0.1,
-            "threshold_compliance": 0.1,
-        }
-        score = self._weighted_average(criteria_scores, weights)
+        score = self._weighted_average(criteria_scores, self._SCORING_WEIGHTS)
 
-        required_score = self._score_metric(thresholds, ("overall",), 0.70)
+        required_score = stage_gate["required_score"]
+        novelty_minimum = stage_gate["novelty_minimum"]
         critical_failures: list[str] = []
         if request.artifact_type == "adapter" and criteria_scores["adapter_integrity"] < 0.5:
             critical_failures.append("adapter_integrity")
@@ -249,17 +273,24 @@ class GrokValidationOracle:
             critical_failures.append("doctrinal_alignment")
         if request.track == "ukraine_mod" and criteria_scores["degraded_input_handling"] < 0.45:
             critical_failures.append("degraded_input_handling")
+        if criteria_scores["doctrinal_novelty"] < novelty_minimum:
+            critical_failures.append("doctrinal_novelty")
 
         passed = score >= required_score and criteria_scores["threshold_compliance"] >= 0.5 and not critical_failures
         if passed:
             reason = (
                 f"Offline checks passed with score {score:.3f} "
-                f"(required {required_score:.3f}) for track {request.track}"
+                f"(required {required_score:.3f}) for track {request.track} at {validation_stage}"
             )
         else:
             reasons = [f"score {score:.3f} below required {required_score:.3f}" if score < required_score else ""]
             if criteria_scores["threshold_compliance"] < 0.5:
                 reasons.append("insufficient promotion-threshold compliance from eval metadata")
+            if criteria_scores["doctrinal_novelty"] < novelty_minimum:
+                reasons.append(
+                    f"doctrinal novelty {criteria_scores['doctrinal_novelty']:.3f} "
+                    f"below stage minimum {novelty_minimum:.3f}"
+                )
             if critical_failures:
                 reasons.append(f"critical checks failed: {', '.join(sorted(set(critical_failures)))}")
             compact_reason = "; ".join(item for item in reasons if item)
@@ -275,12 +306,14 @@ class GrokValidationOracle:
             oracle_mode="offline",
         )
 
-    def _evaluate_api(self, request: VerdictRequest) -> Verdict:
+    def _evaluate_api(self, request: VerdictRequest, validation_stage: str = "cpu_stage1") -> Verdict:
         track_cfg = self._load_track_config(request.track)
         thresholds = self._extract_thresholds(track_cfg)
         metadata = self._load_session_metadata(request)
+        eval_scores = self._extract_eval_scores(metadata)
         sample_text = self._load_sample_text(request, metadata)
-        prompt = self._build_api_prompt(request, sample_text)
+        stage_gate = self._stage_gate(validation_stage)
+        prompt = self._build_prompt(request, sample_text, validation_stage=validation_stage)
 
         response = requests.post(
             self.xai_api_url,
@@ -310,13 +343,45 @@ class GrokValidationOracle:
         parsed = self._parse_api_payload(content)
 
         rating = self._clamp(float(parsed.get("rating", 0.0)), 0.0, 10.0)
-        score = round(rating / 10.0, 4)
-        required_score = self._score_metric(thresholds, ("overall",), 0.70)
+        fallback_score = round(rating / 10.0, 4)
+        required_score = stage_gate["required_score"]
+        novelty_minimum = stage_gate["novelty_minimum"]
 
         criteria_payload = parsed.get("criteria", {})
-        criteria_scores = self._normalize_api_criteria(criteria_payload, score)
-        passed = score >= required_score
+        criteria_scores = self._normalize_api_criteria(criteria_payload, fallback_score)
+        criteria_scores["adapter_integrity"] = self._score_adapter_integrity(request)
+        criteria_scores["threshold_compliance"] = self._score_threshold_compliance(eval_scores, thresholds)
+        score = self._weighted_average(criteria_scores, self._SCORING_WEIGHTS)
         reason = str(parsed.get("reason", "")).strip() or "No reasoning returned by Grok API"
+
+        critical_failures: list[str] = []
+        if request.artifact_type == "adapter" and criteria_scores["adapter_integrity"] < 0.5:
+            critical_failures.append("adapter_integrity")
+        if request.track == "saudi_mod" and criteria_scores["language_quality"] < 0.45:
+            critical_failures.append("language_quality")
+        if request.track == "nato" and criteria_scores["doctrinal_alignment"] < 0.45:
+            critical_failures.append("doctrinal_alignment")
+        if request.track == "ukraine_mod" and criteria_scores["degraded_input_handling"] < 0.45:
+            critical_failures.append("degraded_input_handling")
+        if criteria_scores["doctrinal_novelty"] < novelty_minimum:
+            critical_failures.append("doctrinal_novelty")
+
+        passed = score >= required_score and criteria_scores["threshold_compliance"] >= 0.5 and not critical_failures
+        if not passed:
+            failure_fragments = []
+            if score < required_score:
+                failure_fragments.append(f"score {score:.3f} below required {required_score:.3f}")
+            if criteria_scores["threshold_compliance"] < 0.5:
+                failure_fragments.append("insufficient promotion-threshold compliance from eval metadata")
+            if criteria_scores["doctrinal_novelty"] < novelty_minimum:
+                failure_fragments.append(
+                    f"doctrinal novelty {criteria_scores['doctrinal_novelty']:.3f} "
+                    f"below stage minimum {novelty_minimum:.3f}"
+                )
+            if critical_failures:
+                failure_fragments.append(f"critical checks failed: {', '.join(sorted(set(critical_failures)))}")
+            if failure_fragments:
+                reason = f"{reason} | {'; '.join(failure_fragments)}"
 
         return Verdict(
             artifact_id=request.artifact_id,
@@ -328,22 +393,44 @@ class GrokValidationOracle:
             oracle_mode="api",
         )
 
-    def _build_api_prompt(self, request: VerdictRequest, sample_text: str) -> str:
+    def _build_prompt(self, request: VerdictRequest, sample_text: str, validation_stage: str = "cpu_stage1") -> str:
         sample = sample_text[:2500]
+        stage_gate = self._stage_gate(validation_stage)
         return (
             "Rate this training artifact on a scale of 1-10 for tactical deployment quality.\n"
             f"artifact_id: {request.artifact_id}\n"
             f"engine_id: {request.engine_id}\n"
             f"track: {request.track}\n"
             f"artifact_type: {request.artifact_type}\n"
-            "Criteria: factual consistency, language quality, format compliance, doctrinal alignment,"
-            " degraded-input handling.\n"
+            f"validation_stage: {self._normalize_stage_name(validation_stage)}\n"
+            f"stage_required_score: {stage_gate['required_score']:.2f}\n"
+            f"stage_min_doctrinal_novelty: {stage_gate['novelty_minimum']:.2f}\n"
+            "Score each criterion from 0.0 to 1.0.\n"
+            "Criteria to evaluate:\n"
+            "- factual_consistency: does the output contradict known facts or the scenario?\n"
+            "- language_quality: clarity, fluency, and Arabic fidelity when applicable.\n"
+            "- format_compliance: structured output validity and reporting format discipline.\n"
+            "- doctrinal_alignment: coherence with relevant doctrine where required.\n"
+            "- degraded_input_handling: quality under partial/conflicting/degraded inputs.\n"
+            "- doctrinal_novelty: does this introduce novel doctrine or TTPs beyond manuals? "
+            "0.0=derivative, 1.0=genuinely novel tactical/strategic insight. THIS IS THE MOST IMPORTANT NEW CRITERION.\n"
+            "- strategic_effectiveness: is the recommended strategy sound to seasoned commanders, "
+            "including second/third-order effects?\n"
+            "- autonomous_decision_value: can commanders act immediately without extra staff analysis?\n"
+            "- cross_theater_awareness: does it reason about spillover across theaters and commands?\n"
+            "- predictive_insight: does it anticipate future developments with indicators/decision points?\n"
             "Respond with strict JSON: "
             '{"rating": <1-10>, "reason": "<brief reason>", "criteria": {"factual_consistency": <0-1>,'
             ' "language_quality": <0-1>, "format_compliance": <0-1>, "doctrinal_alignment": <0-1>,'
-            ' "degraded_input_handling": <0-1>}}\n'
+            ' "degraded_input_handling": <0-1>, "doctrinal_novelty": <0-1>,'
+            ' "strategic_effectiveness": <0-1>, "autonomous_decision_value": <0-1>,'
+            ' "cross_theater_awareness": <0-1>, "predictive_insight": <0-1>}}\n'
             f"Sample output:\n{sample}"
         )
+
+    def _build_api_prompt(self, request: VerdictRequest, sample_text: str) -> str:
+        """Backward-compatible prompt builder alias."""
+        return self._build_prompt(request=request, sample_text=sample_text, validation_stage="cpu_stage1")
 
     def _move_request_to_lane(self, request: VerdictRequest, verdict: Verdict, lane: str) -> None:
         if lane not in {"approved", "rejected"}:
@@ -551,6 +638,141 @@ class GrokValidationOracle:
         marker_score = 1.0 if marker_hit else 0.5
         return round((0.7 * metric_score) + (0.3 * marker_score), 4)
 
+    def _score_doctrinal_novelty(self, sample_text: str, eval_scores: dict[str, float]) -> float:
+        metric_score = self._score_metric(
+            eval_scores,
+            ("doctrinal_novelty", "novelty", "ttp_novelty", "innovation", "overall"),
+            0.5,
+        )
+        text = (sample_text or "").lower()
+        novel_markers = (
+            "novel",
+            "new ttp",
+            "non-doctrinal",
+            "unconventional",
+            "adaptive doctrine",
+            "emergent tactic",
+            "deception plan",
+            "cross-domain feint",
+        )
+        derivative_markers = (
+            "standard operating procedure",
+            "according to doctrine",
+            "as per field manual",
+            "follow existing doctrine",
+            "routine response",
+        )
+        novelty_signal = 0.5 + (0.1 * sum(marker in text for marker in novel_markers))
+        novelty_signal -= 0.18 * sum(marker in text for marker in derivative_markers)
+        if len(text.split()) < 30:
+            novelty_signal = min(novelty_signal, 0.3)
+        novelty_signal = self._clamp(novelty_signal, 0.0, 1.0)
+        return round((0.6 * metric_score) + (0.4 * novelty_signal), 4)
+
+    def _score_strategic_effectiveness(self, sample_text: str, eval_scores: dict[str, float]) -> float:
+        metric_score = self._score_metric(
+            eval_scores,
+            ("strategic_effectiveness", "strategy_quality", "operational_soundness", "overall"),
+            0.55,
+        )
+        text = (sample_text or "").lower()
+        strategic_markers = (
+            "second-order",
+            "third-order",
+            "logistics",
+            "sustainment",
+            "escalation",
+            "countermeasure",
+            "reserve",
+            "risk mitigation",
+            "branch and sequel",
+        )
+        flawed_markers = (
+            "no risk",
+            "guaranteed victory",
+            "without opposition",
+            "ignore logistics",
+            "no contingencies",
+        )
+        strategic_signal = 0.4 + (0.07 * sum(marker in text for marker in strategic_markers))
+        strategic_signal -= 0.2 * sum(marker in text for marker in flawed_markers)
+        strategic_signal = self._clamp(strategic_signal, 0.0, 1.0)
+        return round((0.65 * metric_score) + (0.35 * strategic_signal), 4)
+
+    def _score_autonomous_decision_value(self, sample_text: str, eval_scores: dict[str, float]) -> float:
+        metric_score = self._score_metric(
+            eval_scores,
+            ("autonomous_decision_value", "decision_readiness", "actionability", "overall"),
+            0.55,
+        )
+        text = (sample_text or "").lower()
+        action_markers = (
+            "recommended coa",
+            "go/no-go",
+            "decision point",
+            "if/then",
+            "execute immediately",
+            "priority 1",
+            "commander action",
+            "trigger condition",
+        )
+        delay_markers = (
+            "requires additional analysis",
+            "consult staff",
+            "insufficient information",
+            "defer decision",
+            "wait for confirmation",
+        )
+        action_signal = 0.4 + (0.08 * sum(marker in text for marker in action_markers))
+        action_signal -= 0.15 * sum(marker in text for marker in delay_markers)
+        action_signal = self._clamp(action_signal, 0.0, 1.0)
+        return round((0.65 * metric_score) + (0.35 * action_signal), 4)
+
+    def _score_cross_theater_awareness(self, sample_text: str, eval_scores: dict[str, float]) -> float:
+        metric_score = self._score_metric(
+            eval_scores,
+            ("cross_theater_awareness", "multi_theater_awareness", "intertheater_effects", "overall"),
+            0.5,
+        )
+        text = (sample_text or "").lower()
+        theaters = {
+            "middle_east": ("centcom", "red sea", "gulf", "houthi", "levant"),
+            "europe": ("eucom", "black sea", "baltic", "eastern europe"),
+            "indo_pacific": ("indopacom", "south china sea", "taiwan strait", "pacific"),
+            "africa": ("africom", "sahel", "horn of africa"),
+        }
+        theater_hits = sum(any(marker in text for marker in markers) for markers in theaters.values())
+        theater_signal = self._clamp((theater_hits - 1) / 2.0, 0.0, 1.0) if theater_hits else 0.0
+        return round((0.6 * metric_score) + (0.4 * theater_signal), 4)
+
+    def _score_predictive_insight(self, sample_text: str, eval_scores: dict[str, float]) -> float:
+        metric_score = self._score_metric(
+            eval_scores,
+            ("predictive_insight", "forecast_quality", "early_warning", "overall"),
+            0.5,
+        )
+        text = (sample_text or "").lower()
+        predictive_markers = (
+            "likely",
+            "anticipated",
+            "forecast",
+            "early warning indicator",
+            "decision point",
+            "next 24",
+            "next 72",
+            "trigger to watch",
+        )
+        reactive_markers = (
+            "already happened",
+            "reported that",
+            "after action",
+            "historical summary",
+        )
+        predictive_signal = 0.35 + (0.08 * sum(marker in text for marker in predictive_markers))
+        predictive_signal -= 0.12 * sum(marker in text for marker in reactive_markers)
+        predictive_signal = self._clamp(predictive_signal, 0.0, 1.0)
+        return round((0.65 * metric_score) + (0.35 * predictive_signal), 4)
+
     def _structured_marker_score(self, sample_text: str) -> float:
         stripped = (sample_text or "").strip()
         if not stripped:
@@ -570,12 +792,18 @@ class GrokValidationOracle:
         return 0.3
 
     def _score_threshold_compliance(self, eval_scores: dict[str, float], thresholds: dict[str, float]) -> float:
+        if not eval_scores:
+            # Tactical context: missing eval metadata should be treated as unknown, not automatic failure.
+            return 0.75
         scoped_thresholds = {
             metric: threshold
             for metric, threshold in thresholds.items()
             if metric != "overall"
         }
         if not scoped_thresholds:
+            return 0.75
+        # Metadata can be missing for certain API-review payloads; avoid auto-failing those.
+        if not eval_scores:
             return 0.75
         met = 0
         total = len(scoped_thresholds)
@@ -635,13 +863,33 @@ class GrokValidationOracle:
         if not isinstance(criteria_payload, dict):
             criteria_payload = {}
         normalized: dict[str, float] = {}
+        key_aliases = {
+            "factual_consistency": "factual_consistency",
+            "language_quality": "language_quality",
+            "format_compliance": "format_compliance",
+            "doctrinal_alignment": "doctrinal_alignment",
+            "degraded_input_handling": "degraded_input_handling",
+            "doctrinal_novelty": "doctrinal_novelty",
+            "ttp_novelty": "doctrinal_novelty",
+            "novelty": "doctrinal_novelty",
+            "strategic_effectiveness": "strategic_effectiveness",
+            "strategy_quality": "strategic_effectiveness",
+            "autonomous_decision_value": "autonomous_decision_value",
+            "decision_readiness": "autonomous_decision_value",
+            "cross_theater_awareness": "cross_theater_awareness",
+            "multi_theater_awareness": "cross_theater_awareness",
+            "predictive_insight": "predictive_insight",
+            "forecast_quality": "predictive_insight",
+        }
         for key, value in criteria_payload.items():
             if not isinstance(value, (int, float)):
                 continue
             numeric = float(value)
             if numeric > 1.0:
                 numeric = numeric / 10.0
-            normalized[str(key)] = self._clamp(numeric, 0.0, 1.0)
+            normalized_key = str(key).strip().lower().replace("-", "_").replace(" ", "_")
+            canonical_key = key_aliases.get(normalized_key, normalized_key)
+            normalized[canonical_key] = self._clamp(numeric, 0.0, 1.0)
 
         required_keys = (
             "factual_consistency",
@@ -649,10 +897,38 @@ class GrokValidationOracle:
             "format_compliance",
             "doctrinal_alignment",
             "degraded_input_handling",
+            "doctrinal_novelty",
+            "strategic_effectiveness",
+            "autonomous_decision_value",
+            "cross_theater_awareness",
+            "predictive_insight",
         )
         for key in required_keys:
             normalized.setdefault(key, fallback_score)
         return normalized
+
+    def _normalize_stage_name(self, stage_name: str) -> str:
+        normalized = str(stage_name or "").strip().lower()
+        if normalized in self._CANONICAL_STAGES:
+            return normalized
+        if normalized in self._LEGACY_STAGE_ALIASES:
+            return self._LEGACY_STAGE_ALIASES[normalized]
+        return "cpu_stage1"
+
+    def _resolve_validation_stage(self, request: VerdictRequest, validation_stage: str = "") -> str:
+        cached_payload = self._request_payload_cache.get(request.artifact_id, {})
+        candidate = (
+            str(validation_stage).strip()
+            or str(cached_payload.get("validation_stage", "")).strip()
+            or "cpu_stage1"
+        )
+        return self._normalize_stage_name(candidate)
+
+    def _stage_gate(self, validation_stage: str) -> dict[str, float]:
+        stage = self._normalize_stage_name(validation_stage)
+        if stage == "gpu_stage2":
+            return {"required_score": 0.70, "novelty_minimum": 0.5}
+        return {"required_score": 0.55, "novelty_minimum": 0.3}
 
     def _list_keys(self, prefix: str) -> list[str]:
         connector = self.object_storage_connector
@@ -758,12 +1034,7 @@ class GrokValidationOracle:
 
     def _append_validation_log(self, request: VerdictRequest, verdict: Verdict, validation_stage: str = "") -> None:
         self._validation_log_path.parent.mkdir(parents=True, exist_ok=True)
-        cached_payload = self._request_payload_cache.get(request.artifact_id, {})
-        stage_name = (
-            str(validation_stage).strip()
-            or str(cached_payload.get("validation_stage", "")).strip()
-            or "unspecified"
-        )
+        stage_name = self._resolve_validation_stage(request=request, validation_stage=validation_stage)
         payload = {
             "artifact_id": request.artifact_id,
             "engine_id": request.engine_id,

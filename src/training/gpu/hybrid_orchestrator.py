@@ -353,9 +353,9 @@ class HybridOrchestrator:
         )
         self._write_json(
             f"grok-verdicts/pending/{job.job_id}-stage2.request.json",
-            {**asdict(request), "validation_stage": "stage_2_gpu"},
+            {**asdict(request), "validation_stage": "gpu_stage2"},
         )
-        verdict = self._oracle.evaluate_artifact(request, validation_stage="stage_2_gpu")
+        verdict = self._oracle.evaluate_artifact(request, validation_stage="gpu_stage2")
         gate_passed, gate_reason = self._promotion_gate_passed(job=job, score=verdict.score)
         passed = bool(verdict.passed) and gate_passed
         if passed:
@@ -426,7 +426,7 @@ class HybridOrchestrator:
             "job_id": job.job_id,
             "source_adapter_key": enhanced_adapter_key,
             "artifact_key": destination_key,
-            "validation_stage": "stage_2_gpu",
+            "validation_stage": "gpu_stage2",
         }
         metadata_key = f"{destination_prefix}/{Path(artifact_name).stem}.metadata.json"
         self._write_json(metadata_key, metadata)
