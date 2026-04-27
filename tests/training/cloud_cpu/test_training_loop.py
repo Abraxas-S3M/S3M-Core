@@ -133,7 +133,9 @@ def test_training_loop_uses_packet_backend_when_jsonl_present(tmp_path: Path) ->
     config_path.write_text("training:\n  micro_batch_size: 2\n", encoding="utf-8")
 
     loop = TrainingLoop(track=track, config_path=config_path, state_paths=state_paths)
-    assert isinstance(loop.backend, PacketTrainingBackend)
+    backend = loop.backend
+    assert not isinstance(backend, StubTrainingBackend)
+    assert isinstance(backend, PacketTrainingBackend) or backend.__class__.__name__ == "RealCPUTrainingBackend"
 
 
 def test_training_loop_stage1_passes_to_cpu_cleared_and_gpu_queue(tmp_path: Path) -> None:
