@@ -349,8 +349,24 @@ class TrainingLoop:
     ) -> TrainingBackend:
         if backend is not None:
             return backend
-        if TrainingLoop._scenarios_have_jsonl_packets(scenarios_dir):
+        try:
+            from src.training.cloud_cpu.real_backend import RealCPUTrainingBackend
+
+            return RealCPUTrainingBackend(track=track)
+        except Exception as exc:
+            logger.warning(
+                "RealCPUTrainingBackend unavailable for track=%s; falling back to packet backend: %s",
+                track,
+                exc,
+            )
+        try:
             return PacketTrainingBackend(track=track)
+        except Exception as exc:
+            logger.warning(
+                "PacketTrainingBackend unavailable for track=%s; falling back to stub backend: %s",
+                track,
+                exc,
+            )
         return StubTrainingBackend(track=track)
 
     def _maybe_upgrade_backend(self) -> None:
