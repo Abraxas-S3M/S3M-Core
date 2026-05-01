@@ -1,0 +1,567 @@
+{
+  "catalog_version": "saudi_mod.v1",
+  "datasets": [
+    {
+      "dataset_id": "acled-saudi-conflict",
+      "name": "ACLED Saudi Conflict Events",
+      "description": "Event-level conflict and political violence timelines aligned to Saudi and regional threat monitoring.",
+      "r2_prefix": "datasets/core/acled/saudi_conflict/",
+      "r2_keys": [
+        "acled_saudi_events_2020_2026.csv",
+        "acled_gulf_events_rolling.parquet"
+      ],
+      "formats": [
+        "csv",
+        "parquet"
+      ],
+      "source": "ACLED",
+      "provenance": "official_export_with_internal_normalization",
+      "geography": "saudi_arabia_gcc",
+      "language": "english",
+      "temporal_coverage": "2018-present",
+      "operational_domains": [
+        "intelligence",
+        "cop",
+        "risk",
+        "geospatial"
+      ],
+      "supported_scenario_domains": [
+        "risk_readiness",
+        "cop_intel",
+        "urban_asymmetric_hybrid",
+        "critical_infrastructure_protection",
+        "border_security",
+        "maritime_security",
+        "counter_uas"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod"
+      ],
+      "supported_packet_types": [
+        "command",
+        "cop_intel",
+        "risk_readiness"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "controlled_unclassified",
+      "source_reliability": "high",
+      "update_frequency": "weekly",
+      "artifact_outputs_supported": [
+        "risk_forecast",
+        "cop_overlay",
+        "incident_digest"
+      ],
+      "target_artifact_rooms": [
+        "room_risk_readiness",
+        "room_intel_fusion"
+      ],
+      "routing_priority": 95,
+      "enabled": true
+    },
+    {
+      "dataset_id": "gdelt-events-global-mena",
+      "name": "GDELT Gulf Event and Media Stream",
+      "description": "Open-source event and media signal feed for GCC narrative and escalation trend detection.",
+      "r2_prefix": "datasets/core/gdelt/gulf/",
+      "formats": [
+        "csv",
+        "jsonl"
+      ],
+      "source": "GDELT",
+      "provenance": "public_feed_snapshot_curated_offline",
+      "geography": "mena_global",
+      "language": "multilingual",
+      "temporal_coverage": "2015-present",
+      "operational_domains": [
+        "intelligence",
+        "cop",
+        "information_operations"
+      ],
+      "supported_scenario_domains": [
+        "cop_intel",
+        "risk_readiness",
+        "information_operations",
+        "strategic_deterrence",
+        "urban_asymmetric_hybrid",
+        "civil_military_coordination"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "cop_intel",
+        "risk_readiness",
+        "bilingual"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "open_source",
+      "source_reliability": "medium",
+      "update_frequency": "daily",
+      "artifact_outputs_supported": [
+        "cop_overlay",
+        "risk_forecast",
+        "narrative_shift_report"
+      ],
+      "target_artifact_rooms": [
+        "room_intel_fusion",
+        "room_risk_readiness"
+      ],
+      "routing_priority": 82,
+      "enabled": true
+    },
+    {
+      "dataset_id": "ucdp-ged-saudi-yemen",
+      "name": "UCDP Conflict Dynamics Series",
+      "description": "Structured conflict datasets for historical trend baselines and escalation probability estimation.",
+      "r2_prefix": "datasets/core/ucdp/conflict_series/",
+      "formats": [
+        "csv",
+        "parquet"
+      ],
+      "source": "UCDP",
+      "provenance": "official_release_snapshot_normalized",
+      "geography": "global_mena",
+      "language": "english",
+      "temporal_coverage": "1989-present",
+      "operational_domains": [
+        "risk",
+        "intelligence",
+        "doctrine"
+      ],
+      "supported_scenario_domains": [
+        "risk_readiness",
+        "strategic_deterrence",
+        "urban_asymmetric_hybrid",
+        "counter_terrorism"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "risk_readiness",
+        "cop_intel"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "open_source",
+      "source_reliability": "high",
+      "update_frequency": "monthly",
+      "artifact_outputs_supported": [
+        "risk_forecast",
+        "doctrine_delta"
+      ],
+      "target_artifact_rooms": [
+        "room_risk_readiness",
+        "room_ops_cop"
+      ],
+      "routing_priority": 74,
+      "enabled": true
+    },
+    {
+      "dataset_id": "alghafa-arabic-benchmark",
+      "name": "AlGhaFa Arabic Tactical NLP Benchmark",
+      "description": "Arabic benchmark corpus to evaluate bilingual command comprehension and military-domain terminology handling.",
+      "r2_prefix": "datasets/core/algahfa/benchmark/",
+      "formats": [
+        "json",
+        "jsonl"
+      ],
+      "source": "AlGhaFa",
+      "provenance": "benchmark_release_with_internal_labels",
+      "geography": "arabic_language_space",
+      "language": "arabic",
+      "temporal_coverage": "static_benchmark",
+      "operational_domains": [
+        "language",
+        "command",
+        "readiness"
+      ],
+      "supported_scenario_domains": [
+        "bilingual",
+        "training_exercise_evaluation",
+        "risk_readiness",
+        "cop_intel"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "bilingual",
+        "command",
+        "cop_intel"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "controlled_unclassified",
+      "source_reliability": "high",
+      "update_frequency": "quarterly",
+      "artifact_outputs_supported": [
+        "bilingual_quality_report",
+        "command_brief"
+      ],
+      "target_artifact_rooms": [
+        "room_bilingual_briefs",
+        "room_ops_cop"
+      ],
+      "routing_priority": 90,
+      "enabled": true
+    },
+    {
+      "dataset_id": "arabic-wikipedia-text",
+      "name": "Arabic Wikipedia and Parallel Text",
+      "description": "Broad Arabic text baseline with selected bilingual alignments for lexical coverage and style adaptation.",
+      "r2_prefix": "datasets/core/arabic_text/wiki_parallel/",
+      "formats": [
+        "jsonl",
+        "txt"
+      ],
+      "source": "Wikipedia_and_curated_parallel_text",
+      "provenance": "offline_dump_and_internal_curation",
+      "geography": "global",
+      "language": "arabic_english_bilingual",
+      "temporal_coverage": "rolling_dump",
+      "operational_domains": [
+        "language",
+        "information_operations"
+      ],
+      "supported_scenario_domains": [
+        "bilingual",
+        "information_operations",
+        "training_exercise_evaluation"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "bilingual",
+        "command"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "open_source",
+      "source_reliability": "medium",
+      "update_frequency": "monthly",
+      "artifact_outputs_supported": [
+        "bilingual_quality_report",
+        "lexicon_delta"
+      ],
+      "target_artifact_rooms": [
+        "room_bilingual_briefs"
+      ],
+      "routing_priority": 76,
+      "enabled": true
+    },
+    {
+      "dataset_id": "nsl-kdd-network-intrusion",
+      "name": "NSL-KDD Intrusion Detection Baseline",
+      "description": "Classic intrusion detection dataset used as a normalized baseline for cyber packet routing tests.",
+      "r2_prefix": "datasets/core/cyber/nsl_kdd/",
+      "formats": [
+        "csv"
+      ],
+      "source": "NSL-KDD",
+      "provenance": "public_dataset_airgap_import",
+      "geography": "synthetic_network",
+      "language": "numeric_labels",
+      "temporal_coverage": "static",
+      "operational_domains": [
+        "cyber",
+        "threat_intelligence"
+      ],
+      "supported_scenario_domains": [
+        "cyber_electronic_warfare",
+        "critical_infrastructure_protection",
+        "force_protection"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "cop_intel",
+        "risk_readiness"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "controlled_unclassified",
+      "source_reliability": "medium",
+      "update_frequency": "static",
+      "artifact_outputs_supported": [
+        "cyber_threat_digest",
+        "risk_forecast"
+      ],
+      "target_artifact_rooms": [
+        "room_cyber_ew",
+        "room_risk_readiness"
+      ],
+      "routing_priority": 84,
+      "enabled": true
+    },
+    {
+      "dataset_id": "misp-cisa-mitre-oscd-cyber",
+      "name": "MISP CISA MITRE OSCD Cyber Corpus",
+      "description": "Merged cyber threat intelligence corpus spanning indicators, ATT&CK techniques, advisories, and campaign narratives.",
+      "r2_prefix": "datasets/core/cyber/misp_cisa_mitre_oscd/",
+      "formats": [
+        "json",
+        "jsonl",
+        "stix"
+      ],
+      "source": "MISP_CISA_MITRE_OSCD",
+      "provenance": "curated_bundle_signed_snapshot",
+      "geography": "global_with_gcc_focus",
+      "language": "english",
+      "temporal_coverage": "rolling_24_months",
+      "operational_domains": [
+        "cyber",
+        "electronic_warfare",
+        "threat_intelligence",
+        "critical_infrastructure"
+      ],
+      "supported_scenario_domains": [
+        "cyber_electronic_warfare",
+        "critical_infrastructure_protection",
+        "force_protection",
+        "critical_infrastructure_protection"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "cop_intel",
+        "risk_readiness",
+        "command"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "controlled_unclassified",
+      "source_reliability": "high",
+      "update_frequency": "daily",
+      "artifact_outputs_supported": [
+        "cyber_threat_digest",
+        "cop_overlay",
+        "risk_forecast"
+      ],
+      "target_artifact_rooms": [
+        "room_cyber_ew",
+        "room_intel_fusion",
+        "room_risk_readiness"
+      ],
+      "routing_priority": 93,
+      "enabled": true
+    },
+    {
+      "dataset_id": "drone-aircraft-vehicle-imagery",
+      "name": "Drone Aircraft Vehicle Imagery Bundle",
+      "description": "Annotated ISR imagery for drone, aircraft, and tactical vehicle detection and scene understanding.",
+      "r2_prefix": "datasets/core/imagery/drone_aircraft_vehicle/",
+      "formats": [
+        "jpg",
+        "png",
+        "geojson"
+      ],
+      "source": "mixed_open_and_internal_labels",
+      "provenance": "offline_curated_imagery_bundle",
+      "geography": "saudi_arabia_gcc",
+      "language": "image_labels_bilingual",
+      "temporal_coverage": "2019-present",
+      "operational_domains": [
+        "isr",
+        "geospatial",
+        "cop",
+        "counter_uas"
+      ],
+      "supported_scenario_domains": [
+        "cop_intel",
+        "counter_uas",
+        "air_defense",
+        "maritime_security",
+        "urban_asymmetric_hybrid",
+        "force_protection"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod"
+      ],
+      "supported_packet_types": [
+        "cop_intel",
+        "command"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "controlled_unclassified",
+      "source_reliability": "high",
+      "update_frequency": "weekly",
+      "artifact_outputs_supported": [
+        "cop_overlay",
+        "target_board",
+        "surveillance_timeline"
+      ],
+      "target_artifact_rooms": [
+        "room_intel_fusion"
+      ],
+      "routing_priority": 88,
+      "enabled": true
+    },
+    {
+      "dataset_id": "sipri-military-expenditure",
+      "name": "SIPRI Military Expenditure and Transfers",
+      "description": "Defense expenditure and arms-transfer trends supporting strategic readiness and deterrence analyses.",
+      "r2_prefix": "datasets/core/sipri/expenditure_transfers/",
+      "formats": [
+        "csv"
+      ],
+      "source": "SIPRI",
+      "provenance": "official_release_snapshot",
+      "geography": "global_mena",
+      "language": "english",
+      "temporal_coverage": "2000-present",
+      "operational_domains": [
+        "readiness",
+        "logistics",
+        "strategic_planning"
+      ],
+      "supported_scenario_domains": [
+        "strategic_deterrence",
+        "risk_readiness",
+        "logistics_sustainment",
+        "c4isr_resilience"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "risk_readiness",
+        "command"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "open_source",
+      "source_reliability": "high",
+      "update_frequency": "annual",
+      "artifact_outputs_supported": [
+        "risk_forecast",
+        "sustainment_kpi"
+      ],
+      "target_artifact_rooms": [
+        "room_risk_readiness",
+        "room_logistics_sustainment"
+      ],
+      "routing_priority": 65,
+      "enabled": true
+    },
+    {
+      "dataset_id": "logistics-csv-core",
+      "name": "Logistics Sustainment CSV Bundle",
+      "description": "Supply, maintenance, and convoy sustainment CSV feeds for readiness and logistics packet assembly.",
+      "r2_prefix": "datasets/core/logistics/csv_bundle/",
+      "formats": [
+        "csv"
+      ],
+      "source": "internal_logistics_exports",
+      "provenance": "signed_internal_exports",
+      "geography": "saudi_arabia",
+      "language": "english_arabic_bilingual",
+      "temporal_coverage": "rolling_12_months",
+      "operational_domains": [
+        "logistics",
+        "sustainment",
+        "readiness",
+        "supply_chain"
+      ],
+      "supported_scenario_domains": [
+        "logistics_sustainment",
+        "risk_readiness",
+        "humanitarian_assistance_disaster_relief",
+        "civil_military_coordination"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod"
+      ],
+      "supported_packet_types": [
+        "risk_readiness",
+        "command",
+        "bilingual"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "restricted",
+      "source_reliability": "high",
+      "update_frequency": "daily",
+      "artifact_outputs_supported": [
+        "sustainment_kpi",
+        "readiness_dashboard_snapshot",
+        "command_brief"
+      ],
+      "target_artifact_rooms": [
+        "room_logistics_sustainment",
+        "room_risk_readiness",
+        "room_ops_cop"
+      ],
+      "routing_priority": 92,
+      "enabled": true
+    },
+    {
+      "dataset_id": "tactical-reasoning-parquet-prefixes",
+      "name": "Tactical Reasoning Parquet Prefixes",
+      "description": "Curated reasoning traces and decision-context parquet slices for tactical command and risk analysis tasks.",
+      "r2_prefix": "datasets/core/reasoning/tactical_parquet/",
+      "formats": [
+        "parquet"
+      ],
+      "source": "internal_reasoning_pipeline",
+      "provenance": "offline_curated_and_redacted",
+      "geography": "multi_theater",
+      "language": "english_arabic_bilingual",
+      "temporal_coverage": "2021-present",
+      "operational_domains": [
+        "command",
+        "risk",
+        "doctrine",
+        "wargaming"
+      ],
+      "supported_scenario_domains": [
+        "risk_readiness",
+        "cop_intel",
+        "urban_asymmetric_hybrid",
+        "decision_support_wargaming",
+        "strategic_deterrence",
+        "bilingual"
+      ],
+      "supported_training_tracks": [
+        "saudi_mod",
+        "shared"
+      ],
+      "supported_packet_types": [
+        "command",
+        "risk_readiness",
+        "cop_intel",
+        "bilingual"
+      ],
+      "parser_status": "not_started",
+      "embedding_status": "not_started",
+      "data_sensitivity": "restricted",
+      "source_reliability": "high",
+      "update_frequency": "weekly",
+      "artifact_outputs_supported": [
+        "command_brief",
+        "risk_forecast",
+        "bilingual_quality_report"
+      ],
+      "target_artifact_rooms": [
+        "room_ops_cop",
+        "room_risk_readiness",
+        "room_bilingual_briefs"
+      ],
+      "routing_priority": 94,
+      "enabled": true
+    }
+  ]
+}

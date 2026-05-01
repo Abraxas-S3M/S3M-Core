@@ -1,0 +1,14 @@
+{
+  "rooms": [
+    "room_ops_cop",
+    "room_intel_fusion",
+    "room_risk_readiness",
+    "room_cyber_ew",
+    "room_logistics_sustainment",
+    "room_bilingual_briefs",
+    "room_geospatial",
+    "room_reference",
+    "room_training_packets",
+    "room_validation"
+  ]
+}
