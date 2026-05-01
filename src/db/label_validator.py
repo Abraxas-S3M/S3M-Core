@@ -305,7 +305,7 @@ class LabelValidator:
             payload = {}
 
         scenario_defaults, track_defaults = self._parse_defaults_payload(payload)
-        if scenario_defaults:
+        if scenario_defaults or track_defaults:
             return scenario_defaults, track_defaults
         return self._parse_defaults_payload(_BUILTIN_DEFAULTS)
 
