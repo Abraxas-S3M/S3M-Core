@@ -1,0 +1,33 @@
+{
+  "version": "saudi_mod.v1",
+  "scenario_domains": [
+    "risk_readiness",
+    "cop_intel",
+    "urban_asymmetric_hybrid",
+    "cyber_electronic_warfare",
+    "logistics_sustainment",
+    "bilingual",
+    "maritime_security",
+    "air_defense",
+    "critical_infrastructure_protection",
+    "border_security",
+    "counter_uas",
+    "joint_force_coordination",
+    "counter_terrorism",
+    "integrated_air_missile_defense",
+    "electromagnetic_spectrum_ops",
+    "c4isr_resilience",
+    "training_exercise_evaluation",
+    "force_protection",
+    "civil_military_coordination",
+    "humanitarian_assistance_disaster_relief",
+    "supply_chain_assurance",
+    "energy_infrastructure_security",
+    "naval_mine_countermeasures",
+    "joint_fires",
+    "strategic_deterrence",
+    "information_operations",
+    "decision_support_wargaming",
+    "medical_readiness"
+  ]
+}

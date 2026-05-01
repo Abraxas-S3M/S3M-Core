@@ -1,0 +1,5 @@
+{
+  "catalog_path": "catalog/datasets/saudi_mod.v1.json",
+  "ontology_path": "training/scenario_ontology/saudi_mod/v1/scenario_domains.json",
+  "artifact_rooms_path": "artifacts/rooms/room_registry.json"
+}
