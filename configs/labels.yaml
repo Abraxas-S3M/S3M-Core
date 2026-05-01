@@ -224,3 +224,201 @@ tracks:
         - new_location
         - time_window
         - status
+#
+# Tactical context: these label schemas enforce mission-safe data quality for
+# command, intelligence, and operations training corpora used by S3M-Engine.
+#
+version: "1.0"
+created_at: "2026-05-01T18:54:00Z"
+description: >
+  Canonical label specification for S3M-Engine training data. Defines label
+  types, required/optional policy, and validation constraints with per-track
+  applicability.
+
+schema:
+  extension_rule: >
+    Add new labels under labels.<name> and then reference them in
+    track_policies.<track>.required_labels or optional_labels. Do not rename
+    existing labels to preserve backward compatibility.
+  enforcement_order:
+    - type_check
+    - required_check
+    - enum_or_pattern_check
+    - range_or_length_check
+
+labels:
+  instruction:
+    type: string
+    required: true
+    description: "Mission prompt or tasking directive given to the model."
+    validation:
+      min_length: 3
+      max_length: 4000
+      disallow_only_whitespace: true
+
+  response:
+    type: string
+    required: true
+    description: "Model-generated answer intended for operational consumption."
+    validation:
+      min_length: 1
+      max_length: 8000
+      disallow_only_whitespace: true
+
+  context:
+    type: string
+    required: false
+    description: "Operational context, environment state, or mission background."
+    validation:
+      min_length: 0
+      max_length: 6000
+
+  priority:
+    type: string
+    required: false
+    description: "Task urgency for command and operations routing."
+    validation:
+      allowed_values:
+        - low
+        - medium
+        - high
+        - critical
+      case_sensitive: false
+
+  language:
+    type: string
+    required: false
+    description: "Primary language of the instruction/response pair."
+    validation:
+      allowed_values:
+        - ar
+        - en
+        - ar-en
+      case_sensitive: false
+
+  classification:
+    type: string
+    required: false
+    description: "Information handling level for intelligence and command outputs."
+    validation:
+      allowed_values:
+        - unclassified
+        - confidential
+        - secret
+        - top_secret
+      case_sensitive: false
+
+  confidence:
+    type: int
+    required: false
+    description: "Confidence score in percent for intelligence assessments."
+    validation:
+      minimum: 0
+      maximum: 100
+
+  source_type:
+    type: string
+    required: false
+    description: "Origin of intelligence information used in the scenario."
+    validation:
+      allowed_values:
+        - humint
+        - sigint
+        - osint
+        - geoint
+        - imint
+        - masint
+        - multi_source
+      case_sensitive: false
+
+  threat_level:
+    type: string
+    required: false
+    description: "Assessed adversary threat severity."
+    validation:
+      allowed_values:
+        - minimal
+        - elevated
+        - severe
+        - imminent
+      case_sensitive: false
+
+  authority_level:
+    type: string
+    required: false
+    description: "Command authority tier issuing or approving directives."
+    validation:
+      allowed_values:
+        - unit
+        - regional
+        - strategic
+        - ministerial
+      case_sensitive: false
+
+  coalition_flag:
+    type: bool
+    required: false
+    description: "True when coalition partner coordination is involved."
+    validation:
+      allowed_values:
+        - true
+        - false
+
+  grid_reference:
+    type: string
+    required: false
+    description: "Map grid coordinate for tactical location references."
+    validation:
+      pattern: "^[A-Z]{2}[0-9]{6,10}$"
+      examples:
+        - "AB123456"
+        - "CD12345678"
+
+  unit_callsign:
+    type: string
+    required: false
+    description: "Radio callsign identifying the reporting or tasked unit."
+    validation:
+      min_length: 2
+      max_length: 32
+      pattern: "^[A-Z0-9_-]+$"
+
+track_policies:
+  general:
+    required_labels:
+      - instruction
+      - response
+      - context
+      - priority
+      - language
+    optional_labels: []
+
+  cop_intel:
+    required_labels:
+      - instruction
+      - response
+      - classification
+      - confidence
+      - source_type
+      - threat_level
+    optional_labels: []
+
+  saudi_mod:
+    required_labels:
+      - instruction
+      - response
+      - context
+      - authority_level
+      - classification
+      - coalition_flag
+    optional_labels: []
+
+  operations:
+    required_labels:
+      - instruction
+      - response
+      - context
+      - priority
+      - grid_reference
+      - unit_callsign
+    optional_labels: []
