@@ -1,0 +1,11 @@
+psycopg2-binary
+boto3
+pyyaml
+python-dotenv
+transformers
+torch
+datasets
+accelerate
+runpod
+pytest
+pytest-mock
