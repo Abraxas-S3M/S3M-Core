@@ -39,7 +39,7 @@ class FakeR2Client:
         return {"remote_key": remote_key, "size_bytes": len(self.objects[remote_key])}
 
 
-class TestableTrainRunner(TrainRunner):
+class _TrainRunnerHarness(TrainRunner):
     """Test harness that overrides RunPod HTTP interactions."""
 
     def __init__(self, db_conn: Any, r2_client: Any) -> None:
@@ -66,11 +66,11 @@ def train_runner_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("RUNPOD_ENDPOINT_ID", "test-endpoint")
 
 
-def _runner_with_fakes() -> tuple[TestableTrainRunner, FakeR2Client]:
+def _runner_with_fakes() -> tuple[_TrainRunnerHarness, FakeR2Client]:
     db = sqlite3.connect(":memory:")
     db.row_factory = sqlite3.Row
     fake_r2 = FakeR2Client()
-    return TestableTrainRunner(db_conn=db, r2_client=fake_r2), fake_r2
+    return _TrainRunnerHarness(db_conn=db, r2_client=fake_r2), fake_r2
 
 
 def test_submit_job_uploads_packets_and_persists_job(
