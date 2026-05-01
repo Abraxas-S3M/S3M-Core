@@ -1,0 +1,182 @@
+#
+# Tactical context: this map defines how training samples are labeled across
+# command, intelligence, and field operations so mission-critical model behavior
+# remains consistent during military scenario fine-tuning.
+#
+version: "1.0"
+created_at: "2026-05-01T18:54:00Z"
+description: >
+  S3M-Engine track catalog with full track -> scenario -> labels mapping.
+  The structure is stable for backward compatibility and supports safe extension
+  by adding new scenarios under an existing track.
+
+schema:
+  scenario_entry_fields:
+    - labels
+    - description
+  extension_rule: >
+    Add new scenarios at tracks.<track_name>.scenarios.<scenario_name> and reuse
+    the track core label alias unless a vetted label superset is required.
+
+tracks:
+  general:
+    description: >
+      Core command-and-staff readiness scenarios focused on clear instruction
+      handling and multilingual communication discipline.
+    core_labels: &general_core
+      - instruction
+      - response
+      - context
+      - priority
+      - language
+    scenarios:
+      command:
+        labels: *general_core
+        description: "Command issuance and acknowledgement in tactical chains."
+      bilingual_comms:
+        labels: *general_core
+        description: "Arabic/English bilingual operational communication."
+      risk_readiness:
+        labels: *general_core
+        description: "Preparedness checks and risk posture reporting."
+      crisis_response:
+        labels: *general_core
+        description: "High-pressure incident response coordination."
+      tactical_comms:
+        labels: *general_core
+        description: "Short-form tactical comms under mission constraints."
+      leadership_brief:
+        labels: *general_core
+        description: "Leadership-facing brief composition and delivery."
+      field_assessment:
+        labels: *general_core
+        description: "Ground assessment reporting for situational updates."
+      decision_support:
+        labels: *general_core
+        description: "Structured recommendation support for commanders."
+      after_action_review:
+        labels: *general_core
+        description: "Post-mission review and corrective action capture."
+
+  cop_intel:
+    description: >
+      Common operational picture and intelligence scenarios emphasizing source
+      quality, confidence scoring, and threat interpretation.
+    core_labels: &cop_intel_core
+      - instruction
+      - response
+      - classification
+      - confidence
+      - source_type
+      - threat_level
+    scenarios:
+      threat_assessment:
+        labels: *cop_intel_core
+        description: "Threat ranking and probable intent estimation."
+      pattern_of_life:
+        labels: *cop_intel_core
+        description: "Pattern-of-life extraction from multi-source observations."
+      source_handling:
+        labels: *cop_intel_core
+        description: "Collection, handling, and source reliability workflows."
+      network_mapping:
+        labels: *cop_intel_core
+        description: "Relationship and influence network mapping."
+      counter_surveillance:
+        labels: *cop_intel_core
+        description: "Detection and mitigation of hostile surveillance."
+      human_terrain:
+        labels: *cop_intel_core
+        description: "Human terrain interpretation for mission planning."
+      signal_intelligence:
+        labels: *cop_intel_core
+        description: "Signal-derived intelligence synthesis and reporting."
+      target_development:
+        labels: *cop_intel_core
+        description: "Target package development and prioritization."
+      debrief_processing:
+        labels: *cop_intel_core
+        description: "Structured debrief analysis and intelligence extraction."
+
+  saudi_mod:
+    description: >
+      Saudi MOD strategic and joint-force scenarios focused on authority-aware
+      communication, coalition context, and classification-safe output.
+    core_labels: &saudi_mod_core
+      - instruction
+      - response
+      - context
+      - authority_level
+      - classification
+      - coalition_flag
+    scenarios:
+      strategic_command:
+        labels: *saudi_mod_core
+        description: "Strategic command directives and escalation framing."
+      logistics_coordination:
+        labels: *saudi_mod_core
+        description: "Strategic logistics synchronization across units."
+      strategic_comms:
+        labels: *saudi_mod_core
+        description: "Strategic messaging for military and civil interfaces."
+      force_protection:
+        labels: *saudi_mod_core
+        description: "Force protection posture planning and advisories."
+      joint_operations:
+        labels: *saudi_mod_core
+        description: "Joint operation planning across service branches."
+      intelligence_brief:
+        labels: *saudi_mod_core
+        description: "Classified intelligence briefing preparation."
+      border_security:
+        labels: *saudi_mod_core
+        description: "Border monitoring and interdiction coordination."
+      maritime_ops:
+        labels: *saudi_mod_core
+        description: "Maritime operation command-and-control exchange."
+      air_defense:
+        labels: *saudi_mod_core
+        description: "Air defense threat response and readiness reporting."
+      diplomatic_comms:
+        labels: *saudi_mod_core
+        description: "Diplomatic-military coordination communication."
+
+  operations:
+    description: >
+      Tactical and operational mission execution scenarios with strong emphasis
+      on precision tasking, location references, and callsign integrity.
+    core_labels: &operations_core
+      - instruction
+      - response
+      - context
+      - priority
+      - grid_reference
+      - unit_callsign
+    scenarios:
+      convoy_planning:
+        labels: *operations_core
+        description: "Convoy route, timing, and risk-managed planning."
+      urban_operations:
+        labels: *operations_core
+        description: "Urban operation sequencing and deconfliction."
+      checkpoint_ops:
+        labels: *operations_core
+        description: "Checkpoint establishment, screening, and reporting."
+      medevac_coordination:
+        labels: *operations_core
+        description: "MEDEVAC request handling and evacuation coordination."
+      fire_support:
+        labels: *operations_core
+        description: "Fire support request and authorization workflow."
+      engineering_ops:
+        labels: *operations_core
+        description: "Engineering tasking for mobility/countermobility support."
+      logistics_resupply:
+        labels: *operations_core
+        description: "Resupply planning and mission sustainment routing."
+      route_clearance:
+        labels: *operations_core
+        description: "Route clearance sequencing and hazard reporting."
+      personnel_recovery:
+        labels: *operations_core
+        description: "Personnel recovery coordination under contested conditions."
