@@ -1,3 +1,229 @@
+tracks:
+  general:
+    default_labels:
+      - intent
+      - location
+      - time_window
+      - asset
+      - priority
+      - confidence
+    scenarios:
+      convoy_brief:
+        - route
+        - threat_level
+        - asset
+        - time_window
+      checkpoint_screening:
+        - person
+        - vehicle
+        - risk_flag
+        - location
+      medevac_dispatch:
+        - casualty_count
+        - urgency
+        - pickup_zone
+        - asset
+      perimeter_watch:
+        - sector
+        - activity
+        - confidence
+        - time_window
+      route_recon:
+        - route
+        - obstacle
+        - threat_level
+        - location
+      supply_drop:
+        - asset
+        - cargo
+        - drop_zone
+        - eta
+      comms_degradation:
+        - network
+        - degradation_level
+        - time_window
+        - impact
+      civil_interaction:
+        - population_group
+        - location
+        - sentiment
+        - priority
+      training_rehearsal:
+        - objective
+        - unit
+        - readiness
+        - time_window
+
+  cop_intel:
+    default_labels:
+      - subject
+      - indicator
+      - source
+      - confidence
+      - time_window
+      - location
+    scenarios:
+      pattern_of_life:
+        - subject
+        - movement_pattern
+        - time_window
+        - confidence
+      hvt_tracking:
+        - subject
+        - last_seen
+        - location
+        - confidence
+      signal_intercept:
+        - signal_type
+        - origin
+        - indicator
+        - time_window
+      geospatial_anomaly:
+        - location
+        - anomaly_type
+        - indicator
+        - priority
+      source_reliability:
+        - source
+        - reliability
+        - indicator
+        - confidence
+      imagery_triage:
+        - imagery_type
+        - object
+        - location
+        - confidence
+      network_link_analysis:
+        - subject
+        - link_type
+        - indicator
+        - confidence
+      watchlist_refresh:
+        - subject
+        - status
+        - indicator
+        - priority
+      threat_corroboration:
+        - indicator
+        - source
+        - confidence
+        - time_window
+
+  saudi_mod:
+    default_labels:
+      - intent
+      - location
+      - time_window
+      - asset
+      - priority
+      - confidence
+      - arabic_text
+    scenarios:
+      gulf_port_security:
+        - location
+        - asset
+        - threat_level
+        - confidence
+      border_surveillance:
+        - sector
+        - activity
+        - indicator
+        - time_window
+      pilgrimage_crowd_safety:
+        - crowd_density
+        - location
+        - risk_flag
+        - priority
+      desert_convoy:
+        - route
+        - asset
+        - threat_level
+        - time_window
+      coastal_uav_intrusion:
+        - location
+        - uav_type
+        - indicator
+        - priority
+      critical_infrastructure:
+        - facility
+        - threat_level
+        - asset
+        - confidence
+      cross_border_smuggling:
+        - route
+        - cargo
+        - indicator
+        - source
+      oilfield_perimeter:
+        - facility
+        - sector
+        - activity
+        - time_window
+      bilingual_command_brief:
+        - arabic_text
+        - intent
+        - asset
+        - priority
+      rapid_response_qrf:
+        - unit
+        - objective
+        - location
+        - eta
+
+  operations:
+    default_labels:
+      - objective
+      - location
+      - time_window
+      - unit
+      - priority
+      - status
+    scenarios:
+      mission_planning:
+        - objective
+        - unit
+        - location
+        - time_window
+      fires_deconfliction:
+        - unit
+        - fires_zone
+        - time_window
+        - priority
+      cas_request:
+        - asset
+        - target_type
+        - location
+        - urgency
+      battle_damage_assessment:
+        - target
+        - damage_level
+        - confidence
+        - time_window
+      force_rotation:
+        - unit
+        - relief_unit
+        - location
+        - eta
+      logistics_resupply:
+        - unit
+        - cargo
+        - route
+        - eta
+      contingency_branch:
+        - objective
+        - trigger
+        - unit
+        - priority
+      tactical_withdrawal:
+        - unit
+        - route
+        - threat_level
+        - time_window
+      command_post_jump:
+        - unit
+        - new_location
+        - time_window
+        - status
 #
 # Tactical context: these label schemas enforce mission-safe data quality for
 # command, intelligence, and operations training corpora used by S3M-Engine.
