@@ -202,6 +202,10 @@ except Exception:
     demo_router = None
     demo_ws_endpoint = None
 try:
+    from src.cop.cop_routes import router as cop_router
+except Exception:
+    cop_router = None
+try:
     from src.edge_runtime.bootstrap import get_edge_runtime
 except Exception:
     get_edge_runtime = lambda: None
@@ -335,6 +339,7 @@ app.add_middleware(
     + [
         "https://s3m-gui.pages.dev",
         "https://*.s3m-gui.pages.dev",
+        "https://app.abraxas-s3m.com",
         "http://localhost:3000",
         "http://localhost:5173",
     ],
@@ -436,6 +441,8 @@ if demo_router:
     app.include_router(demo_router)
 if demo_ws_endpoint:
     app.add_api_websocket_route("/ws/demo-room", demo_ws_endpoint)
+if cop_router:
+    app.include_router(cop_router)
 # Bootstrap austere runtime before optional edge service managers are mounted.
 try:
     get_edge_runtime()
