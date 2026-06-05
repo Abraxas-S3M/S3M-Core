@@ -25,19 +25,31 @@ from .models import (
 
 
 ServiceRunner = Callable[[str, str], ServiceActionResult]
-DEFAULT_LOCAL_RUNTIME_URL = "http://172.17.0.1:8095"
+DEFAULT_LOCAL_RUNTIME_URL = "http://127.0.0.1:8095"
 LOCAL_RUNTIME_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_URL"
+LOCAL_RUNTIME_FALLBACK_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL"
 
 
 def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
-    raw_url = (local_runtime_url or os.getenv(LOCAL_RUNTIME_URL_ENV) or DEFAULT_LOCAL_RUNTIME_URL).strip()
+    raw_url = (local_runtime_url or "").strip()
+    source_name = "local_runtime_url"
+    if not raw_url:
+        for env_name in (LOCAL_RUNTIME_URL_ENV, LOCAL_RUNTIME_FALLBACK_URL_ENV):
+            raw_url = (os.getenv(env_name) or "").strip()
+            source_name = env_name
+            if raw_url:
+                break
+    if not raw_url:
+        raw_url = DEFAULT_LOCAL_RUNTIME_URL
+        source_name = "DEFAULT_LOCAL_RUNTIME_URL"
+
     parsed = urlparse(raw_url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must be an http(s) URL with a host")
+        raise ValueError(f"{source_name} must be an http(s) URL with a host")
     if parsed.username or parsed.password:
-        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must not include credentials")
+        raise ValueError(f"{source_name} must not include credentials")
     if parsed.query or parsed.fragment:
-        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must not include query strings or fragments")
+        raise ValueError(f"{source_name} must not include query strings or fragments")
     return raw_url.rstrip("/")
 
 
@@ -144,11 +156,16 @@ class RuntimeManager:
 
     def local_runtime_health(self) -> LocalRuntimeHealth:
         """Probe local runtime endpoint with bounded timeout."""
-        health_urls = [f"{self.local_runtime_url}/health", self.local_runtime_url]
+        health_urls = [self.local_runtime_url, f"{self.local_runtime_url}/health"]
+        last_error: str | None = None
+        last_status_code: int | None = None
+        last_endpoint = self.local_runtime_url
         for endpoint in health_urls:
             try:
                 response = requests.get(endpoint, timeout=self.request_timeout_seconds)
-                if response.status_code < 500:
+                last_endpoint = endpoint
+                last_status_code = response.status_code
+                if response.status_code == 200:
                     return LocalRuntimeHealth(
                         healthy=True,
                         status="healthy",
@@ -156,19 +173,20 @@ class RuntimeManager:
                         status_code=response.status_code,
                         detail="local runtime responded",
                     )
-                return LocalRuntimeHealth(
-                    healthy=False,
-                    status="unhealthy",
-                    endpoint=endpoint,
-                    status_code=response.status_code,
-                    detail="local runtime server error",
-                )
             except requests.RequestException as exc:
                 last_error = str(exc)
                 continue
+        if last_status_code is not None:
+            return LocalRuntimeHealth(
+                healthy=False,
+                status="unhealthy",
+                endpoint=last_endpoint,
+                status_code=last_status_code,
+                detail=f"local runtime returned HTTP {last_status_code}",
+            )
         return LocalRuntimeHealth(
             healthy=False,
             status="down",
-            endpoint=self.local_runtime_url,
-            detail=last_error if "last_error" in locals() else "local runtime unreachable",
+            endpoint=last_endpoint,
+            detail=last_error or "local runtime unreachable",
         )
