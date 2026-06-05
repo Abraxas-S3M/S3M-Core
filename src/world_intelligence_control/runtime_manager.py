@@ -10,7 +10,10 @@ from __future__ import annotations
 import subprocess
 import threading
 import time
+import os
+import shutil
 from typing import Callable
+from urllib.parse import urlparse
 
 import requests
 
@@ -22,6 +25,20 @@ from .models import (
 
 
 ServiceRunner = Callable[[str, str], ServiceActionResult]
+DEFAULT_LOCAL_RUNTIME_URL = "http://127.0.0.1:8095"
+LOCAL_RUNTIME_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_URL"
+
+
+def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
+    raw_url = (local_runtime_url or os.getenv(LOCAL_RUNTIME_URL_ENV) or DEFAULT_LOCAL_RUNTIME_URL).strip()
+    parsed = urlparse(raw_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must be an http(s) URL with a host")
+    if parsed.username or parsed.password:
+        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must not include credentials")
+    if parsed.query or parsed.fragment:
+        raise ValueError(f"{LOCAL_RUNTIME_URL_ENV} must not include query strings or fragments")
+    return raw_url.rstrip("/")
 
 
 class RuntimeManager:
@@ -29,14 +46,14 @@ class RuntimeManager:
 
     def __init__(
         self,
-        local_runtime_url: str = "http://127.0.0.1:8095",
+        local_runtime_url: str | None = None,
         service_name: str = "s3m-world-intelligence",
         request_timeout_seconds: float = 2.5,
         service_timeout_seconds: float = 5.0,
         fallback_enabled: bool = True,
         service_runner: ServiceRunner | None = None,
     ) -> None:
-        self.local_runtime_url = local_runtime_url.rstrip("/")
+        self.local_runtime_url = _configured_local_runtime_url(local_runtime_url)
         self.service_name = service_name
         self.request_timeout_seconds = request_timeout_seconds
         self.service_timeout_seconds = service_timeout_seconds
@@ -85,6 +102,12 @@ class RuntimeManager:
     def local_service_state(self) -> ServiceActionResult:
         return self._run_service_action("is-active")
 
+    def systemd_control_available(self) -> bool:
+        """Report whether this process can attempt host service control."""
+        if self._service_runner is not None:
+            return True
+        return shutil.which("systemctl") is not None
+
     def _run_service_action(self, action: str) -> ServiceActionResult:
         if self._service_runner is not None:
             return self._service_runner(action, self.service_name)
@@ -109,7 +132,7 @@ class RuntimeManager:
                 ok=False,
                 action=action,
                 service=self.service_name,
-                detail="systemctl unavailable on host",
+                detail="systemctl unavailable in API container",
             )
         except subprocess.TimeoutExpired:
             return ServiceActionResult(

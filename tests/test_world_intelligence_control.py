@@ -61,6 +61,31 @@ def test_runtime_manager_training_safe_stops_local(monkeypatch) -> None:
     assert blocked_restart.ok is False
 
 
+def test_runtime_manager_uses_configured_local_url(monkeypatch) -> None:
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://host.docker.internal:8095")
+
+    manager = RuntimeManager()
+
+    assert manager.local_runtime_url == "http://host.docker.internal:8095"
+
+
+def test_runtime_manager_reports_systemd_unavailable_in_container(monkeypatch) -> None:
+    monkeypatch.setattr("src.world_intelligence_control.runtime_manager.shutil.which", lambda name: None)
+
+    def missing_systemctl(*args: Any, **kwargs: Any):
+        _ = args, kwargs
+        raise FileNotFoundError()
+
+    monkeypatch.setattr("src.world_intelligence_control.runtime_manager.subprocess.run", missing_systemctl)
+    manager = RuntimeManager(local_runtime_url="http://host.docker.internal:8095")
+
+    result = manager.restart_local_runtime()
+
+    assert manager.systemd_control_available() is False
+    assert result.ok is False
+    assert result.detail == "systemctl unavailable in API container"
+
+
 def test_source_manager_switches_to_fallback_when_local_down() -> None:
     manager = RuntimeManager()
     manager.set_mode(WorldIntelligenceMode.LOCAL_SELF_HOSTED)
@@ -378,6 +403,8 @@ def test_world_intelligence_upstream_proxy_handles_options() -> None:
 def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://host.docker.internal:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
     monkeypatch.setattr(
         module_routes._source_manager,
         "resolve_source",
@@ -401,7 +428,9 @@ def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> No
     assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
     assert body["local_runtime_healthy"] is True
     assert body["fallback_available"] is True
-    assert body["runtime_url_selected"] == "http://127.0.0.1:8095"
+    assert body["configured_local_url"] == "http://host.docker.internal:8095"
+    assert body["systemd_control_available"] is False
+    assert body["runtime_url_selected"] == "http://host.docker.internal:8095"
 
 
 def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
@@ -453,6 +482,70 @@ def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> Non
     assert response.status_code == 200
     assert captured_mode["mode"] == WorldIntelligenceMode.LOCAL_SELF_HOSTED
     assert response.json()["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+
+
+def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "local_runtime_url",
+        "http://host.docker.internal:8095",
+    )
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "systemd_control_available",
+        lambda: False,
+    )
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "set_mode",
+        lambda mode: None,
+    )
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "start_local_runtime",
+        lambda: (
+            ServiceActionResult(
+                ok=False,
+                action="start",
+                service="s3m-world-intelligence",
+                detail="systemctl unavailable in API container",
+            ),
+            LocalRuntimeHealth(
+                healthy=True,
+                status="healthy",
+                endpoint="http://host.docker.internal:8095/health",
+                status_code=200,
+                detail="local runtime responded",
+            ),
+        ),
+    )
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+    response = client.post("/api/world-intelligence/mode/local")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+    assert body["configured_local_url"] == "http://host.docker.internal:8095"
+    assert body["local_runtime_healthy"] is True
+    assert body["systemd_control_available"] is False
+    assert "systemd control unavailable" in body["reason"]
 
 
 def test_set_local_mode_returns_safe_payload_when_local_start_fails(monkeypatch) -> None:
