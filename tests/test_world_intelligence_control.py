@@ -144,3 +144,104 @@ def test_world_intelligence_routes_runtime_external_proxy(monkeypatch) -> None:
     response = client.get("/world-intelligence/runtime/")
     assert response.status_code == 200
     assert response.text == "ok"
+
+
+def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    captured_mode: dict[str, WorldIntelligenceMode] = {}
+
+    def fake_set_mode(mode: WorldIntelligenceMode):
+        captured_mode["mode"] = mode
+        return None
+
+    monkeypatch.setattr(module_routes._runtime_manager, "set_mode", fake_set_mode)
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "start_local_runtime",
+        lambda: (
+            ServiceActionResult(
+                ok=True,
+                action="start",
+                service="s3m-world-intelligence",
+                detail="ok",
+            ),
+            LocalRuntimeHealth(
+                healthy=True,
+                status="healthy",
+                endpoint="http://127.0.0.1:8095/health",
+                status_code=200,
+                detail="local runtime responded",
+            ),
+        ),
+    )
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+    response = client.post("/api/world-intelligence/mode/local")
+    assert response.status_code == 200
+    assert captured_mode["mode"] == WorldIntelligenceMode.LOCAL_SELF_HOSTED
+    assert response.json()["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+
+
+def test_set_local_mode_returns_safe_payload_when_local_start_fails(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "set_mode",
+        lambda mode: None,
+    )
+    monkeypatch.setattr(
+        module_routes._runtime_manager,
+        "start_local_runtime",
+        lambda: (
+            ServiceActionResult(
+                ok=False,
+                action="start",
+                service="s3m-world-intelligence",
+                detail="systemctl start failed",
+            ),
+            LocalRuntimeHealth(
+                healthy=False,
+                status="down",
+                endpoint="http://127.0.0.1:8095",
+                detail="local runtime unreachable",
+            ),
+        ),
+    )
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
+            reason="local runtime unavailable, switched to external fallback",
+            local_runtime_healthy=False,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+    response = client.post("/api/world-intelligence/mode/local")
+    assert response.status_code == 503
+    body = response.json()
+    assert body["status"] == "degraded"
+    assert body["active_source"] == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value
+    assert "fallback remains active" in body["reason"]
