@@ -62,11 +62,19 @@ def test_runtime_manager_training_safe_stops_local(monkeypatch) -> None:
 
 
 def test_runtime_manager_uses_configured_local_url(monkeypatch) -> None:
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://host.docker.internal:8095")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8095/")
 
     manager = RuntimeManager()
 
-    assert manager.local_runtime_url == "http://host.docker.internal:8095"
+    assert manager.local_runtime_url == "http://172.17.0.1:8095"
+
+
+def test_runtime_manager_defaults_to_container_host_local_url(monkeypatch) -> None:
+    monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_URL", raising=False)
+
+    manager = RuntimeManager()
+
+    assert manager.local_runtime_url == "http://172.17.0.1:8095"
 
 
 def test_runtime_manager_reports_systemd_unavailable_in_container(monkeypatch) -> None:
@@ -77,7 +85,7 @@ def test_runtime_manager_reports_systemd_unavailable_in_container(monkeypatch) -
         raise FileNotFoundError()
 
     monkeypatch.setattr("src.world_intelligence_control.runtime_manager.subprocess.run", missing_systemctl)
-    manager = RuntimeManager(local_runtime_url="http://host.docker.internal:8095")
+    manager = RuntimeManager(local_runtime_url="http://172.17.0.1:8095")
 
     result = manager.restart_local_runtime()
 
@@ -92,12 +100,32 @@ def test_source_manager_switches_to_fallback_when_local_down() -> None:
     manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
         healthy=False,
         status="down",
-        endpoint="http://127.0.0.1:8095",
+        endpoint="http://172.17.0.1:8095",
         detail="down",
     )
     source_manager = SourceManager(manager, lambda client_key="global": {"available": True})
     decision = source_manager.resolve_source()
     assert decision.source == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK
+
+
+def test_source_manager_keeps_healthy_local_runtime_in_external_mode() -> None:
+    manager = RuntimeManager()
+    manager.set_mode(WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK)
+    manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
+        healthy=True,
+        status="healthy",
+        endpoint="http://172.17.0.1:8095",
+        status_code=200,
+        detail="local runtime responded",
+    )
+    source_manager = SourceManager(manager, lambda client_key="global": {"available": True})
+
+    decision = source_manager.resolve_source()
+
+    assert decision.source == WorldIntelligenceSource.LOCAL_SELF_HOSTED
+    assert decision.local_runtime_healthy is True
+    assert decision.fallback_available is True
+    assert decision.training_safe is False
 
 
 def test_external_adapter_enforces_allowlist() -> None:
@@ -217,7 +245,7 @@ def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
     response = client.get("/world-intelligence/runtime/")
 
     assert response.status_code == 200
-    assert upstream_urls == ["GET http://127.0.0.1:8095/"]
+    assert upstream_urls == ["GET http://172.17.0.1:8095/"]
     assert 'src="/world-intelligence/runtime/assets/main-DXioYkv_.js' in response.text
     assert 'href="/world-intelligence/runtime/assets/settings-persistence-CCxf_ZvB.css' in response.text
     assert 'href="/world-intelligence/runtime/favico/favicon.ico' in response.text
@@ -323,7 +351,7 @@ def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch)
     response = client.get("/world-intelligence/runtime/assets/main-DXioYkv_.js.gz")
 
     assert response.status_code == 200
-    assert upstream_urls == ["GET http://127.0.0.1:8095/assets/main-DXioYkv_.js.gz"]
+    assert upstream_urls == ["GET http://172.17.0.1:8095/assets/main-DXioYkv_.js.gz"]
     assert response.headers["content-type"].startswith("application/javascript")
     assert response.headers["content-encoding"] == "gzip"
 
@@ -403,7 +431,7 @@ def test_world_intelligence_upstream_proxy_handles_options() -> None:
 def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
-    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://host.docker.internal:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
     monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
     monkeypatch.setattr(
         module_routes._source_manager,
@@ -428,9 +456,9 @@ def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> No
     assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
     assert body["local_runtime_healthy"] is True
     assert body["fallback_available"] is True
-    assert body["configured_local_url"] == "http://host.docker.internal:8095"
+    assert body["configured_local_url"] == "http://172.17.0.1:8095"
     assert body["systemd_control_available"] is False
-    assert body["runtime_url_selected"] == "http://host.docker.internal:8095"
+    assert body["runtime_url_selected"] == "http://172.17.0.1:8095"
 
 
 def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
@@ -456,7 +484,7 @@ def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> Non
             LocalRuntimeHealth(
                 healthy=True,
                 status="healthy",
-                endpoint="http://127.0.0.1:8095/health",
+                endpoint="http://172.17.0.1:8095/health",
                 status_code=200,
                 detail="local runtime responded",
             ),
@@ -490,7 +518,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
     monkeypatch.setattr(
         module_routes._runtime_manager,
         "local_runtime_url",
-        "http://host.docker.internal:8095",
+        "http://172.17.0.1:8095",
     )
     monkeypatch.setattr(
         module_routes._runtime_manager,
@@ -515,7 +543,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
             LocalRuntimeHealth(
                 healthy=True,
                 status="healthy",
-                endpoint="http://host.docker.internal:8095/health",
+                endpoint="http://172.17.0.1:8095/health",
                 status_code=200,
                 detail="local runtime responded",
             ),
@@ -542,7 +570,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
     assert response.status_code == 200
     body = response.json()
     assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
-    assert body["configured_local_url"] == "http://host.docker.internal:8095"
+    assert body["configured_local_url"] == "http://172.17.0.1:8095"
     assert body["local_runtime_healthy"] is True
     assert body["systemd_control_available"] is False
     assert "systemd control unavailable" in body["reason"]
@@ -569,7 +597,7 @@ def test_set_local_mode_returns_safe_payload_when_local_start_fails(monkeypatch)
             LocalRuntimeHealth(
                 healthy=False,
                 status="down",
-                endpoint="http://127.0.0.1:8095",
+                endpoint="http://172.17.0.1:8095",
                 detail="local runtime unreachable",
             ),
         ),
