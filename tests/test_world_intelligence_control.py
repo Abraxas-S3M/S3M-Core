@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 from typing import Any
 
 from fastapi import FastAPI
@@ -144,6 +145,101 @@ def test_world_intelligence_routes_runtime_external_proxy(monkeypatch) -> None:
     response = client.get("/world-intelligence/runtime/")
     assert response.status_code == 200
     assert response.text == "ok"
+
+
+def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=False,
+            training_safe=False,
+        ),
+    )
+    upstream_urls: list[str] = []
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        upstream_urls.append(f"{method} {url}")
+        _ = kwargs
+        html = (
+            '<script type="module" src="/assets/main-DXioYkv_.js"></script>'
+            '<link rel="stylesheet" href="/assets/settings-persistence-CCxf_ZvB.css">'
+            '<link rel="icon" href="/favico/favicon.ico">'
+            '<link rel="manifest" href="/manifest.webmanifest">'
+            '<script src="/sw.js"></script>'
+            '<a href="/swagger">Operator docs</a>'
+        )
+        return _FakeResponse(
+            status_code=200,
+            body=html.encode("utf-8"),
+            content_type="text/html; charset=utf-8",
+            url=url,
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/world-intelligence/runtime/")
+
+    assert response.status_code == 200
+    assert upstream_urls == ["GET http://127.0.0.1:8095/"]
+    assert 'src="/world-intelligence/runtime/assets/main-DXioYkv_.js' in response.text
+    assert 'href="/world-intelligence/runtime/assets/settings-persistence-CCxf_ZvB.css' in response.text
+    assert 'href="/world-intelligence/runtime/favico/favicon.ico' in response.text
+    assert 'href="/world-intelligence/runtime/manifest.webmanifest' in response.text
+    assert 'src="/world-intelligence/runtime/sw.js' in response.text
+    assert 'href="/swagger"' in response.text
+    assert response.headers["x-world-intelligence-html-rewrites"] == "5"
+
+
+def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=False,
+            training_safe=False,
+        ),
+    )
+    upstream_urls: list[str] = []
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        upstream_urls.append(f"{method} {url}")
+        _ = kwargs
+        return _FakeResponse(
+            status_code=200,
+            body=gzip.compress(b"compressed-js-bytes"),
+            content_type="application/octet-stream",
+            url=url,
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/world-intelligence/runtime/assets/main-DXioYkv_.js.gz")
+
+    assert response.status_code == 200
+    assert upstream_urls == ["GET http://127.0.0.1:8095/assets/main-DXioYkv_.js.gz"]
+    assert response.headers["content-type"].startswith("application/javascript")
+    assert response.headers["content-encoding"] == "gzip"
 
 
 def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
