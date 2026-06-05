@@ -20,6 +20,17 @@ class SourceManager:
 
     def resolve_source(self, client_key: str = "global") -> SourceDecision:
         mode = self.runtime_manager.get_mode()
+        if mode == WorldIntelligenceMode.EXTERNAL_LIVE:
+            return SourceDecision(
+                mode=mode,
+                source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
+                reason="external live demo mode enabled",
+                local_runtime_healthy=False,
+                local_runtime_health_url=None,
+                fallback_available=True,
+                training_safe=False,
+            )
+
         local_health = self.runtime_manager.local_runtime_health()
         training_safe = mode == WorldIntelligenceMode.TRAINING_SAFE
         fallback_available = False

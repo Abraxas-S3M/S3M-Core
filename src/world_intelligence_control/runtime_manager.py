@@ -28,6 +28,7 @@ ServiceRunner = Callable[[str, str], ServiceActionResult]
 DEFAULT_LOCAL_RUNTIME_URL = "http://127.0.0.1:8095"
 LOCAL_RUNTIME_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_URL"
 LOCAL_RUNTIME_FALLBACK_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL"
+MODE_ENV = "WORLD_INTELLIGENCE_MODE"
 
 
 def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
@@ -53,12 +54,37 @@ def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
     return raw_url.rstrip("/")
 
 
+def _configured_mode(mode: WorldIntelligenceMode | str | None = None) -> WorldIntelligenceMode:
+    raw_mode = mode.value if isinstance(mode, WorldIntelligenceMode) else (mode or os.getenv(MODE_ENV, ""))
+    normalized_mode = raw_mode.strip().lower().replace("-", "_")
+    if not normalized_mode:
+        return WorldIntelligenceMode.LOCAL_SELF_HOSTED
+    aliases = {
+        "local": WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+        "local_self_hosted": WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+        "external": WorldIntelligenceMode.EXTERNAL_LIVE,
+        "external_live": WorldIntelligenceMode.EXTERNAL_LIVE,
+        "demo": WorldIntelligenceMode.EXTERNAL_LIVE,
+        "demo_external": WorldIntelligenceMode.EXTERNAL_LIVE,
+        "external_fallback": WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK,
+        "external_live_fallback": WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK,
+        "training_safe": WorldIntelligenceMode.TRAINING_SAFE,
+        "offline_safe": WorldIntelligenceMode.OFFLINE_SAFE,
+    }
+    try:
+        return aliases[normalized_mode]
+    except KeyError as exc:
+        allowed = ", ".join(sorted(aliases))
+        raise ValueError(f"{MODE_ENV} must be one of: {allowed}") from exc
+
+
 class RuntimeManager:
     """Thread-safe mode manager for local World Intelligence runtime."""
 
     def __init__(
         self,
         local_runtime_url: str | None = None,
+        mode: WorldIntelligenceMode | str | None = None,
         service_name: str = "s3m-world-intelligence",
         request_timeout_seconds: float = 2.5,
         service_timeout_seconds: float = 5.0,
@@ -71,7 +97,7 @@ class RuntimeManager:
         self.service_timeout_seconds = service_timeout_seconds
         self.fallback_enabled = fallback_enabled
         self._service_runner = service_runner
-        self._mode = WorldIntelligenceMode.LOCAL_SELF_HOSTED
+        self._mode = _configured_mode(mode)
         self._lock = threading.Lock()
 
     def get_mode(self) -> WorldIntelligenceMode:

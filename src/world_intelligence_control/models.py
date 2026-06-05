@@ -23,6 +23,7 @@ class WorldIntelligenceMode(str, Enum):
     """Operator-selectable runtime mode."""
 
     LOCAL_SELF_HOSTED = "local_self_hosted"
+    EXTERNAL_LIVE = "external_live"
     EXTERNAL_LIVE_FALLBACK = "external_live_fallback"
     TRAINING_SAFE = "training_safe"
     OFFLINE_SAFE = "offline_safe"

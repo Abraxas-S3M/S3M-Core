@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse, Response
 
 from .external_worldmonitor_adapter import ExternalWorldMonitorAdapter, ProxyResult
 from .models import (
+    LocalRuntimeHealth,
     WorldIntelligenceMode,
     WorldIntelligenceSource,
     WorldIntelligenceStatus,
@@ -35,6 +36,7 @@ LOGGER = logging.getLogger(__name__)
 
 RUNTIME_MOUNT_PATH = "/world-intelligence/runtime"
 UPSTREAM_MOUNT_PATH = "/world-intelligence/upstream"
+EXTERNAL_RUNTIME_URL = "https://www.worldmonitor.app"
 _MAX_LOCAL_RUNTIME_RESPONSE_BYTES = 25 * 1024 * 1024
 _MAX_UPSTREAM_PROXY_RESPONSE_BYTES = 10 * 1024 * 1024
 _RUNTIME_REWRITE_PREFIXES = ("assets/", "favico/", "manifest", "service-worker", "sw")
@@ -45,10 +47,11 @@ _UPSTREAM_PROXY_ORIGINS = {
     "abacus": "https://abacus.worldmonitor.app",
 }
 _EXTERNAL_RUNTIME_ORIGIN_REWRITES = {
-    origin: f"{UPSTREAM_MOUNT_PATH}/{name}" for name, origin in _UPSTREAM_PROXY_ORIGINS.items()
+    EXTERNAL_RUNTIME_URL: RUNTIME_MOUNT_PATH,
+    **{origin: f"{UPSTREAM_MOUNT_PATH}/{name}" for name, origin in _UPSTREAM_PROXY_ORIGINS.items()},
 }
 _HTML_RUNTIME_URL_RE = re.compile(
-    r"(?P<prefix>\b(?:src|href)=['\"])(?P<path>/(?:assets/|favico/|manifest|service-worker|sw)[^'\"]*)"
+    r"(?P<prefix>\b(?:src|href)=['\"])(?P<path>/(?:assets/|favico/|favicon\.ico|manifest|service-worker|sw)[^'\"]*)"
 )
 _COMPRESSED_SUFFIX_CONTENT_ENCODING = {
     ".br": "br",
@@ -66,8 +69,13 @@ _CONTENT_TYPE_BY_EXTENSION = {
     ".jpeg": "image/jpeg",
     ".svg": "image/svg+xml",
     ".ico": "image/x-icon",
+    ".avif": "image/avif",
     ".webp": "image/webp",
     ".wasm": "application/wasm",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf",
+    ".otf": "font/otf",
     ".map": "application/json; charset=utf-8",
     ".txt": "text/plain; charset=utf-8",
     ".xml": "application/xml; charset=utf-8",
@@ -219,7 +227,7 @@ def _rewrite_runtime_html(html: str) -> tuple[str, int]:
 
     def should_rewrite(url_path: str) -> bool:
         stripped = url_path.lstrip("/")
-        if stripped.startswith(("assets/", "favico/", "service-worker")):
+        if stripped.startswith(("assets/", "favico/", "service-worker")) or stripped == "favicon.ico":
             return True
         if stripped == "manifest" or stripped.startswith(("manifest.", "manifest?", "manifest/")):
             return True
@@ -397,8 +405,16 @@ def _proxy_local_runtime(
 
 
 def _build_status(client_key: str) -> WorldIntelligenceStatus:
-    local_health = _runtime_manager.local_runtime_health()
     decision = _source_manager.resolve_source(client_key=client_key)
+    if decision.mode == WorldIntelligenceMode.EXTERNAL_LIVE:
+        local_health = LocalRuntimeHealth(
+            healthy=False,
+            status="ignored",
+            endpoint=_runtime_manager.local_runtime_url,
+            detail="local runtime health ignored in external_live demo mode",
+        )
+    else:
+        local_health = _runtime_manager.local_runtime_health()
     return WorldIntelligenceStatus(
         service=_runtime_manager.service_name,
         mode=decision.mode,
@@ -418,7 +434,7 @@ def _runtime_url_for_source(source: WorldIntelligenceSource) -> str | None:
     if source == WorldIntelligenceSource.LOCAL_SELF_HOSTED:
         return _runtime_manager.local_runtime_url
     if source == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK:
-        return "https://www.worldmonitor.app"
+        return EXTERNAL_RUNTIME_URL
     return None
 
 
@@ -619,6 +635,20 @@ async def set_external_fallback_mode() -> dict[str, Any]:
     return {"mode": WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK.value, "status": "ok"}
 
 
+@world_intelligence_router.post("/api/world-intelligence/mode/external-live")
+async def set_external_live_mode() -> dict[str, Any]:
+    _runtime_manager.set_mode(WorldIntelligenceMode.EXTERNAL_LIVE)
+    return {
+        "mode": WorldIntelligenceMode.EXTERNAL_LIVE.value,
+        "source": WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value,
+        "active_source": WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value,
+        "runtime_url_selected": EXTERNAL_RUNTIME_URL,
+        "reason": "external live demo mode enabled",
+        "training_safe": False,
+        "status": "ok",
+    }
+
+
 @world_intelligence_router.post("/api/world-intelligence/mode/training-safe")
 async def set_training_safe_mode() -> dict[str, Any]:
     result = _runtime_manager.set_mode(WorldIntelligenceMode.TRAINING_SAFE)
@@ -640,6 +670,8 @@ async def restart_local_runtime() -> dict[str, Any]:
 async def world_intelligence_source(request: Request) -> dict[str, Any]:
     decision = _source_manager.resolve_source(client_key=_client_key(request))
     payload = decision.model_dump()
+    payload["mode"] = decision.mode.value
+    payload["source"] = decision.source.value
     payload["active_source"] = decision.source.value
     payload["configured_local_url"] = _runtime_manager.local_runtime_url
     payload["local_runtime_health_url"] = decision.local_runtime_health_url or _runtime_manager.local_runtime_url
@@ -647,6 +679,15 @@ async def world_intelligence_source(request: Request) -> dict[str, Any]:
     payload["systemd_control_available"] = _runtime_manager.systemd_control_available()
     payload["fallback_available"] = decision.fallback_available
     payload["runtime_url_selected"] = _runtime_url_for_source(decision.source)
+    payload["intentional_external_live"] = decision.mode == WorldIntelligenceMode.EXTERNAL_LIVE
+    payload["external_live_demo_mode"] = decision.mode == WorldIntelligenceMode.EXTERNAL_LIVE
+    payload["runtime_proxy"] = {
+        "mounted_path": RUNTIME_MOUNT_PATH,
+        "allowed_runtime_origin": EXTERNAL_RUNTIME_URL,
+        "allowed_upstream_origins": dict(_UPSTREAM_PROXY_ORIGINS),
+        "html_asset_rewrite": "enabled",
+        "origin_rewrite": "enabled",
+    }
     return payload
 
 
@@ -706,7 +747,10 @@ def _runtime_gateway(path: str, request: Request) -> Response:
         return _proxy_local_runtime(path, params, method=method)
 
     if decision.source == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK:
-        proxy_result = _external_adapter.proxy_runtime(path=path, query_params=params, client_key=_client_key(request))
+        try:
+            proxy_result = _external_adapter.proxy_runtime(path=path, query_params=params, client_key=_client_key(request))
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         if isinstance(proxy_result, dict):
             status_code = 429 if proxy_result.get("status") == "rate_limited" else 503
             return JSONResponse(status_code=status_code, content=proxy_result)
