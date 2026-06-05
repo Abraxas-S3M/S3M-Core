@@ -76,6 +76,9 @@ class WorldIntelligenceStatus(BaseModel):
     mode: WorldIntelligenceMode
     active_source: WorldIntelligenceSource
     reason: str
+    configured_local_url: str
+    local_runtime_healthy: bool
+    systemd_control_available: bool
     local_runtime: LocalRuntimeHealth
     fallback_available: bool
     training_safe: bool

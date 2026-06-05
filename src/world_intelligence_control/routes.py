@@ -404,6 +404,9 @@ def _build_status(client_key: str) -> WorldIntelligenceStatus:
         mode=decision.mode,
         active_source=decision.source,
         reason=decision.reason,
+        configured_local_url=_runtime_manager.local_runtime_url,
+        local_runtime_healthy=decision.local_runtime_healthy,
+        systemd_control_available=_runtime_manager.systemd_control_available(),
         local_runtime=local_health,
         fallback_available=decision.fallback_available,
         training_safe=decision.training_safe,
@@ -590,12 +593,19 @@ async def set_local_mode(request: Request) -> dict[str, Any]:
         "mode": WorldIntelligenceMode.LOCAL_SELF_HOSTED.value,
         "requested_source": WorldIntelligenceSource.LOCAL_SELF_HOSTED.value,
         "active_source": decision.source.value,
+        "configured_local_url": _runtime_manager.local_runtime_url,
+        "local_runtime_healthy": local_health.healthy,
+        "systemd_control_available": _runtime_manager.systemd_control_available(),
+        "fallback_available": decision.fallback_available,
         "local_runtime_action": start_result.model_dump(),
         "local_runtime": local_health.model_dump(),
     }
-    if start_result.ok and local_health.healthy:
+    if local_health.healthy:
         payload["status"] = "ok"
-        payload["reason"] = "local runtime started and passed health check"
+        if start_result.ok:
+            payload["reason"] = "local runtime started and passed health check"
+        else:
+            payload["reason"] = "local runtime health check passed; systemd control unavailable from API container"
         return payload
 
     payload["status"] = "degraded"
@@ -631,6 +641,10 @@ async def world_intelligence_source(request: Request) -> dict[str, Any]:
     decision = _source_manager.resolve_source(client_key=_client_key(request))
     payload = decision.model_dump()
     payload["active_source"] = decision.source.value
+    payload["configured_local_url"] = _runtime_manager.local_runtime_url
+    payload["local_runtime_healthy"] = decision.local_runtime_healthy
+    payload["systemd_control_available"] = _runtime_manager.systemd_control_available()
+    payload["fallback_available"] = decision.fallback_available
     payload["runtime_url_selected"] = _runtime_url_for_source(decision.source)
     return payload
 
