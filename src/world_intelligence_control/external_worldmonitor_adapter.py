@@ -106,12 +106,12 @@ class ExternalWorldMonitorAdapter:
         self.rate_limiter = SlidingWindowRateLimiter(per_minute=requests_per_minute)
 
     def fallback_health(self, client_key: str = "global") -> dict[str, Any]:
-        rate = self._check_rate("fallback-health", client_key)
-        if rate is not None:
-            return rate
         cached = self.cache.get("fallback-health")
         if cached is not None:
             return cached
+        rate = self._check_rate("fallback-health", client_key)
+        if rate is not None:
+            return rate
 
         candidates = [
             "https://api.worldmonitor.app/health",
@@ -137,13 +137,13 @@ class ExternalWorldMonitorAdapter:
         return payload
 
     def fallback_bootstrap(self, client_key: str = "global") -> tuple[int, dict[str, Any]]:
-        rate = self._check_rate("fallback-bootstrap", client_key)
-        if rate is not None:
-            return 429, rate
         cache_key = "fallback-bootstrap"
         cached = self.cache.get(cache_key)
         if cached is not None:
             return 200, cached
+        rate = self._check_rate("fallback-bootstrap", client_key)
+        if rate is not None:
+            return 429, rate
         try:
             status_code, headers, body, upstream_url = self._fetch("https://www.worldmonitor.app/", is_api=False)
             payload = self._payload_from_response(status_code, headers, body, upstream_url)
@@ -154,13 +154,13 @@ class ExternalWorldMonitorAdapter:
             return 503, {"status": "unavailable", "detail": str(exc)}
 
     def fallback_feed(self, client_key: str = "global") -> tuple[int, dict[str, Any]]:
-        rate = self._check_rate("fallback-feed", client_key)
-        if rate is not None:
-            return 429, rate
         cache_key = "fallback-feed"
         cached = self.cache.get(cache_key)
         if cached is not None:
             return 200, cached
+        rate = self._check_rate("fallback-feed", client_key)
+        if rate is not None:
+            return 429, rate
         candidates = [
             "https://api.worldmonitor.app/feed",
             "https://api.worldmonitor.app/api/feed",
@@ -183,9 +183,6 @@ class ExternalWorldMonitorAdapter:
         query_params: dict[str, Any] | None = None,
         client_key: str = "global",
     ) -> ProxyResult | dict[str, Any]:
-        rate = self._check_rate("runtime-proxy", client_key)
-        if rate is not None:
-            return rate
         safe_path = self._normalize_path(path)
         if safe_path.startswith("api/"):
             base = "https://api.worldmonitor.app"
@@ -209,6 +206,9 @@ class ExternalWorldMonitorAdapter:
                 content_type=str(cached["content_type"]),
                 upstream_url=str(cached["upstream_url"]),
             )
+        rate = self._check_rate("runtime-proxy", client_key)
+        if rate is not None:
+            return rate
         status_code, headers, body, upstream_url = self._fetch(url, params=query, is_api=is_api)
         content_type = headers.get("content-type", "application/octet-stream")
         if status_code < 400:
