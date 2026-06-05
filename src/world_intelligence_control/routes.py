@@ -642,6 +642,7 @@ async def world_intelligence_source(request: Request) -> dict[str, Any]:
     payload = decision.model_dump()
     payload["active_source"] = decision.source.value
     payload["configured_local_url"] = _runtime_manager.local_runtime_url
+    payload["local_runtime_health_url"] = decision.local_runtime_health_url or _runtime_manager.local_runtime_url
     payload["local_runtime_healthy"] = decision.local_runtime_healthy
     payload["systemd_control_available"] = _runtime_manager.systemd_control_available()
     payload["fallback_available"] = decision.fallback_available

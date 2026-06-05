@@ -21,18 +21,24 @@ class SourceManager:
     def resolve_source(self, client_key: str = "global") -> SourceDecision:
         mode = self.runtime_manager.get_mode()
         local_health = self.runtime_manager.local_runtime_health()
-        fallback_info = self._fallback_probe(client_key=client_key)
-        fallback_available = bool(fallback_info.get("available", False))
         training_safe = mode == WorldIntelligenceMode.TRAINING_SAFE
+        fallback_available = False
+        if training_safe or not local_health.healthy:
+            fallback_info = self._fallback_probe(client_key=client_key)
+            fallback_available = bool(fallback_info.get("available", False))
+        base_decision = {
+            "local_runtime_healthy": local_health.healthy,
+            "local_runtime_health_url": local_health.endpoint,
+            "fallback_available": fallback_available,
+            "training_safe": training_safe,
+        }
 
         if mode == WorldIntelligenceMode.OFFLINE_SAFE:
             return SourceDecision(
                 mode=mode,
                 source=WorldIntelligenceSource.OFFLINE_SAFE,
                 reason="offline_safe mode set by policy",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
+                **base_decision,
             )
 
         if mode == WorldIntelligenceMode.TRAINING_SAFE:
@@ -41,17 +47,13 @@ class SourceManager:
                     mode=mode,
                     source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
                     reason="training_safe enforces external read-only fallback",
-                    local_runtime_healthy=local_health.healthy,
-                    fallback_available=fallback_available,
-                    training_safe=training_safe,
+                    **base_decision,
                 )
             return SourceDecision(
                 mode=mode,
                 source=WorldIntelligenceSource.OFFLINE_SAFE,
                 reason="training_safe with unavailable fallback",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
+                **base_decision,
             )
 
         if local_health.healthy:
@@ -59,9 +61,7 @@ class SourceManager:
                 mode=mode,
                 source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
                 reason="local runtime healthy",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
+                **base_decision,
             )
 
         if fallback_available and self.runtime_manager.fallback_enabled:
@@ -69,16 +69,12 @@ class SourceManager:
                 mode=mode,
                 source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
                 reason="local runtime unavailable, switched to external fallback",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
+                **base_decision,
             )
 
         return SourceDecision(
             mode=WorldIntelligenceMode.OFFLINE_SAFE,
             source=WorldIntelligenceSource.OFFLINE_SAFE,
             reason="both local and fallback sources unavailable",
-            local_runtime_healthy=local_health.healthy,
-            fallback_available=fallback_available,
-            training_safe=training_safe,
+            **base_decision,
         )
