@@ -105,9 +105,26 @@ async def world_intelligence_health(request: Request) -> dict[str, Any]:
 
 
 @world_intelligence_router.post("/api/world-intelligence/mode/local")
-async def set_local_mode() -> dict[str, Any]:
+async def set_local_mode(request: Request) -> dict[str, Any]:
     _runtime_manager.set_mode(WorldIntelligenceMode.LOCAL_SELF_HOSTED)
-    return {"mode": WorldIntelligenceMode.LOCAL_SELF_HOSTED.value, "status": "ok"}
+    start_result, local_health = _runtime_manager.start_local_runtime()
+    decision = _source_manager.resolve_source(client_key=_client_key(request))
+
+    payload = {
+        "mode": WorldIntelligenceMode.LOCAL_SELF_HOSTED.value,
+        "requested_source": WorldIntelligenceSource.LOCAL_SELF_HOSTED.value,
+        "active_source": decision.source.value,
+        "local_runtime_action": start_result.model_dump(),
+        "local_runtime": local_health.model_dump(),
+    }
+    if start_result.ok and local_health.healthy:
+        payload["status"] = "ok"
+        payload["reason"] = "local runtime started and passed health check"
+        return payload
+
+    payload["status"] = "degraded"
+    payload["reason"] = "local runtime failed to become healthy; external fallback remains active when available"
+    return JSONResponse(status_code=503, content=payload)
 
 
 @world_intelligence_router.post("/api/world-intelligence/mode/external-fallback")

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import subprocess
 import threading
+import time
 from typing import Callable
 
 import requests
@@ -70,6 +71,16 @@ class RuntimeManager:
 
     def stop_local_runtime(self) -> ServiceActionResult:
         return self._run_service_action("stop")
+
+    def start_local_runtime(
+        self,
+        startup_wait_seconds: float = 1.0,
+    ) -> tuple[ServiceActionResult, LocalRuntimeHealth]:
+        """Start local runtime and perform a single bounded health check."""
+        start_result = self._run_service_action("start")
+        if start_result.ok and startup_wait_seconds > 0:
+            time.sleep(min(startup_wait_seconds, self.service_timeout_seconds))
+        return start_result, self.local_runtime_health()
 
     def local_service_state(self) -> ServiceActionResult:
         return self._run_service_action("is-active")
