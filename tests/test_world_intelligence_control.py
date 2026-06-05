@@ -31,10 +31,11 @@ class _FakeResponse:
         body: bytes = b'{"ok": true}',
         content_type: str = "application/json",
         url: str = "https://api.worldmonitor.app/health",
+        headers: dict[str, str] | None = None,
     ) -> None:
         self.status_code = status_code
         self._body = body
-        self.headers = {"content-type": content_type}
+        self.headers = headers or {"content-type": content_type}
         self.url = url
 
     def iter_content(self, chunk_size: int = 8192):
@@ -201,6 +202,66 @@ def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
     assert response.headers["x-world-intelligence-html-rewrites"] == "5"
 
 
+def test_local_runtime_proxy_rewrites_worldmonitor_origins_in_html_and_js(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=False,
+            training_safe=False,
+        ),
+    )
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        _ = method, kwargs
+        if url.endswith("/assets/app.js"):
+            body = b'fetch("https://api.worldmonitor.app/feed"); fetch("https:\\/\\/maps.worldmonitor.app\\/tiles")'
+            return _FakeResponse(
+                status_code=200,
+                body=body,
+                content_type="application/javascript; charset=utf-8",
+                url=url,
+            )
+        html = (
+            '<script src="/assets/app.js"></script>'
+            '<script>window.api="https://api.worldmonitor.app"</script>'
+            '<script>window.clerk="//clerk.worldmonitor.app/v1"</script>'
+        )
+        return _FakeResponse(
+            status_code=200,
+            body=html.encode("utf-8"),
+            content_type="text/html; charset=utf-8",
+            url=url,
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    html_response = client.get("/world-intelligence/runtime/")
+    js_response = client.get("/world-intelligence/runtime/assets/app.js")
+
+    assert html_response.status_code == 200
+    assert 'src="/world-intelligence/runtime/assets/app.js' in html_response.text
+    assert "/world-intelligence/upstream/api" in html_response.text
+    assert "/world-intelligence/upstream/clerk/v1" in html_response.text
+    assert html_response.headers["x-world-intelligence-html-rewrites"] == "1"
+    assert html_response.headers["x-world-intelligence-origin-rewrites"] == "2"
+    assert js_response.status_code == 200
+    assert "https://api.worldmonitor.app" not in js_response.text
+    assert "https:\\/\\/maps.worldmonitor.app" not in js_response.text
+    assert "/world-intelligence/upstream/api/feed" in js_response.text
+    assert "/world-intelligence/upstream/maps\\/tiles" in js_response.text
+
+
 def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
@@ -240,6 +301,107 @@ def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch)
     assert upstream_urls == ["GET http://127.0.0.1:8095/assets/main-DXioYkv_.js.gz"]
     assert response.headers["content-type"].startswith("application/javascript")
     assert response.headers["content-encoding"] == "gzip"
+
+
+def test_world_intelligence_upstream_proxy_forwards_fixed_origin_and_sanitizes_headers(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    captured: dict[str, Any] = {}
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        captured["method"] = method
+        captured["url"] = url
+        captured["data"] = kwargs.get("data")
+        captured["headers"] = kwargs.get("headers", {})
+        body = b'{"next":"https://maps.worldmonitor.app/tiles"}'
+        return _FakeResponse(
+            status_code=201,
+            body=body,
+            content_type="application/json; charset=utf-8",
+            url=url,
+            headers={
+                "content-type": "application/json; charset=utf-8",
+                "x-frame-options": "DENY",
+                "content-security-policy": "default-src 'self'; frame-ancestors 'none'",
+                "cross-origin-opener-policy": "same-origin",
+            },
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.post(
+        "/world-intelligence/upstream/api/v1/feed?region=eu&region=black-sea",
+        content=b'{"scope":"live"}',
+        headers={
+            "origin": "https://app.abraxas-s3m.com",
+            "content-type": "application/json",
+            "accept": "application/json",
+        },
+    )
+
+    assert response.status_code == 201
+    assert captured["method"] == "POST"
+    assert captured["url"] == "https://api.worldmonitor.app/v1/feed?region=eu&region=black-sea"
+    assert captured["data"] == b'{"scope":"live"}'
+    assert captured["headers"]["content-type"] == "application/json"
+    assert captured["headers"]["accept"] == "application/json"
+    assert response.headers["content-type"].startswith("application/json")
+    assert "x-frame-options" not in response.headers
+    assert "frame-ancestors" not in response.headers.get("content-security-policy", "")
+    assert "cross-origin-opener-policy" not in response.headers
+    assert response.headers["access-control-allow-origin"] == "https://app.abraxas-s3m.com"
+    assert response.json()["next"] == "/world-intelligence/upstream/maps/tiles"
+
+
+def test_world_intelligence_upstream_proxy_handles_options() -> None:
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.options(
+        "/world-intelligence/upstream/clerk/v1/client",
+        headers={
+            "origin": "https://app.abraxas-s3m.com",
+            "access-control-request-headers": "content-type, x-requested-with",
+        },
+    )
+
+    assert response.status_code == 204
+    assert response.headers["access-control-allow-origin"] == "https://app.abraxas-s3m.com"
+    assert response.headers["access-control-allow-methods"] == "GET, POST, OPTIONS"
+
+
+def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/api/world-intelligence/source")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+    assert body["local_runtime_healthy"] is True
+    assert body["fallback_available"] is True
+    assert body["runtime_url_selected"] == "http://127.0.0.1:8095"
 
 
 def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
