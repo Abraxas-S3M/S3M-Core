@@ -14,7 +14,7 @@ import time
 from collections import OrderedDict, deque
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlencode, urlparse
+from urllib.parse import unquote, urlencode, urlparse
 
 import requests
 
@@ -95,7 +95,7 @@ class ExternalWorldMonitorAdapter:
     def __init__(
         self,
         timeout_seconds: float = 4.0,
-        max_response_bytes: int = 1_000_000,
+        max_response_bytes: int = 10 * 1024 * 1024,
         cache_ttl_seconds: int = 30,
         cache_max_entries: int = 32,
         requests_per_minute: int = 30,
@@ -239,16 +239,19 @@ class ExternalWorldMonitorAdapter:
         }
 
     def _normalize_path(self, path: str) -> str:
-        raw = (path or "").strip().lstrip("/")
-        if raw.startswith("http://") or raw.startswith("https://"):
+        raw = (path or "").strip()
+        decoded = unquote(raw)
+        if "://" in decoded or decoded.startswith("//") or "\\" in decoded:
             raise ValueError("absolute URLs are not allowed")
-        if ".." in raw:
+        safe_path = decoded.lstrip("/")
+        if any(segment == ".." for segment in safe_path.split("/")):
             raise ValueError("path traversal is not allowed")
-        return raw
+        return safe_path
 
     def _build_headers(self, is_api: bool) -> dict[str, str]:
         headers = {
             "Accept": "application/json, text/html;q=0.9, */*;q=0.8",
+            "Accept-Encoding": "identity",
             "User-Agent": "S3M-WorldIntelligenceGateway/1.0",
         }
         if is_api:

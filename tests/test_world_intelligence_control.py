@@ -90,10 +90,19 @@ def test_runtime_manager_uses_secondary_local_url_env(monkeypatch) -> None:
 def test_runtime_manager_defaults_to_loopback_local_url(monkeypatch) -> None:
     monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_URL", raising=False)
     monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", raising=False)
+    monkeypatch.delenv("WORLD_INTELLIGENCE_MODE", raising=False)
 
     manager = RuntimeManager()
 
     assert manager.local_runtime_url == "http://127.0.0.1:8095"
+
+
+def test_runtime_manager_uses_external_live_mode_env(monkeypatch) -> None:
+    monkeypatch.setenv("WORLD_INTELLIGENCE_MODE", "external_live")
+
+    manager = RuntimeManager()
+
+    assert manager.get_mode() == WorldIntelligenceMode.EXTERNAL_LIVE
 
 
 def test_runtime_manager_health_checks_selected_local_url(monkeypatch) -> None:
@@ -210,11 +219,49 @@ def test_source_manager_skips_external_probe_when_local_healthy() -> None:
     assert probe_calls == []
 
 
+def test_source_manager_external_live_forces_demo_source_without_local_probe() -> None:
+    manager = RuntimeManager(mode=WorldIntelligenceMode.EXTERNAL_LIVE)
+    local_probe_called = False
+
+    def local_runtime_health():
+        nonlocal local_probe_called
+        local_probe_called = True
+        return LocalRuntimeHealth(
+            healthy=True,
+            status="healthy",
+            endpoint="http://172.17.0.1:8095",
+            status_code=200,
+            detail="local runtime responded",
+        )
+
+    manager.local_runtime_health = local_runtime_health  # type: ignore[method-assign]
+    source_manager = SourceManager(manager, lambda client_key="global": {"available": False})
+
+    decision = source_manager.resolve_source(client_key="operator")
+
+    assert decision.mode == WorldIntelligenceMode.EXTERNAL_LIVE
+    assert decision.source == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK
+    assert decision.reason == "external live demo mode enabled"
+    assert decision.fallback_available is True
+    assert decision.local_runtime_healthy is False
+    assert decision.training_safe is False
+    assert local_probe_called is False
+
+
 def test_external_adapter_enforces_allowlist() -> None:
     adapter = ExternalWorldMonitorAdapter()
     try:
         adapter._enforce_allowlist("https://example.com/path")  # noqa: SLF001
         assert False, "allowlist check should fail"
+    except ValueError:
+        assert True
+
+
+def test_external_adapter_rejects_encoded_absolute_runtime_paths() -> None:
+    adapter = ExternalWorldMonitorAdapter()
+    try:
+        adapter._normalize_path("https%3A%2F%2Fexample.com%2Fasset.js")  # noqa: SLF001
+        assert False, "encoded absolute URL should fail"
     except ValueError:
         assert True
 
@@ -281,6 +328,42 @@ def test_world_intelligence_routes_runtime_external_proxy(monkeypatch) -> None:
     response = client.get("/world-intelligence/runtime/")
     assert response.status_code == 200
     assert response.text == "ok"
+
+
+def test_world_intelligence_routes_source_reports_intentional_external_live(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.EXTERNAL_LIVE,
+            source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
+            reason="external live demo mode enabled",
+            local_runtime_healthy=False,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/api/world-intelligence/source")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["mode"] == "external_live"
+    assert body["source"] == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value
+    assert body["active_source"] == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value
+    assert body["fallback_available"] is True
+    assert body["runtime_url_selected"] == "https://www.worldmonitor.app"
+    assert body["training_safe"] is False
+    assert body["reason"] == "external live demo mode enabled"
+    assert body["intentional_external_live"] is True
+    assert body["runtime_proxy"]["allowed_upstream_origins"]["api"] == "https://api.worldmonitor.app"
 
 
 def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
@@ -394,8 +477,54 @@ def test_local_runtime_proxy_rewrites_worldmonitor_origins_in_html_and_js(monkey
     assert js_response.status_code == 200
     assert "https://api.worldmonitor.app" not in js_response.text
     assert "https:\\/\\/maps.worldmonitor.app" not in js_response.text
+    assert "https://www.worldmonitor.app" not in html_response.text
     assert "/world-intelligence/upstream/api/feed" in js_response.text
     assert "/world-intelligence/upstream/maps\\/tiles" in js_response.text
+
+
+def test_external_runtime_proxy_rewrites_live_runtime_origin(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.EXTERNAL_LIVE,
+            source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
+            reason="external live demo mode enabled",
+            local_runtime_healthy=False,
+            fallback_available=True,
+            training_safe=False,
+        ),
+    )
+    monkeypatch.setattr(
+        module_routes._external_adapter,
+        "proxy_runtime",
+        lambda path, query_params, client_key="global": ProxyResult(
+            status_code=200,
+            content=(
+                b'<script src="/assets/app.js"></script>'
+                b'<script>window.home="https://www.worldmonitor.app";'
+                b'window.api="https://api.worldmonitor.app"</script>'
+            ),
+            content_type="text/html; charset=utf-8",
+            upstream_url="https://www.worldmonitor.app/",
+        ),
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/world-intelligence/runtime/")
+
+    assert response.status_code == 200
+    assert 'src="/world-intelligence/runtime/assets/app.js' in response.text
+    assert 'window.home="/world-intelligence/runtime"' in response.text
+    assert 'window.api="/world-intelligence/upstream/api"' in response.text
+    assert response.headers["x-world-intelligence-source"] == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK.value
+    assert response.headers["x-world-intelligence-runtime-path"] == "/"
+    assert response.headers["x-world-intelligence-html-rewrites"] == "1"
+    assert response.headers["x-world-intelligence-origin-rewrites"] == "2"
 
 
 def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch) -> None:
