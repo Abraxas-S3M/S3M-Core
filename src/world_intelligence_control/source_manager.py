@@ -54,17 +54,7 @@ class SourceManager:
                 training_safe=training_safe,
             )
 
-        if mode == WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK and fallback_available:
-            return SourceDecision(
-                mode=mode,
-                source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
-                reason="external fallback mode selected",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
-            )
-
-        if mode == WorldIntelligenceMode.LOCAL_SELF_HOSTED and local_health.healthy:
+        if local_health.healthy:
             return SourceDecision(
                 mode=mode,
                 source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
@@ -79,16 +69,6 @@ class SourceManager:
                 mode=mode,
                 source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
                 reason="local runtime unavailable, switched to external fallback",
-                local_runtime_healthy=local_health.healthy,
-                fallback_available=fallback_available,
-                training_safe=training_safe,
-            )
-
-        if local_health.healthy:
-            return SourceDecision(
-                mode=mode,
-                source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
-                reason="fallback unavailable, using healthy local runtime",
                 local_runtime_healthy=local_health.healthy,
                 fallback_available=fallback_available,
                 training_safe=training_safe,

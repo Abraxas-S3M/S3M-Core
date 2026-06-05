@@ -25,7 +25,7 @@ from .models import (
 
 
 ServiceRunner = Callable[[str, str], ServiceActionResult]
-DEFAULT_LOCAL_RUNTIME_URL = "http://127.0.0.1:8095"
+DEFAULT_LOCAL_RUNTIME_URL = "http://172.17.0.1:8095"
 LOCAL_RUNTIME_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_URL"
 
 
