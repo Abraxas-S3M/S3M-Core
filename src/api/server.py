@@ -197,6 +197,10 @@ try:
 except Exception:
     gui_ws_router = None
 try:
+    from src.world_intelligence_control import world_intelligence_router
+except Exception:
+    world_intelligence_router = None
+try:
     from src.demo.demo_room_service import demo_ws_endpoint, router as demo_router
 except Exception:
     demo_router = None
@@ -432,6 +436,8 @@ if safety_router:
     app.include_router(safety_router, tags=["Safety & Control Authority"])
 if portal_router:
     app.include_router(portal_router, tags=["Portal RBAC"])
+if world_intelligence_router:
+    app.include_router(world_intelligence_router, tags=["World Intelligence"])
 # GUI Bridge — provides /api/v1/* endpoints for S3M-GUI frontend
 if gui_bridge_router:
     app.include_router(gui_bridge_router, prefix="/api/v1", tags=["GUI Bridge"])

@@ -1,0 +1,146 @@
+"""Unit tests for World Intelligence dual-source runtime control."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from src.world_intelligence_control.external_worldmonitor_adapter import (
+    ExternalWorldMonitorAdapter,
+    ProxyResult,
+)
+from src.world_intelligence_control.models import (
+    LocalRuntimeHealth,
+    ServiceActionResult,
+    SourceDecision,
+    WorldIntelligenceMode,
+    WorldIntelligenceSource,
+)
+from src.world_intelligence_control.routes import world_intelligence_router
+from src.world_intelligence_control.runtime_manager import RuntimeManager
+from src.world_intelligence_control.source_manager import SourceManager
+
+
+class _FakeResponse:
+    def __init__(
+        self,
+        status_code: int = 200,
+        body: bytes = b'{"ok": true}',
+        content_type: str = "application/json",
+        url: str = "https://api.worldmonitor.app/health",
+    ) -> None:
+        self.status_code = status_code
+        self._body = body
+        self.headers = {"content-type": content_type}
+        self.url = url
+
+    def iter_content(self, chunk_size: int = 8192):
+        _ = chunk_size
+        yield self._body
+
+
+def test_runtime_manager_training_safe_stops_local(monkeypatch) -> None:
+    _ = monkeypatch
+    calls: list[tuple[str, str]] = []
+
+    def runner(action: str, service: str):
+        calls.append((action, service))
+        return ServiceActionResult(ok=True, action=action, service=service, detail="ok")
+
+    manager = RuntimeManager(service_runner=runner)
+
+    # The test uses explicit mode control to enforce training-safe halt.
+    result = manager.set_mode(WorldIntelligenceMode.TRAINING_SAFE)
+    assert result is not None
+    assert calls[0][0] == "stop"
+    blocked_restart = manager.restart_local_runtime()
+    assert blocked_restart.ok is False
+
+
+def test_source_manager_switches_to_fallback_when_local_down() -> None:
+    manager = RuntimeManager()
+    manager.set_mode(WorldIntelligenceMode.LOCAL_SELF_HOSTED)
+    manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
+        healthy=False,
+        status="down",
+        endpoint="http://127.0.0.1:8095",
+        detail="down",
+    )
+    source_manager = SourceManager(manager, lambda client_key="global": {"available": True})
+    decision = source_manager.resolve_source()
+    assert decision.source == WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK
+
+
+def test_external_adapter_enforces_allowlist() -> None:
+    adapter = ExternalWorldMonitorAdapter()
+    try:
+        adapter._enforce_allowlist("https://example.com/path")  # noqa: SLF001
+        assert False, "allowlist check should fail"
+    except ValueError:
+        assert True
+
+
+def test_external_adapter_bootstrap_uses_bounded_response(monkeypatch) -> None:
+    adapter = ExternalWorldMonitorAdapter(max_response_bytes=64 * 1024)
+
+    def fake_get(*args: Any, **kwargs: Any):
+        _ = args, kwargs
+        return _FakeResponse(
+            status_code=200,
+            body=b'{"summary": "ok"}',
+            content_type="application/json",
+            url="https://www.worldmonitor.app/",
+        )
+
+    monkeypatch.setattr("requests.get", fake_get)
+    status_code, payload = adapter.fallback_bootstrap()
+    assert status_code == 200
+    assert payload["status"] == "ok"
+
+
+def test_world_intelligence_routes_runtime_offline_safe(monkeypatch) -> None:
+    _ = monkeypatch
+    from src.world_intelligence_control import routes as module_routes
+
+    module_routes._source_manager.resolve_source = lambda client_key="global": SourceDecision(  # type: ignore[method-assign]
+        mode=WorldIntelligenceMode.OFFLINE_SAFE,
+        source=WorldIntelligenceSource.OFFLINE_SAFE,
+        reason="offline",
+        local_runtime_healthy=False,
+        fallback_available=False,
+        training_safe=False,
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+    response = client.get("/world-intelligence/runtime/")
+    assert response.status_code == 503
+    assert response.json()["mode"] == WorldIntelligenceMode.OFFLINE_SAFE.value
+
+
+def test_world_intelligence_routes_runtime_external_proxy(monkeypatch) -> None:
+    _ = monkeypatch
+    from src.world_intelligence_control import routes as module_routes
+
+    module_routes._source_manager.resolve_source = lambda client_key="global": SourceDecision(  # type: ignore[method-assign]
+        mode=WorldIntelligenceMode.EXTERNAL_LIVE_FALLBACK,
+        source=WorldIntelligenceSource.EXTERNAL_LIVE_FALLBACK,
+        reason="fallback",
+        local_runtime_healthy=False,
+        fallback_available=True,
+        training_safe=False,
+    )
+    module_routes._external_adapter.proxy_runtime = lambda path, query_params, client_key="global": ProxyResult(  # type: ignore[method-assign]
+        status_code=200,
+        content=b"ok",
+        content_type="text/plain",
+        upstream_url="https://www.worldmonitor.app/",
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+    response = client.get("/world-intelligence/runtime/")
+    assert response.status_code == 200
+    assert response.text == "ok"
