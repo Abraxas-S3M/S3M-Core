@@ -66,6 +66,7 @@ class SourceDecision(BaseModel):
     reason: str
     local_runtime_healthy: bool
     local_runtime_health_url: str | None = None
+    local_runtime_status_code: int | None = None
     fallback_available: bool
     training_safe: bool
     checked_at: str = Field(default_factory=now_iso)

@@ -62,39 +62,49 @@ def test_runtime_manager_training_safe_stops_local(monkeypatch) -> None:
 
 
 def test_runtime_manager_uses_configured_local_url(monkeypatch) -> None:
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8095/")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8096/")
 
     manager = RuntimeManager()
 
-    assert manager.local_runtime_url == "http://172.17.0.1:8095"
+    assert manager.local_runtime_url == "http://172.17.0.1:8096"
 
 
 def test_runtime_manager_prefers_primary_local_url_env(monkeypatch) -> None:
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8095")
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", "http://127.0.0.1:8095")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8096")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", "http://10.0.0.5:8096")
 
     manager = RuntimeManager()
 
-    assert manager.local_runtime_url == "http://172.17.0.1:8095"
+    assert manager.local_runtime_url == "http://172.17.0.1:8096"
 
 
 def test_runtime_manager_uses_secondary_local_url_env(monkeypatch) -> None:
     monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_URL", raising=False)
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", "http://172.17.0.1:8095/")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", "http://172.17.0.1:8096/")
 
     manager = RuntimeManager()
 
-    assert manager.local_runtime_url == "http://172.17.0.1:8095"
+    assert manager.local_runtime_url == "http://172.17.0.1:8096"
 
 
-def test_runtime_manager_defaults_to_loopback_local_url(monkeypatch) -> None:
+def test_runtime_manager_defaults_to_docker_host_local_url(monkeypatch) -> None:
     monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_URL", raising=False)
     monkeypatch.delenv("WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL", raising=False)
     monkeypatch.delenv("WORLD_INTELLIGENCE_MODE", raising=False)
 
     manager = RuntimeManager()
 
-    assert manager.local_runtime_url == "http://127.0.0.1:8095"
+    assert manager.local_runtime_url == "http://172.17.0.1:8096"
+
+
+def test_runtime_manager_rejects_public_local_runtime_url(monkeypatch) -> None:
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "https://www.worldmonitor.app")
+
+    try:
+        RuntimeManager()
+        assert False, "public local runtime URLs should be rejected"
+    except ValueError as exc:
+        assert "loopback or private local runtime host" in str(exc)
 
 
 def test_runtime_manager_uses_external_live_mode_env(monkeypatch) -> None:
@@ -106,7 +116,7 @@ def test_runtime_manager_uses_external_live_mode_env(monkeypatch) -> None:
 
 
 def test_runtime_manager_health_checks_selected_local_url(monkeypatch) -> None:
-    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8095")
+    monkeypatch.setenv("WORLD_INTELLIGENCE_LOCAL_URL", "http://172.17.0.1:8096")
     requested_urls: list[str] = []
 
     def fake_get(url: str, **kwargs: Any):
@@ -120,8 +130,8 @@ def test_runtime_manager_health_checks_selected_local_url(monkeypatch) -> None:
     health = manager.local_runtime_health()
 
     assert health.healthy is True
-    assert health.endpoint == "http://172.17.0.1:8095"
-    assert requested_urls == ["http://172.17.0.1:8095"]
+    assert health.endpoint == "http://172.17.0.1:8096"
+    assert requested_urls == ["http://172.17.0.1:8096"]
 
 
 def test_runtime_manager_requires_http_200_for_healthy_local(monkeypatch) -> None:
@@ -133,14 +143,14 @@ def test_runtime_manager_requires_http_200_for_healthy_local(monkeypatch) -> Non
         return _FakeResponse(status_code=404, url=url)
 
     monkeypatch.setattr("src.world_intelligence_control.runtime_manager.requests.get", fake_get)
-    manager = RuntimeManager(local_runtime_url="http://172.17.0.1:8095")
+    manager = RuntimeManager(local_runtime_url="http://172.17.0.1:8096")
 
     health = manager.local_runtime_health()
 
     assert health.healthy is False
     assert health.status_code == 404
-    assert health.endpoint == "http://172.17.0.1:8095/health"
-    assert requested_urls == ["http://172.17.0.1:8095", "http://172.17.0.1:8095/health"]
+    assert health.endpoint == "http://172.17.0.1:8096/health"
+    assert requested_urls == ["http://172.17.0.1:8096", "http://172.17.0.1:8096/health"]
 
 
 def test_runtime_manager_reports_systemd_unavailable_in_container(monkeypatch) -> None:
@@ -151,7 +161,7 @@ def test_runtime_manager_reports_systemd_unavailable_in_container(monkeypatch) -
         raise FileNotFoundError()
 
     monkeypatch.setattr("src.world_intelligence_control.runtime_manager.subprocess.run", missing_systemctl)
-    manager = RuntimeManager(local_runtime_url="http://172.17.0.1:8095")
+    manager = RuntimeManager(local_runtime_url="http://172.17.0.1:8096")
 
     result = manager.restart_local_runtime()
 
@@ -166,7 +176,7 @@ def test_source_manager_switches_to_fallback_when_local_down() -> None:
     manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
         healthy=False,
         status="down",
-        endpoint="http://172.17.0.1:8095",
+        endpoint="http://172.17.0.1:8096",
         detail="down",
     )
     source_manager = SourceManager(manager, lambda client_key="global": {"available": True})
@@ -180,7 +190,7 @@ def test_source_manager_keeps_healthy_local_runtime_in_external_mode() -> None:
     manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
         healthy=True,
         status="healthy",
-        endpoint="http://172.17.0.1:8095",
+        endpoint="http://172.17.0.1:8096",
         status_code=200,
         detail="local runtime responded",
     )
@@ -190,7 +200,8 @@ def test_source_manager_keeps_healthy_local_runtime_in_external_mode() -> None:
 
     assert decision.source == WorldIntelligenceSource.LOCAL_SELF_HOSTED
     assert decision.local_runtime_healthy is True
-    assert decision.local_runtime_health_url == "http://172.17.0.1:8095"
+    assert decision.local_runtime_health_url == "http://172.17.0.1:8096"
+    assert decision.local_runtime_status_code == 200
     assert decision.fallback_available is False
     assert decision.training_safe is False
 
@@ -200,7 +211,7 @@ def test_source_manager_skips_external_probe_when_local_healthy() -> None:
     manager.local_runtime_health = lambda: LocalRuntimeHealth(  # type: ignore[method-assign]
         healthy=True,
         status="healthy",
-        endpoint="http://172.17.0.1:8095",
+        endpoint="http://172.17.0.1:8096",
         status_code=200,
         detail="local runtime responded",
     )
@@ -229,7 +240,7 @@ def test_source_manager_external_live_forces_demo_source_without_local_probe() -
         return LocalRuntimeHealth(
             healthy=True,
             status="healthy",
-            endpoint="http://172.17.0.1:8095",
+            endpoint="http://172.17.0.1:8096",
             status_code=200,
             detail="local runtime responded",
         )
@@ -333,7 +344,7 @@ def test_world_intelligence_routes_runtime_external_proxy(monkeypatch) -> None:
 def test_world_intelligence_routes_source_reports_intentional_external_live(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
-    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
     monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
     monkeypatch.setattr(
         module_routes._source_manager,
@@ -369,7 +380,7 @@ def test_world_intelligence_routes_source_reports_intentional_external_live(monk
 def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
-    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
     monkeypatch.setattr(
         module_routes._source_manager,
         "resolve_source",
@@ -411,7 +422,7 @@ def test_local_runtime_proxy_rewrites_vite_asset_urls(monkeypatch) -> None:
     response = client.get("/world-intelligence/runtime/")
 
     assert response.status_code == 200
-    assert upstream_urls == ["GET http://172.17.0.1:8095/"]
+    assert upstream_urls == ["GET http://172.17.0.1:8096/"]
     assert 'src="/world-intelligence/runtime/assets/main-DXioYkv_.js' in response.text
     assert 'href="/world-intelligence/runtime/assets/settings-persistence-CCxf_ZvB.css' in response.text
     assert 'href="/world-intelligence/runtime/favico/favicon.ico' in response.text
@@ -530,7 +541,7 @@ def test_external_runtime_proxy_rewrites_live_runtime_origin(monkeypatch) -> Non
 def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
-    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
     monkeypatch.setattr(
         module_routes._source_manager,
         "resolve_source",
@@ -564,7 +575,7 @@ def test_local_runtime_proxy_preserves_nested_compressed_asset_type(monkeypatch)
     response = client.get("/world-intelligence/runtime/assets/main-DXioYkv_.js.gz")
 
     assert response.status_code == 200
-    assert upstream_urls == ["GET http://172.17.0.1:8095/assets/main-DXioYkv_.js.gz"]
+    assert upstream_urls == ["GET http://172.17.0.1:8096/assets/main-DXioYkv_.js.gz"]
     assert response.headers["content-type"].startswith("application/javascript")
     assert response.headers["content-encoding"] == "gzip"
 
@@ -644,7 +655,7 @@ def test_world_intelligence_upstream_proxy_handles_options() -> None:
 def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
-    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8095")
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
     monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
     monkeypatch.setattr(
         module_routes._source_manager,
@@ -654,6 +665,8 @@ def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> No
             source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
             reason="local runtime healthy",
             local_runtime_healthy=True,
+            local_runtime_health_url="http://172.17.0.1:8096",
+            local_runtime_status_code=200,
             fallback_available=True,
             training_safe=False,
         ),
@@ -669,10 +682,50 @@ def test_world_intelligence_source_includes_runtime_selection(monkeypatch) -> No
     assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
     assert body["local_runtime_healthy"] is True
     assert body["fallback_available"] is True
-    assert body["configured_local_url"] == "http://172.17.0.1:8095"
-    assert body["local_runtime_health_url"] == "http://172.17.0.1:8095"
+    assert body["configured_local_url"] == "http://172.17.0.1:8096"
+    assert body["local_runtime_health_url"] == "http://172.17.0.1:8096"
+    assert body["local_runtime_status_code"] == 200
     assert body["systemd_control_available"] is False
-    assert body["runtime_url_selected"] == "http://172.17.0.1:8095"
+    assert body["runtime_url_selected"] == "http://172.17.0.1:8096"
+
+
+def test_world_intelligence_source_selects_healthy_8096_local_runtime(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    requested_urls: list[str] = []
+
+    def fake_get(url: str, **kwargs: Any):
+        requested_urls.append(url)
+        _ = kwargs
+        return _FakeResponse(status_code=200, url=url)
+
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
+    monkeypatch.setattr(module_routes._runtime_manager, "systemd_control_available", lambda: False)
+    monkeypatch.setattr(module_routes._runtime_manager, "get_mode", lambda: WorldIntelligenceMode.LOCAL_SELF_HOSTED)
+    monkeypatch.setattr("src.world_intelligence_control.runtime_manager.requests.get", fake_get)
+    monkeypatch.setattr(
+        module_routes,
+        "_source_manager",
+        SourceManager(module_routes._runtime_manager, lambda client_key="global": {"available": False}),
+    )
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/api/world-intelligence/source")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+    assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
+    assert body["local_runtime_healthy"] is True
+    assert body["runtime_url_selected"] == "http://172.17.0.1:8096"
+    assert body["configured_local_url"] == "http://172.17.0.1:8096"
+    assert body["local_runtime_health_url"] == "http://172.17.0.1:8096"
+    assert body["local_runtime_status_code"] == 200
+    assert body["fallback_available"] is False
+    assert body["reason"] == "local runtime healthy"
+    assert requested_urls == ["http://172.17.0.1:8096"]
 
 
 def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> None:
@@ -698,7 +751,7 @@ def test_set_local_mode_starts_runtime_and_uses_local_source(monkeypatch) -> Non
             LocalRuntimeHealth(
                 healthy=True,
                 status="healthy",
-                endpoint="http://172.17.0.1:8095/health",
+                endpoint="http://172.17.0.1:8096/health",
                 status_code=200,
                 detail="local runtime responded",
             ),
@@ -732,7 +785,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
     monkeypatch.setattr(
         module_routes._runtime_manager,
         "local_runtime_url",
-        "http://172.17.0.1:8095",
+        "http://172.17.0.1:8096",
     )
     monkeypatch.setattr(
         module_routes._runtime_manager,
@@ -757,7 +810,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
             LocalRuntimeHealth(
                 healthy=True,
                 status="healthy",
-                endpoint="http://172.17.0.1:8095/health",
+                endpoint="http://172.17.0.1:8096/health",
                 status_code=200,
                 detail="local runtime responded",
             ),
@@ -784,7 +837,7 @@ def test_set_local_mode_uses_healthy_runtime_when_systemctl_unavailable(monkeypa
     assert response.status_code == 200
     body = response.json()
     assert body["active_source"] == WorldIntelligenceSource.LOCAL_SELF_HOSTED.value
-    assert body["configured_local_url"] == "http://172.17.0.1:8095"
+    assert body["configured_local_url"] == "http://172.17.0.1:8096"
     assert body["local_runtime_healthy"] is True
     assert body["systemd_control_available"] is False
     assert "systemd control unavailable" in body["reason"]
@@ -811,7 +864,7 @@ def test_set_local_mode_returns_safe_payload_when_local_start_fails(monkeypatch)
             LocalRuntimeHealth(
                 healthy=False,
                 status="down",
-                endpoint="http://172.17.0.1:8095",
+                endpoint="http://172.17.0.1:8096",
                 detail="local runtime unreachable",
             ),
         ),

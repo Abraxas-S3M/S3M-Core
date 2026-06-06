@@ -7,11 +7,12 @@ degrade safely without triggering training or data-sync side effects.
 
 from __future__ import annotations
 
+import ipaddress
+import os
+import shutil
 import subprocess
 import threading
 import time
-import os
-import shutil
 from typing import Callable
 from urllib.parse import urlparse
 
@@ -25,10 +26,23 @@ from .models import (
 
 
 ServiceRunner = Callable[[str, str], ServiceActionResult]
-DEFAULT_LOCAL_RUNTIME_URL = "http://127.0.0.1:8095"
+DEFAULT_LOCAL_RUNTIME_URL = "http://172.17.0.1:8096"
 LOCAL_RUNTIME_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_URL"
 LOCAL_RUNTIME_FALLBACK_URL_ENV = "WORLD_INTELLIGENCE_LOCAL_RUNTIME_URL"
 MODE_ENV = "WORLD_INTELLIGENCE_MODE"
+_LOCAL_RUNTIME_ALLOWED_HOSTNAMES = {"localhost", "host.docker.internal"}
+
+
+def _is_allowed_local_runtime_host(hostname: str) -> bool:
+    """Restrict runtime proxying to local/private control-plane targets."""
+    normalized_hostname = hostname.strip("[]").lower()
+    if normalized_hostname in _LOCAL_RUNTIME_ALLOWED_HOSTNAMES:
+        return True
+    try:
+        address = ipaddress.ip_address(normalized_hostname)
+    except ValueError:
+        return False
+    return address.is_loopback or address.is_private
 
 
 def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
@@ -51,6 +65,8 @@ def _configured_local_runtime_url(local_runtime_url: str | None = None) -> str:
         raise ValueError(f"{source_name} must not include credentials")
     if parsed.query or parsed.fragment:
         raise ValueError(f"{source_name} must not include query strings or fragments")
+    if not parsed.hostname or not _is_allowed_local_runtime_host(parsed.hostname):
+        raise ValueError(f"{source_name} must target a loopback or private local runtime host")
     return raw_url.rstrip("/")
 
 

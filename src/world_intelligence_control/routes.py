@@ -675,6 +675,7 @@ async def world_intelligence_source(request: Request) -> dict[str, Any]:
     payload["active_source"] = decision.source.value
     payload["configured_local_url"] = _runtime_manager.local_runtime_url
     payload["local_runtime_health_url"] = decision.local_runtime_health_url or _runtime_manager.local_runtime_url
+    payload["local_runtime_status_code"] = decision.local_runtime_status_code
     payload["local_runtime_healthy"] = decision.local_runtime_healthy
     payload["systemd_control_available"] = _runtime_manager.systemd_control_available()
     payload["fallback_available"] = decision.fallback_available
@@ -684,6 +685,8 @@ async def world_intelligence_source(request: Request) -> dict[str, Any]:
     payload["runtime_proxy"] = {
         "mounted_path": RUNTIME_MOUNT_PATH,
         "allowed_runtime_origin": EXTERNAL_RUNTIME_URL,
+        "allowed_local_runtime_origin": _runtime_manager.local_runtime_url,
+        "allowed_external_runtime_origin": EXTERNAL_RUNTIME_URL,
         "allowed_upstream_origins": dict(_UPSTREAM_PROXY_ORIGINS),
         "html_asset_rewrite": "enabled",
         "origin_rewrite": "enabled",

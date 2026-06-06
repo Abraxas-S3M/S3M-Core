@@ -27,6 +27,7 @@ class SourceManager:
                 reason="external live demo mode enabled",
                 local_runtime_healthy=False,
                 local_runtime_health_url=None,
+                local_runtime_status_code=None,
                 fallback_available=True,
                 training_safe=False,
             )
@@ -40,6 +41,7 @@ class SourceManager:
         base_decision = {
             "local_runtime_healthy": local_health.healthy,
             "local_runtime_health_url": local_health.endpoint,
+            "local_runtime_status_code": local_health.status_code,
             "fallback_available": fallback_available,
             "training_safe": training_safe,
         }
