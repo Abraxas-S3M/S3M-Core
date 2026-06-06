@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 import requests
 from fastapi import APIRouter, HTTPException, Request
@@ -39,20 +39,58 @@ UPSTREAM_MOUNT_PATH = "/world-intelligence/upstream"
 EXTERNAL_RUNTIME_URL = "https://www.worldmonitor.app"
 _MAX_LOCAL_RUNTIME_RESPONSE_BYTES = 25 * 1024 * 1024
 _MAX_UPSTREAM_PROXY_RESPONSE_BYTES = 10 * 1024 * 1024
-_RUNTIME_REWRITE_PREFIXES = ("assets/", "favico/", "manifest", "service-worker", "sw")
+_RUNTIME_REWRITE_PREFIXES = (
+    "api/",
+    "assets/",
+    "favico/",
+    "map-styles/",
+    "textures/",
+    "manifest",
+    "service-worker",
+    "sw",
+    "live-channels.html",
+    "settings.html",
+    "offline.html",
+    "openapi.yaml",
+)
 _UPSTREAM_PROXY_ORIGINS = {
     "api": "https://api.worldmonitor.app",
     "maps": "https://maps.worldmonitor.app",
     "clerk": "https://clerk.worldmonitor.app",
     "abacus": "https://abacus.worldmonitor.app",
 }
+_WORLD_MONITOR_RUNTIME_ORIGINS = (
+    "https://www.worldmonitor.app",
+    "https://worldmonitor.app",
+)
 _EXTERNAL_RUNTIME_ORIGIN_REWRITES = {
-    EXTERNAL_RUNTIME_URL: RUNTIME_MOUNT_PATH,
+    **{origin: RUNTIME_MOUNT_PATH for origin in _WORLD_MONITOR_RUNTIME_ORIGINS},
     **{origin: f"{UPSTREAM_MOUNT_PATH}/{name}" for name, origin in _UPSTREAM_PROXY_ORIGINS.items()},
 }
 _HTML_RUNTIME_URL_RE = re.compile(
-    r"(?P<prefix>\b(?:src|href)=['\"])(?P<path>/(?:assets/|favico/|favicon\.ico|manifest|service-worker|sw)[^'\"]*)"
+    r"(?P<prefix>\b(?:src|href|action)=['\"])(?P<path>/[^'\"]*)",
+    re.IGNORECASE,
 )
+_QUOTED_RUNTIME_PATH_RE = re.compile(
+    r"(?P<quote>['\"`])(?P<path>/(?!world-intelligence/(?:runtime|upstream)(?:/|$))[^'\"`\s<>()]+)(?P=quote)"
+)
+_CSS_URL_RUNTIME_PATH_RE = re.compile(
+    r"(?P<prefix>\burl\((?P<quote>['\"]?))"
+    r"(?P<path>/(?!world-intelligence/(?:runtime|upstream)(?:/|$))[^'\"\s)]+)"
+    r"(?P<suffix>(?P=quote)\))",
+    re.IGNORECASE,
+)
+_HTML_EXTERNAL_LINK_ATTR_RE = re.compile(
+    r"(?P<prefix>\b(?:href|src|action|poster|data-href)=)(?P<quote>['\"])(?P<url>.*?)(?P=quote)",
+    re.IGNORECASE | re.DOTALL,
+)
+_ABSOLUTE_EXTERNAL_URL_RE = re.compile(r"https?:(?:\\/\\/|//)[^'\"`\s<>)]+", re.IGNORECASE)
+_PROTOCOL_RELATIVE_EXTERNAL_URL_RE = re.compile(
+    r"(?P<quote>['\"`])//(?P<host>[A-Za-z0-9.-]+)(?P<path>/[^'\"`\s<>()]*)?(?P=quote)"
+)
+_URL_SCHEME_RE = re.compile(r"^[a-z][a-z0-9+.-]*:", re.IGNORECASE)
+_SAFE_LOCAL_LINK_PREFIXES = ("#", "/", "./", "../")
+_WORLD_MONITOR_RUNTIME_HOSTS = {"www.worldmonitor.app", "worldmonitor.app"}
 _COMPRESSED_SUFFIX_CONTENT_ENCODING = {
     ".br": "br",
     ".gz": "gzip",
@@ -222,28 +260,72 @@ def _is_rewritable_text_response(path: str, content_type: str, content_encoding:
     return path_without_query.endswith(_REWRITABLE_TEXT_EXTENSIONS)
 
 
+def _should_rewrite_runtime_path(url_path: str) -> bool:
+    stripped = url_path.lstrip("/")
+    path_only = stripped.split("?", 1)[0].split("#", 1)[0]
+    if path_only.startswith(("api/", "assets/", "favico/", "map-styles/", "textures/", "service-worker")):
+        return True
+    if path_only in {
+        "api",
+        "favicon.ico",
+        "live-channels.html",
+        "settings.html",
+        "offline.html",
+        "openapi.yaml",
+    }:
+        return True
+    if path_only == "manifest" or path_only.startswith(("manifest.", "manifest/")):
+        return True
+    return path_only == "sw" or path_only.startswith(("sw.", "sw/"))
+
+
+def _runtime_path(url_path: str) -> str:
+    if url_path.startswith(f"{RUNTIME_MOUNT_PATH}/") or url_path == RUNTIME_MOUNT_PATH:
+        return url_path
+    if not url_path.startswith("/"):
+        url_path = f"/{url_path}"
+    return f"{RUNTIME_MOUNT_PATH}{url_path}"
+
+
 def _rewrite_runtime_html(html: str) -> tuple[str, int]:
     rewrite_count = 0
-
-    def should_rewrite(url_path: str) -> bool:
-        stripped = url_path.lstrip("/")
-        if stripped.startswith(("assets/", "favico/", "service-worker")) or stripped == "favicon.ico":
-            return True
-        if stripped == "manifest" or stripped.startswith(("manifest.", "manifest?", "manifest/")):
-            return True
-        return stripped == "sw" or stripped.startswith(("sw.", "sw?", "sw/"))
 
     def replace(match: re.Match[str]) -> str:
         nonlocal rewrite_count
         url_path = match.group("path")
-        if not should_rewrite(url_path):
+        if not _should_rewrite_runtime_path(url_path):
             return match.group(0)
         if url_path.startswith(f"{RUNTIME_MOUNT_PATH}/"):
             return match.group(0)
         rewrite_count += 1
-        return f"{match.group('prefix')}{RUNTIME_MOUNT_PATH}{url_path}"
+        return f"{match.group('prefix')}{_runtime_path(url_path)}"
 
     return _HTML_RUNTIME_URL_RE.sub(replace, html), rewrite_count
+
+
+def _rewrite_runtime_relative_paths(content: str) -> tuple[str, int]:
+    rewrite_count = 0
+
+    def replace_quoted(match: re.Match[str]) -> str:
+        nonlocal rewrite_count
+        url_path = match.group("path")
+        if not _should_rewrite_runtime_path(url_path):
+            return match.group(0)
+        rewrite_count += 1
+        quote = match.group("quote")
+        return f"{quote}{_runtime_path(url_path)}{quote}"
+
+    def replace_css_url(match: re.Match[str]) -> str:
+        nonlocal rewrite_count
+        url_path = match.group("path")
+        if not _should_rewrite_runtime_path(url_path):
+            return match.group(0)
+        rewrite_count += 1
+        return f"{match.group('prefix')}{_runtime_path(url_path)}{match.group('suffix')}"
+
+    rewritten = _QUOTED_RUNTIME_PATH_RE.sub(replace_quoted, content)
+    rewritten = _CSS_URL_RUNTIME_PATH_RE.sub(replace_css_url, rewritten)
+    return rewritten, rewrite_count
 
 
 def _rewrite_external_runtime_origins(content: str) -> tuple[str, int]:
@@ -261,6 +343,89 @@ def _rewrite_external_runtime_origins(content: str) -> tuple[str, int]:
                 rewritten = rewritten.replace(source, proxy_path)
                 rewrite_count += count
     return rewritten, rewrite_count
+
+
+def _parsed_external_url(raw_url: str):
+    normalized = raw_url.replace("\\/", "/").strip()
+    if normalized.startswith("//"):
+        normalized = f"https:{normalized}"
+    parsed = urlsplit(normalized)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    return parsed
+
+
+def _is_safe_local_link(raw_url: str) -> bool:
+    stripped = raw_url.strip()
+    if not stripped:
+        return True
+    if stripped.startswith(_SAFE_LOCAL_LINK_PREFIXES):
+        return True
+    return _URL_SCHEME_RE.match(stripped) is None
+
+
+def _world_monitor_runtime_path_from_url(raw_url: str) -> str | None:
+    parsed = _parsed_external_url(raw_url)
+    if parsed is None or parsed.hostname not in _WORLD_MONITOR_RUNTIME_HOSTS:
+        return None
+    path = parsed.path or "/"
+    runtime_url = _runtime_path(path)
+    if parsed.query:
+        runtime_url = f"{runtime_url}?{parsed.query}"
+    if parsed.fragment:
+        runtime_url = f"{runtime_url}#{parsed.fragment}"
+    return runtime_url
+
+
+def _neutralize_external_navigation_links(content: str, *, is_html: bool) -> tuple[str, int]:
+    sanitized_count = 0
+    rewritten = content
+
+    if is_html:
+        def replace_attr(match: re.Match[str]) -> str:
+            nonlocal sanitized_count
+            raw_url = match.group("url").strip()
+            parsed = _parsed_external_url(raw_url)
+            if parsed is None:
+                if _is_safe_local_link(raw_url):
+                    return match.group(0)
+                sanitized_count += 1
+                return f"{match.group('prefix')}{match.group('quote')}#{match.group('quote')}"
+            runtime_url = _world_monitor_runtime_path_from_url(raw_url)
+            if runtime_url:
+                return f"{match.group('prefix')}{match.group('quote')}{runtime_url}{match.group('quote')}"
+            # Any remaining absolute destination can steer the tactical iframe away from S3M.
+            sanitized_count += 1
+            return f"{match.group('prefix')}{match.group('quote')}#{match.group('quote')}"
+
+        rewritten = _HTML_EXTERNAL_LINK_ATTR_RE.sub(replace_attr, rewritten)
+
+    def replace_absolute(match: re.Match[str]) -> str:
+        nonlocal sanitized_count
+        raw_url = match.group(0)
+        parsed = _parsed_external_url(raw_url)
+        if parsed is None:
+            return raw_url
+        runtime_url = _world_monitor_runtime_path_from_url(raw_url)
+        if runtime_url:
+            return runtime_url
+        sanitized_count += 1
+        return "#"
+
+    def replace_protocol_relative(match: re.Match[str]) -> str:
+        nonlocal sanitized_count
+        host = match.group("host").lower()
+        if host in _WORLD_MONITOR_RUNTIME_HOSTS:
+            path = match.group("path") or "/"
+            quote = match.group("quote")
+            return f"{quote}{_runtime_path(path)}{quote}"
+        sanitized_count += 1
+        quote = match.group("quote")
+        return f"{quote}#{quote}"
+
+    rewritten = _ABSOLUTE_EXTERNAL_URL_RE.sub(replace_absolute, rewritten)
+    rewritten = _PROTOCOL_RELATIVE_EXTERNAL_URL_RE.sub(replace_protocol_relative, rewritten)
+    return rewritten, sanitized_count
 
 
 def _sanitize_csp_header(value: str) -> str | None:
@@ -290,12 +455,14 @@ def _runtime_response_headers(
     content_type: str,
     rewrite_count: int,
     origin_rewrite_count: int,
+    link_sanitized_count: int,
 ) -> dict[str, str]:
     headers = {
         "x-world-intelligence-source": source.value,
         "x-world-intelligence-runtime-path": path or "/",
         "x-world-intelligence-html-rewrites": str(rewrite_count),
         "x-world-intelligence-origin-rewrites": str(origin_rewrite_count),
+        "x-world-intelligence-link-sanitized": str(link_sanitized_count),
         "content-type": content_type,
     }
     for header_name in ("cache-control", "etag", "last-modified"):
@@ -328,6 +495,7 @@ def _build_runtime_response(
     content_type = _infer_content_type(path, upstream_headers.get("content-type"))
     rewrite_count = 0
     origin_rewrite_count = 0
+    link_sanitized_count = 0
     body = content
     content_encoding = _content_encoding_for_path(path, upstream_headers.get("content-encoding"))
     if (
@@ -338,8 +506,15 @@ def _build_runtime_response(
         charset = _charset_from_content_type(content_type)
         rewritten_text = content.decode(charset, errors="replace")
         if _is_html_response(path, content_type):
-            rewritten_text, rewrite_count = _rewrite_runtime_html(rewritten_text)
+            rewritten_text, html_rewrite_count = _rewrite_runtime_html(rewritten_text)
+            rewrite_count += html_rewrite_count
+        rewritten_text, relative_rewrite_count = _rewrite_runtime_relative_paths(rewritten_text)
+        rewrite_count += relative_rewrite_count
         rewritten_text, origin_rewrite_count = _rewrite_external_runtime_origins(rewritten_text)
+        rewritten_text, link_sanitized_count = _neutralize_external_navigation_links(
+            rewritten_text,
+            is_html=_is_html_response(path, content_type),
+        )
         body = rewritten_text.encode(charset)
 
     headers = _runtime_response_headers(
@@ -349,6 +524,7 @@ def _build_runtime_response(
         content_type=content_type,
         rewrite_count=rewrite_count,
         origin_rewrite_count=origin_rewrite_count,
+        link_sanitized_count=link_sanitized_count,
     )
     return Response(
         content=b"" if method == "HEAD" else body,
