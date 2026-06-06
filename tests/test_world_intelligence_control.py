@@ -493,6 +493,124 @@ def test_local_runtime_proxy_rewrites_worldmonitor_origins_in_html_and_js(monkey
     assert "/world-intelligence/upstream/maps\\/tiles" in js_response.text
 
 
+def test_local_runtime_proxy_sanitizes_external_navigation_links(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=False,
+            training_safe=False,
+        ),
+    )
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        _ = method, kwargs
+        html = (
+            '<a href="https://www.worldmonitor.app/">Home</a>'
+            '<a href="https://www.worldmonitor.app/?region=black-sea">Query</a>'
+            '<link rel="icon" href="https://www.worldmonitor.app/favico/favicon.ico">'
+            '<a href="https://www.youtube.com/watch?v=brief">Video</a>'
+            '<a href="https://x.com/worldmonitor">X</a>'
+            '<a href="https://github.com/koala73/worldmonitor">GitHub</a>'
+            '<a href="https://discord.gg/worldmonitor">Discord</a>'
+            '<iframe src="https://www.youtube-nocookie.com/embed/brief"></iframe>'
+            '<script>window.docs="https://docs.example.invalid/world";</script>'
+        )
+        return _FakeResponse(
+            status_code=200,
+            body=html.encode("utf-8"),
+            content_type="text/html; charset=utf-8",
+            url=url,
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/world-intelligence/runtime/")
+
+    assert response.status_code == 200
+    assert 'href="/world-intelligence/runtime/"' in response.text
+    assert 'href="/world-intelligence/runtime/?region=black-sea"' in response.text
+    assert 'href="/world-intelligence/runtime/favico/favicon.ico"' in response.text
+    assert "https://www.worldmonitor.app" not in response.text
+    assert "https://worldmonitor.app" not in response.text
+    assert "https://www.youtube.com" not in response.text
+    assert "https://x.com" not in response.text
+    assert "https://github.com" not in response.text
+    assert "https://discord.gg" not in response.text
+    assert "https://www.youtube-nocookie.com" not in response.text
+    assert "https://docs.example.invalid" not in response.text
+    assert response.text.count('href="#"') == 4
+    assert 'src="#"' in response.text
+    assert 'window.docs="#";' in response.text
+    assert response.headers["x-world-intelligence-origin-rewrites"] == "3"
+    assert response.headers["x-world-intelligence-link-sanitized"] == "6"
+
+
+def test_local_runtime_proxy_rewrites_relative_api_static_paths_in_text(monkeypatch) -> None:
+    from src.world_intelligence_control import routes as module_routes
+
+    monkeypatch.setattr(module_routes._runtime_manager, "local_runtime_url", "http://172.17.0.1:8096")
+    monkeypatch.setattr(
+        module_routes._source_manager,
+        "resolve_source",
+        lambda client_key="global": SourceDecision(
+            mode=WorldIntelligenceMode.LOCAL_SELF_HOSTED,
+            source=WorldIntelligenceSource.LOCAL_SELF_HOSTED,
+            reason="local runtime healthy",
+            local_runtime_healthy=True,
+            fallback_available=False,
+            training_safe=False,
+        ),
+    )
+
+    def fake_request(*args: Any, **kwargs: Any):
+        method, url = args[:2]
+        _ = method, kwargs
+        body = (
+            "fetch('/api/feed');"
+            'const style="/map-styles/dark.json";'
+            'const texture="/textures/grid.png";'
+            "const live='/live-channels.html';"
+            "const docs='/openapi.yaml';"
+            "const external='https://youtube.com/watch?v=brief';"
+        )
+        return _FakeResponse(
+            status_code=200,
+            body=body.encode("utf-8"),
+            content_type="application/javascript; charset=utf-8",
+            url=url,
+        )
+
+    monkeypatch.setattr(module_routes.requests, "request", fake_request)
+    app = FastAPI()
+    app.include_router(world_intelligence_router)
+    client = TestClient(app)
+
+    response = client.get("/world-intelligence/runtime/assets/app.js")
+
+    assert response.status_code == 200
+    assert "fetch('/world-intelligence/runtime/api/feed')" in response.text
+    assert 'const style="/world-intelligence/runtime/map-styles/dark.json";' in response.text
+    assert 'const texture="/world-intelligence/runtime/textures/grid.png";' in response.text
+    assert "const live='/world-intelligence/runtime/live-channels.html';" in response.text
+    assert "const docs='/world-intelligence/runtime/openapi.yaml';" in response.text
+    assert "https://youtube.com" not in response.text
+    assert "const external='#';" in response.text
+    assert response.headers["x-world-intelligence-html-rewrites"] == "5"
+    assert response.headers["x-world-intelligence-link-sanitized"] == "1"
+
+
 def test_external_runtime_proxy_rewrites_live_runtime_origin(monkeypatch) -> None:
     from src.world_intelligence_control import routes as module_routes
 
