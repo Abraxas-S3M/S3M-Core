@@ -9,25 +9,27 @@ Tactical context:
 from __future__ import annotations
 
 import asyncio
-import random
+import math
 from datetime import datetime, timezone
 from time import monotonic
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.cop.adapters.open_c4isr_adapter import OpenC4ISRAdapter
 from src.cop.cop_models import (
     CopAlert,
     CopDecision,
     CopFeature,
     CopFeedItem,
-    CopMapConfig,
     CopPanelState,
     CopState,
-    CopTheater,
     CopTrack,
 )
+from src.cop.demo_tracks import DEMO_TRACKS, THEATER_BOUNDS, build_scenario
+from src.cop.event_bus import CopEventBus, get_event_bus
 from src.storage.object_storage import ObjectStorageConnector, ObjectStorageError
 
-SUPPORTED_TRACKS: tuple[str, ...] = ("saudi_mod",)
+# All future-safe demonstration tracks. ``saudi_mod`` is the primary demo track.
+SUPPORTED_TRACKS: tuple[str, ...] = DEMO_TRACKS
 
 INTEL_PREFIXES: tuple[str, ...] = (
     "intel/cop/",
@@ -66,6 +68,8 @@ class CopService:
         max_keys_per_prefix: int = 4,
         max_object_size_bytes: int = 262_144,
         io_timeout_seconds: float = 1.5,
+        adapter: Optional[OpenC4ISRAdapter] = None,
+        event_bus: Optional[CopEventBus] = None,
     ) -> None:
         self._cache_ttl_seconds = max(1.0, float(cache_ttl_seconds))
         self._max_keys_per_prefix = max(1, int(max_keys_per_prefix))
@@ -75,6 +79,10 @@ class CopService:
         self._cache_lock = asyncio.Lock()
         self._connector: Optional[ObjectStorageConnector] = None
         self._connector_checked = False
+        # Adapter seam into open C4ISR/COP inputs (TAK / ODIN / C2SIM-style).
+        self._adapter = adapter or OpenC4ISRAdapter()
+        # AI-ready event bus -- bridge toward the future quad-engine orchestrator.
+        self._event_bus = event_bus or get_event_bus()
 
     async def get_state(self, track: str, *, force_refresh: bool = False) -> CopState:
         normalized_track = self._normalize_track(track)
@@ -136,29 +144,143 @@ class CopService:
         }
 
     async def build_websocket_events(self, track: str, sequence: int) -> List[Dict[str, Any]]:
-        state = await self.get_state(track, force_refresh=True)
-        events: List[Dict[str, Any]] = [{"type": "cop_update", "state": _model_dump(state)}]
+        """Build a deterministic, repeatable batch of COP stream events.
 
-        if state.feed_messages:
-            events.append({"type": "intel_feed", "item": _model_dump(state.feed_messages[sequence % len(state.feed_messages)])})
-        risk_panel = self._panel_by_id(state.panel_summaries, "risk")
+        Tactical context:
+            Track coordinates are nudged each tick along their heading using a
+            bounded sine envelope keyed only to the sequence number, so every
+            demonstration replays identically and every contact stays inside the
+            Saudi/Gulf theater bounds. Each update is also published to the
+            AI-ready event bus as the bridge to the future quad-engine layer.
+        """
+        normalized_track = self._normalize_track(track)
+        base_state = await self.get_state(normalized_track)
+        timestamp = _now_iso()
+
+        moved_tracks = self._propagate_tracks(base_state.tactical_tracks, sequence, timestamp)
+        state_dict = _model_dump(base_state)
+        state_dict["tactical_tracks"] = moved_tracks
+        state_dict["timestamp"] = timestamp
+
+        events: List[Dict[str, Any]] = [{"type": "cop_update", "state": state_dict}]
+
+        # Publish per-track updates onto the AI-ready event bus (no LLM calls).
+        for row in moved_tracks:
+            self._event_bus.emit(
+                track=normalized_track,
+                event_type="track_update",
+                payload=row,
+                route_hint=self._route_hint_for_domain(str(row.get("domain", ""))),
+                confidence=float(row.get("confidence", 0.0) or 0.0),
+                requires_human_review=str(row.get("affiliation", "")) != "friendly",
+                event_id=f"evt-{normalized_track}-track-{row.get('track_id')}-{sequence}",
+                created_at=timestamp,
+            )
+
+        if base_state.feed_messages:
+            item = _model_dump(base_state.feed_messages[sequence % len(base_state.feed_messages)])
+            events.append({"type": "intel_feed", "item": item})
+        risk_panel = self._panel_by_id(base_state.panel_summaries, "risk")
         if risk_panel is not None:
             events.append({"type": "risk_card", "panel": _model_dump(risk_panel)})
-        if state.alerts:
-            events.append({"type": "alert", "alert": _model_dump(state.alerts[sequence % len(state.alerts)])})
-        if state.decisions:
-            events.append({"type": "decision", "decision": _model_dump(state.decisions[sequence % len(state.decisions)])})
+        if base_state.alerts:
+            alert = _model_dump(base_state.alerts[sequence % len(base_state.alerts)])
+            events.append({"type": "alert", "alert": alert})
+            self._event_bus.emit(
+                track=normalized_track,
+                event_type="alert",
+                payload=alert,
+                route_hint="reasoning",
+                confidence=0.5,
+                requires_human_review=True,
+                event_id=f"evt-{normalized_track}-alert-{alert.get('alert_id')}-{sequence}",
+                created_at=timestamp,
+            )
+        if base_state.decisions:
+            decision = _model_dump(base_state.decisions[sequence % len(base_state.decisions)])
+            events.append({"type": "decision", "decision": decision})
+            self._event_bus.emit(
+                track=normalized_track,
+                event_type="decision_request",
+                payload=decision,
+                route_hint="planning",
+                confidence=0.5,
+                requires_human_review=True,
+                event_id=f"evt-{normalized_track}-decision-{decision.get('decision_id')}-{sequence}",
+                created_at=timestamp,
+            )
 
-        events.append({"type": "system_status", "backend_health": state.backend_health, "timestamp": state.timestamp})
+        events.append({"type": "system_status", "backend_health": base_state.backend_health, "timestamp": timestamp})
         return events
 
     def websocket_delay_seconds(self, track: str, sequence: int) -> float:
-        normalized_track = self._normalize_track(track)
-        seeded = random.Random(f"{normalized_track}:{sequence}")
-        return round(seeded.uniform(3.0, 8.0), 2)
+        """Fixed, deterministic stream cadence for demo stability."""
+        self._normalize_track(track)
+        return 2.0
+
+    def _propagate_tracks(
+        self, tracks: List[CopTrack], sequence: int, timestamp: str
+    ) -> List[Dict[str, Any]]:
+        """Deterministically shift tracks along heading within theater bounds."""
+        (min_lat, min_lon), (max_lat, max_lon) = THEATER_BOUNDS
+        moved: List[Dict[str, Any]] = []
+        for track in tracks:
+            data = _model_dump(track)
+            speed = float(data.get("speed_kts", 0.0) or 0.0)
+            if speed <= 0.0:
+                # Stationary assets (sensors, cyber nodes) only refresh timestamp.
+                data["last_update"] = timestamp
+                moved.append(data)
+                continue
+
+            heading_rad = math.radians(float(data.get("heading_deg", 0.0) or 0.0))
+            phase = self._track_phase(str(data.get("track_id", "")))
+            # Bounded oscillation: amplitude scales with speed but is capped so
+            # contacts never leave the theater. progress in [-1, 1].
+            amplitude_nm = min(speed * 0.05, 30.0)
+            progress = math.sin(0.35 * sequence + phase)
+            amplitude_deg = amplitude_nm / 60.0
+
+            base_lat = float(data.get("latitude", 0.0))
+            base_lon = float(data.get("longitude", 0.0))
+            cos_lat = max(0.2, math.cos(math.radians(base_lat)))
+            new_lat = base_lat + amplitude_deg * math.cos(heading_rad) * progress
+            new_lon = base_lon + (amplitude_deg / cos_lat) * math.sin(heading_rad) * progress
+
+            data["latitude"] = round(self._clamp(new_lat, min_lat + 0.1, max_lat - 0.1), 5)
+            data["longitude"] = round(self._clamp(new_lon, min_lon + 0.1, max_lon - 0.1), 5)
+            data["last_update"] = timestamp
+            moved.append(data)
+        return moved
+
+    @property
+    def event_bus(self) -> CopEventBus:
+        return self._event_bus
+
+    @property
+    def adapter(self) -> OpenC4ISRAdapter:
+        return self._adapter
 
     def validate_track(self, track: str) -> str:
         return self._normalize_track(track)
+
+    @staticmethod
+    def _clamp(value: float, low: float, high: float) -> float:
+        return max(low, min(high, value))
+
+    @staticmethod
+    def _track_phase(track_id: str) -> float:
+        """Deterministic per-track phase offset (process-independent)."""
+        seed = sum(ord(char) for char in track_id)
+        return (seed % 628) / 100.0
+
+    @staticmethod
+    def _route_hint_for_domain(domain: str) -> str:
+        if domain == "cyber":
+            return "reasoning"
+        if domain in {"missile", "air", "maritime", "ground"}:
+            return "tactical"
+        return "tactical"
 
     def _build_state_sync(self, track: str) -> CopState:
         timestamp = _now_iso()
@@ -299,247 +421,81 @@ class CopService:
         return sanitized
 
     def _build_fallback_payload(self, *, track: str, timestamp: str) -> Dict[str, Any]:
-        theater = CopTheater(
-            track=track,
-            name="Saudi MOD Joint Operations Theater",
-            center=[24.7136, 46.6753],
-            bounds=[[15.5, 34.0], [32.8, 56.8]],
-            focus_areas=[
-                {"name": "Riyadh", "center": [24.7136, 46.6753], "type": "c2_hub"},
-                {"name": "Jubail", "center": [27.0174, 49.6225], "type": "industrial_port"},
-                {"name": "Arabian Gulf", "center": [26.1, 51.8], "type": "maritime_corridor"},
-                {"name": "Red Sea", "center": [22.5, 38.8], "type": "strategic_sea_lane"},
-                {"name": "Hormuz", "center": [26.57, 56.25], "type": "chokepoint"},
-                {"name": "Bab al-Mandab", "center": [12.64, 43.34], "type": "chokepoint"},
-                {"name": "Abu Musa", "center": [25.88, 55.03], "type": "island_outpost"},
-                {"name": "Al Dhafra", "center": [24.25, 54.55], "type": "air_base"},
-                {"name": "NAVCENT Bahrain", "center": [26.2285, 50.586], "type": "coalition_hq"},
-            ],
-        )
-        map_config = CopMapConfig(
-            center=[24.7136, 46.6753],
-            bounds=[[15.5, 34.0], [32.8, 56.8]],
-            layers=[
-                "borders",
-                "air_corridors",
-                "maritime_routes",
-                "critical_infrastructure",
-                "threat_heatmap",
-                "c2_nodes",
-            ],
-        )
-        features = [
-            CopFeature(
-                feature_id="focus-riyadh",
-                feature_type="focus_area",
-                name="Riyadh Command Radius",
-                geometry_type="Point",
-                coordinates=[46.6753, 24.7136],
-                properties={"priority": "critical", "domain": "command"},
-            ),
-            CopFeature(
-                feature_id="focus-jubail",
-                feature_type="focus_area",
-                name="Jubail Energy Corridor",
-                geometry_type="Point",
-                coordinates=[49.6225, 27.0174],
-                properties={"priority": "high", "domain": "logistics"},
-            ),
-            CopFeature(
-                feature_id="route-hormuz-gulf",
-                feature_type="sea_lane",
-                name="Hormuz to Arabian Gulf Shipping Lane",
-                geometry_type="LineString",
-                coordinates=[[56.25, 26.57], [52.8, 26.1], [50.2, 26.2]],
-                properties={"priority": "high", "domain": "maritime"},
-            ),
-            CopFeature(
-                feature_id="route-red-sea",
-                feature_type="sea_lane",
-                name="Bab al-Mandab Transit Route",
-                geometry_type="LineString",
-                coordinates=[[43.34, 12.64], [41.8, 17.2], [39.1, 22.4]],
-                properties={"priority": "high", "domain": "maritime"},
-            ),
-        ]
-        tracks = [
-            CopTrack(
-                track_id="trk-saudi-air-001",
-                callsign="RSAF-EAGLE-11",
-                domain="air",
-                affiliation="friendly",
-                status="on_station",
-                latitude=24.92,
-                longitude=47.08,
-                altitude_m=9700.0,
-                speed_kts=420.0,
-                heading_deg=102.0,
-                confidence=0.96,
-                last_update=timestamp,
-                source="fallback_scenario",
-            ),
-            CopTrack(
-                track_id="trk-gulf-surface-017",
-                callsign="RSNF-FALCON-7",
-                domain="maritime",
-                affiliation="friendly",
-                status="patrolling",
-                latitude=26.18,
-                longitude=51.34,
-                altitude_m=0.0,
-                speed_kts=21.0,
-                heading_deg=148.0,
-                confidence=0.91,
-                last_update=timestamp,
-                source="fallback_scenario",
-            ),
-            CopTrack(
-                track_id="trk-unknown-air-404",
-                callsign="UNKNOWN-404",
-                domain="air",
-                affiliation="unknown",
-                status="monitor",
-                latitude=25.84,
-                longitude=54.74,
-                altitude_m=10200.0,
-                speed_kts=360.0,
-                heading_deg=258.0,
-                confidence=0.62,
-                last_update=timestamp,
-                source="fallback_scenario",
-            ),
-        ]
-        alerts = [
-            CopAlert(
-                alert_id="alt-hormuz-001",
-                category="maritime",
-                severity="high",
-                title="Elevated congestion near Hormuz",
-                summary="Maritime density increased across the chokepoint; monitor convoy separation.",
-                location="Strait of Hormuz",
-                recommended_action="Increase ISR revisit rate and hold escort package at readiness level 2.",
-                timestamp=timestamp,
-            ),
-            CopAlert(
-                alert_id="alt-cyber-002",
-                category="cyber",
-                severity="medium",
-                title="Anomalous scanning against C2 subnet",
-                summary="Repeated reconnaissance signatures detected against command network segment.",
-                location="Riyadh C2 enclave",
-                recommended_action="Isolate exposed node and enforce packet capture for attribution.",
-                timestamp=timestamp,
-            ),
-        ]
-        decisions = [
-            CopDecision(
-                decision_id="dec-ops-101",
-                title="Adjust maritime escort rotation",
-                summary="Shift one escort vessel to eastern lane coverage during peak merchant traffic.",
-                owner="MARITIME_DESK",
-                status="recommended",
-                priority="high",
-                timestamp=timestamp,
-            ),
-            CopDecision(
-                decision_id="dec-air-202",
-                title="Prioritize air-defense sensor cueing",
-                summary="Allocate additional radar dwell time over Abu Musa and gulf ingress vectors.",
-                owner="AIR_DEFENSE_CELL",
-                status="approved",
-                priority="high",
-                timestamp=timestamp,
-            ),
-        ]
-        feed = [
-            CopFeedItem(
-                item_id="feed-001",
-                channel="isr",
-                title="ISR update",
-                message="Persistent ISR confirms stable friendly posture around Riyadh and Jubail corridors.",
-                language="en",
-                tags=["isr", "cop", "saudi_mod"],
-                timestamp=timestamp,
-            ),
-            CopFeedItem(
-                item_id="feed-002",
-                channel="command_chat",
-                title="Command sync note",
-                message="Joint desk requested consolidated risk and readiness snapshot for next briefing cycle.",
-                language="en",
-                tags=["command", "chat"],
-                timestamp=timestamp,
-            ),
-        ]
-        panels = [
-            CopPanelState(
-                panel_id="risk",
-                title="Risk Panel",
-                status="elevated",
-                summary="Risk concentrated in maritime chokepoints and cyber reconnaissance activity.",
-                metric={"overall_risk": 0.67, "trend_window_minutes": 30},
-                trend="up",
-                items=[{"zone": "Hormuz", "score": 0.79}, {"zone": "Riyadh C2", "score": 0.58}],
-            ),
-            CopPanelState(
-                panel_id="cyber",
-                title="Cyber Panel",
-                status="guarded",
-                summary="Network telemetry indicates low-volume probing with no confirmed breach.",
-                metric={"alerts_last_hour": 5, "blocked_attempts": 19},
-                trend="stable",
-                items=[{"segment": "c2-core", "posture": "hardened"}],
-            ),
-            CopPanelState(
-                panel_id="maritime",
-                title="Maritime Panel",
-                status="monitoring",
-                summary="Escort lanes remain open with increased watch at Hormuz and Bab al-Mandab.",
-                metric={"active_contacts": 24, "escort_assets_ready": 4},
-                trend="up",
-                items=[{"area": "Arabian Gulf", "traffic_level": "high"}],
-            ),
-            CopPanelState(
-                panel_id="readiness",
-                title="Readiness Panel",
-                status="ready",
-                summary="Air and naval readiness remain above baseline with reserve capacity available.",
-                metric={"readiness_score": 0.9, "reserve_capacity": 0.24},
-                trend="stable",
-                items=[{"unit": "RSAF CAP", "status": "ready"}, {"unit": "RSNF Escort", "status": "ready"}],
-            ),
-            CopPanelState(
-                panel_id="command_chat",
-                title="Command / Chat Panel",
-                status="active",
-                summary="Command channel synchronized across mission desks with bilingual briefing queue.",
-                metric={"active_threads": 6, "unread_messages": 2},
-                trend="stable",
-                items=[{"thread": "joint-ops", "priority": "high"}],
-            ),
-        ]
-        backend_health = {
+        """Assemble the deterministic demo COP payload for ``track``.
+
+        Tactical context:
+            Theater, map, features, decisions, and panel summaries come from the
+            deterministic scenario seed. Tracks, alerts, and the feed are pulled
+            through the Open C4ISR adapter seam so the data path mirrors a real
+            TAK/ODIN ingest even though the first version is deterministic demo
+            data. All timestamps are stamped at request time.
+        """
+        scenario = build_scenario(track)
+        payload = scenario.to_payload()
+
+        # Route tracks/alerts/feed through the adapter seam (deterministic today,
+        # live TAK/ODIN tomorrow) and normalize tracks into the COP schema.
+        adapter_tracks = self._adapter_tracks(track, fallback=payload["tactical_tracks"])
+        adapter_alerts = self._adapter_rows(self._adapter.fetch_alerts, track, fallback=payload["alerts"])
+        adapter_feed = self._adapter_rows(self._adapter.fetch_feed, track, fallback=payload["feed_messages"])
+
+        payload["tactical_tracks"] = self._stamp_rows(adapter_tracks, "last_update", timestamp)
+        payload["alerts"] = self._stamp_rows(adapter_alerts, "timestamp", timestamp)
+        payload["decisions"] = self._stamp_rows(payload["decisions"], "timestamp", timestamp)
+        payload["feed_messages"] = self._stamp_rows(adapter_feed, "timestamp", timestamp)
+
+        payload["backend_health"] = {
             "status": "operational",
             "service": "cop_service",
             "cache_ttl_seconds": self._cache_ttl_seconds,
             "object_storage_configured": self._get_connector() is not None,
             "supported_tracks": list(SUPPORTED_TRACKS),
+            "primary_demo_track": "saudi_mod",
+            "adapter": self._adapter.health(),
+            "ai_event_bus": {
+                "enabled": True,
+                "live_llm": False,
+                "buffered_events": len(self._event_bus.recent(track, limit=200)),
+            },
         }
+        payload["timestamp"] = timestamp
+        payload["data_source"] = "fallback"
+        return payload
 
-        return {
-            "track": track,
-            "theater": _model_dump(theater),
-            "map_config": _model_dump(map_config),
-            "geospatial_features": [_model_dump(row) for row in features],
-            "tactical_tracks": [_model_dump(row) for row in tracks],
-            "alerts": [_model_dump(row) for row in alerts],
-            "decisions": [_model_dump(row) for row in decisions],
-            "feed_messages": [_model_dump(row) for row in feed],
-            "panel_summaries": [_model_dump(row) for row in panels],
-            "backend_health": backend_health,
-            "timestamp": timestamp,
-            "data_source": "fallback",
-        }
+    def _adapter_tracks(self, track: str, *, fallback: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        try:
+            raw_rows = self._adapter.fetch_tracks(track)
+        except Exception:
+            raw_rows = []
+        if not raw_rows:
+            return [dict(row) for row in fallback]
+        normalized: List[Dict[str, Any]] = []
+        for raw in raw_rows:
+            try:
+                normalized.append(_model_dump(self._adapter.normalize_track(raw)))
+            except Exception:
+                continue
+        return normalized or [dict(row) for row in fallback]
+
+    @staticmethod
+    def _adapter_rows(fetcher: Any, track: str, *, fallback: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        try:
+            rows = fetcher(track)
+        except Exception:
+            rows = []
+        if not rows:
+            return [dict(row) for row in fallback]
+        return [dict(row) for row in rows if isinstance(row, dict)]
+
+    @staticmethod
+    def _stamp_rows(rows: List[Dict[str, Any]], field: str, timestamp: str) -> List[Dict[str, Any]]:
+        stamped: List[Dict[str, Any]] = []
+        for row in rows:
+            updated = dict(row)
+            if not updated.get(field):
+                updated[field] = timestamp
+            stamped.append(updated)
+        return stamped
 
     def _merge_remote_payloads(self, state_payload: Dict[str, Any], remote_bundle: Dict[str, List[Dict[str, Any]]]) -> None:
         cop_items = remote_bundle.get("intel/cop/", [])

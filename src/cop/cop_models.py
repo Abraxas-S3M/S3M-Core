@@ -43,7 +43,14 @@ class CopFeature(BaseModel):
 
 
 class CopTrack(BaseModel):
-    """Track cards used by tactical map and table widgets."""
+    """Track cards used by tactical map and table widgets.
+
+    Tactical context:
+        A track is a single correlated contact in the theater. ``domain`` covers
+        the full multi-domain battlespace (air, maritime, ground, cyber, isr,
+        space, missile, sensor) and ``affiliation`` follows the standard
+        friend/hostile/unknown/neutral identity model used by COP operators.
+    """
 
     track_id: str
     callsign: str
@@ -58,6 +65,9 @@ class CopTrack(BaseModel):
     confidence: float = 0.0
     last_update: str
     source: str = "cop_service"
+    classification: Optional[str] = None
+    threat_score: Optional[float] = None
+    linked_alert_ids: List[str] = Field(default_factory=list)
 
 
 class CopAlert(BaseModel):
