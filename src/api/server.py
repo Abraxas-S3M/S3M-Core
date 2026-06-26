@@ -210,6 +210,10 @@ try:
 except Exception:
     cop_router = None
 try:
+    from src.quad_engine.routes import router as quad_engine_router
+except Exception:
+    quad_engine_router = None
+try:
     from src.edge_runtime.bootstrap import get_edge_runtime
 except Exception:
     get_edge_runtime = lambda: None
@@ -449,6 +453,8 @@ if demo_ws_endpoint:
     app.add_api_websocket_route("/ws/demo-room", demo_ws_endpoint)
 if cop_router:
     app.include_router(cop_router)
+if quad_engine_router:
+    app.include_router(quad_engine_router)
 # Bootstrap austere runtime before optional edge service managers are mounted.
 try:
     get_edge_runtime()
