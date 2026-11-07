@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from typing import Dict, List
 from urllib import error, request
 
+from src.cortex.platform_taint import label_platform_records
+
 
 class GraylogAdapter:
     """Sends and queries tactical logs in Graylog with offline buffer fallback."""
@@ -90,7 +92,16 @@ class GraylogAdapter:
         try:
             with request.urlopen(req, timeout=2.0) as response:
                 data = json.loads(response.read().decode("utf-8"))
-                return data.get("messages", []) if isinstance(data, dict) else []
+                messages = data.get("messages", []) if isinstance(data, dict) else []
+                normalized: list = []
+                for item in messages:
+                    if isinstance(item, dict):
+                        message = item.get("message") if isinstance(item.get("message"), dict) else item
+                        if isinstance(message, dict):
+                            normalized.append(
+                                label_platform_records([message], source_system="graylog", sensor_id="graylog-query")[0]
+                            )
+                return normalized
         except (error.URLError, error.HTTPError, TimeoutError, OSError, json.JSONDecodeError):
             return []
 

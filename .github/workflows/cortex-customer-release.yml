@@ -44,7 +44,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Install Python test dependencies
-        run: pip install pyyaml cryptography pytest
+        run: pip install pyyaml cryptography pytest httpx
 
       - name: Generate test signing key
         run: |
@@ -113,7 +113,9 @@ jobs:
             --trust-dir configs/cortex/trust
 
       - name: Unit tests (tamper detection)
-        run: pytest tests/cortex/test_verify_bundle.py -v
+        run: |
+          pytest tests/cortex/test_verify_bundle.py \
+            tests/cortex/test_docker_customer_profile.py -v --noconftest
 
       - name: SLSA provenance attestation
         uses: actions/attest-build-provenance@v2

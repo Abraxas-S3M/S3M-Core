@@ -1,0 +1,6 @@
+{"id": "fc-001", "target": "mission_dns", "protected": true}
+{"id": "fc-002", "target": "tactical_router", "protected": true}
+{"id": "fc-003", "target": "classified_log_sink", "protected": true}
+{"id": "fc-004", "target": "c2_broker_primary", "protected": true}
+{"id": "fc-005", "target": "synth-workstation-12", "protected": false}
+{"id": "fc-006", "target": "synth-jumpbox-3", "protected": false}

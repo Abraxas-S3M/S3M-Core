@@ -1,0 +1,4 @@
+{"id": "rb-001", "drift_token": "drift-auth-policy", "restore_checksum": "baseline-state-v1"}
+{"id": "rb-002", "drift_token": "drift-tool-registry", "restore_checksum": "baseline-state-v1"}
+{"id": "rb-003", "drift_token": "drift-council-roster", "restore_checksum": "baseline-state-v1"}
+{"id": "rb-004", "drift_token": "drift-manifest-cache", "restore_checksum": "baseline-state-v1"}

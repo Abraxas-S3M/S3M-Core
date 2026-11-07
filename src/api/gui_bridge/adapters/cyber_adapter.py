@@ -16,6 +16,7 @@ from src.api.gui_bridge.models.gui_schemas import (
     SeverityLevel,
 )
 from src.api.gui_bridge.training_emitter import emit_training_record
+from src.build_profile import offensive_tooling_enabled
 
 
 def _now_iso() -> str:
@@ -100,16 +101,24 @@ class CyberAdapter:
     def get_trust_fabric(self) -> dict:
         try:
             from src.security.crypto import get_crypto_status
-            from src.security.zkn import get_zkn_status
+            from src.security.internal_channel import get_channel_status
 
             crypto = get_crypto_status() if callable(get_crypto_status) else {}
-            zkn = get_zkn_status() if callable(get_zkn_status) else {}
-            return {"crypto": crypto, "zeroKnowledge": zkn, "updatedAt": _now_iso()}
+            internal_channel = (
+                get_channel_status() if callable(get_channel_status) else {}
+            )
+            return {
+                "crypto": crypto,
+                "zeroKnowledge": internal_channel,
+                "updatedAt": _now_iso(),
+            }
         except Exception:
             return {"crypto": {}, "zeroKnowledge": {}, "updatedAt": _now_iso()}
 
     def get_attack_capabilities(self) -> dict:
-        """Expose ATT&CK adversary profiles from Caldera bridge."""
+        """Expose ATT&CK adversary profiles from Caldera bridge (range/dev only)."""
+        if not offensive_tooling_enabled():
+            return {"capabilities": [], "updatedAt": _now_iso()}
         try:
             from services.cyber.offensive.caldera_bridge import CalderaBridge
 

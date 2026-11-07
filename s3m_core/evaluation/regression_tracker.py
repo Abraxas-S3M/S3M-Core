@@ -83,6 +83,34 @@ class RegressionTracker:
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(payload, sort_keys=True) + "\n")
 
+    def check_hard_thresholds(
+        self,
+        metrics: Dict[str, float],
+        rules: Dict[str, Dict[str, float]],
+    ) -> List[str]:
+        """Return human-readable violations for hard_min / hard_max rules."""
+
+        if not isinstance(metrics, dict):
+            raise ValueError("metrics must be a dictionary")
+        if not isinstance(rules, dict):
+            raise ValueError("rules must be a dictionary")
+
+        violations: List[str] = []
+        for metric_name, bounds in rules.items():
+            if metric_name not in metrics:
+                violations.append(f"missing metric: {metric_name}")
+                continue
+            value = float(metrics[metric_name])
+            if "hard_min" in bounds and value < float(bounds["hard_min"]):
+                violations.append(
+                    f"{metric_name}={value} below hard_min {bounds['hard_min']}"
+                )
+            if "hard_max" in bounds and value > float(bounds["hard_max"]):
+                violations.append(
+                    f"{metric_name}={value} above hard_max {bounds['hard_max']}"
+                )
+        return violations
+
     def check_regression(
         self,
         new_version: str,

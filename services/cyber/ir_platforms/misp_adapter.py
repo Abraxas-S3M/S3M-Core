@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 
 from services.cyber.ir_platforms.base import IRPlatformAdapter
 from services.cyber.models import IncidentCase, Observable, ObservableType
+from src.cortex.platform_taint import label_platform_records
 
 
 class MISPAdapter(IRPlatformAdapter):
@@ -95,7 +96,7 @@ class MISPAdapter(IRPlatformAdapter):
         if isinstance(response, dict):
             attrs = response.get("response", {}).get("Attribute", [])
             if isinstance(attrs, list):
-                return attrs
+                return label_platform_records(attrs, source_system="misp", sensor_id="misp-api")
         return []
 
     def get_threat_level(self, observable_value: str) -> dict:

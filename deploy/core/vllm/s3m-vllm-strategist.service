@@ -1,0 +1,39 @@
+[Unit]
+Description=S3M core-tier vLLM strategist (OpenAI-compatible, private enclave)
+Documentation=file:///opt/s3m/deploy/core/vllm/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=s3m
+Group=s3m
+WorkingDirectory=/opt/s3m
+
+# Placeholder checkpoint path — operator must provision weights locally.
+Environment=MODEL_PATH=/var/lib/s3m/weights/STRATEGIST_MOE_PLACEHOLDER
+Environment=VLLM_HOST=127.0.0.1
+Environment=VLLM_PORT=8000
+Environment=VLLM_VENV=/opt/s3m/venvs/vllm
+
+ExecStart=/bin/bash -lc '\
+  source "${VLLM_VENV}/bin/activate" && \
+  python -m vllm.entrypoints.openai.api_server \
+    --model "${MODEL_PATH}" \
+    --host "${VLLM_HOST}" \
+    --port "${VLLM_PORT}" \
+    --served-model-name strategist-moe \
+    --tensor-parallel-size 8'
+
+Restart=on-failure
+RestartSec=15
+LimitNOFILE=1048576
+
+# Tactical hardening: service binds loopback; mTLS edge terminates on reverse proxy.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/s3m/weights /var/log/s3m
+
+[Install]
+WantedBy=multi-user.target

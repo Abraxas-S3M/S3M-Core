@@ -8,9 +8,24 @@ import hashlib
 from multiprocessing import Event, Process
 import re
 import time
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 from .policy_engine import NetworkPolicyEngine, NetworkRequest
+
+
+def sandbox_network_mode(*, egress_allowlist: Sequence[str], use_net_namespace: bool) -> str:
+    """
+    Resolve the Docker network attachment for a sandbox session.
+
+    Tactical context:
+    Containers default to no egress (`network none`) until an explicit allowlist
+    is registered for inspection through the egress proxy chokepoint.
+    """
+    if not use_net_namespace:
+        return "host"
+    if egress_allowlist:
+        return "s3m-egress"
+    return "none"
 
 
 def _utc_now_iso() -> str:

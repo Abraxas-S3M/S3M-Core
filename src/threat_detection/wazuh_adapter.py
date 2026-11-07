@@ -88,7 +88,7 @@ class WazuhAdapter:
             except ValueError:
                 LOGGER.warning("Invalid Wazuh timestamp '%s'; using current UTC", timestamp_raw)
 
-        return ThreatEvent(
+        event = ThreatEvent(
             source=ThreatSource.ENDPOINT_SIEM,
             level=self._map_rule_level(level),
             category=self._map_groups(groups),
@@ -107,6 +107,27 @@ class WazuhAdapter:
             confidence=max(0.2, min(1.0, level / 15.0)),
             asset_ids=[agent_name],
             recommended_action="Inspect endpoint telemetry and isolate host if compromise indicators escalate.",
+        )
+        sensor_id = os.environ.get("S3M_SENSOR_ID", "wazuh-manager")
+        free_text = {
+            "rule_description": description,
+            "full_log": str(full_log or ""),
+        }
+        from src.cortex.threat_event import apply_threat_event_taint
+
+        return apply_threat_event_taint(
+            event,
+            source_system="wazuh",
+            sensor_id=sensor_id,
+            observed_fields=["rule_id", "source_ip"],
+            untrusted_fields=[
+                "rule_description",
+                "full_log",
+                "title",
+                "description",
+                "agent_name",
+            ],
+            free_text_blobs=free_text,
         )
 
     def parse_alerts_file(self, filepath: str) -> List[ThreatEvent]:
