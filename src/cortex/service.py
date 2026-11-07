@@ -6,7 +6,7 @@ import threading
 from typing import Any, Callable, Dict, List, Optional
 
 from src.cop.event_bus import CopEvent, CopEventBus, build_event, get_event_bus
-from src.cortex.config import load_cortex_config
+from src.cortex.mission_config import load_mission_cortex_settings
 from src.cortex.minimal_profile import plan_minimal_profile
 from src.cortex.models import BindingSource, MissionBinding, MinimalProfilePlan
 from src.cortex.twin import NetworkTwin
@@ -29,7 +29,7 @@ class CortexMissionService:
         *,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self._config = config or load_cortex_config()
+        self._config = config or load_mission_cortex_settings()
         self.twin = twin or NetworkTwin()
         self._bus = event_bus or get_event_bus()
         self._track = str(self._config.get("event_track", "cyber_cortex"))

@@ -3,21 +3,24 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 
+from services.cyber.config import soar_auto_execute
 from services.cyber.models import IncidentCase
 from services.cyber.soar.playbook_executor import PlaybookExecutor
 from services.cyber.soar.playbook_library import PlaybookLibrary
 from services.cyber.soar.shuffle_adapter import ShuffleAdapter
+from src.cortex.policy_gate import Approvals, MissionEnvelope
 
 
 class SOAREngine:
     """Coordinates playbook matching and execution with Shuffle fallback."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, auto_execute: Optional[bool] = None) -> None:
+        self.auto_execute = soar_auto_execute() if auto_execute is None else bool(auto_execute)
         self.playbook_library = PlaybookLibrary()
         self.playbook_library.load_all()
-        self.playbook_executor = PlaybookExecutor()
+        self.playbook_executor = PlaybookExecutor(auto_execute=self.auto_execute)
         self.shuffle_adapter = ShuffleAdapter()
         self._case_index: Dict[str, IncidentCase] = {}
 
@@ -35,6 +38,7 @@ class SOAREngine:
             return {
                 "mode": "playbook",
                 "matched_playbook_id": playbook.playbook_id,
+                "auto_execute": self.auto_execute,
                 "result": self.playbook_executor.execute(playbook, case),
             }
 
@@ -56,14 +60,27 @@ class SOAREngine:
             "recommendation": recommendation,
         }
 
-    def manual_execute(self, case_id: str, playbook_id: str) -> dict:
+    def manual_execute(
+        self,
+        case_id: str,
+        playbook_id: str,
+        *,
+        mission_envelope: Optional[MissionEnvelope] = None,
+        approvals: Optional[Approvals] = None,
+    ) -> dict:
         case = self._case_index.get(case_id)
         if case is None:
             raise ValueError(f"Case not found for SOAR execution: {case_id}")
         playbook = self.playbook_library.get_playbook(playbook_id)
         if playbook is None:
             raise ValueError(f"Playbook not found: {playbook_id}")
-        return self.playbook_executor.execute(playbook, case)
+        return self.playbook_executor.execute(
+            playbook,
+            case,
+            mission_envelope=mission_envelope,
+            approvals=approvals,
+            manual_execution=True,
+        )
 
     def get_playbooks(self) -> list[dict]:
         return self.playbook_library.list_playbooks()
@@ -71,9 +88,13 @@ class SOAREngine:
     def get_history(self) -> list[dict]:
         return self.playbook_executor.get_execution_history()
 
+    def get_approval_queue(self) -> list[dict]:
+        return self.playbook_executor.get_approval_queue()
+
     def health_check(self) -> dict:
         return {
             "playbook_library_loaded": len(self.playbook_library.list_playbooks()) > 0,
             "shuffle_connected": self.shuffle_adapter.connect(),
             "executions_tracked": len(self.playbook_executor.get_execution_history(limit=1000)),
+            "soar_auto_execute": self.auto_execute,
         }

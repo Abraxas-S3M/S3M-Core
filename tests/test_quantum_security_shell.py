@@ -1,15 +1,39 @@
 """Integration tests for the S3M Quantum Security Shell."""
 
+import importlib
+
 import pytest
+
+
+def _policy_mod():
+    return importlib.import_module("src.security.quantum.policy")
+
+
+@pytest.fixture(autouse=True)
+def _lab_mode_without_liboqs(monkeypatch):
+    """Lab policy on CI without liboqs — avoids silent PQ claims (see test_pq_strict_mode)."""
+    mod = _policy_mod()
+    mod.reset_quantum_policy_cache()
+    if not mod.liboqs_available():
+        monkeypatch.setenv("S3M_CRYPTO_MODE", "lab")
+    yield
+    mod.reset_quantum_policy_cache()
+
 from src.security.quantum.kem import QuantumKEM
 from src.security.quantum.signatures import QuantumSigner
 from src.security.quantum.symmetric import QuantumSymmetricCipher
 from src.security.quantum.key_manager import QuantumKeyManager
 from src.security.quantum.hybrid import HybridKeyExchange
-from src.security.zkn.sealed_tunnel import SealedTunnel, TunnelEndpoint
-from src.security.zkn.xotc_auth import XOTCAuthenticator
-from src.security.zkn.micro_segmentation import MicroSegmentationPolicy, AccessVerdict
-from src.security.zkn.zkn_manager import ZKNManager
+from src.security.internal_channel.internal_secure_channel import (
+    InternalSecureChannel,
+    TunnelEndpoint,
+)
+from src.security.internal_channel.one_time_code_auth import OneTimeCodeAuthenticator
+from src.security.internal_channel.micro_segmentation import (
+    MicroSegmentationPolicy,
+    AccessVerdict,
+)
+from src.security.internal_channel.channel_manager import ChannelManager
 
 
 class TestQuantumKEM:
@@ -85,30 +109,53 @@ class TestSymmetricCipher:
 
 class TestHybridKeyExchange:
     def test_full_handshake(self):
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+
         hkx = HybridKeyExchange()
         init_sig = hkx.signer.generate_keypair("init")
         resp_kem = hkx.kem.generate_keypair("resp")
-        result = hkx.initiate(init_sig.secret_key, resp_kem.public_key)
+        resp_classical = X25519PrivateKey.generate()
+        result = hkx.initiate(
+            init_sig.secret_key,
+            resp_kem.public_key,
+            resp_classical.public_key().public_bytes_raw(),
+        )
         recovered = hkx.respond(
-            result.kem_ciphertext, resp_kem.secret_key,
-            resp_kem.public_key, init_sig.public_key, result.signature,
+            result.kem_ciphertext,
+            result.classical_public,
+            resp_kem.secret_key,
+            resp_kem.public_key,
+            resp_classical.private_bytes_raw(),
+            init_sig.public_key,
+            result.signature,
         )
         assert recovered == result.combined_secret
 
     def test_tampered_signature_rejected(self):
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+
         hkx = HybridKeyExchange()
         init_sig = hkx.signer.generate_keypair("init")
         resp_kem = hkx.kem.generate_keypair("resp")
-        result = hkx.initiate(init_sig.secret_key, resp_kem.public_key)
+        resp_classical = X25519PrivateKey.generate()
+        result = hkx.initiate(
+            init_sig.secret_key,
+            resp_kem.public_key,
+            resp_classical.public_key().public_bytes_raw(),
+        )
         with pytest.raises(ValueError, match="invalid signature"):
             hkx.respond(
-                result.kem_ciphertext, resp_kem.secret_key,
-                resp_kem.public_key, init_sig.public_key,
+                result.kem_ciphertext,
+                result.classical_public,
+                resp_kem.secret_key,
+                resp_kem.public_key,
+                resp_classical.private_bytes_raw(),
+                init_sig.public_key,
                 b"\x00" * len(result.signature),
             )
 
 
-class TestSealedTunnel:
+class TestInternalSecureChannel:
     def test_establish_send_receive(self):
         kem = QuantumKEM()
         signer = QuantumSigner()
@@ -120,7 +167,7 @@ class TestSealedTunnel:
         initiator = TunnelEndpoint("layer-01-llm", "orchestrator", init_kem, init_sig, True)
         responder = TunnelEndpoint("layer-02-threat", "threat_manager", resp_kem, resp_sig)
 
-        tunnel = SealedTunnel()
+        tunnel = InternalSecureChannel()
         sid = tunnel.establish_tunnel(initiator, responder)
         env = tunnel.send(sid, b"threat assessment request", init_sig.secret_key, "layer-01-llm")
         plaintext = tunnel.receive(env, init_sig.public_key)
@@ -131,7 +178,7 @@ class TestSealedTunnel:
         signer = QuantumSigner()
         i = TunnelEndpoint("l1", "p1", kem.generate_keypair(), signer.generate_keypair(), True)
         r = TunnelEndpoint("l2", "p2", kem.generate_keypair(), signer.generate_keypair())
-        tunnel = SealedTunnel()
+        tunnel = InternalSecureChannel()
         sid = tunnel.establish_tunnel(i, r)
         assert tunnel.destroy_tunnel(sid) is True
         assert tunnel.destroy_tunnel(sid) is False
@@ -141,7 +188,7 @@ class TestSealedTunnel:
         signer = QuantumSigner()
         i = TunnelEndpoint("l1", "p1", kem.generate_keypair(), signer.generate_keypair(), True)
         r = TunnelEndpoint("l2", "p2", kem.generate_keypair(), signer.generate_keypair())
-        tunnel = SealedTunnel()
+        tunnel = InternalSecureChannel()
         sid = tunnel.establish_tunnel(i, r)
         env = tunnel.send(sid, b"data", i.sig_keypair.secret_key, "l1")
         env["signature"] = "00" * 64
@@ -150,18 +197,18 @@ class TestSealedTunnel:
             tunnel.receive(env, wrong_pub)
 
 
-class TestXOTCAuth:
+class TestOneTimeCodeAuth:
     def test_issue_and_verify(self):
         signer = QuantumSigner()
         kp = signer.generate_keypair("auth")
-        auth = XOTCAuthenticator(signer)
+        auth = OneTimeCodeAuthenticator(signer)
         raw_code, record = auth.issue_code("layer-01-llm", "orchestrator", kp.secret_key)
         assert auth.verify_code(record.code_id, raw_code, kp.public_key) is True
 
     def test_replay_fails(self):
         signer = QuantumSigner()
         kp = signer.generate_keypair("auth")
-        auth = XOTCAuthenticator(signer)
+        auth = OneTimeCodeAuthenticator(signer)
         raw_code, record = auth.issue_code("layer-01-llm", "orchestrator", kp.secret_key)
         auth.verify_code(record.code_id, raw_code, kp.public_key)
         assert auth.verify_code(record.code_id, raw_code, kp.public_key) is False
@@ -169,7 +216,7 @@ class TestXOTCAuth:
     def test_wrong_code_fails(self):
         signer = QuantumSigner()
         kp = signer.generate_keypair("auth")
-        auth = XOTCAuthenticator(signer)
+        auth = OneTimeCodeAuthenticator(signer)
         _, record = auth.issue_code("layer-01-llm", "orchestrator", kp.secret_key)
         assert auth.verify_code(record.code_id, "wrong-code", kp.public_key) is False
 
@@ -177,7 +224,7 @@ class TestXOTCAuth:
         import time
         signer = QuantumSigner()
         kp = signer.generate_keypair("auth")
-        auth = XOTCAuthenticator(signer)
+        auth = OneTimeCodeAuthenticator(signer)
         auth.issue_code("l1", "p1", kp.secret_key, ttl=0)
         time.sleep(0.01)
         purged = auth.cleanup_expired()
@@ -212,9 +259,9 @@ class TestMicroSegmentation:
         assert verdict == AccessVerdict.ALLOW
 
 
-class TestZKNManager:
+class TestChannelManager:
     def test_full_lifecycle(self, tmp_path):
-        mgr = ZKNManager(keys_dir=str(tmp_path / "keys"))
+        mgr = ChannelManager(keys_dir=str(tmp_path / "keys"))
         result = mgr.bootstrap()
         assert result["status"] == "bootstrapped"
         assert result["layers"] == 14
@@ -229,7 +276,7 @@ class TestZKNManager:
         assert status["bootstrapped"] is True
 
     def test_denied_tunnel_raises(self, tmp_path):
-        mgr = ZKNManager(keys_dir=str(tmp_path / "keys"))
+        mgr = ChannelManager(keys_dir=str(tmp_path / "keys"))
         mgr.bootstrap()
         with pytest.raises(PermissionError, match="DENY"):
             mgr.open_tunnel(
@@ -237,14 +284,14 @@ class TestZKNManager:
             )
 
     def test_authenticate_process(self, tmp_path):
-        mgr = ZKNManager(keys_dir=str(tmp_path / "keys"))
+        mgr = ChannelManager(keys_dir=str(tmp_path / "keys"))
         mgr.bootstrap()
         auth = mgr.authenticate_process("layer-01-llm", "orchestrator")
         assert "raw_code" in auth
         assert auth["expires_in_seconds"] == 30
 
     def test_key_rotation(self, tmp_path):
-        mgr = ZKNManager(keys_dir=str(tmp_path / "keys"))
+        mgr = ChannelManager(keys_dir=str(tmp_path / "keys"))
         mgr.bootstrap()
         results = mgr.rotate_all_keys()
         assert len(results) == 14

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from src.cortex.config import load_cortex_config, mission_weight
+from src.cortex.mission_config import load_mission_cortex_settings, mission_weight
 from src.cortex.models import NetworkEdge
 from src.cortex.twin import NetworkTwin
 
@@ -13,7 +13,7 @@ class MissionResponseCost:
     """Score edges for containment; active-mission edges cost more to disrupt."""
 
     def __init__(self, config: Optional[Dict] = None) -> None:
-        self._config = config or load_cortex_config()
+        self._config = config or load_mission_cortex_settings()
 
     def weighted_disruption_cost(self, edge: NetworkEdge, twin: NetworkTwin) -> float:
         base = float(edge.disruption_cost or self._config.get("default_disruption_cost", 1.0))

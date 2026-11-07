@@ -13,7 +13,7 @@ _DEFAULT_CONFIG = _REPO_ROOT / "configs" / "cortex.yaml"
 
 
 @lru_cache(maxsize=1)
-def load_cortex_config(path: str | None = None) -> Dict[str, Any]:
+def load_mission_cortex_settings(path: str | None = None) -> Dict[str, Any]:
     config_path = Path(path) if path else _DEFAULT_CONFIG
     if not config_path.is_file():
         return {
@@ -30,6 +30,6 @@ def load_cortex_config(path: str | None = None) -> Dict[str, Any]:
 
 def mission_weight(priority: int, config: Dict[str, Any] | None = None) -> float:
     """Map mission priority (1–5) to MRC cost multiplier."""
-    cfg = config or load_cortex_config()
+    cfg = config or load_mission_cortex_settings()
     weights: Dict[int, float] = cfg.get("mission", {}).get("weights", {})
     return float(weights.get(int(priority), 1.0))

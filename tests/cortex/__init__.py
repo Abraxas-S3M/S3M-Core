@@ -1,1 +1,1 @@
-"""Cortex cyber twin unit tests."""
+"""Cortex package tests."""
