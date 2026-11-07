@@ -50,6 +50,9 @@ from src.quad_engine.models import (
     RouteInfo,
 )
 from src.integrations.lechonk.orchestrator_routing import resolve_planning_backing_engine
+from src.integrations.lechonk.planning_generation import PlanningGenerationContext, generate_planning_output
+from src.integrations.lechonk.planning_backend import LeChonkPlanningBackend
+from src.integrations.lechonk.planning_gates import PlanningGateResult
 from src.quad_engine.packet_router import PacketRouter, get_packet_router
 
 # Which engine owns which output key.
@@ -121,11 +124,24 @@ class QuadEngineOrchestrator:
         self._audit = audit_log or get_audit_log()
         self._max_results = max(1, int(max_results))
         self._results: Dict[str, QuadEngineResult] = {}
+        self._planning_backend: Optional[LeChonkPlanningBackend] = None
+        self._planning_gates: Optional[PlanningGateResult] = None
+        self._last_planning_context: Optional[PlanningGenerationContext] = None
 
     # ── Engine output generation ─────────────────────────────
 
     def _engine_status(self, engine_id: str) -> EngineStatus:
         return self._registry.effective_status(engine_id)
+
+    def configure_planning_integration(
+        self,
+        *,
+        planning_backend: Optional[LeChonkPlanningBackend] = None,
+        planning_gates: Optional[PlanningGateResult] = None,
+    ) -> None:
+        """Test/lab hook for mock vLLM and precomputed gate results."""
+        self._planning_backend = planning_backend
+        self._planning_gates = planning_gates
 
     def _generate(
         self,
@@ -137,6 +153,19 @@ class QuadEngineOrchestrator:
 
         Returns the output value and the *realized* engine status for this call.
         """
+        if engine_id == PLANNING_ENGINE:
+            result = generate_planning_output(
+                output_key,
+                packet,
+                local_llm=self._local_llm,
+                build_prompt=self._build_prompt,
+                build_placeholder=self._placeholder,
+                gates=self._planning_gates,
+                planning_backend=self._planning_backend,
+            )
+            self._last_planning_context = result.context
+            return result.value, result.status
+
         # Attempt live local inference only when the engine is truly available.
         if self._local_llm.engine_available(engine_id):
             prompt = self._build_prompt(output_key, packet)
@@ -366,6 +395,23 @@ class QuadEngineOrchestrator:
         )
 
         planning_route = resolve_planning_backing_engine()
+        planning_ctx = self._last_planning_context
+        planning_audit: Dict[str, Any] = {
+            "routing": planning_route.audit_record(),
+        }
+        if planning_ctx is not None:
+            planning_audit.update(
+                {
+                    "output_origin": planning_ctx.output_origin,
+                    "backing_engine_id": planning_ctx.backing_engine_id,
+                    "lechonk_attempted": planning_ctx.lechonk_attempted,
+                    "lechonk_success": planning_ctx.lechonk_success,
+                    "fallback_reason": planning_ctx.fallback_reason,
+                    "schema_warnings": list(planning_ctx.schema_warnings),
+                    "provenance": dict(planning_ctx.provenance),
+                    "gates": planning_ctx.gates.audit_record() if planning_ctx.gates else {},
+                }
+            )
 
         self._store_result(result)
         self._audit.record(
@@ -379,9 +425,11 @@ class QuadEngineOrchestrator:
                 "requested_outputs": list(requested),
                 "engine_status": {k: v.value for k, v in engine_status.items()},
                 "planning_backing": planning_route.audit_record(),
+                "planning_execution": planning_audit,
+                "classification": packet.classification,
                 "human_review_required": True,
                 "autonomous_action": False,
-                "external_api_called": False,
+                "external_api_called": planning_ctx.output_origin == "lechonk_vllm" if planning_ctx else False,
             },
         )
         return result

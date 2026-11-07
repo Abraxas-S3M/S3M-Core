@@ -300,7 +300,27 @@ class ModelAdmissionGate:
                 admitted=False,
                 reasons=["unknown_variant"],
             )
-        return verify_shard_inventory(inv, Path(artifact_root))
+        reasons: List[str] = []
+        if inv.signature:
+            signed_fields = {
+                "model_id": inv.model_id,
+                "variant_tag": inv.variant_tag,
+                "source_revision": inv.source_revision,
+                "manifest_sha256": inv.manifest_sha256,
+            }
+            if not self._signer.verify_fields(signed_fields, inv.signature):
+                reasons.append("inventory_signature_invalid")
+
+        shard = verify_shard_inventory(inv, Path(artifact_root))
+        merged_reasons = reasons + list(shard.reasons)
+        admitted = shard.admitted and not reasons
+        return ShardVerificationResult(
+            variant_tag=shard.variant_tag,
+            admitted=admitted,
+            reasons=merged_reasons,
+            verified_count=shard.verified_count,
+            expected_count=shard.expected_count,
+        )
 
     def admitted_with_shards(
         self,
