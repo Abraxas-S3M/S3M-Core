@@ -1,5 +1,11 @@
 """Cortex layer — policy gate, mission envelopes, engine council, and admission."""
 
+from src.cortex.change_control_gate import (
+    ChangeClass,
+    ChangeControlGate,
+    ChangeEnvelope,
+    SignedDeviceApproval,
+)
 from src.cortex.envelope import (
     AdmissionSigner,
     CortexEnvelope,
@@ -30,6 +36,10 @@ __all__ = [
     "AdmissionSigner",
     "Approval",
     "Approvals",
+    "ChangeClass",
+    "ChangeControlGate",
+    "ChangeEnvelope",
+    "SignedDeviceApproval",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
     "CyberTaskType",
