@@ -57,6 +57,7 @@ __all__ = [
     "PolicyVerdict",
     "ProductionDependencyError",
     "QuarantineExtractResult",
+    "ReachabilityGraph",
     "ReliabilityStore",
     "SameEngineFamilyError",
     "SignedAdmissionEnvelope",
@@ -64,6 +65,7 @@ __all__ = [
     "TaintSource",
     "TaintedPayload",
     "ToolCall",
+    "TwinStore",
     "assert_production_dependencies",
     "assert_tool_permitted",
     "cross_examine",
@@ -131,4 +133,8 @@ def __getattr__(name: str):
         from src.cortex import tools as _tools
 
         return getattr(_tools, name)
+    if name in {"ReachabilityGraph", "TwinStore"}:
+        from src.cortex import twin_store as _twin_store
+
+        return getattr(_twin_store, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
