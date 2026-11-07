@@ -1,53 +1,141 @@
-"""Post-Command Change Proof (PCCP) invariant checks for Cortex cases.
+"""PCCP change request wrapping (propose-only; execution via broker).
 
-Military/tactical context: mutations must stay inside commander envelopes with
-broker-only execution and a fail-closed policy gate.
+Military/tactical context: every proposed network change carries explicit
+invariants so rollback stays bounded if the tactical network must recover quickly.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict
+import json
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Sequence
+
+from src.cortex.reachability import MRCAction, MRCPlan
 
 
-@dataclass(frozen=True, slots=True)
-class PCCPInvariants:
-    broker_only_mutations: bool
-    gate_fail_closed: bool
-    trace_case_linked: bool
-    audit_chain_intact: bool
+@dataclass
+class ChangeInvariant:
+    name: str
+    description: str
+    params: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ChangeStep:
+    step_id: str
+    edge_id: str
+    action: str
+    cost: float
+    disruption: float
+    expected_risk_after: float
+
+
+@dataclass
+class ChangeRequest:
+    case_id: str
+    created_at: str
+    target_risk: float
+    budget: float
+    steps: List[ChangeStep]
+    invariants: List[ChangeInvariant]
+    rationale: Dict[str, Any]
+    initial_risk: float
+    projected_final_risk: float
+    status: str = "proposed"
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "broker_only_mutations": bool(self.broker_only_mutations),
-            "gate_fail_closed": bool(self.gate_fail_closed),
-            "trace_case_linked": bool(self.trace_case_linked),
-            "audit_chain_intact": bool(self.audit_chain_intact),
-        }
+        return asdict(self)
 
-    @property
-    def all_satisfied(self) -> bool:
-        return all(
-            (
-                self.broker_only_mutations,
-                self.gate_fail_closed,
-                self.trace_case_linked,
-                self.audit_chain_intact,
+    def to_json(self, **kwargs: Any) -> str:
+        return json.dumps(self.to_dict(), **kwargs)
+
+    @classmethod
+    def from_dict(cls, payload: Dict[str, Any]) -> ChangeRequest:
+        steps = [ChangeStep(**s) for s in payload.get("steps", [])]
+        invariants = [ChangeInvariant(**i) for i in payload.get("invariants", [])]
+        return cls(
+            case_id=str(payload["case_id"]),
+            created_at=str(payload["created_at"]),
+            target_risk=float(payload["target_risk"]),
+            budget=float(payload["budget"]),
+            steps=steps,
+            invariants=invariants,
+            rationale=dict(payload.get("rationale", {})),
+            initial_risk=float(payload["initial_risk"]),
+            projected_final_risk=float(payload["projected_final_risk"]),
+            status=str(payload.get("status", "proposed")),
+        )
+
+    @classmethod
+    def from_json(cls, text: str) -> ChangeRequest:
+        return cls.from_dict(json.loads(text))
+
+
+def standard_invariants(max_blast_radius: int) -> List[ChangeInvariant]:
+    return [
+        ChangeInvariant(
+            name="max_blast_radius",
+            description="No single change step may touch more than max_blast_radius nodes.",
+            params={"max_blast_radius": int(max_blast_radius)},
+        ),
+        ChangeInvariant(
+            name="required_flows",
+            description="All mission-required flows must remain reachable after each step.",
+            params={},
+        ),
+        ChangeInvariant(
+            name="reversible",
+            description="Each step must be reversible via broker rollback metadata.",
+            params={},
+        ),
+    ]
+
+
+def build_change(
+    case_id: str,
+    plan: MRCPlan,
+    *,
+    target_risk: float,
+    budget: float,
+    rationale: Dict[str, Any],
+    max_blast_radius: int,
+) -> ChangeRequest:
+    steps: List[ChangeStep] = []
+    for idx, act in enumerate(plan.actions):
+        steps.append(
+            ChangeStep(
+                step_id=f"{case_id}-step-{idx + 1}",
+                edge_id=act.edge_id,
+                action=act.action,
+                cost=act.cost,
+                disruption=act.disruption,
+                expected_risk_after=act.risk_after,
             )
         )
 
+    invariants = standard_invariants(max_blast_radius)
+    for step in steps:
+        touched = 2
+        if touched > max_blast_radius:
+            raise ValueError(f"Step {step.step_id} exceeds max_blast_radius invariant")
 
-def evaluate_pccp(
-    *,
-    broker_used: bool,
-    direct_change_blocked: bool,
-    gate_fail_closed: bool,
-    trace_matches_case: bool,
-    audit_chain_intact: bool,
-) -> PCCPInvariants:
-    return PCCPInvariants(
-        broker_only_mutations=bool(broker_used or direct_change_blocked),
-        gate_fail_closed=bool(gate_fail_closed),
-        trace_case_linked=bool(trace_matches_case),
-        audit_chain_intact=bool(audit_chain_intact),
+    return ChangeRequest(
+        case_id=case_id,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        target_risk=float(target_risk),
+        budget=float(budget),
+        steps=steps,
+        invariants=invariants,
+        rationale=rationale,
+        initial_risk=plan.initial_risk,
+        projected_final_risk=plan.final_risk,
+        status="proposed",
+    )
+
+
+def execute_change(change: ChangeRequest) -> None:
+    """Execution is intentionally not supported in the planner layer."""
+    raise NotImplementedError(
+        "Change execution is broker-only (Prompt 12). Planner proposes ChangeRequest JSON only."
     )
