@@ -53,18 +53,19 @@ jobs:
           mv cosign.pub configs/cortex/trust/ci-test.pub
           chmod 600 cosign.key
 
+      - name: Prepare customer dockerignore
+        run: bash scripts/cortex/prepare_customer_dockerignore.sh
+
       - name: Build cortex-core image
         run: |
           docker buildx build --load \
             -f docker/cortex/Dockerfile.core \
-            --ignorefile docker/cortex/customer.dockerignore \
             -t cortex-core:ci .
 
       - name: Build cortex-regional image
         run: |
           docker buildx build --load \
             -f docker/cortex/Dockerfile.regional \
-            --ignorefile docker/cortex/customer.dockerignore \
             -t cortex-regional:ci .
 
       - name: Build cortex-edge image (arm64)
@@ -72,7 +73,6 @@ jobs:
           docker buildx build \
             --platform linux/arm64 \
             -f docker/cortex/Dockerfile.edge \
-            --ignorefile docker/cortex/customer.dockerignore \
             --load \
             -t cortex-edge:ci .
 

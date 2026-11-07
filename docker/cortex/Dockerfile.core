@@ -1,5 +1,5 @@
 # Cortex core tier — sovereign command / full CPU footprint (customer profile).
-# Build: docker build -f docker/cortex/Dockerfile.core --ignorefile docker/cortex/customer.dockerignore -t cortex-core:local .
+# Build: bash scripts/cortex/prepare_customer_dockerignore.sh && docker buildx build --load -f docker/cortex/Dockerfile.core -t cortex-core:local .
 # Run (read-only root): docker run --read-only --tmpfs /tmp:rw,noexec,nosuid,size=128m \
 #   -v cortex-data:/opt/s3m/data -v cortex-run:/opt/s3m/run cortex-core:local
 

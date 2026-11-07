@@ -1,5 +1,5 @@
 # Cortex regional tier — coalition / theater CPU node (customer profile).
-# Build: docker build -f docker/cortex/Dockerfile.regional --ignorefile docker/cortex/customer.dockerignore -t cortex-regional:local .
+# Build: bash scripts/cortex/prepare_customer_dockerignore.sh && docker buildx build --load -f docker/cortex/Dockerfile.regional -t cortex-regional:local .
 
 ARG PYTHON_DIGEST=sha256:e8c69d86735f6df3efa06b324694fe51f0422785f83a3bd463052636c2421944
 

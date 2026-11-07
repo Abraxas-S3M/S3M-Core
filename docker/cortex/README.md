@@ -13,13 +13,11 @@ Three deployment tiers ship under `S3M_BUILD_PROFILE=customer`:
 Always exclude offensive cyber modules from the build context:
 
 ```bash
-docker build -f docker/cortex/Dockerfile.core \
-  --ignorefile docker/cortex/customer.dockerignore \
-  -t cortex-core:local .
+bash scripts/cortex/prepare_customer_dockerignore.sh
+docker buildx build --load -f docker/cortex/Dockerfile.core -t cortex-core:local .
 
-docker buildx build --platform linux/arm64 \
+docker buildx build --platform linux/arm64 --load \
   -f docker/cortex/Dockerfile.edge \
-  --ignorefile docker/cortex/customer.dockerignore \
   -t cortex-edge:local .
 ```
 
