@@ -38,21 +38,38 @@ __all__ = [
     "Approval",
     "Approvals",
     "AssetInventory",
+    "BindingSource",
     "BrokerBypassError",
     "BrokerDenied",
+    "BrokerError",
     "ChangeClass",
     "ChangeControlGate",
     "ChangeEnvelope",
+    "ChangeRequest",
     "CortexBroker",
     "CortexConfig",
+    "CortexMissionService",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
+    "CortexPlanner",
     "CyberTaskType",
     "EngineCouncil",
+    "EnvelopeRejected",
+    "EnvelopeRequired",
     "HmacAdmissionSigner",
+    "HttpMCPTransport",
     "Labeled",
+    "ManifestPinMismatch",
+    "MCPTransport",
+    "MissionBinding",
     "MissionEnvelope",
+    "MissionFlow",
+    "MinimalProfilePlan",
+    "MRCReachabilityGraph",
     "ModelAdmissionGate",
+    "NetworkEdge",
+    "NetworkTwin",
+    "PCCPChange",
     "PolicyDecision",
     "PolicyGate",
     "PolicyGateConfig",
@@ -69,8 +86,11 @@ __all__ = [
     "ToolCall",
     "Trust",
     "TwinStore",
+    "WriteEnvelope",
+    "XiidMCPBroker",
     "assert_production_dependencies",
     "assert_tool_permitted",
+    "build_change",
     "cross_examine",
     "deploy_mode",
     "endorse",
@@ -81,15 +101,24 @@ __all__ = [
     "load_cortex_brain_config",
     "load_cortex_config",
     "load_engines_document",
+    "load_mission_cortex_settings",
+    "mission_weight",
+    "plan_mrc",
+    "plan_mrc_reference",
     "quarantine_extract",
     "quarantine_extract_typed",
+    "shield_priority",
     "spotlight_datamark",
+    "standard_invariants",
     "wrap_untrusted",
+    "CaseEvidencePack",
+    "generate_case_report",
+    "run_scenario_b",
 ]
 
 
 def __getattr__(name: str):
-    """Lazy exports for cyber council and brain-upgrade modules."""
+    """Lazy exports for cyber council, brain-upgrade, XiiD MCP, MRC, and mission-twin modules."""
     if name in {"ACEResult", "ReliabilityStore", "SameEngineFamilyError", "cross_examine"}:
         from src.cortex import ace as _ace
 
@@ -151,6 +180,60 @@ def __getattr__(name: str):
         from src.cortex import twin_store as _twin_store
 
         return getattr(_twin_store, name)
+    if name in {"CaseEvidencePack", "generate_case_report"}:
+        from src.cortex import case_report as _case_report
+
+        return getattr(_case_report, name)
+    if name == "run_scenario_b":
+        from src.cortex import scenario_b as _scenario_b
+
+        return getattr(_scenario_b, "run_scenario_b")
+    if name in {
+        "BindingSource",
+        "CortexMissionService",
+        "MissionBinding",
+        "MissionFlow",
+        "MinimalProfilePlan",
+        "NetworkEdge",
+        "NetworkTwin",
+        "PCCPChange",
+    }:
+        from src.cortex import models as _models
+        from src.cortex.service import CortexMissionService
+        from src.cortex.twin import NetworkTwin
+
+        if name == "CortexMissionService":
+            return CortexMissionService
+        if name == "NetworkTwin":
+            return NetworkTwin
+        return getattr(_models, name)
+    if name in {"load_mission_cortex_settings", "mission_weight"}:
+        from src.cortex import mission_config as _mission_config
+
+        return getattr(_mission_config, name)
+    if name in {
+        "ChangeRequest",
+        "build_change",
+        "standard_invariants",
+    }:
+        from src.cortex import pccp as _pccp
+
+        return getattr(_pccp, name)
+    if name in {
+        "CortexPlanner",
+    }:
+        from src.cortex import planner as _planner
+
+        return getattr(_planner, name)
+    if name in {
+        "MRCReachabilityGraph",
+        "plan_mrc",
+        "plan_mrc_reference",
+        "shield_priority",
+    }:
+        from src.cortex import reachability as _reachability
+
+        return getattr(_reachability, name)
     if name in {
         "BrokerError",
         "EnvelopeRequired",
