@@ -1,9 +1,18 @@
-"""Cyber cortex council — task-typed routing and adversarial cross-examination."""
+"""Cortex layer — policy gate, mission envelopes, engine council, and taint controls."""
+
+from .envelope import CortexEnvelope, CortexEnvelopeCodec
+from .policy_gate import Approval, MissionEnvelope, PolicyGate, PolicyVerdict
 
 __all__ = [
     "ACEResult",
+    "Approval",
+    "CortexEnvelope",
+    "CortexEnvelopeCodec",
     "CyberTaskType",
     "EngineCouncil",
+    "MissionEnvelope",
+    "PolicyGate",
+    "PolicyVerdict",
     "QuarantineExtractResult",
     "ReliabilityStore",
     "SameEngineFamilyError",
@@ -15,7 +24,7 @@ __all__ = [
 
 
 def __getattr__(name: str):
-    """Lazy exports avoid pulling optional API dependencies at import time."""
+    """Lazy exports for cyber council modules (optional API deps stay unloaded)."""
     if name in {"ACEResult", "ReliabilityStore", "SameEngineFamilyError", "cross_examine"}:
         from src.cortex import ace as _ace
 
