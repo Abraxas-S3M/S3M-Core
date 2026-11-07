@@ -4,6 +4,8 @@ Tests that Phase 10 security components work across the full stack.
 
 from __future__ import annotations
 
+import tempfile
+
 import pytest
 
 from tests.integration._availability import has_module
@@ -26,39 +28,40 @@ def test_input_validator_catches_injection_in_api_params() -> None:
 
 @pytest.mark.skipif(not SECURITY_AVAILABLE, reason="Security layer not available in this repository snapshot")
 def test_secure_audit_log_chains_across_operations() -> None:
-    from src.security.audit_log import SecureAuditLog
+    from src.security.crypto.secure_audit_log import SecureAuditLog
 
-    audit = SecureAuditLog()
-    for action in ["threat_detected", "llm_query", "decision_made", "command_issued", "path_planned"]:
-        audit.log(action=action, details={"source": "integration"})
-    report = audit.verify_chain()
-    assert report["valid"] is True
-    assert report["entries_checked"] == 5
+    with tempfile.TemporaryDirectory() as log_dir:
+        audit = SecureAuditLog(log_dir=log_dir)
+        for action in ["threat_detected", "llm_query", "decision_made", "command_issued", "path_planned"]:
+            audit.log(action=action, details={"source": "integration"})
+        report = audit.verify_chain()
+        assert report["valid"] is True
+        assert report["entries_checked"] == 5
 
 
 @pytest.mark.skipif(not SECURITY_AVAILABLE, reason="Security layer not available in this repository snapshot")
 def test_audit_tamper_detection() -> None:
-    from src.security.audit_log import SecureAuditLog
+    from src.security.crypto.secure_audit_log import SecureAuditLog
 
-    audit = SecureAuditLog()
-    for action in ["a", "b", "c", "d", "e"]:
-        audit.log(action=action, details={"source": "integration"})
+    with tempfile.TemporaryDirectory() as log_dir:
+        audit = SecureAuditLog(log_dir=log_dir)
+        for action in ["a", "b", "c", "d", "e"]:
+            audit.log(action=action, details={"source": "integration"})
 
-    # Best-effort tamper simulation for implementations that expose file backing.
-    if hasattr(audit, "_log_path"):
-        with open(audit._log_path, "r+", encoding="utf-8") as handle:  # noqa: SLF001
+        log_path = audit._current_log_file()
+        with log_path.open("r+", encoding="utf-8") as handle:
             content = handle.read().replace('"action": "c"', '"action": "tampered"', 1)
             handle.seek(0)
             handle.write(content)
             handle.truncate()
 
-    report = audit.verify_chain()
-    assert report["valid"] is False
+        report = audit.verify_chain()
+        assert report["valid"] is False
 
 
 @pytest.mark.skipif(not SECURITY_AVAILABLE, reason="Security layer not available in this repository snapshot")
 def test_classification_banner_on_responses() -> None:
-    from src.security.classification import ClassificationBanner
+    from src.security.crypto.classification_banner import ClassificationBanner
 
     banner = ClassificationBanner("UNCLASSIFIED - FOUO")
     assert banner.get_level() == "UNCLASSIFIED - FOUO"
