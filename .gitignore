@@ -19,3 +19,8 @@ models/*.bin
 /tmp/s3m-vendor-clone.log
 scripts/vendor/repos_skipped.txt
 /vendor/
+
+# Synthetic cyber range generated reports (timestamped artifacts)
+range/reports/*.json
+range/reports/*.md
+range/reports/.staging/

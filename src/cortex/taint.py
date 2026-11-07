@@ -1,9 +1,4 @@
-"""Taint handling for untrusted SOC telemetry before LLM and automation consumption.
-
-Military/tactical context: alert and log text may contain adversarial prompt
-injection. Content is datamarked for engines and typed with trust labels for
-write-path guards.
-"""
+"""Taint handling for untrusted SOC telemetry before LLM and automation consumption."""
 
 from __future__ import annotations
 
@@ -34,6 +29,54 @@ _INJECTION_PATTERNS = (
     re.compile(r"you\s+are\s+now\s+", re.IGNORECASE),
 )
 
+_TAINT_LABEL_PREFIX = "cortex.taint"
+_INSTRUCTION_MARKERS = re.compile(
+    r"(?i)\b(ignore\s+previous|system\s*:\s*|you\s+must\s+now|execute\s+shell|run\s+command)\b"
+)
+
+
+class TaintSource(str, Enum):
+    """Provenance classes for data that must never be treated as instructions."""
+
+    LOG = "log"
+    ALERT = "alert"
+    FILE = "file"
+    TICKET = "ticket"
+    WEB = "web"
+    TOOL_OUTPUT = "tool_output"
+
+
+@dataclass(frozen=True, slots=True)
+class TaintedPayload:
+    """Text bound to explicit taint labels before model consumption."""
+
+    text: str
+    source: TaintSource
+    labels: tuple[str, ...]
+
+    def for_model_context(self) -> str:
+        """Render wrapped content that cannot be mistaken for operator orders."""
+        label_path = "/".join(self.labels)
+        return (
+            f"<{_TAINT_LABEL_PREFIX} source={self.source.value} labels={label_path}>"
+            f"{self.text}</{_TAINT_LABEL_PREFIX}>"
+        )
+
+
+def wrap_untrusted(text: str, source: TaintSource) -> TaintedPayload:
+    """Wrap external text with stable taint labels (fail-safe for empty input)."""
+    normalized = str(text or "")
+    return TaintedPayload(
+        text=normalized,
+        source=source,
+        labels=(f"{_TAINT_LABEL_PREFIX}/{source.value}", "untrusted_data"),
+    )
+
+
+def contains_instruction_markers(text: str) -> bool:
+    """Detect common prompt-injection phrasing inside untrusted channels."""
+    return bool(_INSTRUCTION_MARKERS.search(str(text or "")))
+
 
 @dataclass(frozen=True)
 class QuarantineExtractResult:
@@ -55,9 +98,7 @@ def spotlight_datamark(
     if not raw_text:
         return f"{untrusted_begin}\n{untrusted_end}"
 
-    marked_lines = []
-    for line in raw_text.splitlines():
-        marked_lines.append(f"{datamark_prefix}{line}")
+    marked_lines = [f"{datamark_prefix}{line}" for line in raw_text.splitlines()]
     body = "\n".join(marked_lines)
     return f"{untrusted_begin}\n{body}\n{untrusted_end}"
 
@@ -70,12 +111,7 @@ def quarantine_extract(
     untrusted_end: str,
     system_data_doctrine: str,
 ) -> QuarantineExtractResult:
-    """
-    Merge typed untrusted fields into one spotlighted block for the user prompt.
-
-    Tactical context: field names (alert_id, raw_log, etc.) are trusted labels;
-    values are never copied into the system prompt.
-    """
+    """Merge typed untrusted fields into one spotlighted block for the user prompt."""
     sections: list[str] = []
     typed: Dict[str, str] = {}
     for field_name, value in untrusted_fields.items():
@@ -91,7 +127,6 @@ def quarantine_extract(
                 untrusted_end=untrusted_end,
             )
         )
-
     combined = "\n\n".join(sections)
     return QuarantineExtractResult(
         fields=typed,
@@ -134,7 +169,6 @@ class Labeled(Generic[T]):
     raw: Optional[str] = None
 
     def is_usable(self) -> bool:
-        """True when a typed value is present (raw evidence may still exist)."""
         return self.value is not None
 
 
@@ -188,6 +222,8 @@ def injection_signal(text: object) -> bool:
     blob = str(text)
     if not blob.strip():
         return False
+    if contains_instruction_markers(blob):
+        return True
     return any(pattern.search(blob) for pattern in _INJECTION_PATTERNS)
 
 

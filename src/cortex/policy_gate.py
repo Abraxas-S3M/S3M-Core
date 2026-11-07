@@ -8,9 +8,10 @@ human approvals before any state-mutating tool invocation.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
 
 _GIT_WRITE_SUBCOMMANDS = frozenset(
@@ -81,11 +82,52 @@ class PolicyVerdict:
     reason: str
 
 
+@dataclass(frozen=True, slots=True)
+class PolicyGateConfig:
+    """Static gate configuration loaded from configs/cortex.yaml."""
+
+    enabled: bool = True
+    production_mode: bool = False
+    evaluation_timeout_s: float = 1.0
+
+
+Evaluator = Callable[[Dict[str, Any]], Dict[str, Any]]
+
+
 class PolicyGate:
     """Fail-closed policy evaluator for orchestrator tool invocations."""
 
     @classmethod
-    def evaluate(cls, action: Dict[str, Any]) -> PolicyVerdict:
+    def evaluate(
+        cls,
+        action: Dict[str, Any],
+        *,
+        config: PolicyGateConfig | None = None,
+        evaluator: Evaluator | None = None,
+    ) -> PolicyVerdict:
+        if config is not None or evaluator is not None:
+            if config is None:
+                return PolicyVerdict(False, "missing policy gate config")
+            if evaluator is None:
+                return PolicyVerdict(False, "missing policy evaluator callable")
+            if not config.enabled:
+                return PolicyVerdict(False, "policy gate disabled")
+
+            try:
+                with ThreadPoolExecutor(max_workers=1) as pool:
+                    future = pool.submit(evaluator, dict(action))
+                    external = future.result(timeout=max(config.evaluation_timeout_s, 0.01))
+            except FuturesTimeoutError:
+                return PolicyVerdict(False, "policy evaluator timeout")
+            except Exception:
+                return PolicyVerdict(False, "policy evaluator exception")
+
+            if not isinstance(external, dict) or not external.get("allow"):
+                reason = "policy evaluator denied"
+                if isinstance(external, dict) and external.get("reason"):
+                    reason = str(external["reason"])
+                return PolicyVerdict(False, reason)
+
         tool_name = str(action.get("tool_name", "")).strip()
         risk = str(action.get("risk_level", "low")).lower()
         autonomy_level = str(action.get("autonomy_level", "supervised")).lower()
@@ -99,7 +141,10 @@ class PolicyGate:
             if not valid:
                 return PolicyVerdict(False, reason)
             if not cls._has_valid_oob_approval(action):
-                return PolicyVerdict(False, "mutating action requires out-of-band approval from a different human")
+                return PolicyVerdict(
+                    False,
+                    "mutating action requires out-of-band approval from a different human",
+                )
             return PolicyVerdict(True, "mutating action authorized under mission envelope")
 
         if autonomy_level == "bounded":
@@ -107,7 +152,10 @@ class PolicyGate:
 
         if autonomy_level == "semi_autonomous":
             if "high" in risk and not cls._has_valid_oob_approval(action):
-                return PolicyVerdict(False, "high-risk read requires out-of-band approval in semi_autonomous mode")
+                return PolicyVerdict(
+                    False,
+                    "high-risk read requires out-of-band approval in semi_autonomous mode",
+                )
             return PolicyVerdict(True, "semi-autonomous read-only policy")
 
         if cls._has_valid_oob_approval(action):

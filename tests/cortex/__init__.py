@@ -1,1 +1,1 @@
-"""Cortex security and taint tests."""
+"""Cortex package tests."""
