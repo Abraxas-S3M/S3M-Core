@@ -1,7 +1,20 @@
-"""Cortex layer — policy gate, mission envelopes, engine council, and taint controls."""
+"""Cortex layer — policy gate, mission envelopes, engine council, and admission."""
 
-from .envelope import CortexEnvelope, CortexEnvelopeCodec
-from .policy_gate import (
+from src.cortex.envelope import (
+    AdmissionSigner,
+    CortexEnvelope,
+    CortexEnvelopeCodec,
+    HmacAdmissionSigner,
+    SignedAdmissionEnvelope,
+)
+from src.cortex.model_admission import (
+    AdmissionDecision,
+    ModelAdmissionGate,
+    deploy_mode,
+    is_production,
+    load_engines_document,
+)
+from src.cortex.policy_gate import (
     Approval,
     Approvals,
     MissionEnvelope,
@@ -13,22 +26,30 @@ from .policy_gate import (
 
 __all__ = [
     "ACEResult",
+    "AdmissionDecision",
+    "AdmissionSigner",
     "Approval",
     "Approvals",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
     "CyberTaskType",
     "EngineCouncil",
+    "HmacAdmissionSigner",
     "MissionEnvelope",
+    "ModelAdmissionGate",
     "PolicyDecision",
     "PolicyGate",
     "PolicyVerdict",
     "QuarantineExtractResult",
     "ReliabilityStore",
     "SameEngineFamilyError",
+    "SignedAdmissionEnvelope",
     "ToolCall",
     "cross_examine",
+    "deploy_mode",
+    "is_production",
     "load_cortex_config",
+    "load_engines_document",
     "quarantine_extract",
     "spotlight_datamark",
 ]
