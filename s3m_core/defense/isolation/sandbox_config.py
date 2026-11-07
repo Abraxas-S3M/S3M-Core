@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+from s3m_core.defense.network.egress_proxy import sandbox_network_mode
 
 
 @dataclass(slots=True)
@@ -60,11 +62,26 @@ class SandboxConfig:
 
     # Runtime controls
     runtime: str = "gvisor"
+    mode: str = "production"
+    egress_allowlist: List[str] = field(default_factory=list)
 
-    def to_docker_args(self) -> List[str]:
-        """Convert this isolation policy into `docker run` arguments."""
+    def resolved_network_mode(self) -> str:
+        """Return the Docker network mode for this sandbox policy."""
+        return sandbox_network_mode(
+            egress_allowlist=self.egress_allowlist,
+            use_net_namespace=self.use_net_namespace,
+        )
+
+    def to_docker_args(
+        self,
+        *,
+        seccomp_profile_path: Optional[str] = None,
+        scratch_mount_src: Optional[str] = None,
+    ) -> List[str]:
+        """Convert this isolation policy into hardened `docker run` arguments."""
         args: List[str] = [
-            "--cap-drop=ALL",
+            "--cap-drop",
+            "ALL",
             "--security-opt",
             "no-new-privileges:true",
             "--pids-limit",
@@ -81,21 +98,31 @@ class SandboxConfig:
             f"s3m.masked_proc_paths={','.join(self.mask_proc_paths)}",
         ]
 
+        if self.runtime == "gvisor":
+            args.extend(["--runtime", "runsc"])
+
         args.extend(["--pid=private" if self.use_pid_namespace else "--pid=host"])
-        args.extend(["--network=bridge" if self.use_net_namespace else "--network=host"])
+        args.extend(["--network", self.resolved_network_mode()])
         args.extend(["--userns=private" if self.use_user_namespace else "--userns=host"])
 
         if self.use_mount_namespace:
             args.append("--read-only")
-        if self.mount_proc_readonly:
-            args.extend(["--mount", "type=bind,src=/proc,dst=/proc,readonly"])
+        if seccomp_profile_path:
+            args.extend(["--security-opt", f"seccomp={seccomp_profile_path}"])
+        if scratch_mount_src:
+            args.extend(
+                [
+                    "--mount",
+                    f"type=bind,src={scratch_mount_src},dst=/scratch",
+                ]
+            )
         if self.hide_other_pids:
             # Tactical note: hidepid cannot always be applied directly by Docker,
             # so this flag is surfaced as intent for the runtime orchestrator.
             args.extend(["--security-opt", "s3m.procfs-hidepid=2"])
         if self.disable_ptrace:
             args.extend(["--security-opt", "s3m.disable-ptrace=true"])
-            args.extend(["--cap-drop=SYS_PTRACE"])
+            args.extend(["--cap-drop", "SYS_PTRACE"])
 
         for device in self.allowed_devices:
             args.extend(["--device", f"{device}:{device}:r"])
@@ -131,8 +158,14 @@ class SandboxConfig:
         """Return warnings for known hardening gaps in this sandbox policy."""
         warnings: List[str] = []
         valid_runtimes = {"gvisor", "firecracker", "docker"}
+        valid_modes = {"production", "lab"}
         dangerous_devices = {"/dev/mem", "/dev/kmem", "/dev/port"}
         required_proc_masks = {"/proc/*/environ", "/proc/*/mem", "/proc/*/fd"}
+
+        if self.mode not in valid_modes:
+            warnings.append(f"Unsupported sandbox mode '{self.mode}' configured.")
+        if self.mode == "lab":
+            warnings.append("Lab mode may simulate isolation when Docker is unavailable.")
 
         if self.runtime not in valid_runtimes:
             warnings.append(f"Unsupported runtime '{self.runtime}' configured.")
