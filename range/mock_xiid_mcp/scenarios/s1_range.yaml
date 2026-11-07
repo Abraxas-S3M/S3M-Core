@@ -1,0 +1,30 @@
+# S1 range baseline topology for offline mock XiiD MCP exercises.
+scenario_id: s1_range_baseline
+stlinks:
+  - id: stlink-alpha
+    endpoint: 10.40.1.10
+    status: active
+  - id: stlink-bravo
+    endpoint: 10.40.1.11
+    status: active
+routes:
+  - id: route-perimeter
+    prefix: 10.50.0.0/16
+    status: active
+    narrow_to: null
+  - id: route-ops
+    prefix: 10.60.0.0/24
+    status: active
+    narrow_to: null
+hosts:
+  - id: host-jetson-1
+    address: 10.40.2.5
+    quarantined: false
+sessions:
+  - id: sess-operator-1
+    user: range-op-1
+    active: true
+vulnerabilities:
+  - id: vuln-001
+    severity: medium
+    component: stlink-alpha

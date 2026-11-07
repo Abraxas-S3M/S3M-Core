@@ -119,6 +119,37 @@ engine_council:
     config_review:
       role: engineer
 
+# S1 range placeholder tool manifest until production XiiD MCP is wired.
+xiid_mcp:
+  service_name: xiid_mcp
+  vault_path: kv/range/xiid/mcp
+  oauth_audience: https://xiid.s3m.range/mcp
+  oauth_resource: https://xiid.s3m.range/mcp
+  connect_timeout_seconds: 10.0
+  read_timeout_seconds: 60.0
+  max_retries: 3
+  retry_backoff_seconds: 0.25
+  tool_classes:
+    A:
+      - inventory.list_stlinks
+      - inventory.list_routes
+      - telemetry.health
+      - audit.verify_chain
+      - vuln.findings.list
+    B:
+      - route.draft
+      - policy.simulate
+      - change.impact
+    C:
+      - route.narrow
+      - route.expire
+      - stlink.deploy
+      - access.create_temporary
+    D:
+      - stlink.disable
+      - session.terminate
+      - host.quarantine
+
 # Mission-aware network twin — MRC priority weights (Jetson offline).
 mission:
   weights:

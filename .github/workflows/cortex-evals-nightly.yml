@@ -1,0 +1,30 @@
+name: Cortex live eval nightly
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  cortex-live-range:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install minimal eval dependencies
+        run: pip install pyyaml
+      - name: Run live-mode suites against S1 range (fallback-safe)
+        env:
+          S3M_CORTEX_RANGE_URL: ${{ vars.S3M_CORTEX_RANGE_URL }}
+        run: |
+          PYTHONPATH=. python scripts/evaluation/run_cortex_evals.py \
+            --mode live \
+            --model-version "cortex-nightly-${GITHUB_SHA::7}" \
+            --archive-dir artifacts/cortex_nightly
+      - name: Upload archived nightly results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-nightly-${{ github.run_id }}
+          path: artifacts/cortex_nightly/*.json

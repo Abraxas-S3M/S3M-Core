@@ -1,0 +1,62 @@
+# Maps Cortex logical action names to XiiD MCP tool identifiers (single swap point for production).
+actions:
+  list_stlinks:
+    tool: inventory.list_stlinks
+    class: A
+    kind: read
+  list_routes:
+    tool: inventory.list_routes
+    class: A
+    kind: read
+  telemetry_health:
+    tool: telemetry.health
+    class: A
+    kind: read
+  verify_audit_chain:
+    tool: audit.verify_chain
+    class: A
+    kind: read
+  list_vuln_findings:
+    tool: vuln.findings.list
+    class: A
+    kind: read
+  draft_route:
+    tool: route.draft
+    class: B
+    kind: write
+  simulate_policy:
+    tool: policy.simulate
+    class: B
+    kind: read
+  assess_change_impact:
+    tool: change.impact
+    class: B
+    kind: read
+  narrow_route:
+    tool: route.narrow
+    class: C
+    kind: write
+  expire_route:
+    tool: route.expire
+    class: C
+    kind: write
+  deploy_stlink:
+    tool: stlink.deploy
+    class: C
+    kind: write
+  create_temporary_access:
+    tool: access.create_temporary
+    class: C
+    kind: write
+  disable_stlink:
+    tool: stlink.disable
+    class: D
+    kind: write
+  terminate_session:
+    tool: session.terminate
+    class: D
+    kind: write
+  quarantine_host:
+    tool: host.quarantine
+    class: D
+    kind: write

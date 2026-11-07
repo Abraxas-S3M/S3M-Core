@@ -37,9 +37,11 @@ __all__ = [
     "AdmissionSigner",
     "Approval",
     "Approvals",
+    "AssetInventory",
     "BindingSource",
     "BrokerBypassError",
     "BrokerDenied",
+    "BrokerError",
     "ChangeClass",
     "ChangeControlGate",
     "ChangeEnvelope",
@@ -50,11 +52,17 @@ __all__ = [
     "CortexEnvelopeCodec",
     "CyberTaskType",
     "EngineCouncil",
+    "EnvelopeRejected",
+    "EnvelopeRequired",
     "HmacAdmissionSigner",
+    "HttpMCPTransport",
+    "Labeled",
+    "ManifestPinMismatch",
     "MissionBinding",
     "MissionEnvelope",
     "MissionFlow",
     "MinimalProfilePlan",
+    "MCPTransport",
     "ModelAdmissionGate",
     "NetworkEdge",
     "NetworkTwin",
@@ -73,12 +81,18 @@ __all__ = [
     "TaintSource",
     "TaintedPayload",
     "ToolCall",
+    "Trust",
     "TwinStore",
+    "WriteEnvelope",
+    "XiidMCPBroker",
     "assert_production_dependencies",
     "assert_tool_permitted",
     "cross_examine",
     "deploy_mode",
+    "endorse",
+    "endorse_against_inventory",
     "forbidden_tool_reason",
+    "injection_signal",
     "is_production",
     "load_cortex_brain_config",
     "load_cortex_config",
@@ -86,13 +100,14 @@ __all__ = [
     "load_mission_cortex_settings",
     "mission_weight",
     "quarantine_extract",
+    "quarantine_extract_typed",
     "spotlight_datamark",
     "wrap_untrusted",
 ]
 
 
 def __getattr__(name: str):
-    """Lazy exports for cyber council, brain-upgrade, and mission-twin modules."""
+    """Lazy exports for cyber council, brain-upgrade, XiiD MCP, and mission-twin modules."""
     if name in {"ACEResult", "ReliabilityStore", "SameEngineFamilyError", "cross_examine"}:
         from src.cortex import ace as _ace
 
@@ -102,10 +117,17 @@ def __getattr__(name: str):
 
         return getattr(_council, name)
     if name in {
+        "AssetInventory",
+        "Labeled",
         "QuarantineExtractResult",
         "TaintSource",
         "TaintedPayload",
+        "Trust",
+        "endorse",
+        "endorse_against_inventory",
+        "injection_signal",
         "quarantine_extract",
+        "quarantine_extract_typed",
         "spotlight_datamark",
         "wrap_untrusted",
     }:
@@ -170,4 +192,25 @@ def __getattr__(name: str):
         from src.cortex import mission_config as _mission_config
 
         return getattr(_mission_config, name)
+    if name in {
+        "BrokerError",
+        "EnvelopeRequired",
+        "EnvelopeRejected",
+        "ManifestPinMismatch",
+        "XiidMCPBroker",
+        "WriteEnvelope",
+        "HttpMCPTransport",
+        "MCPTransport",
+    }:
+        if name == "WriteEnvelope":
+            from src.cortex.xiid_write_envelope import WriteEnvelope
+
+            return WriteEnvelope
+        if name in {"HttpMCPTransport", "MCPTransport"}:
+            from src.cortex import transport_mcp as _transport_mcp
+
+            return getattr(_transport_mcp, name)
+        from src.cortex import xiid_broker as _xiid_broker
+
+        return getattr(_xiid_broker, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from services.cyber.ir_platforms.base import IRPlatformAdapter
 from services.cyber.models import CaseSeverity, IncidentCase, Observable
+from src.cortex.platform_taint import label_platform_record, label_platform_records
 
 
 class TheHiveAdapter(IRPlatformAdapter):
@@ -91,6 +92,8 @@ class TheHiveAdapter(IRPlatformAdapter):
         response = self._safe_request("GET", f"/api/v1/case/{thehive_id}")
         if response is None:
             return self._offline("get_case", {"thehive_id": thehive_id})
+        if isinstance(response, dict):
+            return label_platform_record(response, source_system="thehive", sensor_id="thehive-api")
         return response
 
     def search_cases(self, query: dict) -> List[dict]:
@@ -99,9 +102,9 @@ class TheHiveAdapter(IRPlatformAdapter):
             self._write_outbox("search_cases", query)
             return []
         if isinstance(response, list):
-            return response
+            return label_platform_records(response, source_system="thehive", sensor_id="thehive-api")
         if isinstance(response, dict) and isinstance(response.get("data"), list):
-            return response["data"]
+            return label_platform_records(response["data"], source_system="thehive", sensor_id="thehive-api")
         return []
 
     def get_outbox(self) -> List[dict]:

@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-03-31T10:30:45.123456+00:00",
+  "event_type": "alert",
+  "src_ip": "10.10.4.22 EXTRA-TEXT",
+  "src_port": 49822,
+  "dest_ip": "172.16.1.10",
+  "dest_port": 443,
+  "proto": "TCP",
+  "alert": {
+    "severity": 4,
+    "signature_id": 99,
+    "signature": "ET POLICY测试",
+    "category": "Potentially Bad Traffic"
+  }
+}

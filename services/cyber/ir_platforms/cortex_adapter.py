@@ -7,6 +7,7 @@ from typing import List
 
 from services.cyber.ir_platforms.base import IRPlatformAdapter
 from services.cyber.models import EnrichmentResult, Observable, ObservableType
+from src.cortex.platform_taint import label_platform_record
 
 
 class CortexAdapter(IRPlatformAdapter):
@@ -62,10 +63,18 @@ class CortexAdapter(IRPlatformAdapter):
             }
             response = self._safe_request("POST", f"/api/analyzer/{analyzer}/run", payload)
             if response is not None:
+                result_payload = response if isinstance(response, dict) else {"raw": str(response)}
+                if isinstance(result_payload, dict):
+                    result_payload = label_platform_record(
+                        dict(result_payload),
+                        source_system="cortex",
+                        sensor_id="cortex-analyzer",
+                        extra_free_text=["report", "summary"],
+                    )
                 return EnrichmentResult(
                     analyzer=analyzer,
                     observable_id=observable.observable_id,
-                    result=response if isinstance(response, dict) else {"raw": str(response)},
+                    result=result_payload,
                     verdict=str(response.get("verdict", "unknown")) if isinstance(response, dict) else "unknown",
                     confidence=float(response.get("confidence", 0.6)) if isinstance(response, dict) else 0.6,
                 )

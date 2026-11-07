@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from uuid import uuid4
+
+if TYPE_CHECKING:
+    from src.cortex.provenance import EventProvenance
 
 
 class ThreatLevel(IntEnum):
@@ -92,6 +95,8 @@ class ThreatEvent:
     recommended_action: Optional[str] = None
     llm_assessment: Optional[str] = None
     classification: str = "UNCLASSIFIED"
+    provenance: Optional["EventProvenance"] = None
+    tags: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Validate and normalize fields for secure downstream processing."""
@@ -119,6 +124,15 @@ class ThreatEvent:
             raise ValueError("asset_ids must be a list of strings")
         if not isinstance(self.classification, str) or not self.classification.strip():
             raise ValueError("classification must be a non-empty string")
+        if self.provenance is not None:
+            from src.cortex.provenance import EventProvenance
+
+            if not isinstance(self.provenance, EventProvenance):
+                raise ValueError("provenance must be an EventProvenance instance or None")
+        if not isinstance(self.tags, list) or any(not isinstance(tag, str) for tag in self.tags):
+            raise ValueError("tags must be a list of strings")
+        if not hasattr(self, "_endorsed_fields"):
+            self._endorsed_fields: Dict[str, Any] = {}
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to API/export-safe dictionary."""
@@ -127,6 +141,11 @@ class ThreatEvent:
         payload["source"] = self.source.value
         payload["level"] = self.level.name
         payload["category"] = self.category.value
+        payload["tags"] = list(self.tags)
+        if self.provenance is not None:
+            payload["provenance"] = self.provenance.to_dict()
+        else:
+            payload.pop("provenance", None)
         return payload
 
     def to_prompt(self) -> str:

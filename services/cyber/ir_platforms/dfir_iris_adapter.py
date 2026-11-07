@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from services.cyber.ir_platforms.base import IRPlatformAdapter
 from services.cyber.models import IncidentCase, Observable
+from src.cortex.platform_taint import label_platform_records
 
 
 class DFIRIRISAdapter(IRPlatformAdapter):
@@ -53,7 +54,7 @@ class DFIRIRISAdapter(IRPlatformAdapter):
             self._write_outbox("get_timeline", {"case_id": case_id})
             return []
         if isinstance(response, list):
-            return response
+            return label_platform_records(response, source_system="dfir_iris", sensor_id="dfir-iris-api")
         if isinstance(response, dict) and isinstance(response.get("timeline"), list):
-            return response["timeline"]
+            return label_platform_records(response["timeline"], source_system="dfir_iris", sensor_id="dfir-iris-api")
         return []
