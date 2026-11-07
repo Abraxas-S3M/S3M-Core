@@ -1,38 +1,33 @@
-"""Mission Risk Catalog (MRC) snapshots for Cortex explainability.
-
-Military/tactical context: commanders compare pre- and post-action risk posture
-before approving brokered network mutations.
-"""
+"""Minimum Response Cost (MRC) — mission-weighted disruption costing for Cortex."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict
+from typing import Dict, List, Optional
+
+from src.cortex.mission_config import load_mission_cortex_settings, mission_weight
+from src.cortex.models import NetworkEdge
+from src.cortex.twin import NetworkTwin
 
 
-@dataclass(frozen=True, slots=True)
-class MRCSnapshot:
-    score: float
-    factors: Dict[str, float] = field(default_factory=dict)
-    label: str = ""
+class MissionResponseCost:
+    """Score edges for containment; active-mission edges cost more to disrupt."""
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {"score": float(self.score), "factors": dict(self.factors), "label": self.label}
+    def __init__(self, config: Optional[Dict] = None) -> None:
+        self._config = config or load_mission_cortex_settings()
 
+    def weighted_disruption_cost(self, edge: NetworkEdge, twin: NetworkTwin) -> float:
+        base = float(edge.disruption_cost or self._config.get("default_disruption_cost", 1.0))
+        priority = twin.highest_active_priority_on_edge(edge.edge_id)
+        if priority <= 0:
+            return base
+        return base * mission_weight(priority, self._config)
 
-def assess_mrc(*, evidence_count: int, ace_dropped: int, gate_allowed: bool) -> MRCSnapshot:
-    """Heuristic MRC for cyber cases (offline, deterministic for tests)."""
-    base = min(0.95, 0.25 + 0.08 * max(0, evidence_count))
-    penalty = 0.05 * max(0, ace_dropped)
-    if not gate_allowed:
-        base += 0.1
-    score = max(0.05, min(0.99, base - penalty))
-    return MRCSnapshot(
-        score=round(score, 4),
-        factors={
-            "evidence_coverage": float(evidence_count),
-            "ace_dropped_claims": float(ace_dropped),
-            "gate_blocked": 0.0 if gate_allowed else 1.0,
-        },
-        label="mrc_heuristic_v1",
-    )
+    def select_disruption_target(
+        self, candidates: List[NetworkEdge], twin: NetworkTwin
+    ) -> NetworkEdge:
+        """Pick the lowest weighted-cost edge (avoids high-cost mission edges)."""
+        if not candidates:
+            raise ValueError("no disruption candidates")
+        scored = [(self.weighted_disruption_cost(edge, twin), edge) for edge in candidates]
+        scored.sort(key=lambda pair: pair[0])
+        return scored[0][1]

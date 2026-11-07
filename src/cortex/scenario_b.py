@@ -18,7 +18,7 @@ from src.cortex.audit import CortexAuditRecorder
 from src.cortex.broker import CortexBroker
 from src.cortex.changes import NetworkChange
 from src.cortex.council import CyberTaskType, EngineCouncil, RoleEngine
-from src.cortex.mrc import MRCSnapshot, assess_mrc
+from src.cortex.mrc_snapshot import MRCSnapshot, assess_mrc
 from src.cortex.pccp_invariants import evaluate_pccp
 from src.cortex.pipeline_planner import CortexPlan, build_plan
 from src.cortex.policy_gate import Approval, MissionEnvelope, PolicyGate, PolicyGateConfig

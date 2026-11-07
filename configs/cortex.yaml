@@ -182,3 +182,15 @@ change_planner:
   case_storage_dir: "data/cortex/cases"
   max_blast_radius: 12
   default_budget: 8.0
+
+# Mission-aware network twin — disruption cost multipliers (Jetson offline).
+mission:
+  weights:
+    1: 1.0
+    2: 1.5
+    3: 2.0
+    4: 3.0
+    5: 5.0
+
+default_disruption_cost: 1.0
+event_track: cyber_cortex
