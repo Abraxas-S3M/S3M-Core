@@ -79,7 +79,7 @@ def tier_requirements(tier: str) -> List[Path]:
     if tier == "regional":
         return base + [Path("requirements-intel.txt")]
     if tier == "edge":
-        return base + [Path("requirements-edge.txt")]
+        return [Path("requirements-edge.txt"), Path("requirements-security.txt")]
     raise ValueError(f"unknown tier: {tier}")
 
 

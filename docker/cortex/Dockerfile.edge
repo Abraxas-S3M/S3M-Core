@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY requirements-edge.txt requirements-api.txt requirements-security.txt ./
+# Edge tier avoids llama-cpp-python (Jetson images use prebuilt wheels offline).
+COPY requirements-edge.txt requirements-security.txt ./
 RUN pip install --no-cache-dir --prefix=/install \
     -r requirements-edge.txt \
-    -r requirements-api.txt \
     -r requirements-security.txt
 
 FROM python:3.11-slim-bookworm@${PYTHON_ARM64_DIGEST} AS runtime
