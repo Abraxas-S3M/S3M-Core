@@ -15,6 +15,8 @@ from typing import Any, Dict, List, Optional
 
 from src.security.quantum.kem import QuantumKEM, KEMKeyPair
 from src.security.quantum.signatures import QuantumSigner, SigningKeyPair
+from src.security.quantum.policy import load_quantum_security_policy
+from src.security.quantum.key_storage import create_key_storage
 
 
 class QuantumKeyManager:
@@ -39,11 +41,14 @@ class QuantumKeyManager:
     def __init__(
         self, keys_dir: str = "configs/keys/quantum", rotation_hours: int = 24,
     ) -> None:
-        self.keys_dir = Path(keys_dir)
+        self.policy = load_quantum_security_policy()
+        resolved_dir = keys_dir or self.policy.keys_dir
+        self.keys_dir = Path(resolved_dir)
         self.keys_dir.mkdir(parents=True, exist_ok=True)
         self.rotation_interval = timedelta(hours=rotation_hours)
-        self.kem = QuantumKEM()
-        self.signer = QuantumSigner()
+        self.kem = QuantumKEM(policy=self.policy)
+        self.signer = QuantumSigner(policy=self.policy)
+        self._key_storage = create_key_storage(self.policy)
         self._kem_keys: Dict[str, KEMKeyPair] = {}
         self._sig_keys: Dict[str, SigningKeyPair] = {}
         self._revoked: List[str] = []
