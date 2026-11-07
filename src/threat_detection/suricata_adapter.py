@@ -108,6 +108,8 @@ class SuricataAdapter:
         dest_ip = json_dict.get("dest_ip")
         dest_port = json_dict.get("dest_port")
         proto = json_dict.get("proto")
+        http_block = json_dict.get("http") if isinstance(json_dict.get("http"), dict) else {}
+        http_user_agent = http_block.get("http_user_agent")
 
         title = f"Suricata IDS Alert: {signature}"
         description = (
@@ -115,7 +117,7 @@ class SuricataAdapter:
             f"over {proto}. Signature ID {signature_id}."
         )
 
-        return ThreatEvent(
+        event = ThreatEvent(
             source=ThreatSource.NETWORK_IDS,
             level=self._map_severity(severity_int),
             category=self._map_category(category_raw),
@@ -131,11 +133,42 @@ class SuricataAdapter:
                 "signature_id": signature_id,
                 "signature": signature,
                 "category": category_raw,
+                "http_user_agent": http_user_agent,
                 "suricata_event": json_dict,
             },
             confidence=max(0.3, min(1.0, 1.0 - (severity_int - 1) * 0.2)),
             asset_ids=[value for value in [str(dest_ip) if dest_ip else None] if value],
             recommended_action="Isolate destination host and inspect packet capture for hostile indicators.",
+        )
+        sensor_id = os.environ.get("S3M_SENSOR_ID", "suricata-edge")
+        free_text: Dict[str, str] = {
+            "signature": signature,
+            "category": category_raw,
+        }
+        if http_user_agent:
+            free_text["http_user_agent"] = str(http_user_agent)
+        from src.cortex.threat_event import apply_threat_event_taint
+
+        return apply_threat_event_taint(
+            event,
+            source_system="suricata",
+            sensor_id=sensor_id,
+            observed_fields=[
+                "src_ip",
+                "src_port",
+                "dest_ip",
+                "dest_port",
+                "protocol",
+                "signature_id",
+            ],
+            untrusted_fields=[
+                "signature",
+                "category",
+                "title",
+                "description",
+                "http_user_agent",
+            ],
+            free_text_blobs=free_text,
         )
 
     def parse_eve_log(self, filepath: str) -> List[ThreatEvent]:
