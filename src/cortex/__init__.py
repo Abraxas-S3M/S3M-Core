@@ -137,4 +137,25 @@ def __getattr__(name: str):
         from src.cortex import twin_store as _twin_store
 
         return getattr(_twin_store, name)
+    if name in {
+        "BrokerError",
+        "EnvelopeRequired",
+        "EnvelopeRejected",
+        "ManifestPinMismatch",
+        "XiidMCPBroker",
+        "WriteEnvelope",
+        "HttpMCPTransport",
+        "MCPTransport",
+    }:
+        if name == "WriteEnvelope":
+            from src.cortex.xiid_write_envelope import WriteEnvelope
+
+            return WriteEnvelope
+        if name in {"HttpMCPTransport", "MCPTransport"}:
+            from src.cortex import transport_mcp as _transport_mcp
+
+            return getattr(_transport_mcp, name)
+        from src.cortex import xiid_broker as _xiid_broker
+
+        return getattr(_xiid_broker, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
