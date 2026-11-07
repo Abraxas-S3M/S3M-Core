@@ -45,11 +45,13 @@ __all__ = [
     "ChangeClass",
     "ChangeControlGate",
     "ChangeEnvelope",
+    "ChangeRequest",
     "CortexBroker",
     "CortexConfig",
     "CortexMissionService",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
+    "CortexPlanner",
     "CyberTaskType",
     "EngineCouncil",
     "EnvelopeRejected",
@@ -58,11 +60,12 @@ __all__ = [
     "HttpMCPTransport",
     "Labeled",
     "ManifestPinMismatch",
+    "MCPTransport",
     "MissionBinding",
     "MissionEnvelope",
     "MissionFlow",
     "MinimalProfilePlan",
-    "MCPTransport",
+    "MRCReachabilityGraph",
     "ModelAdmissionGate",
     "NetworkEdge",
     "NetworkTwin",
@@ -87,6 +90,7 @@ __all__ = [
     "XiidMCPBroker",
     "assert_production_dependencies",
     "assert_tool_permitted",
+    "build_change",
     "cross_examine",
     "deploy_mode",
     "endorse",
@@ -99,15 +103,19 @@ __all__ = [
     "load_engines_document",
     "load_mission_cortex_settings",
     "mission_weight",
+    "plan_mrc",
+    "plan_mrc_reference",
     "quarantine_extract",
     "quarantine_extract_typed",
+    "shield_priority",
     "spotlight_datamark",
+    "standard_invariants",
     "wrap_untrusted",
 ]
 
 
 def __getattr__(name: str):
-    """Lazy exports for cyber council, brain-upgrade, XiiD MCP, and mission-twin modules."""
+    """Lazy exports for cyber council, brain-upgrade, XiiD MCP, MRC, and mission-twin modules."""
     if name in {"ACEResult", "ReliabilityStore", "SameEngineFamilyError", "cross_examine"}:
         from src.cortex import ace as _ace
 
@@ -192,6 +200,29 @@ def __getattr__(name: str):
         from src.cortex import mission_config as _mission_config
 
         return getattr(_mission_config, name)
+    if name in {
+        "ChangeRequest",
+        "build_change",
+        "standard_invariants",
+    }:
+        from src.cortex import pccp as _pccp
+
+        return getattr(_pccp, name)
+    if name in {
+        "CortexPlanner",
+    }:
+        from src.cortex import planner as _planner
+
+        return getattr(_planner, name)
+    if name in {
+        "MRCReachabilityGraph",
+        "plan_mrc",
+        "plan_mrc_reference",
+        "shield_priority",
+    }:
+        from src.cortex import reachability as _reachability
+
+        return getattr(_reachability, name)
     if name in {
         "BrokerError",
         "EnvelopeRequired",

@@ -150,7 +150,40 @@ xiid_mcp:
       - session.terminate
       - host.quarantine
 
-# Mission-aware network twin — MRC priority weights (Jetson offline).
+# MRC reachability planning and vulnerability shield queue (offline change proposals)
+mrc:
+  max_graph_nodes: 10000
+  harden_factor: 0.08
+  default_action_cost: 1.0
+  edge_defaults:
+    runs_on: 0.85
+    connects_to: 0.75
+    authenticates_as: 0.55
+    can_access: 0.65
+    hosts: 0.80
+    depends_on: 0.70
+    related_to: 0.50
+    uses: 0.60
+    part_of: 0.45
+    lateral_movement: 0.72
+    management: 0.68
+    default: 0.50
+
+vulnerability_shield:
+  shield_threshold: 0.35
+  weights:
+    epss: 0.30
+    kev: 0.25
+    reachability: 0.20
+    criticality: 0.15
+    days_to_patch: 0.10
+
+change_planner:
+  case_storage_dir: "data/cortex/cases"
+  max_blast_radius: 12
+  default_budget: 8.0
+
+# Mission-aware network twin — disruption cost multipliers (Jetson offline).
 mission:
   weights:
     1: 1.0
