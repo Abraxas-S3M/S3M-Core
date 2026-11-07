@@ -8,6 +8,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from s3m_core.defense.audit.merkle_log import AuditEntry, MerkleAuditLog
+
+from src.cortex.policy_gate import PolicyGate
+
 from .consensus import MultiAgentConsensus, ValidationResult
 from .subagent import PermissionSet, SubAgent, SubAgentResult
 from .task_decomposer import SubTask, TaskDecomposer
@@ -64,6 +68,9 @@ class AgenticOrchestrator:
         max_steps: int = 100,
         max_subagents: int = 5,
         context_window: int = 200000,
+        permission_set: Optional[PermissionSet] = None,
+        audit_log: Optional[MerkleAuditLog] = None,
+        session_id: str = "orchestrator",
     ) -> None:
         self.model = model
         self.tokenizer = tokenizer
@@ -78,9 +85,11 @@ class AgenticOrchestrator:
 
         self.decomposer = TaskDecomposer(model=model)
         self.consensus = MultiAgentConsensus()
-        self.permission_set = PermissionSet(
-            allowed_tools=self.tool_registry.list_tools(),
-            allowed_paths=["."],
+        self.audit_log = audit_log
+        self.session_id = session_id
+        self.permission_set = permission_set or PermissionSet(
+            allowed_tools=[],
+            allowed_paths=[],
             network_allowlist=[],
             max_tokens=context_window,
             timeout_seconds=600,
@@ -105,7 +114,9 @@ class AgenticOrchestrator:
         tools_allowed: Optional[List[str]] = None,
         autonomy_level: str = "supervised",
     ) -> MissionResult:
-        allowed_levels = {"supervised", "semi_autonomous", "autonomous"}
+        allowed_levels = {"supervised", "semi_autonomous", "bounded"}
+        if autonomy_level == "autonomous":
+            autonomy_level = "bounded"
         if autonomy_level not in allowed_levels:
             raise ValueError(f"autonomy_level must be one of {sorted(allowed_levels)}")
 
@@ -194,7 +205,7 @@ class AgenticOrchestrator:
             "subagent_id": subagent_id,
             "task_id": task_id,
         }
-        gate_ok, gate_reason = self._approve_action(action_payload)
+        gate_ok, gate_reason = self._approve_action(action_payload, proposer=subagent_id or "orchestrator")
         if not gate_ok:
             denial = ToolResult(
                 name=name,
@@ -354,35 +365,33 @@ class AgenticOrchestrator:
             timeout_seconds=timeout_seconds,
         )
 
-    def _approve_action(self, payload: Dict[str, Any]) -> tuple[bool, str]:
-        risk = str(payload.get("risk_level", "low")).lower()
-        action_ok, action_reason = self._evaluate_gate(self.action_gate, payload, "action_gate")
+    def _approve_action(self, payload: Dict[str, Any], *, proposer: str) -> tuple[bool, str]:
+        enriched = {
+            **payload,
+            "autonomy_level": self._current_autonomy_level,
+            "proposer": proposer,
+        }
+        action_ok, action_reason = self._evaluate_gate(self.action_gate, enriched, "action_gate")
         if not action_ok:
+            self._audit_policy_decision(enriched, allowed=False, reason=action_reason)
             return False, action_reason
 
         deliberation_ok, deliberation_reason = self._evaluate_gate(
             self.deliberation_gate,
-            payload,
+            enriched,
             "deliberation_gate",
         )
         if not deliberation_ok:
+            self._audit_policy_decision(enriched, allowed=False, reason=deliberation_reason)
             return False, deliberation_reason
 
-        if self._current_autonomy_level == "autonomous":
-            return True, "autonomous mode"
-
-        if self._current_autonomy_level == "semi_autonomous":
-            if "high" in risk and not bool(payload.get("parameters", {}).get("human_approved", False)):
-                return False, "high-risk action requires human_approved flag in semi_autonomous mode"
-            return True, "semi-autonomous policy"
-
-        if not bool(payload.get("parameters", {}).get("human_approved", False)):
-            return False, "supervised mode requires human_approved flag"
-        return True, "supervised policy"
+        verdict = PolicyGate.evaluate(enriched)
+        self._audit_policy_decision(enriched, allowed=verdict.allowed, reason=verdict.reason)
+        return verdict.allowed, verdict.reason
 
     def _evaluate_gate(self, gate: Any, payload: Dict[str, Any], gate_name: str) -> tuple[bool, str]:
         if gate is None:
-            return True, f"{gate_name}:not_configured"
+            return False, f"{gate_name}:not_configured"
         for method_name in ("approve", "evaluate", "check", "assess"):
             method = getattr(gate, method_name, None)
             if not callable(method):
@@ -394,7 +403,7 @@ class AgenticOrchestrator:
             return self._normalize_verdict(verdict, gate_name)
         if callable(gate):
             return self._normalize_verdict(gate(payload), gate_name)
-        return True, f"{gate_name}:no_callable"
+        return False, f"{gate_name}:no_callable"
 
     @staticmethod
     def _normalize_verdict(verdict: Any, gate_name: str) -> tuple[bool, str]:
@@ -404,7 +413,38 @@ class AgenticOrchestrator:
             approved = bool(verdict.get("approved", verdict.get("allow", False)))
             reason = str(verdict.get("reason", gate_name))
             return approved, reason
-        return bool(verdict), f"{gate_name}:cast_bool"
+        return False, f"{gate_name}:unrecognised_verdict"
+
+    def _audit_policy_decision(self, payload: Dict[str, Any], *, allowed: bool, reason: str) -> None:
+        details = {
+            "tool_name": payload.get("tool_name"),
+            "task_id": payload.get("task_id"),
+            "subagent_id": payload.get("subagent_id"),
+            "autonomy_level": payload.get("autonomy_level"),
+            "allowed": allowed,
+            "reason": reason,
+        }
+        self._record_event(
+            "policy_decision",
+            details,
+        )
+        if self.audit_log is None:
+            return
+        severity = "info" if allowed else "warning"
+        entry = AuditEntry(
+            timestamp=datetime.now(timezone.utc),
+            session_id=self.session_id,
+            event_type="policy_decision",
+            source_layer="agent_orchestrator",
+            severity=severity,
+            details=details,
+            previous_hash="",
+        )
+        try:
+            self.audit_log.append(entry)
+        except (OSError, PermissionError, TypeError, ValueError):
+            # Tactical context: audit sink failure must not bypass denial logic.
+            return
 
     def _post_tool_checks(
         self,

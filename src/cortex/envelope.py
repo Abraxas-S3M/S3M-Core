@@ -1,18 +1,26 @@
-"""Signed admission envelopes for Cortex model manifests.
+"""
+Signed envelopes for Cortex: PQ artifact exchange and model admission authority.
 
 Tactical context:
-    Only manifests countersigned by the admission authority may load in production.
-    Lab nodes may operate with warnings when signatures are absent.
+    Cortex ↔ S3M pipelines use quantum-policy crypto envelopes; engine manifests
+    use HMAC admission signatures. Lab nodes may operate with warnings when
+    admission signatures are absent.
 """
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Mapping, Protocol
+from typing import Any, Dict, Mapping, Optional, Protocol
+
+from src.security.quantum.kem import QuantumKEM
+from src.security.quantum.policy import QuantumSecurityPolicy, load_quantum_security_policy
+from src.security.quantum.signatures import QuantumSigner
+from src.security.quantum.symmetric import QuantumSymmetricCipher
 
 
 def _utcnow() -> datetime:
@@ -91,3 +99,73 @@ class SignedAdmissionEnvelope:
         if self.signing_key_id != signer.key_id:
             return False
         return signer.verify_fields(self.fields, self.signature)
+
+
+@dataclass
+class CortexEnvelope:
+    """Cortex-bound payload with PQ-protected session key and signature."""
+
+    payload_b64: str
+    kem_ciphertext_hex: str
+    kem_algorithm: str
+    signature_hex: str
+    sig_algorithm: str
+    layer_tag: str = "cortex-bridge"
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "payload_b64": self.payload_b64,
+            "kem_ciphertext_hex": self.kem_ciphertext_hex,
+            "kem_algorithm": self.kem_algorithm,
+            "signature_hex": self.signature_hex,
+            "sig_algorithm": self.sig_algorithm,
+            "layer_tag": self.layer_tag,
+        }
+
+
+class CortexEnvelopeCodec:
+    """Seal and open Cortex messages under the shared quantum policy."""
+
+    def __init__(self, policy: Optional[QuantumSecurityPolicy] = None) -> None:
+        self.policy = policy or load_quantum_security_policy()
+        self.kem = QuantumKEM(policy=self.policy)
+        self.signer = QuantumSigner(policy=self.policy)
+        self.cipher = QuantumSymmetricCipher()
+
+    def seal(
+        self,
+        plaintext: bytes,
+        recipient_kem_public: bytes,
+        signer_secret: bytes,
+    ) -> CortexEnvelope:
+        encap = self.kem.encapsulate(recipient_kem_public)
+        session_key = self.cipher.derive_session_key(
+            encap.shared_secret, context=b"S3M-CORTEX-ENVELOPE-v1"
+        )
+        sealed = self.cipher.encrypt(plaintext, session_key, layer_tag="cortex-bridge")
+        sig_material = json.dumps(
+            {
+                "ct": encap.ciphertext.hex(),
+                "nonce": sealed.nonce.hex(),
+                "ciphertext": sealed.ciphertext.hex(),
+            },
+            sort_keys=True,
+        ).encode("utf-8")
+        signature = self.signer.sign(sig_material, signer_secret)
+        return CortexEnvelope(
+            payload_b64=base64.b64encode(sealed.ciphertext).decode("ascii"),
+            kem_ciphertext_hex=encap.ciphertext.hex(),
+            kem_algorithm=encap.algorithm,
+            signature_hex=signature.hex(),
+            sig_algorithm=self.signer.algorithm,
+        )
+
+    def policy_summary(self) -> Dict[str, Any]:
+        """Expose active crypto posture for Cortex health checks."""
+        return {
+            "crypto_mode": self.policy.crypto_mode.value,
+            "kem_algorithm": self.policy.kem_fips_name,
+            "sig_algorithm": self.policy.sig_fips_name,
+            "hybrid_mode": self.policy.hybrid_mode,
+            "cnsa_profile": self.policy.cnsa_profile,
+        }

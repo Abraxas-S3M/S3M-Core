@@ -25,12 +25,15 @@ class PermissionSet:
     def is_equal_or_more_restrictive_than(self, parent: "PermissionSet") -> bool:
         parent_tools = set(parent.allowed_tools or [])
         child_tools = set(self.allowed_tools or [])
-        if parent_tools and not child_tools.issubset(parent_tools):
+        if not child_tools.issubset(parent_tools):
             return False
 
         parent_paths = [path.rstrip("/") for path in parent.allowed_paths or []]
         child_paths = [path.rstrip("/") for path in self.allowed_paths or []]
-        if parent_paths:
+        if not parent_paths:
+            if child_paths:
+                return False
+        else:
             for child_path in child_paths:
                 if not any(
                     child_path == parent_path or child_path.startswith(f"{parent_path}/")
@@ -40,7 +43,7 @@ class PermissionSet:
 
         parent_hosts = set(parent.network_allowlist or [])
         child_hosts = set(self.network_allowlist or [])
-        if parent_hosts and not child_hosts.issubset(parent_hosts):
+        if not child_hosts.issubset(parent_hosts):
             return False
 
         return self.max_tokens <= parent.max_tokens and self.timeout_seconds <= parent.timeout_seconds

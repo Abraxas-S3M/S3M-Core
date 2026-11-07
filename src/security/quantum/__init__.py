@@ -15,6 +15,19 @@ from src.security.quantum.signatures import QuantumSigner, SigningKeyPair
 from src.security.quantum.symmetric import QuantumSymmetricCipher
 from src.security.quantum.key_manager import QuantumKeyManager
 from src.security.quantum.hybrid import HybridKeyExchange
+from src.security.quantum.policy import (
+    PostQuantumUnavailableError,
+    QuantumSecurityPolicy,
+    load_quantum_security_policy,
+    LAB_FALLBACK_ALGORITHM,
+)
+from src.security.quantum.key_storage import (
+    KeyStorageBackend,
+    FileKeyStorageBackend,
+    Pkcs11KeyStorageBackend,
+    create_key_storage,
+    KeyStorageError,
+)
 
 __all__ = [
     "QuantumKEM",
@@ -25,4 +38,13 @@ __all__ = [
     "QuantumSymmetricCipher",
     "QuantumKeyManager",
     "HybridKeyExchange",
+    "PostQuantumUnavailableError",
+    "QuantumSecurityPolicy",
+    "load_quantum_security_policy",
+    "LAB_FALLBACK_ALGORITHM",
+    "KeyStorageBackend",
+    "FileKeyStorageBackend",
+    "Pkcs11KeyStorageBackend",
+    "create_key_storage",
+    "KeyStorageError",
 ]
