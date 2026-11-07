@@ -22,14 +22,9 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from src.quad_engine.engines_config import load_registry_entries
 from src.quad_engine.models import (
-    ARABIC_ENGINE,
-    ENGINE_IDS,
-    PLANNING_ENGINE,
-    REASONING_ENGINE,
-    TACTICAL_ENGINE,
     EngineRecord,
-    EngineRole,
     EngineStatus,
     ModelRegistryEntry,
 )
@@ -50,46 +45,9 @@ def _local_llm_enabled() -> bool:
     }
 
 
-# Default registry seed. Status is advisory; the registry recomputes effective
-# status from model presence + the local-LLM enable flag at query time.
-_DEFAULT_ENTRIES: tuple[ModelRegistryEntry, ...] = (
-    ModelRegistryEntry(
-        engine_id=TACTICAL_ENGINE,
-        display_name="S3M Tactical Engine",
-        model_file="phi-3-mini-q4_k_m.gguf",
-        role=EngineRole.TACTICAL,
-        status=EngineStatus.PLACEHOLDER,
-        max_tokens=512,
-        description="Fast SITREP, track explanation, immediate operational summary.",
-    ),
-    ModelRegistryEntry(
-        engine_id=REASONING_ENGINE,
-        display_name="S3M Reasoning Engine",
-        model_file="mistral-7b-instruct-q4_k_m.gguf",
-        role=EngineRole.REASONING,
-        status=EngineStatus.PLACEHOLDER,
-        max_tokens=768,
-        description="Threat assessment, competing hypotheses, confidence reasoning, anomaly analysis.",
-    ),
-    ModelRegistryEntry(
-        engine_id=PLANNING_ENGINE,
-        display_name="S3M Planning Engine",
-        model_file="phi-3-mini-q4_k_m.gguf",
-        role=EngineRole.PLANNING,
-        status=EngineStatus.PLACEHOLDER,
-        max_tokens=768,
-        description="COA options, watch priorities, sensor cueing suggestions, commander task list.",
-    ),
-    ModelRegistryEntry(
-        engine_id=ARABIC_ENGINE,
-        display_name="S3M Arabic Engine",
-        model_file="allam-7b-instruct-q4_k_m.gguf",
-        role=EngineRole.ARABIC,
-        status=EngineStatus.PLACEHOLDER,
-        max_tokens=512,
-        description="Arabic commander summary, terminology support, Saudi/GCC regional phrasing.",
-    ),
-)
+def _default_entries() -> List[ModelRegistryEntry]:
+    """Registry seed loaded from configs/engines.yaml (single source of truth)."""
+    return load_registry_entries()
 
 
 class ModelRegistry:
@@ -106,7 +64,7 @@ class ModelRegistry:
         *,
         models_dir: Optional[str] = None,
     ) -> None:
-        seed = entries if entries is not None else list(_DEFAULT_ENTRIES)
+        seed = entries if entries is not None else _default_entries()
         self._entries: Dict[str, ModelRegistryEntry] = {e.engine_id: e for e in seed}
         self._models_dir = models_dir or _models_dir()
 
