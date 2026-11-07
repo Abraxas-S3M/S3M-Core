@@ -2,7 +2,7 @@
 Network invisibility enforcement — ensures S3M nodes have zero
 discoverable attack surface from external networks.
 
-Implements Xiid ZKN principle: "If they can't see you, they can't attack you."
+S3M perimeter doctrine: if the node is not discoverable, it cannot be targeted.
 """
 
 from __future__ import annotations
@@ -49,7 +49,9 @@ class InvisibilityEnforcer:
         public_ips = self._check_public_ips()
         if public_ips:
             findings.append(f"PUBLIC IPs DETECTED: {public_ips}")
-            remediation.append("Remove public IP bindings; use SealedTunnel for all external comms")
+            remediation.append(
+                "Remove public IP bindings; use internal secure channels for all external comms"
+            )
 
         open_ports = self._check_inbound_ports()
         if open_ports:
@@ -59,7 +61,9 @@ class InvisibilityEnforcer:
         dns_ok = self._check_dns_invisibility()
         if dns_ok:
             findings.append("DNS resolves to this node — discoverable")
-            remediation.append("Remove DNS A/AAAA records; use SealedTunnel mesh addressing")
+            remediation.append(
+                "Remove DNS A/AAAA records; use internal mesh addressing only"
+            )
 
         listeners = self._check_listening_services()
         external_listeners = [
