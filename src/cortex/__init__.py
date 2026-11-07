@@ -14,13 +14,22 @@ from src.cortex.model_admission import (
     is_production,
     load_engines_document,
 )
-from src.cortex.policy_gate import Approval, MissionEnvelope, PolicyGate, PolicyVerdict
+from src.cortex.policy_gate import (
+    Approval,
+    Approvals,
+    MissionEnvelope,
+    PolicyDecision,
+    PolicyGate,
+    PolicyVerdict,
+    ToolCall,
+)
 
 __all__ = [
     "ACEResult",
     "AdmissionDecision",
     "AdmissionSigner",
     "Approval",
+    "Approvals",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
     "CyberTaskType",
@@ -28,12 +37,14 @@ __all__ = [
     "HmacAdmissionSigner",
     "MissionEnvelope",
     "ModelAdmissionGate",
+    "PolicyDecision",
     "PolicyGate",
     "PolicyVerdict",
     "QuarantineExtractResult",
     "ReliabilityStore",
     "SameEngineFamilyError",
     "SignedAdmissionEnvelope",
+    "ToolCall",
     "cross_examine",
     "deploy_mode",
     "is_production",
