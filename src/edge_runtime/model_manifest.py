@@ -11,6 +11,21 @@ from typing import Dict, List, Optional
 
 import yaml
 
+_MANIFEST_ALIASES: Dict[str, str] = {
+    "phi3-mini": "phi3_mini",
+    "phi3-medium": "phi3_medium",
+    "mistral-7b": "mistral_7b",
+    "mixtral-8x7b": "mistral_7b",
+    "grok-8b": "grok_8b",
+    "grok1": "grok_8b",
+    "allam-7b": "allam_7b",
+}
+
+
+def _resolve_manifest_stem(model_id: str) -> str:
+    normalized = str(model_id).strip()
+    return _MANIFEST_ALIASES.get(normalized, normalized.replace("-", "_"))
+
 
 @dataclass(frozen=True)
 class ManifestVariant:
@@ -58,11 +73,12 @@ class ModelManifest:
             raise FileNotFoundError(f"Manifest directory not found: {manifest_root}")
 
         normalized = str(model_id).strip()
+        stem = _resolve_manifest_stem(normalized)
         candidate_names = [
+            f"{stem}.yaml",
+            f"{stem}.yml",
             f"{normalized}.yaml",
             f"{normalized}.yml",
-            f"{normalized.replace('-', '_')}.yaml",
-            f"{normalized.replace('-', '_')}.yml",
         ]
         for candidate in candidate_names:
             candidate_path = manifest_root / candidate
@@ -82,12 +98,26 @@ class ModelManifest:
         if not manifest_root.exists():
             return {}
         loaded: Dict[str, ModelManifest] = {}
+        seen_paths: set[str] = set()
         for path in sorted(manifest_root.glob("*.y*ml")):
+            if path.name.startswith("."):
+                continue
+            if "-" in path.stem:
+                underscore = manifest_root / f"{path.stem.replace('-', '_')}{path.suffix}"
+                if underscore.exists():
+                    continue
+            key = str(path.resolve())
+            if key in seen_paths:
+                continue
+            seen_paths.add(key)
             try:
                 manifest = cls._from_file(path)
             except Exception:
                 continue
             loaded[manifest.model_id] = manifest
+            alias_stem = _MANIFEST_ALIASES.get(manifest.model_id)
+            if alias_stem:
+                loaded.setdefault(alias_stem.replace("_", "-"), manifest)
         return loaded
 
     @classmethod
