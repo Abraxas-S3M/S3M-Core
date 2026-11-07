@@ -1,0 +1,61 @@
+# Staged Mistral Large 4 (Le Chonk) manifest — NOT APPROVED FOR INFERENCE
+model_id: mistral_large_4
+display_name: "Mistral Large 4 (Le Chonk)"
+provider: "Mistral AI"
+family: "Mistral Large"
+parameters: "1T-class MoE; confirm exact architecture from pinned model config"
+purpose: "S3M Quad Engine planning_engine candidate replacing legacy Mixtral"
+model_file: ""
+execution_enabled: false
+status: quarantine
+admission:
+  status: quarantine
+  format: safetensors
+  sha256_verified: false
+  pinned_sha256: ""
+  scanner_passed: false
+  evals_passed: false
+  signature: ""
+  # A signed multi-shard manifest must replace the legacy single-file digest.
+variants:
+  - tag: fp8_gpu
+    runtime_format: safetensors
+    device: gpu
+    status: quarantine
+    source_repo: mistralai/Mistral-Large-4-1T-A52B
+    source_revision: af2627869af601441d6cdf75a1272469ddc3d059
+    r2_prefix: mistral-le-chonk/01-quarantine-original/fp8/
+    expected_inventory_objects: 69
+    runtime: vllm_candidate_unverified
+    # The manifest must be promoted only after pinned runtime compatibility tests.
+  - tag: nvfp4_blackwell_gpu
+    runtime_format: safetensors
+    device: gpu
+    status: quarantine
+    source_repo: mistralai/Mistral-Large-4-1T-A52B-NVFP4
+    source_revision: bb6d00fe249b0e876f0cffc6b85014be02de3e68
+    r2_prefix: mistral-le-chonk/01-quarantine-original/nvfp4/
+    expected_inventory_objects: 44
+    runtime: blackwell_compatible_candidate_unverified
+  - tag: cpu_gguf
+    runtime_format: gguf
+    device: cpu
+    status: unavailable
+    source_repo: ""
+    model_file: ""
+    note: "No CPU-compatible 1T GGUF is acquired or verified."
+rollback:
+  planning_engine_binding: mistral
+feature_flag:
+  name: S3M_LECHONK_ENABLED
+  default: false
+security:
+  preserve_quarantine: true
+  allow_model_execution: false
+  allow_external_api_calls: false
+  allow_unsafe_remote_code: false
+  require_complete_shard_hash_audit: true
+  require_independent_license_review: true
+  require_security_scan: true
+  require_signed_admission: true
+  require_runtime_evaluation: true
