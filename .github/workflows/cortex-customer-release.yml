@@ -43,6 +43,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Install Python test dependencies
+        run: pip install pyyaml cryptography pytest
+
       - name: Generate test signing key
         run: |
           cosign generate-key-pair <<<"$COSIGN_PASSWORD"
@@ -52,14 +55,14 @@ jobs:
 
       - name: Build cortex-core image
         run: |
-          docker build \
+          docker buildx build --load \
             -f docker/cortex/Dockerfile.core \
             --ignorefile docker/cortex/customer.dockerignore \
             -t cortex-core:ci .
 
       - name: Build cortex-regional image
         run: |
-          docker build \
+          docker buildx build --load \
             -f docker/cortex/Dockerfile.regional \
             --ignorefile docker/cortex/customer.dockerignore \
             -t cortex-regional:ci .
@@ -81,11 +84,15 @@ jobs:
           python scripts/cortex/sbom.py --tier edge --image cortex-edge:ci --output dist/cortex/sbom/edge.cdx.json
           python scripts/cortex/cbom.py --version "$CORTEX_VERSION" --output dist/cortex/cbom/cortex-cbom.json
 
-      - name: Sign images (key-based)
+      - name: Sign image tarballs (key-based, offline)
         run: |
-          for ref in cortex-core:ci cortex-regional:ci cortex-edge:ci; do
-            digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$ref" 2>/dev/null || echo "$ref")
-            cosign sign --yes --tlog-upload=false --key cosign.key "$ref"
+          mkdir -p dist/cortex/signatures
+          for tier in core regional edge; do
+            tar="/tmp/cortex-${tier}.tar"
+            docker save "cortex-${tier}:ci" -o "$tar"
+            cosign sign-blob --yes --tlog-upload=false --key cosign.key \
+              --output-signature "dist/cortex/signatures/cortex-${tier}.tar.sig" \
+              "$tar"
           done
 
       - name: Build offline update bundle
@@ -106,9 +113,7 @@ jobs:
             --trust-dir configs/cortex/trust
 
       - name: Unit tests (tamper detection)
-        run: |
-          pip install -q pyyaml cryptography pytest
-          pytest tests/cortex/test_verify_bundle.py -v
+        run: pytest tests/cortex/test_verify_bundle.py -v
 
       - name: SLSA provenance attestation
         uses: actions/attest-build-provenance@v2
