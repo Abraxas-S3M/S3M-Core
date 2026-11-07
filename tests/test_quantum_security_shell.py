@@ -1,6 +1,24 @@
 """Integration tests for the S3M Quantum Security Shell."""
 
+import importlib
+
 import pytest
+
+
+def _policy_mod():
+    return importlib.import_module("src.security.quantum.policy")
+
+
+@pytest.fixture(autouse=True)
+def _lab_mode_without_liboqs(monkeypatch):
+    """Lab policy on CI without liboqs — avoids silent PQ claims (see test_pq_strict_mode)."""
+    mod = _policy_mod()
+    mod.reset_quantum_policy_cache()
+    if not mod.liboqs_available():
+        monkeypatch.setenv("S3M_CRYPTO_MODE", "lab")
+    yield
+    mod.reset_quantum_policy_cache()
+
 from src.security.quantum.kem import QuantumKEM
 from src.security.quantum.signatures import QuantumSigner
 from src.security.quantum.symmetric import QuantumSymmetricCipher
@@ -85,25 +103,48 @@ class TestSymmetricCipher:
 
 class TestHybridKeyExchange:
     def test_full_handshake(self):
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+
         hkx = HybridKeyExchange()
         init_sig = hkx.signer.generate_keypair("init")
         resp_kem = hkx.kem.generate_keypair("resp")
-        result = hkx.initiate(init_sig.secret_key, resp_kem.public_key)
+        resp_classical = X25519PrivateKey.generate()
+        result = hkx.initiate(
+            init_sig.secret_key,
+            resp_kem.public_key,
+            resp_classical.public_key().public_bytes_raw(),
+        )
         recovered = hkx.respond(
-            result.kem_ciphertext, resp_kem.secret_key,
-            resp_kem.public_key, init_sig.public_key, result.signature,
+            result.kem_ciphertext,
+            result.classical_public,
+            resp_kem.secret_key,
+            resp_kem.public_key,
+            resp_classical.private_bytes_raw(),
+            init_sig.public_key,
+            result.signature,
         )
         assert recovered == result.combined_secret
 
     def test_tampered_signature_rejected(self):
+        from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey
+
         hkx = HybridKeyExchange()
         init_sig = hkx.signer.generate_keypair("init")
         resp_kem = hkx.kem.generate_keypair("resp")
-        result = hkx.initiate(init_sig.secret_key, resp_kem.public_key)
+        resp_classical = X25519PrivateKey.generate()
+        result = hkx.initiate(
+            init_sig.secret_key,
+            resp_kem.public_key,
+            resp_classical.public_key().public_bytes_raw(),
+        )
         with pytest.raises(ValueError, match="invalid signature"):
             hkx.respond(
-                result.kem_ciphertext, resp_kem.secret_key,
-                resp_kem.public_key, init_sig.public_key,
+                result.kem_ciphertext,
+                result.classical_public,
+                resp_kem.secret_key,
+                resp_kem.public_key,
+                resp_classical.private_bytes_raw(),
+                init_sig.public_key,
                 b"\x00" * len(result.signature),
             )
 

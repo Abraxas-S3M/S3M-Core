@@ -6,7 +6,14 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from src.cortex.provenance import EventProvenance
-from src.cortex.taint import AssetInventory, Labeled, Trust, endorse, injection_signal, quarantine_extract
+from src.cortex.taint import (
+    AssetInventory,
+    Labeled,
+    Trust,
+    endorse,
+    injection_signal,
+    quarantine_extract_typed,
+)
 from src.threat_detection.models import ThreatCategory, ThreatEvent, ThreatLevel, ThreatSource
 
 SOCAlertCallback = Optional[Callable[[ThreatEvent], None]]
@@ -30,7 +37,7 @@ def _field_trust(event: ThreatEvent, field: str, default: Trust = Trust.UNTRUSTE
 def _labeled_from_raw(event: ThreatEvent, field: str, kind: str, raw_key: str) -> Labeled[Any]:
     trust = _field_trust(event, field)
     raw_value = event.raw_data.get(raw_key)
-    return quarantine_extract(raw_value, kind, source=field, trust=trust)
+    return quarantine_extract_typed(raw_value, kind, source=field, trust=trust)
 
 
 def _set_endorsed_field(event: ThreatEvent, field: str, labeled: Labeled[Any]) -> None:

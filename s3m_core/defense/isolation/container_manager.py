@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 import re
 import shutil
@@ -12,8 +14,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from .exceptions import IsolationUnavailableError
+from .firecracker_runtime import FirecrackerRuntime
 from .sandbox_config import SandboxConfig
 from .seccomp_profile import SeccompProfile
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -27,6 +33,7 @@ class ContainerSession:
     config: SandboxConfig
     status: str
     image: str
+    simulated: bool = False
     metadata: Dict[str, str] = field(default_factory=dict)
 
 
@@ -62,6 +69,7 @@ class ContainerManager:
         self._sessions: Dict[str, ContainerSession] = {}
         self._session_storage_root = Path("/tmp/s3m-isolation-sessions")
         self._session_storage_root.mkdir(parents=True, exist_ok=True)
+        self._firecracker = FirecrackerRuntime()
 
     def create_session(
         self,
@@ -85,19 +93,52 @@ class ContainerManager:
         if warnings:
             metadata["config_warnings"] = " | ".join(warnings)
 
-        self._pull_base_image(image=image, runtime=config.runtime)
+        network_mode = config.resolved_network_mode()
+        metadata["network_mode"] = network_mode
+
         seccomp_dict = self.seccomp_profile.generate_profile(mode="strict")
         metadata["seccomp_default_action"] = str(seccomp_dict.get("defaultAction", ""))
 
-        vault_mount = self._mount_credential_vault_agent(session_id=session_id)
-        network_policy = self._configure_network_policies(session_id=session_id, config=config)
-        container_id, pid = self._start_runtime_cell(
-            session_id=session_id,
-            image=image,
-            config=config,
-            vault_mount=vault_mount,
-            network_policy=network_policy,
-        )
+        simulated = False
+        if config.runtime == "firecracker":
+            scratch_mount, seccomp_path = self._prepare_session_artifacts(session_id=session_id)
+            metadata["seccomp_profile_path"] = seccomp_path
+            container_id, pid = self._firecracker.start_session_cell(
+                session_id=session_id,
+                image=image,
+                config=config,
+                scratch_mount=scratch_mount,
+                network_mode=network_mode,
+                extra_args=config.to_docker_args(
+                    seccomp_profile_path=seccomp_path,
+                    scratch_mount_src=scratch_mount,
+                ),
+            )
+        elif self._docker_runtime_available():
+            self._pull_base_image(image=image)
+            scratch_mount, seccomp_path = self._prepare_session_artifacts(session_id=session_id)
+            metadata["seccomp_profile_path"] = seccomp_path
+            container_id, pid = self._start_docker_cell(
+                session_id=session_id,
+                image=image,
+                config=config,
+                scratch_mount=scratch_mount,
+                seccomp_path=seccomp_path,
+            )
+        elif config.mode == "production":
+            raise IsolationUnavailableError(
+                "Production sandbox mode requires Docker (gVisor runsc or plain docker) "
+                "but no runtime binary was found on PATH."
+            )
+        else:
+            logger.warning(
+                "Lab mode: Docker unavailable; simulating isolation for session '%s'.",
+                session_id,
+            )
+            container_id = f"sim-{session_id}-{uuid.uuid4().hex[:12]}"
+            pid = os.getpid()
+            simulated = True
+            metadata["simulated"] = "true"
 
         session = ContainerSession(
             session_id=session_id,
@@ -107,6 +148,7 @@ class ContainerManager:
             config=config,
             status="running",
             image=image,
+            simulated=simulated,
             metadata=metadata,
         )
         self._sessions[session_id] = session
@@ -118,9 +160,9 @@ class ContainerManager:
         if session is None:
             return
 
-        self._kill_runtime_cell(container_id=session.container_id, runtime=session.config.runtime)
+        if not session.simulated:
+            self._kill_runtime_cell(container_id=session.container_id)
         self._wipe_ephemeral_storage(session_id=session_id)
-        self._remove_network_policies(session_id=session_id)
         session.status = "destroyed"
         self._sessions.pop(session_id, None)
 
@@ -153,9 +195,19 @@ class ContainerManager:
                     session.config.max_file_size_mb > 0,
                 ]
             ),
+            "not_simulated_in_production": not (
+                session.config.mode == "production" and session.simulated
+            ),
         }
+        network_mode = session.metadata.get(
+            "network_mode",
+            session.config.resolved_network_mode(),
+        )
         details = {
             "runtime": session.config.runtime,
+            "network_mode": network_mode,
+            "simulated": str(session.simulated).lower(),
+            "sandbox_mode": session.config.mode,
             "container_id": session.container_id,
             "status": session.status,
             "warnings": session.metadata.get("config_warnings", ""),
@@ -169,64 +221,59 @@ class ContainerManager:
             checked_at=datetime.now(timezone.utc),
         )
 
-    def _pull_base_image(self, image: str, runtime: str) -> None:
-        if runtime != "docker":
-            return
+    @staticmethod
+    def _docker_runtime_available() -> bool:
+        return shutil.which("docker") is not None
+
+    def _pull_base_image(self, image: str) -> None:
         if shutil.which("docker") is None:
             return
         self._run_command(["docker", "pull", image])
 
-    def _mount_credential_vault_agent(self, session_id: str) -> str:
-        # Tactical note: each session gets a private vault mountpoint so
-        # compromised agents cannot pivot laterally into adjacent credentials.
+    def _prepare_session_artifacts(self, *, session_id: str) -> tuple[str, str]:
         session_dir = self._session_storage_root / session_id
+        scratch_path = session_dir / "scratch"
+        scratch_path.mkdir(parents=True, exist_ok=True)
         vault_path = session_dir / "vault"
         vault_path.mkdir(parents=True, exist_ok=True)
-        return str(vault_path)
 
-    def _configure_network_policies(self, session_id: str, config: SandboxConfig) -> str:
-        if config.use_net_namespace:
-            return f"s3m-net-{session_id}"
-        return "host"
+        seccomp_path = session_dir / "seccomp.json"
+        profile = self.seccomp_profile.generate_profile(mode="strict")
+        seccomp_path.write_text(json.dumps(profile), encoding="utf-8")
 
-    def _remove_network_policies(self, session_id: str) -> None:
-        _ = session_id
+        return str(scratch_path), str(seccomp_path)
 
-    def _start_runtime_cell(
+    def _start_docker_cell(
         self,
+        *,
         session_id: str,
         image: str,
         config: SandboxConfig,
-        vault_mount: str,
-        network_policy: str,
+        scratch_mount: str,
+        seccomp_path: str,
     ) -> tuple[str, int]:
-        if config.runtime == "docker" and shutil.which("docker") is not None:
-            docker_args = config.to_docker_args()
-            command = [
-                "docker",
-                "run",
-                "-d",
-                "--name",
-                f"s3m-{session_id}",
-                "--network",
-                network_policy,
-                "--mount",
-                f"type=bind,src={vault_mount},dst=/vault,readonly",
-                *docker_args,
-                image,
-                "sleep",
-                "infinity",
-            ]
-            result = self._run_command(command)
-            container_id = result.stdout.strip()
-            pid = self._lookup_container_pid(container_id=container_id)
-            return container_id, pid
+        docker_args = config.to_docker_args(
+            seccomp_profile_path=seccomp_path,
+            scratch_mount_src=scratch_mount,
+        )
+        command = [
+            "docker",
+            "run",
+            "-d",
+            "--name",
+            f"s3m-{session_id}",
+            *docker_args,
+            image,
+            "sleep",
+            "infinity",
+        ]
+        result = self._run_command(command)
+        container_id = result.stdout.strip()
+        pid = self._lookup_container_pid(container_id=container_id)
+        return container_id, pid
 
-        simulated_container = f"sim-{session_id}-{uuid.uuid4().hex[:12]}"
-        return simulated_container, os.getpid()
-
-    def _kill_runtime_cell(self, container_id: str, runtime: str) -> None:
-        if runtime == "docker" and container_id and not container_id.startswith("sim-"):
+    def _kill_runtime_cell(self, container_id: str) -> None:
+        if container_id and not container_id.startswith("sim-"):
             if shutil.which("docker") is None:
                 return
             self._run_command(["docker", "rm", "-f", container_id], check=False)

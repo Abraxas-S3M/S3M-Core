@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, MutableMapping, Optional
 
 from src.cortex.provenance import EventProvenance
-from src.cortex.taint import Trust, injection_signal, quarantine_extract
+from src.cortex.taint import Trust, injection_signal, quarantine_extract_typed
 
 TEXT_FIELD_SUFFIX = "_trust"
 LABELED_SUFFIX = "_labeled"
@@ -83,7 +83,7 @@ def label_platform_record(
     for key, kind in _PLATFORM_TYPED_KEYS.items():
         if key not in record:
             continue
-        labeled = quarantine_extract(record.get(key), kind, source=key, trust=Trust.UNTRUSTED)
+        labeled = quarantine_extract_typed(record.get(key), kind, source=key, trust=Trust.UNTRUSTED)
         provenance.field_trust[key] = labeled.trust
         record[f"{key}{LABELED_SUFFIX}"] = {
             "value": labeled.value,
