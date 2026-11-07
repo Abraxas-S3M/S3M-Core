@@ -10,6 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/opt/s3m \
     DEPLOYMENT_MODE=cloud_cpu_demo \
+    S3M_BUILD_PROFILE=customer \
     S3M_DEVICE=cpu \
     OMP_NUM_THREADS=8 \
     MKL_NUM_THREADS=8 \
@@ -42,6 +43,12 @@ COPY docs/ docs/
 COPY architecture/ architecture/
 COPY services/ services/
 COPY packages/ packages/
+
+# Customer images omit adversary-emulation tooling.
+ARG S3M_BUILD_PROFILE=customer
+RUN if [ "$S3M_BUILD_PROFILE" = "customer" ]; then \
+      rm -rf services/cyber/offensive; \
+    fi
 
 # Create persistent data directories
 RUN mkdir -p /opt/s3m/data/checkpoints \

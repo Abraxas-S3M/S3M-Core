@@ -1,3 +1,13 @@
+import pytest
+
+from src.build_profile import BuildProfile, get_build_profile
+
+if get_build_profile() == BuildProfile.CUSTOMER:
+    pytest.skip(
+        "Caldera bridge requires range or dev build profile",
+        allow_module_level=True,
+    )
+
 from services.cyber.offensive.caldera_bridge import CalderaBridge
 
 
@@ -34,4 +44,3 @@ def test_list_adversary_profiles_fallback_when_caldera_unavailable(monkeypatch):
     assert isinstance(profiles, list)
     assert profiles
     assert "adversary_id" in profiles[0]
-

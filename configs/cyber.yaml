@@ -35,7 +35,7 @@ soar:
     url: "http://localhost:3001"
     api_key: "CHANGEME"
   playbooks_dir: "configs/cyber/playbooks/"
-  auto_execute: true
+  auto_execute: false
   llm_analysis_domain: "reasoning"  # Grok for analysis
   llm_report_domain: "planning"     # Mistral for reports
 
