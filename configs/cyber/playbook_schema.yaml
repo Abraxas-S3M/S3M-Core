@@ -1,0 +1,47 @@
+# SOAR playbook step schema — tactical SOC response on edge nodes
+# UNCLASSIFIED - FOUO
+#
+# step_kind (optional per step): read | plan | mutate
+# When omitted, step_kind is derived from action via action_classifications.
+
+playbook:
+  id: "PB-EXAMPLE"
+  name: "Example"
+  description: "Schema reference only"
+  version: "1.0"
+  steps:
+    - step_id: 1
+      name: "Example enrich"
+      action: "ENRICH_OBSERVABLE"
+      step_kind: "read"
+      parameters: {}
+      on_failure: "continue"
+
+# Default classification by PlaybookAction (unknown actions => mutate).
+action_classifications:
+  read:
+    - ENRICH_OBSERVABLE
+    - SCAN_ENDPOINT
+    - COLLECT_FORENSICS
+    - LOOKUP_IOC
+    - COLLECT_EVIDENCE
+  plan:
+    - QUERY_LLM
+    - GENERATE_REPORT
+    - NOTIFY_ANALYST
+    - NOTIFY_COMMANDER
+  mutate:
+    - BLOCK_IP
+    - ISOLATE_HOST
+    - DISABLE_ACCOUNT
+    - REVOKE_CREDENTIAL
+    - QUARANTINE_HOST
+    - PUSH_CONFIG
+    - ESCALATE_CASE
+
+# Evidence preservation: destructive steps are forbidden in playbooks.
+forbidden_actions:
+  - DELETE_EVIDENCE
+  - DELETE_FILE
+  - PURGE_LOGS
+  - DESTROY_ARTIFACT

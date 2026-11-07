@@ -12,6 +12,7 @@ from .base_backend import InferenceBackend
 from .llama_cpp_backend import LlamaCppBackend
 from .onnx_backend import OnnxBackend
 from .openvino_backend import OpenVinoBackend
+from .vllm_backend import VllmBackend
 
 logger = logging.getLogger("s3m.backends.factory")
 
@@ -22,7 +23,7 @@ class BackendFactory:
     @staticmethod
     def create(runtime_format: str, model_path: str, config: dict[str, Any]) -> InferenceBackend:
         """
-        runtime_format: one of "gguf", "onnx", "openvino"
+        runtime_format: one of "gguf", "onnx", "openvino", "vllm"
         Returns the appropriate backend instance.
         Raises ValueError for unknown format.
         """
@@ -34,6 +35,8 @@ class BackendFactory:
             return OnnxBackend(model_path=model_path, config=config)
         if normalized == "openvino":
             return OpenVinoBackend(model_path=model_path, config=config)
+        if normalized == "vllm":
+            return VllmBackend(model_path=model_path, config=config)
 
         logger.error("Unknown runtime format requested: %s", runtime_format)
         raise ValueError(f"Unknown runtime format: {runtime_format}")

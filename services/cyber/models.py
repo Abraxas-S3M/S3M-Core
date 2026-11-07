@@ -320,6 +320,25 @@ class PlaybookStatus(str, Enum):
         raise ValueError(f"Invalid PlaybookStatus value: {value}")
 
 
+class PlaybookStepKind(str, Enum):
+    """Authority class for SOAR playbook steps (read, plan, mutate)."""
+
+    READ = "read"
+    PLAN = "plan"
+    MUTATE = "mutate"
+
+    @classmethod
+    def from_value(cls, value: str | "PlaybookStepKind") -> "PlaybookStepKind":
+        if isinstance(value, PlaybookStepKind):
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            for member in cls:
+                if member.value == normalized:
+                    return member
+        raise ValueError(f"Invalid PlaybookStepKind value: {value}")
+
+
 class PlaybookAction(str, Enum):
     """Authorized response actions in air-gapped tactical SOC workflows."""
 
@@ -358,11 +377,14 @@ class PlaybookStep:
     condition: Optional[str] = None
     timeout_seconds: float = 30.0
     on_failure: str = "continue"
+    step_kind: Optional[PlaybookStepKind] = None
     result: Optional[dict] = None
     status: PlaybookStatus = PlaybookStatus.READY
 
     def __post_init__(self) -> None:
         self.action = PlaybookAction.from_value(self.action)
+        if self.step_kind is not None:
+            self.step_kind = PlaybookStepKind.from_value(self.step_kind)
         self.status = PlaybookStatus.from_value(self.status)
         self.timeout_seconds = float(self.timeout_seconds)
         if self.timeout_seconds <= 0:
@@ -380,6 +402,7 @@ class PlaybookStep:
             "condition": self.condition,
             "timeout_seconds": self.timeout_seconds,
             "on_failure": self.on_failure,
+            "step_kind": self.step_kind.value if self.step_kind else None,
             "result": self.result,
             "status": self.status.value,
         }

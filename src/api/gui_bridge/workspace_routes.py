@@ -24,6 +24,7 @@ from src.api.gui_bridge.adapters.simulation_adapter import SimulationAdapter
 from src.api.gui_bridge.adapters.planning_adapter import PlanningAdapter
 from src.api.gui_bridge.models.gui_schemas import GUIAgentProgramRequest
 from src.command.action_board import ActionBoard
+from src.build_profile import offensive_tooling_enabled
 
 workspace_router = APIRouter(prefix="/workspaces", tags=["GUI Workspaces"])
 
@@ -314,49 +315,49 @@ async def get_trust_fabric():
     return _cyber.get_trust_fabric()
 
 
-@workspace_router.get("/cyber/attack-capabilities")
-async def get_attack_capabilities():
-    return _cyber.get_attack_capabilities()
+if offensive_tooling_enabled():
 
+    @workspace_router.get("/cyber/attack-capabilities")
+    async def get_attack_capabilities():
+        return _cyber.get_attack_capabilities()
 
-@workspace_router.post("/cyber/attack/plan")
-async def plan_cyber_attack(body: CyberAttackRequest):
-    try:
-        from services.cyber.offensive.caldera_bridge import CalderaBridge
+    @workspace_router.post("/cyber/attack/plan")
+    async def plan_cyber_attack(body: CyberAttackRequest):
+        try:
+            from services.cyber.offensive.caldera_bridge import CalderaBridge
 
-        bridge = CalderaBridge()
-        adversary_id = (body.adversaryId or body.playbookId or "").strip()
-        targets = body.targets if body.targets else ["sim-target-001"]
-        operation_id = bridge.create_operation(
-            adversary_id=adversary_id,
-            targets=targets,
-            approval_token=body.approvalToken or "",
-        )
-        return {
-            "status": "planned",
-            "operationId": operation_id,
-            "plan": {
-                "adversaryId": adversary_id,
-                "targets": targets,
-                "objective": body.objective,
-                "parameters": body.parameters,
-            },
-            "updatedAt": _now_iso(),
-        }
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+            bridge = CalderaBridge()
+            adversary_id = (body.adversaryId or body.playbookId or "").strip()
+            targets = body.targets if body.targets else ["sim-target-001"]
+            operation_id = bridge.create_operation(
+                adversary_id=adversary_id,
+                targets=targets,
+                approval_token=body.approvalToken or "",
+            )
+            return {
+                "status": "planned",
+                "operationId": operation_id,
+                "plan": {
+                    "adversaryId": adversary_id,
+                    "targets": targets,
+                    "objective": body.objective,
+                    "parameters": body.parameters,
+                },
+                "updatedAt": _now_iso(),
+            }
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    @workspace_router.get("/cyber/attack/{operation_id}/status")
+    async def get_cyber_attack_status(operation_id: str):
+        try:
+            from services.cyber.offensive.caldera_bridge import CalderaBridge
 
-@workspace_router.get("/cyber/attack/{operation_id}/status")
-async def get_cyber_attack_status(operation_id: str):
-    try:
-        from services.cyber.offensive.caldera_bridge import CalderaBridge
-
-        bridge = CalderaBridge()
-        status = bridge.get_operation_status(operation_id)
-        return {"operationId": operation_id, "status": status, "updatedAt": _now_iso()}
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+            bridge = CalderaBridge()
+            status = bridge.get_operation_status(operation_id)
+            return {"operationId": operation_id, "status": status, "updatedAt": _now_iso()}
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @workspace_router.post("/cyber/attack/execute")
