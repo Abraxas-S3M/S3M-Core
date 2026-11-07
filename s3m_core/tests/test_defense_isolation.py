@@ -87,8 +87,9 @@ def test_seccomp_install_requires_current_process(monkeypatch: pytest.MonkeyPatc
     assert (22, 1) in calls
 
 
-def test_container_manager_session_lifecycle_and_health() -> None:
+def test_container_manager_session_lifecycle_and_health(monkeypatch: pytest.MonkeyPatch) -> None:
     """Manager should create, report, and destroy simulated isolation sessions."""
+    monkeypatch.setattr(ContainerManager, "_docker_runtime_available", staticmethod(lambda: False))
     config = SandboxConfig(runtime="gvisor", mode="lab")
     manager = ContainerManager(default_config=config, seccomp_profile=SeccompProfile())
 
