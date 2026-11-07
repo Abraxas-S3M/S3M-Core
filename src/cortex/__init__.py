@@ -1,21 +1,32 @@
 """Cortex layer — policy gate, mission envelopes, engine council, and taint controls."""
 
 from .envelope import CortexEnvelope, CortexEnvelopeCodec
-from .policy_gate import Approval, MissionEnvelope, PolicyGate, PolicyVerdict
+from .policy_gate import (
+    Approval,
+    Approvals,
+    MissionEnvelope,
+    PolicyDecision,
+    PolicyGate,
+    PolicyVerdict,
+    ToolCall,
+)
 
 __all__ = [
     "ACEResult",
     "Approval",
+    "Approvals",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
     "CyberTaskType",
     "EngineCouncil",
     "MissionEnvelope",
+    "PolicyDecision",
     "PolicyGate",
     "PolicyVerdict",
     "QuarantineExtractResult",
     "ReliabilityStore",
     "SameEngineFamilyError",
+    "ToolCall",
     "cross_examine",
     "load_cortex_config",
     "quarantine_extract",
