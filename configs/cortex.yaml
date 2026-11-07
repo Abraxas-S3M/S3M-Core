@@ -1,0 +1,12 @@
+# S3M Cortex / engine council configuration
+# UNCLASSIFIED - FOUO
+#
+# Tactical context: caps strategist context so multi-hop council prompts cannot
+# exhaust the core-tier vLLM KV cache on the 1T MoE rack.
+
+engine_council:
+  context_budget_tokens:
+    default: 32768
+    strategist: 120000
+    planner: 65536
+    reviewer: 16384
