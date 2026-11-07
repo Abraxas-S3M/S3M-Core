@@ -1,7 +1,26 @@
-"""Cortex layer — policy gate, mission envelopes, engine council, and taint controls."""
+"""Cortex layer — policy gate, mission envelopes, engine council, and admission."""
 
-from .envelope import CortexEnvelope, CortexEnvelopeCodec
-from .policy_gate import (
+from src.cortex.change_control_gate import (
+    ChangeClass,
+    ChangeControlGate,
+    ChangeEnvelope,
+    SignedDeviceApproval,
+)
+from src.cortex.envelope import (
+    AdmissionSigner,
+    CortexEnvelope,
+    CortexEnvelopeCodec,
+    HmacAdmissionSigner,
+    SignedAdmissionEnvelope,
+)
+from src.cortex.model_admission import (
+    AdmissionDecision,
+    ModelAdmissionGate,
+    deploy_mode,
+    is_production,
+    load_engines_document,
+)
+from src.cortex.policy_gate import (
     Approval,
     Approvals,
     MissionEnvelope,
@@ -14,17 +33,24 @@ from .policy_gate import (
 
 __all__ = [
     "ACEResult",
+    "AdmissionDecision",
+    "AdmissionSigner",
     "Approval",
     "Approvals",
     "BrokerBypassError",
     "BrokerDenied",
+    "ChangeClass",
+    "ChangeControlGate",
+    "ChangeEnvelope",
     "CortexBroker",
     "CortexConfig",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
     "CyberTaskType",
     "EngineCouncil",
+    "HmacAdmissionSigner",
     "MissionEnvelope",
+    "ModelAdmissionGate",
     "PolicyDecision",
     "PolicyGate",
     "PolicyGateConfig",
@@ -33,15 +59,20 @@ __all__ = [
     "QuarantineExtractResult",
     "ReliabilityStore",
     "SameEngineFamilyError",
+    "SignedAdmissionEnvelope",
+    "SignedDeviceApproval",
     "TaintSource",
     "TaintedPayload",
     "ToolCall",
     "assert_production_dependencies",
     "assert_tool_permitted",
     "cross_examine",
+    "deploy_mode",
     "forbidden_tool_reason",
+    "is_production",
     "load_cortex_brain_config",
     "load_cortex_config",
+    "load_engines_document",
     "quarantine_extract",
     "spotlight_datamark",
     "wrap_untrusted",
