@@ -24,3 +24,10 @@ scripts/vendor/repos_skipped.txt
 range/reports/*.json
 range/reports/*.md
 range/reports/.staging/
+
+# TLC model-checker scratch output
+formal/cortex/states/
+formal/cortex/*_TTrace_*
+
+# Local security audit JSONL from dev/test runs
+data/security_audit/
