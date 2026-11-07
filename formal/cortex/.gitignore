@@ -1,0 +1,4 @@
+.mutation_workspace/
+CyberAuthority_TTrace_*.tla
+CyberAuthority_TTrace_*.bin
+states/
