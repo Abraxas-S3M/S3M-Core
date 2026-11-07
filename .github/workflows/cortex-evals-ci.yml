@@ -1,0 +1,21 @@
+name: Cortex deterministic eval gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  cortex-deterministic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install minimal eval dependencies
+        run: pip install -r requirements-cyber.txt fastapi uvicorn pytest
+      - name: Run Cortex deterministic suites (mocked engines)
+        run: PYTHONPATH=. python scripts/evaluation/run_cortex_evals.py --mode deterministic --model-version cortex-ci
+      - name: Unit tests for cortex eval harness
+        run: PYTHONPATH=. pytest tests/test_cortex_eval_suites.py -q
