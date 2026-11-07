@@ -1,0 +1,14 @@
+{
+  "model_id": "mistral_large_4",
+  "variant_tag": "nvfp4_blackwell_gpu",
+  "source_revision": "bb6d00fe249b0e876f0cffc6b85014be02de3e68",
+  "manifest_sha256": "096db4b0e325888cc4545c93b4b2c3224c55047d8804caa1da6412c42257063f",
+  "signature": "",
+  "shards": [
+    {
+      "relative_path": "config.json",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

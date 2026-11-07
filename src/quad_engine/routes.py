@@ -25,7 +25,10 @@ from pydantic import BaseModel, Field
 from src.quad_engine.audit_log import get_audit_log
 from src.quad_engine.local_llm import get_local_llm
 from src.quad_engine.model_registry import get_registry, local_llm_enabled
+from src.integrations.lechonk.flags import lechonk_enabled
+from src.integrations.lechonk.status import compute_planning_readiness
 from src.quad_engine.models import (
+    BackendReadiness,
     OperationalPacket,
     OrchestratorStatus,
     QuadEngineResult,
@@ -48,6 +51,16 @@ async def quad_engine_status() -> OrchestratorStatus:
     """Report orchestration-layer status and safety posture."""
     registry = get_registry()
     runner = get_local_llm()
+    planning = compute_planning_readiness()
+    planning_view = BackendReadiness(
+        phase=planning.phase.value,
+        backing_engine_id=planning.backing_engine_id,
+        precision=planning.precision,
+        runtime=planning.runtime,
+        device=planning.device,
+        fallback_reason=planning.fallback_reason,
+        profile=planning.profile,
+    )
     return OrchestratorStatus(
         status="operational",
         mode="demo",
@@ -55,6 +68,8 @@ async def quad_engine_status() -> OrchestratorStatus:
         local_llm_available=runner.runner_available(),
         models_dir=registry.models_dir,
         engines=registry.engine_status_map(),
+        planning_backend=planning_view,
+        lechonk_feature_flag=lechonk_enabled(),
         autonomous_action_enabled=False,
         human_review_required=True,
         external_apis_called=False,

@@ -18,6 +18,12 @@ from typing import Any, Dict, List, Mapping, Optional, Set
 import yaml
 
 from src.cortex.envelope import AdmissionSigner, HmacAdmissionSigner
+from src.integrations.lechonk.shard_inventory import (
+    ShardInventoryManifest,
+    ShardVerificationResult,
+    merge_variant_inventories,
+    verify_shard_inventory,
+)
 from src.security.model_scanner import ModelScanner
 
 logger = logging.getLogger("s3m.cortex.admission")
@@ -238,6 +244,9 @@ class ModelAdmissionGate:
         if admission_status in {"quarantine", "not_selected"}:
             reasons.append(f"admission_status:{admission_status}")
 
+        if bool(admission.get("require_shard_inventory", False)):
+            reasons.append("shard_inventory_not_verified_at_evaluate")
+
         allowed = len(reasons) == 0
         if not allowed:
             logger.warning(
@@ -253,6 +262,70 @@ class ModelAdmissionGate:
                 warnings,
             )
         return AdmissionDecision(engine_id=engine_id, allowed=allowed, reasons=reasons, warnings=warnings)
+
+    def evaluate_shard_inventory(
+        self,
+        engine_id: str,
+        artifact_root: str,
+        *,
+        variant_tag: Optional[str] = None,
+    ) -> ShardVerificationResult:
+        """
+        Verify on-disk shards against the staged manifest inventory (fail-closed).
+
+        Does not download quarantine objects; callers supply a local artifact_root.
+        """
+        manifest_path = self._resolve_manifest_path(self.resolve_manifest_id(engine_id))
+        if manifest_path is None:
+            return ShardVerificationResult(
+                variant_tag=variant_tag or "",
+                admitted=False,
+                reasons=["manifest_missing"],
+            )
+        doc = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        inventories = merge_variant_inventories(doc if isinstance(doc, dict) else {})
+        if variant_tag:
+            inv = inventories.get(variant_tag)
+        elif inventories:
+            inv = next(iter(inventories.values()))
+        else:
+            return ShardVerificationResult(
+                variant_tag=variant_tag or "",
+                admitted=False,
+                reasons=["inventory_not_configured"],
+            )
+        if inv is None:
+            return ShardVerificationResult(
+                variant_tag=variant_tag or "",
+                admitted=False,
+                reasons=["unknown_variant"],
+            )
+        return verify_shard_inventory(inv, Path(artifact_root))
+
+    def admitted_with_shards(
+        self,
+        engine_id: str,
+        artifact_root: str,
+        *,
+        variant_tag: Optional[str] = None,
+        production: Optional[bool] = None,
+    ) -> tuple[AdmissionDecision, ShardVerificationResult]:
+        """Combine manifest admission checks with multi-shard verification."""
+        decision = self.evaluate(engine_id, production=production)
+        shard = self.evaluate_shard_inventory(engine_id, artifact_root, variant_tag=variant_tag)
+        reasons = list(decision.reasons)
+        if shard.admitted:
+            reasons = [r for r in reasons if r != "shard_inventory_not_verified_at_evaluate"]
+        else:
+            reasons.extend(f"shards:{r}" for r in shard.reasons)
+        allowed = len(reasons) == 0
+        decision = AdmissionDecision(
+            engine_id=decision.engine_id,
+            allowed=allowed,
+            reasons=reasons,
+            warnings=decision.warnings,
+        )
+        return decision, shard
 
     def routable_engines(self) -> Set[str]:
         doc = load_engines_document(self._engines_path)

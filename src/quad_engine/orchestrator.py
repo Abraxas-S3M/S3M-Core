@@ -49,6 +49,7 @@ from src.quad_engine.models import (
     QuadEngineResult,
     RouteInfo,
 )
+from src.integrations.lechonk.orchestrator_routing import resolve_planning_backing_engine
 from src.quad_engine.packet_router import PacketRouter, get_packet_router
 
 # Which engine owns which output key.
@@ -364,6 +365,8 @@ class QuadEngineOrchestrator:
             classification=packet.classification,
         )
 
+        planning_route = resolve_planning_backing_engine()
+
         self._store_result(result)
         self._audit.record(
             "quad_engine_packet",
@@ -375,6 +378,7 @@ class QuadEngineOrchestrator:
                 "primary_engine": route.primary_engine,
                 "requested_outputs": list(requested),
                 "engine_status": {k: v.value for k, v in engine_status.items()},
+                "planning_backing": planning_route.audit_record(),
                 "human_review_required": True,
                 "autonomous_action": False,
                 "external_api_called": False,

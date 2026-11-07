@@ -110,6 +110,18 @@ class ModelRegistryEntry(BaseModel):
     description: str = ""
 
 
+class BackendReadiness(BaseModel):
+    """Optional extended readiness for planning backends (Le Chonk staging)."""
+
+    phase: str = ""
+    backing_engine_id: str = ""
+    precision: str = ""
+    runtime: str = ""
+    device: str = ""
+    fallback_reason: str = ""
+    profile: str = ""
+
+
 class EngineRecord(BaseModel):
     """Public, GUI-safe view of an engine's current status."""
 
@@ -120,6 +132,7 @@ class EngineRecord(BaseModel):
     model_present: bool = False
     max_tokens: int = 512
     description: str = ""
+    backend_readiness: Optional[BackendReadiness] = None
 
 
 class OperationalPacket(BaseModel):
@@ -195,6 +208,8 @@ class OrchestratorStatus(BaseModel):
     local_llm_available: bool = False
     models_dir: str = ""
     engines: Dict[str, EngineStatus] = Field(default_factory=dict)
+    planning_backend: Optional[BackendReadiness] = None
+    lechonk_feature_flag: bool = False
     autonomous_action_enabled: bool = False
     human_review_required: bool = True
     external_apis_called: bool = False

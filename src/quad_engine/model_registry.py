@@ -24,9 +24,12 @@ from typing import Dict, List, Optional
 
 from src.quad_engine.engines_config import load_registry_entries
 from src.quad_engine.models import (
+    BackendReadiness,
     EngineRecord,
+    EngineRole,
     EngineStatus,
     ModelRegistryEntry,
+    PLANNING_ENGINE,
 )
 
 
@@ -134,7 +137,29 @@ class ModelRegistry:
     def to_records(self) -> List[EngineRecord]:
         """Return GUI-safe engine records (no paths, no secrets)."""
         records: List[EngineRecord] = []
+        readiness_cache = None
         for eid, entry in self._entries.items():
+            backend_readiness = None
+            if eid == PLANNING_ENGINE and entry.role == EngineRole.PLANNING:
+                if readiness_cache is None:
+                    try:
+                        from src.integrations.lechonk.status import compute_planning_readiness
+
+                        pr = compute_planning_readiness()
+                        backend_readiness = BackendReadiness(
+                            phase=pr.phase.value,
+                            backing_engine_id=pr.backing_engine_id,
+                            precision=pr.precision,
+                            runtime=pr.runtime,
+                            device=pr.device,
+                            fallback_reason=pr.fallback_reason,
+                            profile=pr.profile,
+                        )
+                        readiness_cache = backend_readiness
+                    except Exception:
+                        backend_readiness = None
+                else:
+                    backend_readiness = readiness_cache
             records.append(
                 EngineRecord(
                     engine_id=eid,
@@ -144,6 +169,7 @@ class ModelRegistry:
                     model_present=self.model_present(eid),
                     max_tokens=entry.max_tokens,
                     description=entry.description,
+                    backend_readiness=backend_readiness,
                 )
             )
         return records
