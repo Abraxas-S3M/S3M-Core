@@ -111,6 +111,9 @@ __all__ = [
     "spotlight_datamark",
     "standard_invariants",
     "wrap_untrusted",
+    "CaseEvidencePack",
+    "generate_case_report",
+    "run_scenario_b",
 ]
 
 
@@ -177,6 +180,14 @@ def __getattr__(name: str):
         from src.cortex import twin_store as _twin_store
 
         return getattr(_twin_store, name)
+    if name in {"CaseEvidencePack", "generate_case_report"}:
+        from src.cortex import case_report as _case_report
+
+        return getattr(_case_report, name)
+    if name == "run_scenario_b":
+        from src.cortex import scenario_b as _scenario_b
+
+        return getattr(_scenario_b, "run_scenario_b")
     if name in {
         "BindingSource",
         "CortexMissionService",
