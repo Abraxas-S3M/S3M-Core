@@ -1,0 +1,19 @@
+{
+  "model_id": "mistral_large_4",
+  "variant_tag": "fp8_gpu",
+  "source_revision": "af2627869af601441d6cdf75a1272469ddc3d059",
+  "manifest_sha256": "a485567d8db9d5af013aef5e30576b83b067cc2a048d5755f0d82fa87f84b327",
+  "signature": "",
+  "shards": [
+    {
+      "relative_path": "config.json",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "tokenizer.model",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -177,6 +177,43 @@ engines:
     status: retired
     retired_reason: superseded by strategist_core
 
+  mistral_large_4:
+    name: "Mistral Large 4 (Le Chonk)"
+    provider: "Mistral AI"
+    family: "Mistral Large"
+    parameters: "1T-class MoE"
+    quantization: FP8
+    runtime: vllm
+    tier: core
+    license: "Apache-2.0"
+    domain: planning
+    context_window: 32768
+    max_tokens: 2048
+    manifest_id: mistral_large_4
+    model_file: ""
+    tools_enabled: false
+    status: quarantine
+    admission:
+      status: quarantine
+      format: safetensors
+      sha256_verified: false
+      pinned_sha256: ""
+      scanner_passed: false
+      evals_passed: false
+      signature: ""
+      require_shard_inventory: true
+    lechonk:
+      deployment_profiles:
+        - fp8_gpu
+        - nvfp4_blackwell_gpu
+        - cpu_gguf_experimental
+        - fallback_small_model
+      private_vllm:
+        base_url_env: S3M_LECHONK_VLLM_BASE_URL
+        model_name: mistral-large-4
+        max_concurrent_requests: 2
+        request_timeout_s: 120
+
   mistral:
     name: "Mixtral 8x7B"
     provider: "Mistral AI"

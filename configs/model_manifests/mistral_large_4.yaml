@@ -16,6 +16,7 @@ admission:
   scanner_passed: false
   evals_passed: false
   signature: ""
+  require_shard_inventory: true
   # A signed multi-shard manifest must replace the legacy single-file digest.
 variants:
   - tag: fp8_gpu
@@ -27,6 +28,7 @@ variants:
     r2_prefix: mistral-le-chonk/01-quarantine-original/fp8/
     expected_inventory_objects: 69
     runtime: vllm_candidate_unverified
+    inventory_ref: mistral_large_4_fp8_lab_fixture.json
     # The manifest must be promoted only after pinned runtime compatibility tests.
   - tag: nvfp4_blackwell_gpu
     runtime_format: safetensors
@@ -37,6 +39,7 @@ variants:
     r2_prefix: mistral-le-chonk/01-quarantine-original/nvfp4/
     expected_inventory_objects: 44
     runtime: blackwell_compatible_candidate_unverified
+    inventory_ref: mistral_large_4_nvfp4_lab_fixture.json
   - tag: cpu_gguf
     runtime_format: gguf
     device: cpu
