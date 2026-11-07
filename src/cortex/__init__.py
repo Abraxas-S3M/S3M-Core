@@ -29,8 +29,6 @@ from src.cortex.policy_gate import (
     PolicyVerdict,
     ToolCall,
 )
-from src.cortex.twin_store import ReachabilityGraph, TwinStore
-
 __all__ = [
     "ACEResult",
     "AdmissionDecision",
@@ -82,4 +80,8 @@ def __getattr__(name: str):
         from src.cortex import taint as _taint
 
         return getattr(_taint, name)
+    if name in {"ReachabilityGraph", "TwinStore"}:
+        from src.cortex import twin_store as _twin_store
+
+        return getattr(_twin_store, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

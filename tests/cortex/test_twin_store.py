@@ -16,11 +16,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+import importlib
+
 from s3m_core.memory.knowledge_graph import S3MKnowledgeGraph
 
-from src.cortex.twin_store.knowledge_adapter import TwinStoreKnowledgeAdapter
-from src.cortex.twin_store.models import EdgeRecord, NodeRecord, SnapshotSource
-from src.cortex.twin_store.postgres import PostgresTwinStore
+_twin_models = importlib.import_module("src.cortex.twin_store.models")
+_twin_postgres = importlib.import_module("src.cortex.twin_store.postgres")
+_twin_adapter = importlib.import_module("src.cortex.twin_store.knowledge_adapter")
+
+EdgeRecord = _twin_models.EdgeRecord
+NodeRecord = _twin_models.NodeRecord
+SnapshotSource = _twin_models.SnapshotSource
+PostgresTwinStore = _twin_postgres.PostgresTwinStore
+TwinStoreKnowledgeAdapter = _twin_adapter.TwinStoreKnowledgeAdapter
 
 pytest.importorskip("psycopg")
 
