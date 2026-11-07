@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Nightly full suite (UTC).
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Ruff check (no formatter)
+        run: |
+          ruff check \
+            tests/pytest_optional_deps.py \
+            tests/conftest.py \
+            s3m_core/tests/conftest.py \
+            formal/roe/roe_model_checker.py
+
+  security-core:
+    name: security-core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies (no torch)
+        run: |
+          grep -vE '^torch([=<>!~]|$)|^#.*torch' requirements.txt > /tmp/requirements-no-torch.txt
+          pip install --upgrade pip
+          pip install -r /tmp/requirements-no-torch.txt \
+            -r requirements-security.txt \
+            -r requirements-api.txt
+          pip install pytest pytest-mock pydantic cryptography pyyaml
+      - name: Pytest security-core slice
+        run: |
+          pytest -m "not gpu and not slow" -v --tb=short \
+            tests/cortex \
+            tests/agents \
+            s3m_core/tests \
+            tests/test_security_api.py \
+            tests/test_security_middleware.py \
+            tests/test_comms_security.py \
+            tests/test_fmn_security.py \
+            tests/test_quantum_security_shell.py \
+            tests/integration/test_security_across_layers.py
+
+  opa:
+    name: opa
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install OPA
+        run: |
+          curl -fsSL -o opa https://openpolicyagent.org/downloads/v0.70.0/opa_linux_amd64_static
+          chmod +x opa
+          sudo mv opa /usr/local/bin/opa
+      - name: OPA policy tests
+        run: opa test configs/opa_policies -v
+
+  tla:
+    name: tla
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install TLA+ tools 1.8.0
+        run: |
+          curl -fsSL -o /tmp/tla2tools.jar \
+            "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
+      - name: TLC model-check CyberAuthority
+        working-directory: formal/cortex
+        run: |
+          java -XX:+UseParallelGC -cp /tmp/tla2tools.jar tlc2.TLC \
+            -config CyberAuthority.cfg \
+            CyberAuthority.tla
+      - name: Python ROE model checker
+        run: python formal/roe/roe_model_checker.py
+
+  pip-audit:
+    name: pip-audit
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pip-audit
+        run: pip install pip-audit
+      - name: Audit requirements
+        run: |
+          grep -vE '^torch([=<>!~]|$)' requirements.txt > /tmp/requirements-no-torch.txt
+          pip-audit -r /tmp/requirements-no-torch.txt \
+            -r requirements-security.txt \
+            -r requirements-api.txt \
+            --format json -o pip-audit-report.json || true
+          pip-audit -r /tmp/requirements-no-torch.txt \
+            -r requirements-security.txt \
+            -r requirements-api.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+          if-no-files-found: warn
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -fsSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+      - name: Scan repository
+        continue-on-error: true
+        run: |
+          gitleaks detect --source . --no-git --redact -r gitleaks-report.json || true
+          gitleaks detect --source . --redact -r gitleaks-report.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: warn
+
+  full:
+    name: full
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install full dependency set
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-all.txt -r requirements.txt
+          pip install pytest pytest-mock
+      - name: Full test suite
+        run: pytest -v --tb=short

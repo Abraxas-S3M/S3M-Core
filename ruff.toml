@@ -1,0 +1,10 @@
+# Minimal lint config for CI — check only, no mass reformat of the legacy codebase.
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+"tests/**" = ["F401", "F403"]
