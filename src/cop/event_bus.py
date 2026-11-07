@@ -18,7 +18,7 @@ from __future__ import annotations
 import threading
 from collections import deque
 from datetime import datetime, timezone
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Callable, Deque, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,10 @@ EVENT_TYPES: tuple[str, ...] = (
     "decision_request",
     "operator_note",
     "sensor_report",
+    # Mission lifecycle + Cortex quarantine advisories (trusted structured payloads).
+    "mission_activate",
+    "mission_end",
+    "cortex_recommendation",
 )
 
 # Routing hints the future quad-engine orchestrator can use to select a reasoning
@@ -110,15 +114,25 @@ class CopEventBus:
     def __init__(self, *, max_events_per_track: int = 200) -> None:
         self._max_events_per_track = max(1, int(max_events_per_track))
         self._buffers: Dict[str, Deque[CopEvent]] = {}
+        self._subscribers: List[Callable[[CopEvent], None]] = []
         self._lock = threading.Lock()
 
+    def subscribe(self, handler: Callable[[CopEvent], None]) -> None:
+        """Register an in-process subscriber (e.g. Cortex mission awareness)."""
+        with self._lock:
+            self._subscribers.append(handler)
+
     def publish(self, event: CopEvent) -> CopEvent:
+        subscribers: List[Callable[[CopEvent], None]]
         with self._lock:
             buffer = self._buffers.get(event.track)
             if buffer is None:
                 buffer = deque(maxlen=self._max_events_per_track)
                 self._buffers[event.track] = buffer
             buffer.append(event)
+            subscribers = list(self._subscribers)
+        for handler in subscribers:
+            handler(event)
         return event
 
     def emit(

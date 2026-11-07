@@ -9,13 +9,17 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from src.apps.drone_ops.mission_planner import MissionPlanner as DroneMissionPlanner
+from src.cortex.minimal_profile import plan_minimal_profile
+from src.cortex.models import MinimalProfilePlan
+from src.cortex.twin import NetworkTwin
 
 
 class MultiDomainMissionPlanner:
     """Coordinate mission planning across available S3M planning modules."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, network_twin: NetworkTwin | None = None) -> None:
         self._drone_planner = DroneMissionPlanner()
+        self._network_twin = network_twin or NetworkTwin()
 
     def plan(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Create a mission plan from structured request payload."""
@@ -39,4 +43,15 @@ class MultiDomainMissionPlanner:
             "missions_tracked": len(self._drone_planner.get_missions()),
             "offline_mode": True,
         }
+
+    @property
+    def network_twin(self) -> NetworkTwin:
+        """Cortex connectivity twin shared with cyber quarantine planning."""
+        return self._network_twin
+
+    def plan_minimal_profile(self, node: str) -> MinimalProfilePlan:
+        """Propose a mission-preserving PCCP narrow for a suspect twin node."""
+        if not isinstance(node, str) or not node.strip():
+            raise ValueError("node must be a non-empty string")
+        return plan_minimal_profile(self._network_twin, node.strip())
 
