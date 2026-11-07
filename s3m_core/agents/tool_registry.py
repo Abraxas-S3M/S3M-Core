@@ -95,10 +95,15 @@ class ToolRegistry:
 
     def _check_permissions(self, name: str, parameters: Dict[str, Any], permissions: Any) -> tuple[bool, str]:
         allowed_tools = set(getattr(permissions, "allowed_tools", []) or [])
-        if allowed_tools and "*" not in allowed_tools and name not in allowed_tools:
-            return False, f"Tool '{name}' is not allowed by permission set"
+        if "*" not in allowed_tools:
+            if not allowed_tools:
+                return False, "No tools permitted in permission set"
+            if name not in allowed_tools:
+                return False, f"Tool '{name}' is not allowed by permission set"
 
         allowed_paths = list(getattr(permissions, "allowed_paths", []) or [])
+        if name.startswith("file_") and not allowed_paths:
+            return False, "No filesystem paths permitted in permission set"
         if name.startswith("file_") and allowed_paths:
             raw_path = str(parameters.get("path", ""))
             if raw_path:
