@@ -52,7 +52,7 @@ jobs:
           pip install -r /tmp/requirements-no-torch.txt \
             -r requirements-security.txt \
             -r requirements-api.txt
-          pip install pytest pytest-mock pydantic cryptography pyyaml
+          pip install pytest pytest-mock pydantic cryptography pyyaml mcp httpx uvicorn
       - name: Pytest security-core slice
         run: |
           pytest -m "not gpu and not slow" -v --tb=short \
