@@ -1,4 +1,29 @@
-# S3M Cyber Cortex — engine council routing (UNCLASSIFIED)
+# Cortex brain configuration for XiiD MCP integration (UNCLASSIFIED)
+deployment_profile: government_sovereign
+
+policy_gate:
+  enabled: true
+  production_mode: false
+  evaluation_timeout_s: 1.0
+
+tiers:
+  edge:
+    offline_required: true
+    quantization: int8
+    max_gpus: 1
+  regional:
+    offline_required: true
+    quantization: int4
+    max_gpus: 1
+  core:
+    offline_required: true
+    quantization: fp16
+    max_gpus: 8
+
+vault:
+  client_path: s3m_core.defense.vault.vault_client.VaultClient
+
+# S3M Cyber Cortex — engine council routing
 # Task types are chosen by trusted SOC/planner code; never inferred from alert text.
 #
 # Tactical context: context_budget_tokens caps strategist prompts so multi-hop council

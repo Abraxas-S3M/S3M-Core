@@ -8,7 +8,55 @@ operator orders.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
+import re
 from typing import Dict, Mapping, Optional
+
+
+class TaintSource(str, Enum):
+    """Provenance classes for data that must never be treated as instructions."""
+
+    LOG = "log"
+    ALERT = "alert"
+    FILE = "file"
+    TICKET = "ticket"
+    WEB = "web"
+    TOOL_OUTPUT = "tool_output"
+
+
+_TAINT_LABEL_PREFIX = "cortex.taint"
+_INSTRUCTION_MARKERS = re.compile(
+    r"(?i)\b(ignore\s+previous|system\s*:\s*|you\s+must\s+now|execute\s+shell|run\s+command)\b"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class TaintedPayload:
+    """Text bound to explicit taint labels before model consumption."""
+
+    text: str
+    source: TaintSource
+    labels: tuple[str, ...]
+
+    def for_model_context(self) -> str:
+        """Render wrapped content that cannot be mistaken for operator orders."""
+        label_path = "/".join(self.labels)
+        return f"<{_TAINT_LABEL_PREFIX} source={self.source.value} labels={label_path}>{self.text}</{_TAINT_LABEL_PREFIX}>"
+
+
+def wrap_untrusted(text: str, source: TaintSource) -> TaintedPayload:
+    """Wrap external text with stable taint labels (fail-safe for empty input)."""
+    normalized = str(text or "")
+    return TaintedPayload(
+        text=normalized,
+        source=source,
+        labels=(f"{_TAINT_LABEL_PREFIX}/{source.value}", "untrusted_data"),
+    )
+
+
+def contains_instruction_markers(text: str) -> bool:
+    """Detect common prompt-injection phrasing inside untrusted channels."""
+    return bool(_INSTRUCTION_MARKERS.search(str(text or "")))
 
 
 @dataclass(frozen=True)
@@ -34,8 +82,6 @@ def spotlight_datamark(
     marked_lines = []
     for line in raw_text.splitlines():
         marked_lines.append(f"{datamark_prefix}{line}")
-    if not raw_text.endswith("\n") and "\n" not in raw_text and marked_lines:
-        pass
     body = "\n".join(marked_lines)
     return f"{untrusted_begin}\n{body}\n{untrusted_end}"
 
@@ -61,9 +107,14 @@ def quarantine_extract(
         if not safe_name:
             continue
         typed[safe_name] = value
-        sections.append(spotlight_datamark(value, datamark_prefix=datamark_prefix,
-                                           untrusted_begin=untrusted_begin,
-                                           untrusted_end=untrusted_end))
+        sections.append(
+            spotlight_datamark(
+                value,
+                datamark_prefix=datamark_prefix,
+                untrusted_begin=untrusted_begin,
+                untrusted_end=untrusted_end,
+            )
+        )
 
     combined = "\n\n".join(sections)
     return QuarantineExtractResult(
