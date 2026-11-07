@@ -1,0 +1,11 @@
+# Cortex cyber network twin — edge Jetson offline configuration.
+# Mission priority weights scale MRC disruption cost for edges carrying active flows.
+mission:
+  weights:
+    1: 1.0
+    2: 1.5
+    3: 2.0
+    4: 3.0
+    5: 5.0
+default_disruption_cost: 1.0
+event_track: cyber_cortex
