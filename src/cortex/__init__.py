@@ -43,15 +43,18 @@ __all__ = [
     "ChangeClass",
     "ChangeControlGate",
     "ChangeEnvelope",
+    "ChangeRequest",
     "CortexBroker",
     "CortexConfig",
     "CortexEnvelope",
     "CortexEnvelopeCodec",
+    "CortexPlanner",
     "CyberTaskType",
     "EngineCouncil",
     "HmacAdmissionSigner",
     "Labeled",
     "MissionEnvelope",
+    "MRCReachabilityGraph",
     "ModelAdmissionGate",
     "PolicyDecision",
     "PolicyGate",
@@ -71,6 +74,7 @@ __all__ = [
     "TwinStore",
     "assert_production_dependencies",
     "assert_tool_permitted",
+    "build_change",
     "cross_examine",
     "deploy_mode",
     "endorse",
@@ -81,9 +85,13 @@ __all__ = [
     "load_cortex_brain_config",
     "load_cortex_config",
     "load_engines_document",
+    "plan_mrc",
+    "plan_mrc_reference",
     "quarantine_extract",
     "quarantine_extract_typed",
+    "shield_priority",
     "spotlight_datamark",
+    "standard_invariants",
     "wrap_untrusted",
 ]
 
@@ -151,6 +159,29 @@ def __getattr__(name: str):
         from src.cortex import twin_store as _twin_store
 
         return getattr(_twin_store, name)
+    if name in {
+        "ChangeRequest",
+        "build_change",
+        "standard_invariants",
+    }:
+        from src.cortex import pccp as _pccp
+
+        return getattr(_pccp, name)
+    if name in {
+        "CortexPlanner",
+    }:
+        from src.cortex import planner as _planner
+
+        return getattr(_planner, name)
+    if name in {
+        "MRCReachabilityGraph",
+        "plan_mrc",
+        "plan_mrc_reference",
+        "shield_priority",
+    }:
+        from src.cortex import reachability as _reachability
+
+        return getattr(_reachability, name)
     if name in {
         "BrokerError",
         "EnvelopeRequired",
