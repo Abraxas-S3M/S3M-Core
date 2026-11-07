@@ -154,11 +154,18 @@ def test_orchestrator_executes_parallel_tasks_with_skepticism_retry():
         emotion_probe=PassiveEmotionProbe(),
         max_steps=20,
         max_subagents=4,
+        permission_set=PermissionSet(
+            allowed_tools=["intel_lookup"],
+            allowed_paths=["."],
+            network_allowlist=[],
+            max_tokens=2048,
+            timeout_seconds=300,
+        ),
     )
 
     result = orchestrator.execute_mission(
         objective="build coordinated patrol recommendation",
-        autonomy_level="autonomous",
+        autonomy_level="bounded",
         constraints=["no network usage", "offline-only"],
     )
 
