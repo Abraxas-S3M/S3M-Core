@@ -1,0 +1,25 @@
+# Cryptographic inventory for Cortex customer deployments (feeds CBOM generation).
+# Tactical context: air-gapped sites must account for every algorithm before approval.
+components:
+  - name: artifact-integrity
+    algorithms:
+      - id: sha256
+        purpose: bundle and model manifest hashing
+      - id: sha512
+        purpose: optional checkpoint verification
+  - name: signing
+    algorithms:
+      - id: ed25519
+        purpose: cosign key-based image and SBOM signatures
+      - id: ecdsa-p256
+        purpose: optional HSM/PKCS#11 signing via customer module
+  - name: transport
+    algorithms:
+      - id: tls-aes-256-gcm
+        purpose: intra-site API when TLS enabled
+      - id: x25519
+        purpose: TLS key exchange when TLS enabled
+  - name: application
+    algorithms:
+      - id: aes-256-gcm
+        purpose: sealed audit log entries (cryptography.Fernet uses AES-128-CBC; documented here for policy)

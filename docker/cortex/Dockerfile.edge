@@ -1,0 +1,65 @@
+# Cortex edge tier — Jetson AGX Orin / arm64 disconnected node (customer profile).
+# Build: docker buildx build --platform linux/arm64 -f docker/cortex/Dockerfile.edge \
+#   --ignorefile docker/cortex/customer.dockerignore -t cortex-edge:local .
+
+ARG PYTHON_ARM64_DIGEST=sha256:464bee9ac10a34b0c86031f12d94d7ccc4643725773b23eff4076305fafab420
+
+FROM python:3.11-slim-bookworm@${PYTHON_ARM64_DIGEST} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+# Edge tier avoids llama-cpp-python (Jetson images use prebuilt wheels offline).
+COPY requirements-edge.txt requirements-security.txt ./
+RUN pip install --no-cache-dir --prefix=/install \
+    -r requirements-edge.txt \
+    -r requirements-security.txt
+
+FROM python:3.11-slim-bookworm@${PYTHON_ARM64_DIGEST} AS runtime
+
+LABEL org.opencontainers.image.title="cortex-edge" \
+      s3m.build_profile="customer" \
+      s3m.cortex.tier="edge"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/s3m \
+    S3M_BUILD_PROFILE=customer \
+    CORTEX_TIER=edge \
+    DEPLOYMENT_MODE=jetson_edge \
+    S3M_DEVICE=auto
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 10001 cortex \
+    && useradd --system --uid 10001 --gid cortex --home-dir /opt/s3m --shell /usr/sbin/nologin cortex
+
+COPY --from=builder /install /usr/local
+
+WORKDIR /opt/s3m
+COPY src/edge_runtime/ src/edge_runtime/
+COPY src/edge_compute/ src/edge_compute/
+COPY src/api/ src/api/
+COPY scripts/ scripts/
+COPY configs/ configs/
+COPY configs/model_manifests/ configs/model_manifests/
+COPY services/ services/
+COPY docker/cortex/scripts/ /opt/s3m/docker/cortex/scripts/
+
+RUN chmod +x /opt/s3m/docker/cortex/scripts/assert_no_offensive.sh \
+    && chmod +x /opt/s3m/docker/cortex/scripts/entrypoint.sh \
+    && CORTEX_APP_ROOT=/opt/s3m S3M_BUILD_PROFILE=customer /opt/s3m/docker/cortex/scripts/assert_no_offensive.sh \
+    && mkdir -p /opt/s3m/data /opt/s3m/run /opt/s3m/models /opt/s3m/config \
+    && chown -R cortex:cortex /opt/s3m
+
+USER cortex
+EXPOSE 9090
+VOLUME ["/opt/s3m/data", "/opt/s3m/run", "/opt/s3m/config", "/tmp"]
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:9090/edge/health || exit 1
+
+ENTRYPOINT ["/opt/s3m/docker/cortex/scripts/entrypoint.sh"]

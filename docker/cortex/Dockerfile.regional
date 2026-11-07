@@ -1,0 +1,62 @@
+# Cortex regional tier — coalition / theater CPU node (customer profile).
+# Build: bash scripts/cortex/prepare_customer_dockerignore.sh && docker buildx build --load -f docker/cortex/Dockerfile.regional -t cortex-regional:local .
+
+ARG PYTHON_DIGEST=sha256:e8c69d86735f6df3efa06b324694fe51f0422785f83a3bd463052636c2421944
+
+FROM python:3.11-slim-bookworm@${PYTHON_DIGEST} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+COPY requirements-api.txt requirements-intel.txt requirements-security.txt ./
+RUN pip install --no-cache-dir --prefix=/install \
+    -r requirements-api.txt \
+    -r requirements-intel.txt \
+    -r requirements-security.txt
+
+FROM python:3.11-slim-bookworm@${PYTHON_DIGEST} AS runtime
+
+LABEL org.opencontainers.image.title="cortex-regional" \
+      s3m.build_profile="customer" \
+      s3m.cortex.tier="regional"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/s3m \
+    S3M_BUILD_PROFILE=customer \
+    CORTEX_TIER=regional \
+    DEPLOYMENT_MODE=sovereign_regional \
+    S3M_DEVICE=cpu
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 10001 cortex \
+    && useradd --system --uid 10001 --gid cortex --home-dir /opt/s3m --shell /usr/sbin/nologin cortex
+
+COPY --from=builder /install /usr/local
+
+WORKDIR /opt/s3m
+COPY src/ src/
+COPY scripts/ scripts/
+COPY configs/ configs/
+COPY services/ services/
+COPY packages/ packages/
+COPY docker/cortex/scripts/ /opt/s3m/docker/cortex/scripts/
+
+RUN chmod +x /opt/s3m/docker/cortex/scripts/assert_no_offensive.sh \
+    && chmod +x /opt/s3m/docker/cortex/scripts/entrypoint.sh \
+    && CORTEX_APP_ROOT=/opt/s3m S3M_BUILD_PROFILE=customer /opt/s3m/docker/cortex/scripts/assert_no_offensive.sh \
+    && mkdir -p /opt/s3m/data /opt/s3m/run /opt/s3m/models \
+    && chown -R cortex:cortex /opt/s3m
+
+USER cortex
+EXPOSE 8080
+VOLUME ["/opt/s3m/data", "/opt/s3m/run", "/tmp"]
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/health || exit 1
+
+ENTRYPOINT ["/opt/s3m/docker/cortex/scripts/entrypoint.sh"]
