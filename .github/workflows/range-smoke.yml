@@ -1,0 +1,43 @@
+name: range-smoke
+
+on:
+  push:
+    paths:
+      - "range/**"
+      - "tests/range/**"
+      - "Makefile"
+      - ".github/workflows/range-smoke.yml"
+  pull_request:
+    paths:
+      - "range/**"
+      - "tests/range/**"
+      - "Makefile"
+      - ".github/workflows/range-smoke.yml"
+
+jobs:
+  range-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml pytest cryptography
+
+      - name: Block outbound probe targets for range egress guard
+        run: |
+          sudo iptables -I OUTPUT -d 203.0.113.53 -j REJECT || true
+          sudo iptables -I OUTPUT -d 8.8.8.8 -j REJECT || true
+
+      - name: Range unit tests
+        run: python -m pytest tests/range/ -q
+
+      - name: Run all range scenarios (mocked engines)
+        run: make range

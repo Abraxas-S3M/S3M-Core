@@ -1,0 +1,83 @@
+# Military/tactical context: five-node CCTV enclave with a synthetic NVR CVE;
+# containment must patch NVRs without cutting protected CAD dispatch traffic.
+scenario_id: scenario_b_cctv_shield
+name: CCTV shield with NVR CVE containment
+version: "1.0"
+
+network:
+  nodes:
+    - id: vpn_users
+      role: remote_operator_vpn
+      address: 10.60.1.0/24
+    - id: soc_workstation
+      role: analyst_soc
+      address: 10.60.10.12
+    - id: nvr_cluster
+      role: nvr_recorders
+      address: 10.60.20.0/24
+      cve: CVE-2026-14882
+      critical: true
+    - id: cad_dispatch
+      role: cad_dispatch_protected
+      address: 10.60.30.5
+      protected: true
+    - id: video_wall
+      role: ops_video_wall
+      address: 10.60.40.8
+  required_flows:
+    - from: vpn_users
+      to: nvr_cluster
+      service: rtsp-over-tls
+    - from: soc_workstation
+      to: nvr_cluster
+      service: management-api
+    - from: nvr_cluster
+      to: video_wall
+      service: multicast-preview
+    - from: cad_dispatch
+      to: video_wall
+      service: dispatch-status
+
+protected_route:
+  node_id: cad_dispatch
+  path: /api/v1/cad/dispatch/protected-route
+
+vulnerability:
+  cve: CVE-2026-14882
+  affected_nodes:
+    - nvr_cluster
+  description: Unauthenticated firmware upload on edge NVR API.
+
+perception:
+  events:
+    - source: vuln_scanner
+      event_id: scan-2026-1107-010
+      timestamp: "2026-11-07T11:00:00Z"
+      finding: CVE-2026-14882 on nvr_cluster
+
+planner:
+  proposed_change:
+    action: segment_and_patch
+    target_nodes:
+      - nvr_cluster
+    predicted_state:
+      nvr_cluster: patched_contained
+      cad_dispatch: unchanged
+      video_wall: preview_active
+    rollback_plan: restore_nvr_firmware_snapshot
+
+taint:
+  protected_routes:
+    - name: cad_dispatch_protected
+      path: /api/v1/cad/dispatch/protected-route
+      classification: mission_critical
+
+approver:
+  device_id: test-approver-bravo
+  response: approve
+
+acceptance:
+  change_applied_on_approval: true
+  predicted_matches_observed: true
+  protected_route_touched: false
+  required_flows_reachable: true
