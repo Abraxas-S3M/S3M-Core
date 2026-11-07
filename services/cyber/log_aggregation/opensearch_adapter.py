@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from urllib import request
 
+from src.cortex.platform_taint import label_platform_records
+
 
 class OpenSearchAdapter:
     """Indexes SOC logs into OpenSearch with offline queue fallback."""
@@ -67,7 +69,14 @@ class OpenSearchAdapter:
             with request.urlopen(req, timeout=2.0) as response:
                 parsed = json.loads(response.read().decode("utf-8"))
             hits = parsed.get("hits", {}).get("hits", [])
-            return [hit.get("_source", {}) for hit in hits if isinstance(hit, dict)]
+            sources = [hit.get("_source", {}) for hit in hits if isinstance(hit, dict)]
+            labeled = []
+            for source in sources:
+                if isinstance(source, dict):
+                    labeled.append(
+                        label_platform_records([source], source_system="opensearch", sensor_id="opensearch-query")[0]
+                    )
+            return labeled
         except Exception:
             return []
 

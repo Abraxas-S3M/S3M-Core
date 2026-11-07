@@ -73,7 +73,7 @@ class MRCPlan:
     required_flows_ok: bool
 
 
-class ReachabilityGraph:
+class MRCReachabilityGraph:
     """Directed probabilistic reachability graph for attack-path analysis."""
 
     def __init__(
@@ -138,8 +138,8 @@ class ReachabilityGraph:
         self.required_flows = [(str(a), str(b)) for a, b in required_flows]
         self._path_cache.clear()
 
-    def clone(self) -> ReachabilityGraph:
-        other = ReachabilityGraph(max_graph_nodes=self.max_graph_nodes)
+    def clone(self) -> MRCReachabilityGraph:
+        other = MRCReachabilityGraph(max_graph_nodes=self.max_graph_nodes)
         other.nodes = copy.deepcopy(self.nodes)
         other.edges = copy.deepcopy(self.edges)
         other._out = copy.deepcopy(self._out)
@@ -307,7 +307,7 @@ class ReachabilityGraph:
 
 
 def _evaluate_action(
-    graph: ReachabilityGraph,
+    graph: MRCReachabilityGraph,
     edge_id: str,
     kind: str,
     harden_factor: float,
@@ -339,7 +339,7 @@ def _evaluate_action(
 
 
 def _pick_best_candidate(
-    graph: ReachabilityGraph,
+    graph: MRCReachabilityGraph,
     budget_remaining: float,
     harden_factor: float,
     tie_resolver: ParetoOptimizer | None,
@@ -426,7 +426,7 @@ def _pick_best_candidate(
 
 
 def plan_mrc_reference(
-    graph: ReachabilityGraph,
+    graph: MRCReachabilityGraph,
     budget: float,
     *,
     harden_factor: float = 0.08,
@@ -461,7 +461,7 @@ def plan_mrc_reference(
 
 
 def plan_mrc(
-    graph: ReachabilityGraph,
+    graph: MRCReachabilityGraph,
     budget: float,
     *,
     harden_factor: float = 0.08,
@@ -532,9 +532,9 @@ def random_small_graph(
     n_nodes: int = 12,
     edge_prob: float = 0.25,
     max_graph_nodes: int = 10_000,
-) -> ReachabilityGraph:
+) -> MRCReachabilityGraph:
     """Generate a small random acyclic-ish graph for property tests."""
-    g = ReachabilityGraph(max_graph_nodes=max_graph_nodes)
+    g = MRCReachabilityGraph(max_graph_nodes=max_graph_nodes)
     for i in range(n_nodes):
         g.add_node(f"n{i}", "host", criticality=rng.random())
     for i in range(n_nodes):
@@ -556,12 +556,12 @@ def synthetic_graph(
     out_degree: int = 4,
     max_graph_nodes: int = 10_000,
     seed: int = 0,
-) -> ReachabilityGraph:
+) -> MRCReachabilityGraph:
     """Layered synthetic graph for performance smoke tests."""
     import random
 
     rng = random.Random(seed)
-    g = ReachabilityGraph(max_graph_nodes=max_graph_nodes)
+    g = MRCReachabilityGraph(max_graph_nodes=max_graph_nodes)
     layers = max(2, int(math.sqrt(n_nodes)))
     per_layer = max(1, n_nodes // layers)
     node_ids: List[str] = []

@@ -1,0 +1,9 @@
+# Legacy hyphen manifest names resolve to underscore files (see model_manifest loader).
+aliases:
+  phi3-mini: phi3_mini
+  phi3-medium: phi3_medium
+  mistral-7b: mistral_7b
+  mixtral-8x7b: mistral_7b
+  grok-8b: grok_8b
+  grok1: grok_8b
+  allam-7b: allam_7b

@@ -27,6 +27,19 @@ def planner(tmp_path):
     return CortexPlanner(config_path=str(custom))
 
 
+def test_cctv_fixture_baseline_risk():
+    graph = cctv_reachability_graph()
+    assert graph.system_risk() == pytest.approx(0.307, abs=0.01)
+
+
+def test_cctv_fixture_mrc_reduces_risk():
+    graph = cctv_reachability_graph()
+    plan = plan_mrc(graph, budget=1.0)
+    assert plan.initial_risk == pytest.approx(0.307, abs=0.01)
+    assert plan.final_risk == pytest.approx(0.022, abs=0.01)
+    assert plan.required_flows_ok
+
+
 def test_cctv_planner_reproduces_risk_drop(planner):
     graph = cctv_reachability_graph()
     change = planner.propose(

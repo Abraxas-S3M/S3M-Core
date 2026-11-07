@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from src.cortex.reachability import ReachabilityGraph
+from src.cortex.reachability import MRCReachabilityGraph
 
 
-def cctv_reachability_graph() -> ReachabilityGraph:
+def cctv_reachability_graph() -> MRCReachabilityGraph:
     """Reference CCTV / NVR enclave used in cortex regression tests."""
-    g = ReachabilityGraph(max_graph_nodes=10_000)
+    g = MRCReachabilityGraph(max_graph_nodes=10_000)
 
     nodes = [
         ("internet", "connector", 0.2),

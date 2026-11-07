@@ -32,6 +32,7 @@ class PlaybookLibrary:
                 condition=step.get("condition"),
                 timeout_seconds=float(step.get("timeout_seconds", 30)),
                 on_failure=str(step.get("on_failure", "continue")),
+                step_kind=step.get("step_kind"),
             )
             for idx, step in enumerate(pb.get("steps", []))
         ]

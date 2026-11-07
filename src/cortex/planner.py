@@ -13,7 +13,7 @@ from src.autonomy.decision_engine.multi_objective import ParetoOptimizer
 from src.cortex.pccp import ChangeRequest, build_change
 from src.cortex.reachability import (
     GraphTooLargeError,
-    ReachabilityGraph,
+    MRCReachabilityGraph,
     plan_mrc,
     shield_priority,
 )
@@ -61,7 +61,7 @@ class CortexPlanner:
         self._config = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
         self._mrc = self._config.get("mrc", {})
         self._shield = self._config.get("vulnerability_shield", {})
-        self._planner = self._config.get("planner", {})
+        self._planner = self._config.get("change_planner") or self._config.get("planner", {})
         self._tie_resolver = ParetoOptimizer(
             weights={
                 "survival": 0.5,
@@ -82,12 +82,12 @@ class CortexPlanner:
         xiid_inventory: Mapping[str, Any],
         required_flows: Sequence[Tuple[str, str]],
         protected: Sequence[str],
-    ) -> ReachabilityGraph:
+    ) -> MRCReachabilityGraph:
         max_nodes = int(self._mrc.get("max_graph_nodes", 10_000))
         edge_defaults: Dict[str, float] = dict(self._mrc.get("edge_defaults", {}))
         default_p = float(edge_defaults.get("default", 0.5))
 
-        g = ReachabilityGraph(max_graph_nodes=max_nodes)
+        g = MRCReachabilityGraph(max_graph_nodes=max_nodes)
         inventory = dict(xiid_inventory or {})
 
         for node_id, data in kg.graph.nodes(data=True):
@@ -144,7 +144,7 @@ class CortexPlanner:
         g.set_scope(footholds, prot, flows)
         return g
 
-    def shield_queue(self, vulns: Sequence[Dict[str, Any]], graph: ReachabilityGraph) -> List[Dict[str, Any]]:
+    def shield_queue(self, vulns: Sequence[Dict[str, Any]], graph: MRCReachabilityGraph) -> List[Dict[str, Any]]:
         threshold = float(self._shield.get("shield_threshold", 0.35))
         weights = dict(self._shield.get("weights", {}))
         ranked: List[Dict[str, Any]] = []
@@ -164,7 +164,7 @@ class CortexPlanner:
         ranked.sort(key=lambda v: float(v["shield_score"]), reverse=True)
         return ranked
 
-    def _action_rationale(self, graph: ReachabilityGraph, plan_steps: Iterable[Any]) -> List[Dict[str, Any]]:
+    def _action_rationale(self, graph: MRCReachabilityGraph, plan_steps: Iterable[Any]) -> List[Dict[str, Any]]:
         out: List[Dict[str, Any]] = []
         for step in plan_steps:
             out.append(
@@ -178,7 +178,7 @@ class CortexPlanner:
 
     def propose(
         self,
-        graph: ReachabilityGraph,
+        graph: MRCReachabilityGraph,
         target_risk: float,
         budget: float,
         *,
