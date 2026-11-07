@@ -23,8 +23,11 @@ def test_sandbox_config_generates_hardened_docker_args() -> None:
     args = config.to_docker_args()
 
     assert "--pid=private" in args
-    assert "--network=bridge" in args
-    assert "--cap-drop=SYS_PTRACE" in args
+    assert "--network" in args and "none" in args
+    assert "--runtime" in args and "runsc" in args
+    assert "--read-only" in args
+    assert "--cap-drop" in args and "ALL" in args
+    assert "--cap-drop" in args and "SYS_PTRACE" in args
     assert "s3m.masked_proc_paths=" in " ".join(args)
     assert "--memory" in args
 
@@ -86,11 +89,12 @@ def test_seccomp_install_requires_current_process(monkeypatch: pytest.MonkeyPatc
 
 def test_container_manager_session_lifecycle_and_health() -> None:
     """Manager should create, report, and destroy simulated isolation sessions."""
-    config = SandboxConfig(runtime="gvisor")
+    config = SandboxConfig(runtime="gvisor", mode="lab")
     manager = ContainerManager(default_config=config, seccomp_profile=SeccompProfile())
 
     session = manager.create_session(session_id="alpha-session", agent_type="planner")
     assert session.session_id == "alpha-session"
+    assert session.simulated is True
     assert session.container_id.startswith("sim-alpha-session")
     assert len(manager.list_sessions()) == 1
 
@@ -98,6 +102,9 @@ def test_container_manager_session_lifecycle_and_health() -> None:
     assert report.healthy is True
     assert report.checks["proc_readonly"] is True
     assert report.checks["seccomp_active"] is True
+    assert report.details["simulated"] == "true"
+    assert report.details["network_mode"] == "none"
+    assert report.details["runtime"] == "gvisor"
 
     manager.destroy_session("alpha-session")
     assert manager.list_sessions() == []
