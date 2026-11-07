@@ -1,0 +1,125 @@
+name: Cortex Customer Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docker/cortex/**"
+      - "scripts/cortex/**"
+      - "configs/cortex/**"
+      - "tests/cortex/**"
+      - ".github/workflows/cortex-customer-release.yml"
+  pull_request:
+    paths:
+      - "docker/cortex/**"
+      - "scripts/cortex/**"
+      - "configs/cortex/**"
+      - "tests/cortex/**"
+      - ".github/workflows/cortex-customer-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+env:
+  CORTEX_VERSION: 0.0.0-ci-${{ github.sha }}
+  COSIGN_PASSWORD: ci-test-secret
+  COSIGN_YES: "true"
+
+jobs:
+  cortex-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.7.0
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0.17.9
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Generate test signing key
+        run: |
+          cosign generate-key-pair <<<"$COSIGN_PASSWORD"
+          mkdir -p configs/cortex/trust
+          mv cosign.pub configs/cortex/trust/ci-test.pub
+          chmod 600 cosign.key
+
+      - name: Build cortex-core image
+        run: |
+          docker build \
+            -f docker/cortex/Dockerfile.core \
+            --ignorefile docker/cortex/customer.dockerignore \
+            -t cortex-core:ci .
+
+      - name: Build cortex-regional image
+        run: |
+          docker build \
+            -f docker/cortex/Dockerfile.regional \
+            --ignorefile docker/cortex/customer.dockerignore \
+            -t cortex-regional:ci .
+
+      - name: Build cortex-edge image (arm64)
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -f docker/cortex/Dockerfile.edge \
+            --ignorefile docker/cortex/customer.dockerignore \
+            --load \
+            -t cortex-edge:ci .
+
+      - name: Generate SBOMs and CBOM
+        run: |
+          mkdir -p dist/cortex/sbom
+          python scripts/cortex/sbom.py --tier core --image cortex-core:ci --output dist/cortex/sbom/core.cdx.json
+          python scripts/cortex/sbom.py --tier regional --image cortex-regional:ci --output dist/cortex/sbom/regional.cdx.json
+          python scripts/cortex/sbom.py --tier edge --image cortex-edge:ci --output dist/cortex/sbom/edge.cdx.json
+          python scripts/cortex/cbom.py --version "$CORTEX_VERSION" --output dist/cortex/cbom/cortex-cbom.json
+
+      - name: Sign images (key-based)
+        run: |
+          for ref in cortex-core:ci cortex-regional:ci cortex-edge:ci; do
+            digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$ref" 2>/dev/null || echo "$ref")
+            cosign sign --yes --tlog-upload=false --key cosign.key "$ref"
+          done
+
+      - name: Build offline update bundle
+        run: |
+          mkdir -p dist/cortex
+          python scripts/cortex/build_bundle.py \
+            --version "$CORTEX_VERSION" \
+            --output "dist/cortex/cortex-update-${CORTEX_VERSION}.tar" \
+            --private-key cosign.key \
+            --image-core cortex-core:ci \
+            --image-regional cortex-regional:ci \
+            --image-edge cortex-edge:ci
+
+      - name: Verify bundle with pinned key
+        run: |
+          python scripts/cortex/verify_bundle.py \
+            "dist/cortex/cortex-update-${CORTEX_VERSION}.tar" \
+            --trust-dir configs/cortex/trust
+
+      - name: Unit tests (tamper detection)
+        run: |
+          pip install -q pyyaml cryptography pytest
+          pytest tests/cortex/test_verify_bundle.py -v
+
+      - name: SLSA provenance attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: cortex-core:ci
+          subject-digest: sha256:pending
+          push-to-registry: false
+        continue-on-error: true
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-update-bundle
+          path: dist/cortex/

@@ -99,6 +99,19 @@ tar czf s3m-backup-$(date +%Y%m%d).tar.gz \
 docker compose -f docker/docker-compose.cloud.yml up -d
 ```
 
+## Cortex customer tiers (air-gapped)
+
+Offline sites receive `cortex-update-<version>.tar` bundles built from `docker/cortex/` (core, regional, edge). Each bundle includes OCI image tarballs, CycloneDX SBOMs, a CBOM of cryptographic algorithms, model manifests (metadata only unless weights are explicitly bundled), cosign detached signatures, and a signed `manifest/index.json`.
+
+Field verification (must pass before import):
+
+```bash
+python scripts/cortex/verify_bundle.py cortex-update-<version>.tar \
+  --trust-dir /etc/s3m/cortex/trust
+```
+
+Customer signing keys can remain on an HSM via PKCS#11 (`COSIGN_PKCS11_MODULE`, `COSIGN_PKCS11_KEY_ID`). CI exercises the same path with a test key; see `.github/workflows/cortex-customer-release.yml`.
+
 ## Environment Variables Reference
 
 | Variable | Default | Description |

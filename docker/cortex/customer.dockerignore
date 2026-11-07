@@ -1,0 +1,10 @@
+# Customer Cortex builds must never include offensive cyber modules.
+services/cyber/offensive
+.git
+**/__pycache__
+**/*.pyc
+.pytest_cache
+node_modules
+data/
+models/
+*.log
