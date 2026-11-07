@@ -2,11 +2,15 @@
 # UNCLASSIFIED - FOUO
 
 quantum_crypto:
-  kem_algorithm: "Kyber768"          # ML-KEM (NIST FIPS 203)
-  sig_algorithm: "Dilithium3"        # ML-DSA (NIST FIPS 204)
+  crypto_mode: production            # production | lab (lab allows labeled fallbacks)
+  kem_algorithm: "ML-KEM-768"        # ML-KEM (NIST FIPS 203); alias Kyber768
+  sig_algorithm: "ML-DSA-65"         # ML-DSA (NIST FIPS 204); alias Dilithium3
+  # CNSA 2.0 alignment (optional):
+  # cnsa_profile: true               # selects ML-KEM-1024 + ML-DSA-87 when true
   symmetric_algorithm: "AES-256-GCM"
-  hybrid_mode: true                  # Classical + PQ combined
+  hybrid_mode: true                  # Classical + PQ combined (no classical-only)
   keys_dir: "configs/keys/quantum"
+  key_storage_backend: file          # file (lab) | pkcs11 (production HSM)
 
 key_lifecycle:
   rotation_hours: 24
