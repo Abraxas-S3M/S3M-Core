@@ -193,3 +193,176 @@ class PolicyGate:
             if tool_class in _XIID_MUTATING_CLASSES:
                 return True
         return False
+
+
+# --- SOAR playbook integration (Layer 07 cyber operations) ---
+
+
+@dataclass(frozen=True, slots=True)
+class ToolCall:
+    """One proposed SOAR response action presented for authority review."""
+
+    tool_name: str
+    case_id: str
+    step_id: int
+    step_kind: str
+    parameters: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "tool_name": self.tool_name,
+            "case_id": self.case_id,
+            "step_id": self.step_id,
+            "step_kind": self.step_kind,
+            "parameters": dict(self.parameters),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class Approvals:
+    """Commander or SOC lead approval bound to specific SOAR tool names."""
+
+    approval_id: str
+    approver: str
+    approved_at: datetime
+    approved_tools: List[str]
+    execution_authorized: bool = True
+
+    def covers_tool(self, tool_name: str) -> bool:
+        return tool_name.upper() in {item.upper() for item in self.approved_tools}
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "approval_id": self.approval_id,
+            "approver": self.approver,
+            "approved_at": self.approved_at.isoformat(),
+            "approved_tools": list(self.approved_tools),
+            "execution_authorized": self.execution_authorized,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PolicyDecision:
+    """SOAR-specific policy routing decision for playbook execution."""
+
+    allowed: bool
+    outcome: str
+    reason: str
+    tool_call: ToolCall
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "allowed": self.allowed,
+            "outcome": self.outcome,
+            "reason": self.reason,
+            "tool_call": self.tool_call.to_dict(),
+            "timestamp": self.timestamp.isoformat(),
+        }
+
+
+def _soar_envelope_case_id(envelope: MissionEnvelope) -> str:
+    constraints = envelope.constraints if isinstance(envelope.constraints, dict) else {}
+    return str(constraints.get("case_id", "")).strip()
+
+
+def _soar_envelope_allows_tool(envelope: MissionEnvelope, tool_name: str) -> bool:
+    constraints = envelope.constraints if isinstance(envelope.constraints, dict) else {}
+    allowed = constraints.get("allowed_tools")
+    if not isinstance(allowed, list) or not allowed:
+        return True
+    return tool_name.upper() in {str(item).upper() for item in allowed}
+
+
+def evaluate_soar_tool_call(
+    tool_call: ToolCall,
+    envelope: MissionEnvelope | None,
+    approvals: Approvals | None,
+    *,
+    auto_execute: bool = False,
+    manual_execution: bool = False,
+) -> PolicyDecision:
+    """Evaluate a SOAR mutate step against mission envelope and approvals."""
+    if tool_call.step_kind != "mutate":
+        return PolicyDecision(
+            allowed=True,
+            outcome="allow",
+            reason="non_mutate_step",
+            tool_call=tool_call,
+        )
+
+    if envelope is None:
+        return PolicyDecision(
+            allowed=False,
+            outcome="queue",
+            reason="missing_envelope",
+            tool_call=tool_call,
+        )
+
+    valid, reason = envelope.validate()
+    if not valid:
+        return PolicyDecision(
+            allowed=False,
+            outcome="deny",
+            reason=reason,
+            tool_call=tool_call,
+        )
+
+    case_id = _soar_envelope_case_id(envelope)
+    if case_id and case_id != tool_call.case_id:
+        return PolicyDecision(
+            allowed=False,
+            outcome="deny",
+            reason="envelope_case_mismatch",
+            tool_call=tool_call,
+        )
+
+    if not _soar_envelope_allows_tool(envelope, tool_call.tool_name):
+        return PolicyDecision(
+            allowed=False,
+            outcome="deny",
+            reason="tool_not_in_envelope",
+            tool_call=tool_call,
+        )
+
+    if approvals is None:
+        return PolicyDecision(
+            allowed=False,
+            outcome="queue",
+            reason="missing_approvals",
+            tool_call=tool_call,
+        )
+
+    if not approvals.execution_authorized:
+        return PolicyDecision(
+            allowed=False,
+            outcome="queue",
+            reason="execution_not_authorized",
+            tool_call=tool_call,
+        )
+
+    if not approvals.covers_tool(tool_call.tool_name):
+        return PolicyDecision(
+            allowed=False,
+            outcome="queue",
+            reason="tool_not_approved",
+            tool_call=tool_call,
+        )
+
+    if not auto_execute and not manual_execution:
+        return PolicyDecision(
+            allowed=False,
+            outcome="queue",
+            reason="awaiting_approval",
+            tool_call=tool_call,
+        )
+
+    return PolicyDecision(
+        allowed=True,
+        outcome="allow",
+        reason="approved",
+        tool_call=tool_call,
+    )
+
+
+PolicyGate.evaluate_soar = staticmethod(evaluate_soar_tool_call)  # type: ignore[method-assign]
