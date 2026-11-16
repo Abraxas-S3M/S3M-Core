@@ -55,3 +55,8 @@ class MockServerState:
     rug_pulled_tool: Optional[str] = None
     tool_descriptions: Dict[str, str] = field(default_factory=dict)
     fail_next_write: bool = False
+    # Silent failure: the next write returns a signed success record but is NOT applied.
+    # Models a control plane that acknowledges a change it never enforced; only
+    # postcondition verification against observed state can detect it (SIM-005).
+    drop_next_write: bool = False
+    drop_write_skip: int = 0  # let this many writes through before dropping one

@@ -1,4 +1,4 @@
-.PHONY: range range-test range-smoke
+.PHONY: range range-test range-smoke cortex-slice cortex-slice-test
 
 PYTHON ?= python3
 
@@ -16,3 +16,10 @@ range-smoke: range-test
 			sudo iptables -I OUTPUT -d 8.8.8.8 -j REJECT; \
 	fi
 	$(MAKE) range
+
+# Cortex vertical slice (SIM-002, SIM-005) against the loopback mock XiiD MCP server.
+cortex-slice:
+	$(PYTHON) -m range.run_cortex_slice --scenario all
+
+cortex-slice-test:
+	$(PYTHON) -m pytest tests/cortex/test_vertical_slice.py -q
