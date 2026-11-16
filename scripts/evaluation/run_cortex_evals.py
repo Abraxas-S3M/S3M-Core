@@ -39,6 +39,17 @@ def _print_summary_table(report) -> None:
         print(" | ".join(row[i].ljust(widths[i]) for i in range(4)))
     print()
     print(f"RELEASE GATE: {'PASS' if report.passed else 'FAIL'}")
+    print(
+        f"EFFECTIVE BACKEND: {report.effective_backend} "
+        f"(range_ok={report.range_calls_ok}, fallback={report.fallback_calls})"
+    )
+    if report.mode == "live" and report.effective_backend != "range":
+        # GitHub Actions annotation so a fallback run is never mistaken for live inference.
+        print(
+            "::warning title=Cortex live eval not live::"
+            f"{report.fallback_calls} case(s) answered by the deterministic fallback, "
+            "not the S1 range. Set S3M_CORTEX_RANGE_URL to measure live behaviour."
+        )
 
 
 def main() -> int:
@@ -69,6 +80,9 @@ def main() -> int:
         payload = {
             "timestamp": stamp,
             "mode": report.mode,
+            "effective_backend": report.effective_backend,
+            "range_calls_ok": report.range_calls_ok,
+            "fallback_calls": report.fallback_calls,
             "model_version": report.model_version,
             "passed": report.passed,
             "suites": [

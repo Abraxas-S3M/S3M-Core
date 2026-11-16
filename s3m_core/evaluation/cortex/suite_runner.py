@@ -30,6 +30,11 @@ class CortexEvalReport:
     model_version: str
     suites: List[SuiteResult]
     gate: ReleaseGateVerdict
+    # What actually produced the answers. Deterministic runs are always
+    # "deterministic-fixtures"; live runs report range / fallback provenance.
+    effective_backend: str = "deterministic-fixtures"
+    range_calls_ok: int = 0
+    fallback_calls: int = 0
 
     @property
     def passed(self) -> bool:
@@ -83,6 +88,9 @@ class CortexSuiteRunner:
             model_version=model_version,
             suites=suite_results,
             gate=gate,
+            effective_backend=live.effective_backend if live else "deterministic-fixtures",
+            range_calls_ok=live.range_calls_ok if live else 0,
+            fallback_calls=live.fallback_calls if live else 0,
         )
 
     def _suite_path(self, suite: str, filename: str) -> Path:

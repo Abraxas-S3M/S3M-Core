@@ -14,7 +14,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install minimal eval dependencies
-        run: pip install pyyaml
+        # Must match the deterministic gate: src.cortex imports src.security,
+        # whose package __init__ pulls in FastAPI middleware.
+        run: pip install -r requirements-cyber.txt fastapi uvicorn
       - name: Run live-mode suites against S1 range (fallback-safe)
         env:
           S3M_CORTEX_RANGE_URL: ${{ vars.S3M_CORTEX_RANGE_URL }}

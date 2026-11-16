@@ -30,10 +30,25 @@ class LiveCortexEngine:
         url = (config.range_url if config else os.environ.get("S3M_CORTEX_RANGE_URL", "")).strip()
         self._config = LiveEngineConfig(range_url=url, timeout_sec=(config.timeout_sec if config else 30.0))
         self._fallback = DeterministicCortexEngine()
+        # Provenance counters: a "live" report must say how many cases were
+        # actually answered by the range versus the deterministic fallback.
+        self.range_calls_ok = 0
+        self.fallback_calls = 0
 
     @property
     def uses_range(self) -> bool:
         return bool(self._config.range_url)
+
+    @property
+    def effective_backend(self) -> str:
+        """``range``, ``deterministic-fallback``, ``mixed`` or ``none``."""
+        if self.range_calls_ok and self.fallback_calls:
+            return "mixed"
+        if self.range_calls_ok:
+            return "range"
+        if self.fallback_calls:
+            return "deterministic-fallback"
+        return "none"
 
     def invoke(self, suite: str, case: Dict[str, Any]) -> Dict[str, Any]:
         if not self.uses_range:
@@ -50,12 +65,14 @@ class LiveCortexEngine:
                 body = response.read().decode("utf-8")
                 parsed = json.loads(body)
                 if isinstance(parsed, dict):
+                    self.range_calls_ok += 1
                     return parsed
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             pass
         return self._fallback_local(suite, case)
 
     def _fallback_local(self, suite: str, case: Dict[str, Any]) -> Dict[str, Any]:
+        self.fallback_calls += 1
         engine = self._fallback
         if suite == "defensive_tasks":
             triage = engine.triage_event(case)
