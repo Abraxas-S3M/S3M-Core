@@ -180,6 +180,8 @@ class DefenseCycle:
         mission_guard: Any = None,
         clock: Optional[Callable[[], datetime]] = None,
         intents: Optional[Sequence[Any]] = None,
+        calibration: Any = None,
+        calibration_quantile: Optional[float] = 0.9,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -206,6 +208,10 @@ class DefenseCycle:
         # Intent2Fabric: when operator intents are given, they replace the architect's
         # alternatives; the compiled, proved plan goes through the same gates.
         self.intents = list(intents) if intents else None
+        # CyberTwin calibration: every twin (planning and post-change observation) is
+        # calibrated identically, so verification compares like with like.
+        self.calibration = calibration
+        self.calibration_quantile = calibration_quantile
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -230,6 +236,12 @@ class DefenseCycle:
         stlinks = (await self.broker.invoke("list_stlinks")).result.get("stlinks", [])
         health = (await self.broker.invoke("telemetry_health")).result
         return {"routes": routes, "findings": findings, "stlinks": stlinks, "health": health}
+
+    def _twin(self, routes, findings):
+        twin = build_twin(routes, findings, self.mission)
+        if self.calibration is not None:
+            twin = self.calibration.apply_to(twin, self.clock(), quantile=self.calibration_quantile)
+        return twin
 
     @staticmethod
     def _route(observed: Mapping[str, Any], route_id: str) -> Optional[Dict[str, Any]]:
@@ -341,7 +353,7 @@ class DefenseCycle:
         self._stage(report, "discover", "ok", **{k: v for k, v in report.discovery.items() if k != "health"})
 
         # 2. Twin + analysis
-        twin = build_twin(observed["routes"], observed["findings"], self.mission)
+        twin = self._twin(observed["routes"], observed["findings"])
         report.twin = twin.summary()
         report.analysis = {
             "top_attack_paths": [{**p, "probability": round(p["probability"], 6)} for p in twin.top_attack_paths(8)],
@@ -352,6 +364,12 @@ class DefenseCycle:
             ],
             "prioritized_findings": prioritized_findings(twin, observed["findings"])[:8],
         }
+        if self.calibration is not None:
+            report.analysis["calibration"] = {
+                "planning_quantile": self.calibration_quantile,
+                "fitted_prior_strength": round(float(getattr(self.calibration, "last_prior_strength", 0.0)), 3),
+                "exposure_intervals": self.calibration.exposure_intervals(self.clock(), samples=200),
+            }
         self._stage(report, "analyze", "ok", system_risk=report.twin["system_risk"])
 
         # 3. Architect: alternatives, simulated on the twin
@@ -478,7 +496,7 @@ class DefenseCycle:
 
         # 6. Whole-twin verification from observed state
         final_obs = await self._observe()
-        observed_twin = build_twin(final_obs["routes"], final_obs["findings"], self.mission)
+        observed_twin = self._twin(final_obs["routes"], final_obs["findings"])
         report.verification = {
             "predicted_system_risk": round(predicted_risk, 6),
             "observed_system_risk": round(observed_twin.system_risk(), 6),
@@ -555,7 +573,7 @@ class DefenseCycle:
                 ch.state = "rollback_failed"
                 steps.append({"change_id": ch.change_id, "status": "rollback_failed", "detail": str(exc)[:200]})
         obs = await self._observe()
-        twin_after = build_twin(obs["routes"], obs["findings"], self.mission)
+        twin_after = self._twin(obs["routes"], obs["findings"])
         # Restored only if every applied reversible change was undone and nothing
         # irreversible had actually been applied.
         restored = all(s["status"] in {"rolled_back", "not_applied"} for s in steps)
