@@ -73,6 +73,7 @@ class PlaybookResult:
     mean_actions: float
     losses: List[float] = field(default_factory=list, repr=False)
     flow_losses: List[float] = field(default_factory=list, repr=False)
+    detected_at: List[Optional[int]] = field(default_factory=list, repr=False)
 
 
 DEFAULT_DETECTION = {"server": 0.02, "protected": 0.05, "grp": 0.005, "ext": 0.0}  # per node-hour
@@ -150,7 +151,7 @@ class WarGame:
         return edge, det, lure
 
     def run(self, campaign: Campaign, playbook: Playbook, draws,
-            decoys: Optional[Mapping[str, float]] = None) -> RunOutcome:
+            decoys: Optional[Mapping[str, float]] = None, boost: Optional[Tuple[int, float]] = None) -> RunOutcome:
         """``decoys``: attach node -> hourly probability an adversary there touches the decoy
         (a touch is a high-fidelity detection of that node; DeceptionMesh)."""
         g = self.twin
@@ -185,7 +186,8 @@ class WarGame:
                 lost.setdefault(a, hour)
             for n in comp - detected:
                 touched = (n in decoys and lure_u is not None and lure_u[hour][n_idx[n]] < decoys[n])
-                if touched or det_u[hour][n_idx[n]] < self._detect_p(n):
+                factor = boost[1] if boost is not None and hour >= boost[0] else 1.0  # e.g. a partner's indicator
+                if touched or det_u[hour][n_idx[n]] < min(1.0, self._detect_p(n) * factor):
                     detected.add(n)
                     first_det = hour if first_det is None else first_det
             if cont is not None:
@@ -211,17 +213,20 @@ class WarGame:
 
     def compare(self, campaign: Campaign, *, runs: int = 300, seed: int = 0,
                 playbooks: Optional[Mapping[str, Playbook]] = None,
-                decoys: Optional[Mapping[str, float]] = None) -> Dict[str, PlaybookResult]:
+                decoys: Optional[Mapping[str, float]] = None,
+                boosts: Optional[Sequence[Optional[Tuple[int, float]]]] = None) -> Dict[str, PlaybookResult]:
+        """``boosts[i]``: (hour, factor) from which run i's detection is multiplied (CyberSwarm)."""
         pbs = playbooks or self.playbooks()
         draws = [self._draws(campaign, seed * 100_003 + i) for i in range(runs)]
         out = {}
         for name, pb in pbs.items():
-            outs = [self.run(campaign, pb, d, decoys) for d in draws]
+            outs = [self.run(campaign, pb, d, decoys, boosts[i] if boosts else None) for i, d in enumerate(draws)]
             out[name] = PlaybookResult(
                 name, sum(bool(o.assets_lost) for o in outs) / runs, sum(len(o.assets_lost) for o in outs) / runs,
                 sum(o.flow_hours_lost for o in outs) / runs, sum(o.contained for o in outs) / runs,
                 sum(len(o.actions) for o in outs) / runs,
-                losses=[float(len(o.assets_lost)) for o in outs], flow_losses=[o.flow_hours_lost for o in outs])
+                losses=[float(len(o.assets_lost)) for o in outs], flow_losses=[o.flow_hours_lost for o in outs],
+                detected_at=[o.detected_at for o in outs])
         return out
 
 
