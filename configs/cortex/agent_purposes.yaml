@@ -1,0 +1,35 @@
+# AgentShield purpose catalogue (contract v0.1).
+#
+# Military/tactical context: an AI agent is authorised for a PURPOSE, not for a sandbox.
+# Each purpose names the exact contract tools, resource selectors, network targets and write
+# rate that the purpose needs. AgentShield derives every agent's least-privilege profile
+# from this file and treats any grant beyond it as excess to be removed.
+# Editing this file is a security change: it needs the same review as a sandbox profile.
+
+version: "0.1"
+purposes:
+  exposure_reporting:
+    description: Read inventory, findings and route usage to produce exposure reports.
+    tools: [contract.manifest, inventory.list_routes, inventory.list_stlinks, telemetry.flow_summary,
+            vuln.findings.list]
+    resources: {route: {allow: ["*"], deny: []}}
+    network_targets: [srv-siem-01]
+    max_writes_per_hour: 0
+    redact_fields: [user]
+
+  ticket_triage:
+    description: Check fabric health and the usage of a route named in a helpdesk ticket.
+    tools: [contract.manifest, telemetry.health, inventory.list_routes, telemetry.flow_summary]
+    resources: {route: {allow: ["rt-users-*", "rt-vpn-*", "rt-inet-*"], deny: ["rt-users-dc"]}}
+    network_targets: [srv-siem-01]
+    max_writes_per_hour: 0
+    redact_fields: [user]
+
+  user_route_hygiene:
+    description: Narrow or expire unused user routes after simulation and human approval.
+    tools: [contract.manifest, inventory.list_routes, telemetry.flow_summary, change.impact,
+            route.narrow, route.expire, route.restore]
+    resources: {route: {allow: ["rt-users-*"], deny: ["rt-users-dc"]}}
+    network_targets: []
+    max_writes_per_hour: 4
+    redact_fields: []

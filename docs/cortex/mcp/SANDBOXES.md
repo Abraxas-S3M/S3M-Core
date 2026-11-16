@@ -18,6 +18,12 @@ A token names exactly one sandbox. Selectors are glob patterns over resource ids
 beats allow; no matching allow means deny.** Profiles live in
 `configs/cortex/mcp_sandboxes.yaml`.
 
+Resource selectors always apply to writes. A profile with `scope_reads: true` applies them
+to reads too (e.g. `telemetry.flow_summary` only for allowed routes), and then omitting an
+optional resource filter counts as asking for every resource, so it is refused unless the
+selector allows `*`. AgentShield's generated least-privilege profiles set it; the static
+profiles below do not. List tools (`inventory.*`) are not filtered by selectors.
+
 ## 2. Profiles
 
 | Profile | Scopes | Tools | Write targets | Writes per hour | Calls per minute | Notes |

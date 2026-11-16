@@ -1,0 +1,40 @@
+# Synthetic AI-agent estate for the enterprise_200 range (AgentShield, capability 04).
+# All data synthetic. agent-helpdesk is deliberately over-privileged: it holds the full
+# range sandbox (class D writes) and network routes to the ERP database and the jump host.
+
+agents:
+  - id: agent-exposure-reporter
+    owner: soc-reporting
+    purpose: exposure_reporting
+    host: srv-ai-01
+    sandbox: sbx-observe
+  - id: agent-helpdesk
+    owner: it-service-desk
+    purpose: ticket_triage
+    host: srv-ai-02
+    sandbox: sbx-range-full
+  - id: agent-route-hygiene
+    owner: network-ops
+    purpose: user_route_hygiene
+    host: srv-ai-03
+    sandbox: sbx-change-limited
+
+mcp_servers:
+  - id: xiid-control-plane
+    contract: "0.1"
+    description: S3M contract v0.1 reference control plane (range)
+
+# Overlay routes for the agent hosts (added to the range with the add_routes admin mode).
+agent_routes:
+  - {id: rt-ai1-siem, source: srv-ai-01, target: srv-siem-01, service: https, port: 443,
+     prefix: 10.30.9.11/32, source_size: 1, status: active, narrow_to: null, narrow_candidate: null,
+     observed_sessions_30d: 4320, sealed_tunnel: true}
+  - {id: rt-ai2-siem, source: srv-ai-02, target: srv-siem-01, service: https, port: 443,
+     prefix: 10.30.9.12/32, source_size: 1, status: active, narrow_to: null, narrow_candidate: null,
+     observed_sessions_30d: 2880, sealed_tunnel: true}
+  - {id: rt-ai2-erpdb, source: srv-ai-02, target: srv-erp-db-01, service: postgres, port: 5432,
+     prefix: 10.30.9.12/32, source_size: 1, status: active, narrow_to: null, narrow_candidate: null,
+     observed_sessions_30d: 0, sealed_tunnel: false}
+  - {id: rt-ai2-jump, source: srv-ai-02, target: srv-jump-01, service: ssh, port: 22,
+     prefix: 10.30.9.12/32, source_size: 1, status: active, narrow_to: null, narrow_candidate: null,
+     observed_sessions_30d: 12, sealed_tunnel: false}

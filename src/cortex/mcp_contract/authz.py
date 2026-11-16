@@ -121,12 +121,21 @@ class PolicyDecisionPoint:
             return _deny("FORBIDDEN_SCOPE", f"{spec.name} needs scope {spec.scope}")
         if spec.tool_class not in sandbox.classes or not sandbox.tool_allowed(spec.name):
             return _deny("SANDBOX_DENIED", f"{sandbox.sandbox_id} does not permit {spec.name}")
-        if spec.is_write:
+        if spec.is_write or sandbox.raw.get("scope_reads"):
+            # Writes are always resource-scoped; reads only when the profile opts in
+            # (AgentShield least-privilege profiles do).
             for arg, kind in spec.resource_args.items():
                 rid = arguments.get(arg)
+                if rid is None and not spec.is_write:
+                    # Omitting an optional filter asks for every resource of that kind.
+                    if sandbox.resource_allowed(kind, "*"):
+                        continue
+                    return _deny("RESOURCE_DENIED", f"{sandbox.sandbox_id} requires {arg} on {spec.name}")
                 if rid is None or not sandbox.resource_allowed(kind, str(rid)):
-                    return _deny("RESOURCE_DENIED", f"{sandbox.sandbox_id} does not permit writes to {kind} {rid}")
-            if sandbox.raw.get("require_inverse") and not (spec.inverse or spec.raw.get("write", {}).get("reversible")):
+                    verb = "writes to" if spec.is_write else "reads of"
+                    return _deny("RESOURCE_DENIED", f"{sandbox.sandbox_id} does not permit {verb} {kind} {rid}")
+            if spec.is_write and sandbox.raw.get("require_inverse") and not (
+                    spec.inverse or spec.raw.get("write", {}).get("reversible")):
                 return _deny("SANDBOX_DENIED", f"{sandbox.sandbox_id} only permits changes with an inverse tool")
         return Decision(True, obligations=dict(sandbox.obligations))
 

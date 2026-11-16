@@ -34,7 +34,32 @@ jobs:
             tests/pytest_optional_deps.py \
             tests/conftest.py \
             s3m_core/tests/conftest.py \
-            formal/roe/roe_model_checker.py
+            formal/roe/roe_model_checker.py \
+            src/cortex/autoheal \
+            src/cortex/agentshield \
+            src/cortex/radar \
+            src/cortex/wargame \
+            src/cortex/breachpath \
+            src/cortex/missionguardian \
+            src/cortex/intent2fabric \
+            src/cortex/proofguard \
+            src/cortex/mcp_contract \
+            src/cortex/calibration.py \
+            src/cortex/cybertwin.py \
+            src/cortex/architect.py \
+            src/cortex/defense_cycle.py \
+            range/contract_server \
+            range/run_contract_cycle.py \
+            tests/cortex/test_autoheal.py \
+            tests/cortex/test_agentshield.py \
+            tests/cortex/test_exposure_radar.py \
+            tests/cortex/test_wargame.py \
+            tests/cortex/test_breachpath.py \
+            tests/cortex/test_missionguardian.py \
+            tests/cortex/test_intent2fabric.py \
+            tests/cortex/test_proofguard.py \
+            tests/cortex/test_calibration.py \
+            tests/cortex/test_mcp_contract.py
 
   security-core:
     name: security-core
