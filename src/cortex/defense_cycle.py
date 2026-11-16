@@ -177,6 +177,8 @@ class DefenseCycle:
         expire_inverse: Optional[str] = None,
         approval_sink: Optional[Callable[[str, Mapping[str, Any], List[str]], None]] = None,
         exposure_target: Optional[float] = None,
+        mission_guard: Any = None,
+        clock: Optional[Callable[[], datetime]] = None,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -196,6 +198,10 @@ class DefenseCycle:
         # When set, the architect adds the BreachPath exact option and recommends the
         # cheapest plan reaching the exposure target (proven achievable).
         self.exposure_target = exposure_target
+        # MissionGuardian: hard mission constraints, change windows, freezes; clock is
+        # injectable so drills can rehearse a Friday-night window on a Monday morning.
+        self.mission_guard = mission_guard
+        self.clock = clock or (lambda: datetime.now(timezone.utc))
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -345,13 +351,40 @@ class DefenseCycle:
         self._stage(report, "analyze", "ok", system_risk=report.twin["system_risk"])
 
         # 3. Architect: alternatives, simulated on the twin
+        now = self.clock()
+        guard = self.mission_guard
+        exact_constraints = None
+        validator = None
+        if guard is not None:
+            exact_constraints = guard.compile_constraints(now, expire_reversible=bool(self.expire_inverse))
+
+            def validator(o):
+                return [v.__dict__ for v in guard.validate(
+                    [{"route_id": c.route_id, "xiid_action": c.xiid_action, "reversible": c.reversible}
+                     for c in o.changes], now)]
+
         options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse,
-                                  exact_threshold=self.exposure_target)
+                                  exact_threshold=self.exposure_target, exact_constraints=exact_constraints,
+                                  validator=validator)
         report.options = [o.to_dict() for o in options]
         choice = recommended(options)
         if choice is None:
             report.outcome = "no_action"
-            self._stage(report, "architect", "no_viable_option")
+            if guard is not None and self.exposure_target is not None:
+                deferred = propose_options(
+                    twin, budget=self.budget, expire_inverse=self.expire_inverse, exact_threshold=self.exposure_target,
+                    exact_constraints=guard.compile_constraints(now, expire_reversible=bool(self.expire_inverse),
+                                                                ignore_windows=True),
+                )[-1]
+                if deferred.changes:
+                    sched = guard.schedule([{"route_id": c.route_id} for c in deferred.changes], now)
+                    report.analysis["deferred_plan"] = {
+                        "changes": [c.to_dict() for c in deferred.changes],
+                        "asset_exposure_after": deferred.asset_exposure_after,
+                        "schedule": sched,
+                    }
+                    report.outcome = "scheduled"
+            self._stage(report, "architect", report.outcome)
             return self._finish(report, t0)
         report.recommended_option = choice.option_id
         self._stage(report, "architect", "ok", recommended=choice.option_id, options=len(options))
@@ -398,6 +431,11 @@ class DefenseCycle:
             auth = auths[ch.change_id]
             try:
                 self.approvals.policy_gate.assert_writes_allowed()
+                if guard is not None:
+                    late = guard.validate([{"route_id": ch.route_id, "xiid_action": ch.xiid_action,
+                                            "reversible": ch.reversible}], self.clock())
+                    if late:
+                        raise RuntimeError("mission window closed: " + ", ".join(v.rule_id for v in late))
                 res = await self.broker.invoke(
                     ch.xiid_action,
                     ch.arguments,

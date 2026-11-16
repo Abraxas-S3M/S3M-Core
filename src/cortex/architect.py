@@ -19,7 +19,7 @@ disrupting the fewest observed sessions, then fewest irreversible changes, then 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from src.cortex.cybertwin import NARROW_FACTOR, CyberTwinGraph
 from src.cortex.reachability import MRCAction, plan_mrc
@@ -77,6 +77,7 @@ class ArchitectureOption:
     target_threshold: Optional[float] = None
     residual_exposure: List[Dict[str, Any]] = field(default_factory=list)
     proven_optimal: bool = False
+    mission_violations: List[Dict[str, Any]] = field(default_factory=list)
     recommended: bool = False
     state: str = "simulated"
 
@@ -207,6 +208,7 @@ def propose_options(
     expire_inverse: Optional[str] = None,
     exact_threshold: Optional[float] = None,
     exact_constraints: Any = None,
+    validator: Optional[Callable[[ArchitectureOption], List[Dict[str, Any]]]] = None,
 ) -> List[ArchitectureOption]:
     before = asset_exposure(twin)
     options: List[ArchitectureOption] = []
@@ -237,6 +239,10 @@ def propose_options(
         )
     if exact_threshold is not None:
         options.append(_exact_option(twin, exact_threshold, exact_constraints, expire_inverse))
+    if validator is not None:
+        for o in options:
+            o.mission_violations = validator(o)
+    if exact_threshold is not None:
         _mark_recommended_by_target(options)
     else:
         _mark_recommended(options)
@@ -249,7 +255,8 @@ def _mark_recommended_by_target(options: List[ArchitectureOption]) -> None:
     goal = exact.asset_exposure_after
     meeting = [
         o for o in options
-        if o.required_flows_ok and all(o.asset_exposure_after.get(a, 1.0) <= v + 1e-9 for a, v in goal.items())
+        if o.required_flows_ok and not o.mission_violations and o.changes
+        and all(o.asset_exposure_after.get(a, 1.0) <= v + 1e-9 for a, v in goal.items())
     ]
     if not meeting:
         return
@@ -259,7 +266,7 @@ def _mark_recommended_by_target(options: List[ArchitectureOption]) -> None:
 
 
 def _mark_recommended(options: List[ArchitectureOption]) -> None:
-    viable = [o for o in options if o.required_flows_ok and o.changes]
+    viable = [o for o in options if o.required_flows_ok and o.changes and not o.mission_violations]
     if not viable:
         return
     best = max(o.risk_reduction for o in viable)
