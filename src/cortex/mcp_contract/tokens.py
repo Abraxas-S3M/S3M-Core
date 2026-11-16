@@ -138,6 +138,10 @@ class SandboxAuthorizationServer:
         self._sandbox_scopes = {k: list(v) for k, v in sandbox_scopes.items()}
         self._assertions = ReplayCache()
 
+    def define_sandbox(self, sandbox_id: str, scopes: Sequence[str]) -> None:
+        """Provision a new sandbox profile (its scopes cap what any token for it may carry)."""
+        self._sandbox_scopes[sandbox_id] = list(scopes)
+
     def register_client(self, identity_public_key: Ed25519PublicKey, client_id: str, *,
                         scopes: Sequence[str], sandboxes: Sequence[str], tenant: str = "range") -> None:
         self._clients[client_id] = RegisteredClient(client_id, identity_public_key, list(scopes), list(sandboxes), tenant)

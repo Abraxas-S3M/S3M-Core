@@ -38,7 +38,7 @@ from range.contract_server.app import ContractServerState, build_contract_server
 from s3m_core.defense.audit.merkle_log import MerkleAuditLog  # noqa: E402
 from src.cortex.approvals.service import ApprovalService  # noqa: E402
 from src.cortex.defense_cycle import CycleReport, DefenseCycle, RangeApprovalBoard  # noqa: E402
-from src.cortex.mcp_contract.authz import load_sandboxes  # noqa: E402
+from src.cortex.mcp_contract.authz import SandboxProfile, load_sandboxes  # noqa: E402
 from src.cortex.mcp_contract.client import ContractMCPTransport  # noqa: E402
 from src.cortex.mcp_contract.manifest import load_contract  # noqa: E402
 from src.cortex.mcp_contract.tokens import ApprovalAuthority, ClientIdentity, SandboxAuthorizationServer  # noqa: E402
@@ -71,6 +71,13 @@ class ContractRange:
             sandbox=profile, contract=load_contract(), contract_authority_key=self.manifest_public_key,
             scopes=scopes,
         )
+
+    def install_sandbox(self, sandbox_id: str, raw: Dict[str, Any]) -> None:
+        """Provision a sandbox on the AS and the control-plane PDP (e.g. an AgentShield profile)."""
+        profile = SandboxProfile(sandbox_id, raw)
+        self.sandboxes[sandbox_id] = profile
+        self.state.pdp.sandboxes[sandbox_id] = profile
+        self.authorization_server.define_sandbox(sandbox_id, profile.scopes)
 
     def admin(self, body: Dict[str, Any]) -> Dict[str, Any]:
         return httpx.post(self.url.removesuffix("/mcp") + "/admin/fault", json=body, timeout=5).json()
