@@ -33,5 +33,7 @@ Generated from `src/cortex/mcp_contract/schemas/v0.1/manifest.json` by
 | `session.terminate` | D | `cortex.write.d` | range-implemented | `session_id`, `approval`, `idempotency_key` | `receipt`, `session` | 2 | none |
 | `host.quarantine` | D | `cortex.write.d` | range-implemented | `host_id`, `approval`, `idempotency_key` | `receipt`, `host` | 2 | `host.release` |
 | `host.release` | D | `cortex.write.d` | proposed | `host_id`, `approval`, `idempotency_key` | `receipt`, `host` | 2 | self |
+| `stlink.rotate_identity` | C | `cortex.write.c` | proposed | `stlink_id`, `grace_seconds`, `approval`, `idempotency_key` | `receipt`, `stlink` | 2 | none |
+| `tunnel.rekey` | C | `cortex.write.c` | proposed | `tunnel_id`, `approval`, `idempotency_key` | `receipt`, `tunnel` | 2 | none |
 
 Error codes: `UNAUTHENTICATED`, `TOKEN_EXPIRED`, `DPOP_INVALID`, `FORBIDDEN_SCOPE`, `SANDBOX_DENIED`, `RESOURCE_DENIED`, `APPROVAL_REQUIRED`, `APPROVAL_INVALID`, `APPROVAL_INSUFFICIENT`, `APPROVAL_REPLAYED`, `SCHEMA_INVALID`, `NOT_FOUND`, `CONFLICT`, `RATE_LIMITED`, `WRITE_BUDGET_EXHAUSTED`, `KILL_SWITCH_ENGAGED`, `INTERNAL`

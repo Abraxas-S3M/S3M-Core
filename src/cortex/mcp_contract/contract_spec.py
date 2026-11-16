@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 CONTRACT_ID = "s3m-cortex-control-plane"
-VERSION = "0.1.0"
+VERSION = "0.1.1"  # 0.1.1 adds two PROPOSED GhostShift tools (v0.2 candidates)
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas" / "v0.1"
 COMMON_ID = "urn:s3m:cortex-mcp:0.1:common"
 TELEMETRY_ID = "urn:s3m:cortex-mcp:0.1:telemetry"
@@ -105,6 +105,8 @@ COMMON: Dict[str, Any] = {
                 "endpoint": ref("IPv4"),
                 "status": {"enum": ["active", "disabled", "degraded"]},
                 "host": ref("HostId"),
+                "identity_epoch": {"type": "integer", "minimum": 0},
+                "credential_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
             },
             ["id", "endpoint", "status"],
         ),
@@ -116,6 +118,7 @@ COMMON: Dict[str, Any] = {
                 "target": ref("Endpoint"),
                 "service": ref("Service"),
                 "status": {"enum": ["up", "down", "degraded"]},
+                "key_epoch": {"type": "integer", "minimum": 0},
             },
             ["id", "route_id", "status"],
         ),
@@ -168,7 +171,7 @@ COMMON: Dict[str, Any] = {
                 "tool": {"enum": [
                     "route.narrow", "route.restore", "route.expire", "stlink.deploy", "stlink.disable",
                     "stlink.enable", "session.terminate", "host.quarantine", "host.release",
-                    "access.create_temporary", "access.revoke",
+                    "access.create_temporary", "access.revoke", "stlink.rotate_identity", "tunnel.rekey",
                 ]},
                 "arguments": {"type": "object", "maxProperties": 8},
             },
@@ -408,6 +411,21 @@ TOOLS: List[Dict[str, Any]] = [
          {"host_id": ref("HostId")}, ["host_id"],
          _write_out("host", ref("Host")), status="proposed", reversible=True,
          resource_args={"host_id": "host"}, rate_per_minute=2),
+    # --- GhostShift (capability 02): PROPOSED v0.2 candidates. Not offered by XiiD today;
+    # implemented only in the range control plane. REQUIRES XIID VALIDATION. ------------
+    tool("stlink.rotate_identity", "Rotate STLink identity", "C", "write",
+         "PROPOSED. Issue a new STLink credential; the old one stops working after grace_seconds. "
+         "Routes and reachability are unchanged. Not reversible by design (old credentials are never restored).",
+         {"stlink_id": ref("StlinkId"), "grace_seconds": {"type": "integer", "minimum": 0, "maximum": 3600}},
+         ["stlink_id", "grace_seconds"],
+         _write_out("stlink", ref("Stlink")), status="proposed", reversible=False,
+         resource_args={"stlink_id": "stlink"}, rate_per_minute=4),
+    tool("tunnel.rekey", "Rekey SealedTunnel", "C", "write",
+         "PROPOSED. Replace the keys of one SealedTunnel without changing its route or endpoints. "
+         "Not reversible by design.",
+         {"tunnel_id": ref("TunnelId")}, ["tunnel_id"],
+         _write_out("tunnel", ref("SealedTunnel")), status="proposed", reversible=False,
+         resource_args={"tunnel_id": "tunnel"}, rate_per_minute=10),
 ]
 
 TELEMETRY: Dict[str, Any] = {

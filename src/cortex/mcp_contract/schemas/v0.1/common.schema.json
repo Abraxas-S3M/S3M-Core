@@ -170,6 +170,14 @@
         },
         "host": {
           "$ref": "urn:s3m:cortex-mcp:0.1:common#/$defs/HostId"
+        },
+        "identity_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "credential_fingerprint": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
         }
       },
       "additionalProperties": false,
@@ -203,6 +211,10 @@
             "down",
             "degraded"
           ]
+        },
+        "key_epoch": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "additionalProperties": false,
@@ -357,7 +369,9 @@
             "host.quarantine",
             "host.release",
             "access.create_temporary",
-            "access.revoke"
+            "access.revoke",
+            "stlink.rotate_identity",
+            "tunnel.rekey"
           ]
         },
         "arguments": {
