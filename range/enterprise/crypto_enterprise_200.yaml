@@ -1,0 +1,37 @@
+# Synthetic crypto declarations for the enterprise_200 range (QuantumWatch, capability 13).
+# All data synthetic. data_class maps each server to the data it holds; assets are the
+# customer-declared cryptography that route inference cannot see.
+
+data_class:
+  srv-erp-db-01: financial
+  srv-erp-app-01: financial
+  srv-api-01: financial
+  srv-hr-db-01: personnel
+  srv-hr-app-01: personnel
+  srv-dc-01: identity
+  srv-pki-01: identity
+  srv-jump-01: identity
+  srv-nvr-01: evidence
+  srv-vms-01: evidence
+  srv-backup-01: financial
+  srv-file-01: operational
+  srv-mail-01: operational
+  srv-vpn-01: operational
+  srv-web-01: public
+  srv-siem-01: telemetry
+  srv-git-01: operational
+  srv-ci-01: operational
+  srv-print-01: public
+  grp:corp-users: operational
+
+assets:
+  - {id: pki-root-ca, algo: rsa-4096, usage: authenticity, data_class: identity, category: custom_application,
+     component: srv-pki-01, trust_years: 20, native_effort_weeks: 16}
+  - {id: pki-issuing-ca, algo: rsa-2048, usage: authenticity, data_class: identity, category: custom_application,
+     component: srv-pki-01, trust_years: 5, native_effort_weeks: 8, depends_on: [pki-root-ca]}
+  - {id: vpn-ike, algo: ecdh-p256, usage: confidentiality, data_class: operational, category: networking,
+     component: srv-vpn-01, internet_facing: true, native_effort_weeks: 6}
+  - {id: firmware-signing, algo: rsa-3072, usage: authenticity, data_class: identity, category: software_signing,
+     component: srv-ci-01, trust_years: 10, native_effort_weeks: 6}
+  - {id: backup-encryption, algo: rsa-kex, usage: confidentiality, data_class: financial, category: custom_application,
+     component: srv-backup-01, at_rest: true, native_effort_weeks: 4}
