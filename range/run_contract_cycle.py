@@ -104,6 +104,34 @@ def contract_range() -> Iterator[ContractRange]:
         thread.join(timeout=5)
 
 
+def make_cycle(rng: ContractRange, *, workdir: Path, case_id: str, sandbox: str = "sbx-change-limited",
+               board_policy=None, **cycle_kwargs) -> tuple[DefenseCycle, ContractMCPTransport]:
+    """A DefenseCycle wired to the contract range (used by the cycle and by AutoHeal)."""
+    transport = rng.client(sandbox=sandbox)
+    tool_map = XiidToolMap.from_yaml(TOOL_MAP)
+    key = secrets.token_bytes(32)
+    session_id = "cortex-contract"
+    audit = MerkleAuditLog(str(workdir / f"{case_id}-audit.jsonl"))
+    broker = XiidMCPBroker(transport=transport, tool_map=tool_map, audit_log=audit, session_id=session_id,
+                           envelope_signing_key=key, require_bound_envelopes=True)
+
+    def approval_sink(action: str, arguments, approval_ids):
+        tool = tool_map.resolve(action).tool
+        token = rng.approval_authority.issue(client_id=transport.identity.client_id, resource=rng.url,
+                                             tool=tool, arguments=arguments, approval_ids=approval_ids)
+        transport.attach_approval(tool, arguments, token)
+
+    service = ApprovalService()
+    cycle = DefenseCycle(
+        broker=broker, audit_log=audit, mission=yaml.safe_load(MISSION.read_text(encoding="utf-8")),
+        approval_service=service, approval_board=RangeApprovalBoard(service, policy=board_policy),
+        envelope_signing_key=key, session_id=session_id,
+        xiid_label="S3M contract v0.1 reference control plane (range), DPoP client in " + sandbox,
+        expire_inverse="restore_route", approval_sink=approval_sink, **cycle_kwargs,
+    )
+    return cycle, transport
+
+
 async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str, board_policy=None,
                              sandbox: str = "sbx-change-limited",
                              exposure_target: float | None = None, mission_guard=None,
