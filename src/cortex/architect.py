@@ -95,7 +95,9 @@ def asset_exposure(twin: CyberTwinGraph) -> Dict[str, float]:
     }
 
 
-def _to_change(twin: CyberTwinGraph, action: MRCAction, idx: int) -> ProposedChange:
+def _to_change(
+    twin: CyberTwinGraph, action: MRCAction, idx: int, expire_inverse: Optional[str] = None
+) -> ProposedChange:
     meta = twin.route_meta[action.edge_id]
     if action.action == "harden":
         prefix = str(meta.narrow_candidate)
@@ -125,10 +127,11 @@ def _to_change(twin: CyberTwinGraph, action: MRCAction, idx: int) -> ProposedCha
         twin_action="remove",
         xiid_action="expire_route",
         arguments={"route_id": meta.route_id},
-        rollback_action=None,
-        rollback_arguments=None,
-        # No XiiD MCP tool re-activates an expired route in the current contract.
-        reversible=False,
+        # Current XiiD contract: no tool re-activates an expired route. Contract v0.1
+        # proposes route.restore; when the control plane implements it, pass it here.
+        rollback_action=expire_inverse,
+        rollback_arguments={"route_id": meta.route_id} if expire_inverse else None,
+        reversible=bool(expire_inverse),
         risk_before=round(action.risk_before, 6),
         risk_after=round(action.risk_after, 6),
         cost=action.cost,
@@ -155,13 +158,15 @@ def apply_changes(twin: CyberTwinGraph, changes: List[ProposedChange]) -> CyberT
     return sim
 
 
-def propose_options(twin: CyberTwinGraph, *, budget: float = DEFAULT_BUDGET) -> List[ArchitectureOption]:
+def propose_options(
+    twin: CyberTwinGraph, *, budget: float = DEFAULT_BUDGET, expire_inverse: Optional[str] = None
+) -> List[ArchitectureOption]:
     before = asset_exposure(twin)
     options: List[ArchitectureOption] = []
     for option_id, label, policy in OPTION_POLICIES:
         variant = twin.with_policy(policy)
         plan = plan_mrc(variant, budget, harden_factor=NARROW_FACTOR)
-        changes = [_to_change(variant, a, i) for i, a in enumerate(plan.actions, start=1)]
+        changes = [_to_change(variant, a, i, expire_inverse) for i, a in enumerate(plan.actions, start=1)]
         sim = apply_changes(twin, changes)
         options.append(
             ArchitectureOption(

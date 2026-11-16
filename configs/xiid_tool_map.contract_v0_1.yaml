@@ -1,0 +1,27 @@
+# Logical Cortex actions -> S3M Cortex control-plane MCP contract v0.1 tools.
+# Classes and kinds mirror src/cortex/mcp_contract/schemas/v0.1/manifest.json.
+actions:
+  list_stlinks: {tool: inventory.list_stlinks, class: A, kind: read}
+  list_routes: {tool: inventory.list_routes, class: A, kind: read}
+  list_tunnels: {tool: inventory.list_tunnels, class: A, kind: read}
+  list_hosts: {tool: inventory.list_hosts, class: A, kind: read}
+  list_sessions: {tool: inventory.list_sessions, class: A, kind: read}
+  telemetry_health: {tool: telemetry.health, class: A, kind: read}
+  telemetry_flows: {tool: telemetry.flow_summary, class: A, kind: read}
+  telemetry_events: {tool: telemetry.events, class: A, kind: read}
+  verify_audit_chain: {tool: audit.verify_chain, class: A, kind: read}
+  list_vuln_findings: {tool: vuln.findings.list, class: A, kind: read}
+  assess_change_impact: {tool: change.impact, class: B, kind: read}
+  simulate_policy: {tool: policy.simulate, class: B, kind: read}
+  draft_route: {tool: route.draft, class: B, kind: read}
+  narrow_route: {tool: route.narrow, class: C, kind: write}
+  restore_route: {tool: route.restore, class: C, kind: write}
+  expire_route: {tool: route.expire, class: C, kind: write}
+  deploy_stlink: {tool: stlink.deploy, class: C, kind: write}
+  create_temporary_access: {tool: access.create_temporary, class: C, kind: write}
+  revoke_temporary_access: {tool: access.revoke, class: C, kind: write}
+  disable_stlink: {tool: stlink.disable, class: D, kind: write}
+  enable_stlink: {tool: stlink.enable, class: D, kind: write}
+  terminate_session: {tool: session.terminate, class: D, kind: write}
+  quarantine_host: {tool: host.quarantine, class: D, kind: write}
+  release_host: {tool: host.release, class: D, kind: write}
