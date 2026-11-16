@@ -60,6 +60,7 @@ jobs:
             tests/agents \
             s3m_core/tests \
             tests/test_security_api.py \
+            tests/test_gui_bridge.py \
             tests/test_security_middleware.py \
             tests/test_comms_security.py \
             tests/test_fmn_security.py \
