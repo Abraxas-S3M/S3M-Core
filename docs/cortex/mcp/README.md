@@ -8,7 +8,7 @@ Nothing here is validated against a live XiiD deployment; tools marked *proposed
 | Document | Contents |
 |---|---|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Components, trust boundaries, three-key model, write sequence, manifest, measured results, questions for XiiD |
-| [TOOLS.md](TOOLS.md) | All 27 tools (contract 0.1.1): class, scope, status, arguments, returns, approvals, inverse (generated) |
+| [TOOLS.md](TOOLS.md) | All 30 tools (contract 0.1.2): class, scope, status, arguments, returns, approvals, inverse (generated) |
 | [AUTH.md](AUTH.md) | Authentication (private_key_jwt, DPoP-bound access tokens), scopes, approval tokens, decision order, errors, key management |
 | [SANDBOXES.md](SANDBOXES.md) | Five permission profiles, read/write matrix, hypothetical XiiD sandbox deployment and entry criteria |
 | [TELEMETRY.md](TELEMETRY.md) | Event envelope, 8 event types, MCP access, representative one-hour sample |

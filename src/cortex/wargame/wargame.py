@@ -140,15 +140,23 @@ class WarGame:
                 "ring_fence_assets": ring_fence, "breachpath_adaptive": adaptive}
 
     # ---- simulation ------------------------------------------------------------------
-    def _draws(self, campaign: Campaign, seed: int) -> Tuple[List[List[float]], List[List[float]]]:
+    def _draws(self, campaign: Campaign, seed: int) -> Tuple[List[List[float]], ...]:
         rng = random.Random(seed)
         edge = [[rng.random() for _ in self.edge_ids] for _ in range(campaign.hours)]
         det = [[rng.random() for _ in self.node_ids] for _ in range(campaign.hours)]
-        return edge, det
+        # Decoy lure draws per node: independent of placement, so placements share attacker luck.
+        rng2 = random.Random(seed * 7919 + 1)
+        lure = [[rng2.random() for _ in self.node_ids] for _ in range(campaign.hours)]
+        return edge, det, lure
 
-    def run(self, campaign: Campaign, playbook: Playbook, draws) -> RunOutcome:
+    def run(self, campaign: Campaign, playbook: Playbook, draws,
+            decoys: Optional[Mapping[str, float]] = None) -> RunOutcome:
+        """``decoys``: attach node -> hourly probability an adversary there touches the decoy
+        (a touch is a high-fidelity detection of that node; DeceptionMesh)."""
         g = self.twin
-        edge_u, det_u = draws
+        edge_u, det_u = draws[0], draws[1]
+        lure_u = draws[2] if len(draws) > 2 else None
+        decoys = dict(decoys or {})
         comp: Set[str] = set(campaign.entry)
         detected: Set[str] = set()
         first_det: Optional[int] = None
@@ -176,7 +184,8 @@ class WarGame:
             for a in new & g.protected:
                 lost.setdefault(a, hour)
             for n in comp - detected:
-                if det_u[hour][n_idx[n]] < self._detect_p(n):
+                touched = (n in decoys and lure_u is not None and lure_u[hour][n_idx[n]] < decoys[n])
+                if touched or det_u[hour][n_idx[n]] < self._detect_p(n):
                     detected.add(n)
                     first_det = hour if first_det is None else first_det
             if cont is not None:
@@ -201,12 +210,13 @@ class WarGame:
         return False
 
     def compare(self, campaign: Campaign, *, runs: int = 300, seed: int = 0,
-                playbooks: Optional[Mapping[str, Playbook]] = None) -> Dict[str, PlaybookResult]:
+                playbooks: Optional[Mapping[str, Playbook]] = None,
+                decoys: Optional[Mapping[str, float]] = None) -> Dict[str, PlaybookResult]:
         pbs = playbooks or self.playbooks()
         draws = [self._draws(campaign, seed * 100_003 + i) for i in range(runs)]
         out = {}
         for name, pb in pbs.items():
-            outs = [self.run(campaign, pb, d) for d in draws]
+            outs = [self.run(campaign, pb, d, decoys) for d in draws]
             out[name] = PlaybookResult(
                 name, sum(bool(o.assets_lost) for o in outs) / runs, sum(len(o.assets_lost) for o in outs) / runs,
                 sum(o.flow_hours_lost for o in outs) / runs, sum(o.contained for o in outs) / runs,
