@@ -137,6 +137,27 @@ async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str,
         await transport.close()
 
 
+async def control_plane_changes(rng: ContractRange) -> list:
+    """Read the control-plane change ledger as an independent auditor (sbx-observe)."""
+    auditor = rng.client(f"auditor-{secrets.token_hex(3)}", sandbox="sbx-observe")
+    try:
+        return (await auditor.call_tool("telemetry.events", {"types": ["change.applied"], "limit": 1000}))["events"]
+    finally:
+        await auditor.close()
+
+
+def case_bundle(rng: ContractRange, report: CycleReport, transport: ContractMCPTransport, workdir: Path,
+                evidence_key) -> Dict[str, Any]:
+    from src.cortex.proofguard.bundle import build_bundle
+
+    return build_bundle(
+        report=report.to_dict(), audit_log_path=Path(report.audit["audit_log"]),
+        cortex_writes=transport.write_log, control_plane_events=asyncio.run(control_plane_changes(rng)),
+        cortex_client_id=transport.identity.client_id,
+        receipt_public_key_b64=rng.state.signer.public_key_b64, evidence_key=evidence_key,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Cortex cycle over contract v0.1")
     ap.add_argument("--scenario", default="all", choices=["c-sim-002", "c-sim-005", "all"])

@@ -103,6 +103,8 @@ class ContractMCPTransport:
         self.precheck = PolicyDecisionPoint({sandbox.sandbox_id: sandbox})
         self.approvals: Dict[Tuple[str, str], str] = {}
         self.provenance: List[CallProvenance] = []
+        # Cortex-side write ledger for ProofGuard: exactly what was sent and returned.
+        self.write_log: List[Dict[str, Any]] = []
         self._token: Optional[str] = None
         self._claims: Dict[str, Any] = {}
         self._client: Optional[Client] = None
@@ -191,6 +193,15 @@ class ContractMCPTransport:
         out_errors = self.contract.output_errors(name, result)
         if out_errors:
             raise ContractOutputError("OUTPUT_REJECTED", "; ".join(out_errors))
+        if spec.is_write and isinstance(result, dict) and "receipt" in result:
+            self.write_log.append({
+                "tool": name,
+                "client_id": self.identity.client_id,
+                "arguments": {k: v for k, v in args.items() if k != "approval"},
+                "approval": args.get("approval"),
+                "response": result,
+                "sent_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            })
         self.provenance.append(CallProvenance(
             tool=name, sandbox=self.sandbox.sandbox_id, request_args_sha256=args_sha256(args),
             untrusted_fields=_untrusted_paths({}, result)[:50],
