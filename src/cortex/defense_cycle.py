@@ -174,6 +174,8 @@ class DefenseCycle:
         proposer_device_id: str = "cortex-proposer",
         budget: float = 8.0,
         xiid_label: str = "mock XiiD MCP server (range, streamable HTTP)",
+        expire_inverse: Optional[str] = None,
+        approval_sink: Optional[Callable[[str, Mapping[str, Any], List[str]], None]] = None,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -186,6 +188,10 @@ class DefenseCycle:
         self.proposer_device_id = proposer_device_id
         self.budget = budget
         self.xiid_label = xiid_label
+        self.expire_inverse = expire_inverse
+        # Called with (logical action, arguments, approval ids) once human approval is
+        # satisfied, so an independent Approval Authority can mint a server-verifiable token.
+        self.approval_sink = approval_sink
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -265,6 +271,11 @@ class DefenseCycle:
             "gate_satisfied": satisfied,
             "envelope_id": envelope_id,
         }
+        if satisfied and self.approval_sink is not None:
+            ids = [f"{envelope_id}:{v['device_id']}" for v in votes if v["decision"] == "APPROVE"]
+            self.approval_sink(change.xiid_action, change.arguments, ids)
+            if change.reversible and change.rollback_action:
+                self.approval_sink(str(change.rollback_action), dict(change.rollback_arguments or {}), ids)
         if satisfied:
             out["write_envelope"] = WriteEnvelope.issue(
                 operator_id=self.operator_id,
@@ -330,7 +341,7 @@ class DefenseCycle:
         self._stage(report, "analyze", "ok", system_risk=report.twin["system_risk"])
 
         # 3. Architect: alternatives, simulated on the twin
-        options = propose_options(twin, budget=self.budget)
+        options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse)
         report.options = [o.to_dict() for o in options]
         choice = recommended(options)
         if choice is None:
@@ -472,7 +483,12 @@ class DefenseCycle:
                     idempotency_key=f"{case_id}:{ch.change_id}:rollback",
                 )
                 route = self._route(await self._observe(), ch.route_id)
-                restored = route is not None and route.get("narrow_to") == ch.rollback_arguments["prefix"]
+                # Effective policy restored: enforced, and not narrower than its own prefix.
+                restored = (
+                    route is not None
+                    and route.get("status") != "expired"
+                    and route.get("narrow_to") in (None, route.get("prefix"))
+                )
                 ch.state = "rolled_back" if restored else "rollback_failed"
                 steps.append({"change_id": ch.change_id, "status": ch.state})
             except Exception as exc:

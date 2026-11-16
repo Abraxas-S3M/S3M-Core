@@ -1,4 +1,4 @@
-.PHONY: range range-test range-smoke cortex-slice cortex-slice-test
+.PHONY: range range-test range-smoke cortex-slice cortex-slice-test cortex-contract cortex-contract-test
 
 PYTHON ?= python3
 
@@ -23,3 +23,10 @@ cortex-slice:
 
 cortex-slice-test:
 	$(PYTHON) -m pytest tests/cortex/test_vertical_slice.py -q
+
+# Cortex cycle over the S3M control-plane MCP contract v0.1 (reference server, loopback).
+cortex-contract:
+	$(PYTHON) -m range.run_contract_cycle --scenario all
+
+cortex-contract-test:
+	$(PYTHON) -m pytest tests/cortex/test_mcp_contract.py -q
