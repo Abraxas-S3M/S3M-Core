@@ -55,12 +55,16 @@ class XiidMCPBroker:
         *,
         session_id: str,
         envelope_signing_key: bytes,
+        require_bound_envelopes: bool = False,
     ) -> None:
         self._transport = transport
         self._tool_map = tool_map
         self._audit_log = audit_log
         self._session_id = session_id
         self._envelope_signing_key = envelope_signing_key
+        # When True, every write envelope must bind the exact arguments and carry an
+        # expiry, so one approval cannot be replayed against a different target.
+        self._require_bound = require_bound_envelopes
         self._pinned_digest: Optional[str] = None
         self._write_dispatched: set[str] = set()
 
@@ -115,6 +119,22 @@ class XiidMCPBroker:
                 raise EnvelopeRejected("envelope action/session mismatch")
             if not envelope.verify(self._envelope_signing_key):
                 raise EnvelopeRejected("envelope signature invalid")
+            if self._require_bound and not (envelope.is_bound and envelope.expires_at):
+                self._append_audit(
+                    event_type="write_denied_unbound_envelope",
+                    severity="warning",
+                    details={"action": action, "tool": binding.tool},
+                )
+                raise EnvelopeRejected("envelope must bind arguments and expiry")
+            if envelope.is_expired():
+                raise EnvelopeRejected("envelope expired")
+            if not envelope.covers_arguments(arguments):
+                self._append_audit(
+                    event_type="write_denied_argument_mismatch",
+                    severity="critical",
+                    details={"action": action, "tool": binding.tool, "approval_id": envelope.approval_id},
+                )
+                raise EnvelopeRejected("envelope does not cover these arguments")
 
         if binding.requires_envelope and not idempotency_key:
             dedupe_key = f"{action}:{sorted((arguments or {}).items())!r}"
@@ -129,6 +149,8 @@ class XiidMCPBroker:
                 "tool": binding.tool,
                 "idempotency_key": idempotency_key or "",
                 "has_envelope": envelope is not None,
+                "approval_id": envelope.approval_id if envelope else "",
+                "operator_id": envelope.operator_id if envelope else "",
             },
         )
         result = await self._transport.call_tool(
