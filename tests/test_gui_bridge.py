@@ -4,6 +4,9 @@ These tests validate that every endpoint returns the exact JSON shape
 the S3M-GUI frontend expects. Run with: pytest tests/test_gui_bridge.py -v
 """
 
+import json
+import secrets
+
 import pytest
 from fastapi.testclient import TestClient
 from datetime import datetime
@@ -546,11 +549,30 @@ class TestSystemStatus:
         datetime.fromisoformat(data["updatedAt"])
 
 
+@pytest.fixture
+def gui_users(tmp_path, monkeypatch):
+    """Throwaway user store + signing key; nothing credential-like lives in source."""
+    from src.api.gui_bridge import auth_routes
+
+    creds = {"commander": secrets.token_urlsafe(12), "analyst": secrets.token_urlsafe(12)}
+    store = {
+        name: {"password_hash": auth_routes.hash_password(pw, iterations=1000), "role": name, "name": name}
+        for name, pw in creds.items()
+    }
+    path = tmp_path / "users.json"
+    path.write_text(json.dumps(store), encoding="utf-8")
+    monkeypatch.setenv("S3M_GUI_USERS_FILE", str(path))
+    monkeypatch.setenv("S3M_GUI_JWT_SECRET", secrets.token_urlsafe(48))
+    auth_routes.reload_auth_config()
+    yield creds
+    auth_routes.reload_auth_config()
+
+
 class TestAuth:
-    def test_login_success(self):
+    def test_login_success(self, gui_users):
         r = client.post(
             f"{BASE}/auth/login",
-            json={"username": "commander", "password": "s3m-cmd-2026"},
+            json={"username": "commander", "password": gui_users["commander"]},
         )
         assert r.status_code == 200
         data = r.json()
@@ -558,21 +580,53 @@ class TestAuth:
         assert "user" in data
         assert data["user"]["role"] == "commander"
 
-    def test_login_failure(self):
-        r = client.post(
-            f"{BASE}/auth/login", json={"username": "bad", "password": "bad"}
-        )
+    def test_login_failure(self, gui_users):
+        r = client.post(f"{BASE}/auth/login", json={"username": "bad", "password": "bad"})
+        assert r.status_code == 401
+        r = client.post(f"{BASE}/auth/login", json={"username": "analyst", "password": "wrong"})
         assert r.status_code == 401
 
-    def test_me_with_token(self):
+    def test_me_with_token(self, gui_users):
         login = client.post(
             f"{BASE}/auth/login",
-            json={"username": "analyst", "password": "s3m-analyst-2026"},
+            json={"username": "analyst", "password": gui_users["analyst"]},
         )
         token = login.json()["token"]
         r = client.get(f"{BASE}/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert r.status_code == 200
         assert r.json()["role"] == "analyst"
+
+    def test_login_fails_closed_without_user_store(self, monkeypatch):
+        from src.api.gui_bridge import auth_routes
+
+        monkeypatch.delenv("S3M_GUI_USERS_FILE", raising=False)
+        auth_routes.reload_auth_config()
+        r = client.post(f"{BASE}/auth/login", json={"username": "admin", "password": "admin"})
+        assert r.status_code == 401
+        auth_routes.reload_auth_config()
+
+    def test_token_from_other_key_rejected(self, gui_users, monkeypatch):
+        from src.api.gui_bridge import auth_routes
+
+        login = client.post(
+            f"{BASE}/auth/login",
+            json={"username": "analyst", "password": gui_users["analyst"]},
+        )
+        token = login.json()["token"]
+        monkeypatch.setenv("S3M_GUI_JWT_SECRET", secrets.token_urlsafe(48))
+        auth_routes._jwt_secret = None  # rotate key, keep users
+        r = client.get(f"{BASE}/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert r.status_code == 401
+
+    def test_alg_none_rejected(self, gui_users):
+        import base64
+
+        def b64(d):
+            return base64.urlsafe_b64encode(json.dumps(d).encode()).decode().rstrip("=")
+
+        forged = f"{b64({'alg': 'none'})}.{b64({'sub': 'commander', 'role': 'commander', 'name': 'x', 'exp': 9e9})}."
+        r = client.get(f"{BASE}/auth/me", headers={"Authorization": f"Bearer {forged}"})
+        assert r.status_code == 401
 
 
 class TestAIChat:

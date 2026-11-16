@@ -31,3 +31,6 @@ formal/cortex/*_TTrace_*
 
 # Local security audit JSONL from dev/test runs
 data/security_audit/
+
+# Runtime key material written by comms/quantum/readiness modules during tests
+configs/keys/

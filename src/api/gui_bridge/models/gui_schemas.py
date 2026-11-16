@@ -467,3 +467,17 @@ class GUIPlanningPhasesData(GUIBaseModel):
 class GUICOAData(GUIBaseModel):
     coursesOfAction: List[GUICOA]
     updatedAt: str
+
+
+# Restored from d000d14a24: dropped by the 2026-04-08 merge of PR #182, which left
+# src.command.action_board (and therefore the whole GUI bridge router) unimportable.
+class GUIActionItem(GUIBaseModel):
+    id: str
+    title: str
+    urgency: int = Field(ge=1, le=5)
+    impact: int = Field(ge=1, le=5)
+    urgencyScore: float
+    assignee: Optional[str] = None
+    status: str
+    linkedDecisionId: Optional[str] = None
+    createdAt: str
