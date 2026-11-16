@@ -1,0 +1,7 @@
+# Operator intents for the synthetic enterprise_200 range (controlled English).
+intents:
+  - {id: I-CCTV-ISOLATION, say: "grp:cctv-cams may only reach srv-nvr-01"}
+  - {id: I-ERPDB-CLIENTS, say: "only srv-erp-app-01, srv-backup-01, srv-jump-01 and grp:eng-users may reach srv-erp-db-01"}
+  - {id: I-NO-INTERNET-ADMIN, say: "no ssh, rdp, smb from ext:internet"}
+  - {id: I-FILE-FINANCE, say: "grp:corp-users may reach srv-file-01 over smb only from 10.10.4.0/22"}
+  - {id: I-MAIL-RELAY, say: "srv-mail-01 may only reach nothing"}

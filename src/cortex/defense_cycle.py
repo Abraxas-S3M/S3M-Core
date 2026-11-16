@@ -179,6 +179,7 @@ class DefenseCycle:
         exposure_target: Optional[float] = None,
         mission_guard: Any = None,
         clock: Optional[Callable[[], datetime]] = None,
+        intents: Optional[Sequence[Any]] = None,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -202,6 +203,9 @@ class DefenseCycle:
         # injectable so drills can rehearse a Friday-night window on a Monday morning.
         self.mission_guard = mission_guard
         self.clock = clock or (lambda: datetime.now(timezone.utc))
+        # Intent2Fabric: when operator intents are given, they replace the architect's
+        # alternatives; the compiled, proved plan goes through the same gates.
+        self.intents = list(intents) if intents else None
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -363,9 +367,22 @@ class DefenseCycle:
                     [{"route_id": c.route_id, "xiid_action": c.xiid_action, "reversible": c.reversible}
                      for c in o.changes], now)]
 
-        options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse,
-                                  exact_threshold=self.exposure_target, exact_constraints=exact_constraints,
-                                  validator=validator)
+        if self.intents:
+            from src.cortex.intent2fabric.intents import as_option, compile_intents
+
+            compiled = compile_intents(twin, self.intents, expire_inverse=self.expire_inverse)
+            report.analysis["intents"] = compiled.to_dict()
+            opt = as_option(twin, compiled)
+            if validator is not None:
+                opt.mission_violations = validator(opt)
+            proof = compiled.proof
+            opt.recommended = bool(opt.changes) and not opt.mission_violations and proof["monotone_tightening"] \
+                and proof["required_flows_intact"] and proof["all_satisfied_or_conflicted"]
+            options = [opt]
+        else:
+            options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse,
+                                      exact_threshold=self.exposure_target, exact_constraints=exact_constraints,
+                                      validator=validator)
         report.options = [o.to_dict() for o in options]
         choice = recommended(options)
         if choice is None:
