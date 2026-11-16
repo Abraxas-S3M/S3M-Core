@@ -105,7 +105,8 @@ def contract_range() -> Iterator[ContractRange]:
 
 
 async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str, board_policy=None,
-                             sandbox: str = "sbx-change-limited") -> tuple[CycleReport, ContractMCPTransport]:
+                             sandbox: str = "sbx-change-limited",
+                             exposure_target: float | None = None) -> tuple[CycleReport, ContractMCPTransport]:
     transport = rng.client(sandbox=sandbox)
     tool_map = XiidToolMap.from_yaml(TOOL_MAP)
     key = secrets.token_bytes(32)
@@ -127,6 +128,7 @@ async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str,
         envelope_signing_key=key, session_id=session_id,
         xiid_label="S3M contract v0.1 reference control plane (range), DPoP client in " + sandbox,
         expire_inverse="restore_route", approval_sink=approval_sink,
+        exposure_target=exposure_target,
     )
     try:
         return await cycle.run(case_id), transport

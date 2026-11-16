@@ -176,6 +176,7 @@ class DefenseCycle:
         xiid_label: str = "mock XiiD MCP server (range, streamable HTTP)",
         expire_inverse: Optional[str] = None,
         approval_sink: Optional[Callable[[str, Mapping[str, Any], List[str]], None]] = None,
+        exposure_target: Optional[float] = None,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -192,6 +193,9 @@ class DefenseCycle:
         # Called with (logical action, arguments, approval ids) once human approval is
         # satisfied, so an independent Approval Authority can mint a server-verifiable token.
         self.approval_sink = approval_sink
+        # When set, the architect adds the BreachPath exact option and recommends the
+        # cheapest plan reaching the exposure target (proven achievable).
+        self.exposure_target = exposure_target
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -341,7 +345,8 @@ class DefenseCycle:
         self._stage(report, "analyze", "ok", system_risk=report.twin["system_risk"])
 
         # 3. Architect: alternatives, simulated on the twin
-        options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse)
+        options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse,
+                                  exact_threshold=self.exposure_target)
         report.options = [o.to_dict() for o in options]
         choice = recommended(options)
         if choice is None:
