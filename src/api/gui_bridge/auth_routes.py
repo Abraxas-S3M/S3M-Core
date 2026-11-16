@@ -46,7 +46,7 @@ auth_router = APIRouter(prefix="/auth", tags=["GUI Auth"])
 
 # ---- Config ----
 _TOKEN_EXPIRY_SECONDS = 28800  # 8 hours, one operator shift
-_MIN_SECRET_LEN = 32
+_MIN_SIGNING_KEY_CHARS = 32
 _PBKDF2_ITERATIONS = 600_000  # OWASP 2023 guidance for PBKDF2-HMAC-SHA256
 _HASH_SCHEME = "pbkdf2_sha256"
 
@@ -60,12 +60,12 @@ def _get_jwt_secret() -> bytes:
     with _lock:
         if _jwt_secret is None:
             configured = os.environ.get("S3M_GUI_JWT_SECRET", "")
-            if len(configured) >= _MIN_SECRET_LEN:
+            if len(configured) >= _MIN_SIGNING_KEY_CHARS:
                 _jwt_secret = configured.encode()
             else:
                 if configured:
                     logger.error(
-                        "S3M_GUI_JWT_SECRET is shorter than %d chars; ignoring it", _MIN_SECRET_LEN
+                        "S3M_GUI_JWT_SECRET is shorter than %d chars; ignoring it", _MIN_SIGNING_KEY_CHARS
                     )
                 logger.warning(
                     "S3M_GUI_JWT_SECRET not set: using an ephemeral per-process signing key. "
