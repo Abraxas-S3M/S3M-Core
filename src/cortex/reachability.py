@@ -355,8 +355,9 @@ def _pick_best_candidate(
         risk_after, flows_ok = _evaluate_action(graph, eid, kind, harden_factor)
         if not flows_ok:
             continue
-        if kind == "remove" and risk_before > 1e-9 and risk_after <= 1e-9:
-            continue
+        # A removal that eliminates all remaining modelled risk is allowed. It used to be
+        # skipped, which stopped the planner closing a lone attack path to an asset;
+        # required mission flows are protected by ``flows_ok`` above, not by this rule.
         gain = risk_before - risk_after
         if gain <= 1e-12:
             continue

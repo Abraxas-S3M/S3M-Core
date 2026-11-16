@@ -1,0 +1,4 @@
+# Cortex planning runtime (core + regional images): BreachPath exact optimiser and
+# MissionGuardian scheduling (OR-Tools CP-SAT). Not installed on edge images.
+ortools>=9.8,<10
+numpy>=1.24.0

@@ -57,15 +57,17 @@ probabilities; only the relative comparison is meaningful.
 **Correctness:** for 7 small networks, the solver's plan equals the exhaustive-search minimum
 (`tests/cortex/test_breachpath.py`). 5 more were too large to enumerate and are skipped, not counted.
 
-## Finding about the existing greedy planner
+## Greedy planner fix (16 Nov)
 
-`plan_mrc` refuses an expiry that removes all remaining risk (`reachability.py`, `_pick_best_candidate`).
-This prevents it from closing a single remaining path, and in some synthetic cases it fails
-to reach targets the exact solver meets. The rule is left unchanged pending a decision; the exact optimiser does not depend on it.
+`plan_mrc` used to refuse an expiry that removed all remaining risk (`reachability.py`,
+`_pick_best_candidate`), so it could not close a lone attack path. That rule is removed;
+required flows remain protected by the separate flow check. Regression test:
+`test_greedy_can_close_a_lone_attack_path`, which fails on the old code and passes on the new.
+The benchmark table above was measured *before* this fix, so greedy's numbers there are a lower bound.
 
 ## Limits
 
 - Probabilities come from the twin's heuristic model until calibration (Wave 1, CyberTwin) lands.
 - Narrowing is modelled as a fixed ×0.08 factor; real effect depends on the narrowed prefix.
-- Release images (`docker/cortex/Dockerfile.*`) do not yet install `ortools`; the architect
-  imports it lazily, so they still run without OPT-D.
+- Core and regional release images install `ortools` via `requirements-cortex-planning.txt`.
+  Edge images do not, as they do not run the planner.
