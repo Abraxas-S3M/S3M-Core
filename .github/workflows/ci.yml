@@ -39,6 +39,12 @@ jobs:
             src/cortex/agentshield \
             src/cortex/radar \
             src/cortex/wargame \
+            src/cortex/quantumwatch \
+            src/cortex/ghostshift \
+            src/cortex/deceptionmesh \
+            src/cortex/soccouncil \
+            src/cortex/swarm \
+            src/cortex/immunity \
             src/cortex/breachpath \
             src/cortex/missionguardian \
             src/cortex/intent2fabric \
@@ -54,6 +60,12 @@ jobs:
             tests/cortex/test_agentshield.py \
             tests/cortex/test_exposure_radar.py \
             tests/cortex/test_wargame.py \
+            tests/cortex/test_quantumwatch.py \
+            tests/cortex/test_ghostshift.py \
+            tests/cortex/test_deceptionmesh.py \
+            tests/cortex/test_soc_council.py \
+            tests/cortex/test_cyberswarm.py \
+            tests/cortex/test_collective_immunity.py \
             tests/cortex/test_breachpath.py \
             tests/cortex/test_missionguardian.py \
             tests/cortex/test_intent2fabric.py \

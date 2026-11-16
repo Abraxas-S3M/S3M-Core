@@ -1,0 +1,62 @@
+# QuantumWatch: approved quantum-resilient profiles and planning assumptions (capability 13).
+#
+# Military/tactical context: the customer's crypto authority chooses ONE profile; QuantumWatch
+# measures every discovered cryptographic asset against it and plans migration to meet its
+# dates. Profile facts below were checked on 2026-11-16 against public sources:
+#   - NIST IR 8547 (final, 27 Oct 2026): every quantum-vulnerable public-key algorithm is
+#     deprecated after 2030 and disallowed after 2035, regardless of key size.
+#   - NSA CNSA 2.0: ML-KEM-1024, ML-DSA-87, AES-256, SHA-384/512; LMS/XMSS for firmware
+#     signing; exclusive use by 2030 for software/firmware signing and networking equipment,
+#     by 2033 for web, cloud, operating systems and custom applications.
+# Re-verify before any customer commitment: these documents change.
+
+version: "0.1"
+profiles:
+  nist-ir8547:
+    description: NIST transition (IR 8547 final). Deprecated after 2030, disallowed after 2035.
+    kem: [ML-KEM-512, ML-KEM-768, ML-KEM-1024]
+    signature: [ML-DSA-44, ML-DSA-65, ML-DSA-87, SLH-DSA, LMS, XMSS]
+    symmetric_min_bits: 128
+    hash: [SHA-256, SHA-384, SHA-512, SHA3-256, SHA3-384, SHA3-512]
+    hybrid_accepted: true
+    deprecated_after: "2030-12-31"
+    disallowed_after: "2035-12-31"
+    category_deadlines: {}
+  cnsa-2.0:
+    description: NSA CNSA 2.0 (national security systems). Highest parameter sets only.
+    kem: [ML-KEM-1024]
+    signature: [ML-DSA-87, LMS, XMSS]
+    symmetric_min_bits: 256
+    hash: [SHA-384, SHA-512]
+    hybrid_accepted: true
+    deprecated_after: "2030-12-31"
+    disallowed_after: "2035-12-31"
+    category_deadlines:
+      software_signing: "2030-12-31"
+      networking: "2030-12-31"
+      web_cloud_os: "2033-12-31"
+      custom_application: "2033-12-31"
+
+# ASSUMPTION, owned by the customer's risk officer: cumulative probability that a
+# cryptographically relevant quantum computer (CRQC) exists by the end of each year.
+# Placeholder values for planning sensitivity only; they are not a forecast by Abraxas.
+crqc_cdf:
+  2028: 0.01
+  2030: 0.05
+  2033: 0.15
+  2035: 0.30
+  2040: 0.60
+  2045: 0.80
+  2050: 0.90
+  2060: 0.97
+
+# Years data of each class must stay secret (confidentiality) or a signature must stay
+# trustworthy (authenticity). Customer-owned values.
+data_classes:
+  personnel: 50
+  financial: 10
+  identity: 10
+  evidence: 15
+  operational: 3
+  telemetry: 1
+  public: 0

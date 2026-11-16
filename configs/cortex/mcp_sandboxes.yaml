@@ -64,6 +64,8 @@ profiles:
     resources:
       route: {allow: ["*"], deny: []}
       stlink: {allow: ["*"], deny: []}
+      tunnel: {allow: ["*"], deny: []}
+      decoy: {allow: ["*"], deny: []}
       host: {allow: ["*"], deny: ["srv-dc-*", "srv-pki-*"]}
     require_inverse: false
     min_approvals: 1

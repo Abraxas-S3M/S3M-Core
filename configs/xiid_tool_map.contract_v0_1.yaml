@@ -25,3 +25,8 @@ actions:
   terminate_session: {tool: session.terminate, class: D, kind: write}
   quarantine_host: {tool: host.quarantine, class: D, kind: write}
   release_host: {tool: host.release, class: D, kind: write}
+  rotate_stlink_identity: {tool: stlink.rotate_identity, class: C, kind: write}  # PROPOSED (GhostShift)
+  rekey_tunnel: {tool: tunnel.rekey, class: C, kind: write}  # PROPOSED (GhostShift)
+  deploy_decoy: {tool: decoy.deploy, class: C, kind: write}  # PROPOSED (DeceptionMesh)
+  retire_decoy: {tool: decoy.retire, class: C, kind: write}  # PROPOSED (DeceptionMesh)
+  decoy_interactions: {tool: decoy.interactions, class: A, kind: read}  # PROPOSED (DeceptionMesh)

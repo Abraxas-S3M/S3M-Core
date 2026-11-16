@@ -61,7 +61,7 @@ def test_generated_files_are_committed_and_byte_stable(tmp_path, monkeypatch) ->
 
 def test_manifest_is_complete_and_consistent() -> None:
     c = load_contract()
-    assert len(c.tools) == 25
+    assert len(c.tools) == 30  # 25 v0.1 tools + 2 proposed GhostShift + 3 proposed DeceptionMesh tools
     for spec in c.tools.values():
         Draft202012Validator.check_schema(spec.input_schema)
         Draft202012Validator.check_schema(spec.output_schema)

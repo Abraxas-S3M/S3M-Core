@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 CONTRACT_ID = "s3m-cortex-control-plane"
-VERSION = "0.1.0"
+VERSION = "0.1.2"  # adds PROPOSED GhostShift (0.1.1) and DeceptionMesh (0.1.2) tools: v0.2 candidates
 SCHEMA_DIR = Path(__file__).resolve().parent / "schemas" / "v0.1"
 COMMON_ID = "urn:s3m:cortex-mcp:0.1:common"
 TELEMETRY_ID = "urn:s3m:cortex-mcp:0.1:telemetry"
@@ -57,6 +57,7 @@ COMMON: Dict[str, Any] = {
         "TunnelId": {"type": "string", "pattern": r"^st-[a-z0-9-]{1,62}$"},
         "SessionId": {"type": "string", "pattern": r"^sess-[a-z0-9-]{1,62}$"},
         "GrantId": {"type": "string", "pattern": r"^grant-[a-z0-9-]{1,62}$"},
+        "DecoyId": {"type": "string", "pattern": r"^decoy-[a-z0-9-]{1,40}$"},
         "HostId": {"type": "string", "pattern": STR_ID},
         "FindingId": {"type": "string", "pattern": r"^[A-Z][A-Z0-9]{1,15}-[0-9]{4}-[0-9]{4,7}$"},
         "Endpoint": {
@@ -96,6 +97,7 @@ COMMON: Dict[str, Any] = {
                 "narrow_candidate": {"anyOf": [ref("Cidr"), {"type": "null"}]},
                 "observed_sessions_30d": {"type": "integer", "minimum": 0},
                 "sealed_tunnel": {"type": "boolean"},
+                "decoy": {"type": "boolean", "description": "Lure route to an isolated decoy (DeceptionMesh)"},
             },
             ["id", "source", "target", "service", "port", "prefix", "status"],
         ),
@@ -105,6 +107,8 @@ COMMON: Dict[str, Any] = {
                 "endpoint": ref("IPv4"),
                 "status": {"enum": ["active", "disabled", "degraded"]},
                 "host": ref("HostId"),
+                "identity_epoch": {"type": "integer", "minimum": 0},
+                "credential_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
             },
             ["id", "endpoint", "status"],
         ),
@@ -116,6 +120,7 @@ COMMON: Dict[str, Any] = {
                 "target": ref("Endpoint"),
                 "service": ref("Service"),
                 "status": {"enum": ["up", "down", "degraded"]},
+                "key_epoch": {"type": "integer", "minimum": 0},
             },
             ["id", "route_id", "status"],
         ),
@@ -152,6 +157,28 @@ COMMON: Dict[str, Any] = {
             },
             ["id", "host", "severity"],
         ),
+        "Decoy": obj(
+            {
+                "id": ref("DecoyId"),
+                "attach": ref("Endpoint"),
+                "service": ref("Service"),
+                "persona": {"type": "string", "maxLength": 64},
+                "status": {"enum": ["active", "retired"]},
+            },
+            ["id", "attach", "service", "status"],
+        ),
+        "DecoyInteraction": obj(
+            {
+                "decoy_id": ref("DecoyId"),
+                "source": ref("Endpoint"),
+                "first_seen": ref("Timestamp"),
+                "last_seen": ref("Timestamp"),
+                "count": {"type": "integer", "minimum": 1},
+                "max_depth": {"type": "integer", "minimum": 0, "maximum": 4,
+                              "description": "0 connect, 1 banner, 2 auth attempt, 3 command, 4 data request"},
+            },
+            ["decoy_id", "source", "first_seen", "last_seen", "count", "max_depth"],
+        ),
         "Grant": obj(
             {
                 "grant_id": ref("GrantId"),
@@ -168,7 +195,8 @@ COMMON: Dict[str, Any] = {
                 "tool": {"enum": [
                     "route.narrow", "route.restore", "route.expire", "stlink.deploy", "stlink.disable",
                     "stlink.enable", "session.terminate", "host.quarantine", "host.release",
-                    "access.create_temporary", "access.revoke",
+                    "access.create_temporary", "access.revoke", "stlink.rotate_identity", "tunnel.rekey",
+                    "decoy.deploy", "decoy.retire",
                 ]},
                 "arguments": {"type": "object", "maxProperties": 8},
             },
@@ -408,6 +436,39 @@ TOOLS: List[Dict[str, Any]] = [
          {"host_id": ref("HostId")}, ["host_id"],
          _write_out("host", ref("Host")), status="proposed", reversible=True,
          resource_args={"host_id": "host"}, rate_per_minute=2),
+    # --- GhostShift (capability 02): PROPOSED v0.2 candidates. Not offered by XiiD today;
+    # implemented only in the range control plane. REQUIRES XIID VALIDATION. ------------
+    tool("stlink.rotate_identity", "Rotate STLink identity", "C", "write",
+         "PROPOSED. Issue a new STLink credential; the old one stops working after grace_seconds. "
+         "Routes and reachability are unchanged. Not reversible by design (old credentials are never restored).",
+         {"stlink_id": ref("StlinkId"), "grace_seconds": {"type": "integer", "minimum": 0, "maximum": 3600}},
+         ["stlink_id", "grace_seconds"],
+         _write_out("stlink", ref("Stlink")), status="proposed", reversible=False,
+         resource_args={"stlink_id": "stlink"}, rate_per_minute=4),
+    tool("tunnel.rekey", "Rekey SealedTunnel", "C", "write",
+         "PROPOSED. Replace the keys of one SealedTunnel without changing its route or endpoints. "
+         "Not reversible by design.",
+         {"tunnel_id": ref("TunnelId")}, ["tunnel_id"],
+         _write_out("tunnel", ref("SealedTunnel")), status="proposed", reversible=False,
+         resource_args={"tunnel_id": "tunnel"}, rate_per_minute=10),
+    # --- DeceptionMesh (capability 10): PROPOSED v0.2 candidates, range only. ----------
+    tool("decoy.deploy", "Deploy decoy", "C", "write",
+         "PROPOSED. Stand up an isolated decoy service reachable only from 'attach' through a lure route. "
+         "The decoy has no outbound connectivity and never runs on a productive host. Inverse: decoy.retire.",
+         {"decoy_id": ref("DecoyId"), "attach": ref("Endpoint"), "service": ref("Service"),
+          "persona": {"type": "string", "maxLength": 64, "pattern": r"^[a-z0-9-]{1,64}$"}},
+         ["decoy_id", "attach", "service", "persona"],
+         _write_out("decoy", ref("Decoy")), status="proposed", inverse="decoy.retire",
+         resource_args={"decoy_id": "decoy"}, rate_per_minute=4),
+    tool("decoy.retire", "Retire decoy", "C", "write", "PROPOSED. Remove a decoy and its lure route.",
+         {"decoy_id": ref("DecoyId")}, ["decoy_id"],
+         _write_out("decoy", ref("Decoy")), status="proposed", reversible=True,
+         resource_args={"decoy_id": "decoy"}, rate_per_minute=4),
+    tool("decoy.interactions", "Decoy interactions", "A", "read",
+         "PROPOSED. Bounded interaction summaries (who, when, how often, how deep). Never payloads.",
+         {"since": ref("Timestamp"), "decoy_id": ref("DecoyId")}, [],
+         obj({"interactions": arr(ref("DecoyInteraction")), "as_of": ref("Timestamp")}, ["interactions", "as_of"]),
+         status="proposed", resource_args={"decoy_id": "decoy"}),
 ]
 
 TELEMETRY: Dict[str, Any] = {

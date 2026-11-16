@@ -1,0 +1,19 @@
+# Sovereign CyberSwarm release policy (capability 14).
+#
+# Military/tactical context: each region is a sovereign, isolated Cortex deployment. Only
+# minimal, signed threat summaries cross between regions, and only through the region's
+# release guard. Raw logs, host names, addresses, user names and raw indicators never leave.
+# Owned by each region's security authority; changes need the same review as a sandbox.
+
+version: "0.1"
+summary_fields: [summary_id, origin, recipients, issued_at, ttl_hours, kind, technique, indicator_hmac,
+                 severity, confidence, observations_bucket, classification, recommended_capability]
+kinds: [technique_observed, indicator_seen, exploitation_observed, playbook_outcome]
+classification_order: [unclassified, restricted, secret]
+k_anonymity: 3           # a summary needs >= k independent local observations
+max_per_hour: 20          # per recipient
+human_release: [secret]   # these classifications need an authorised release officer
+regions:
+  region-central: {clearance: secret, partners: [region-west, region-east]}
+  region-west: {clearance: restricted, partners: [region-central, region-east]}
+  region-east: {clearance: restricted, partners: [region-central, region-west]}
