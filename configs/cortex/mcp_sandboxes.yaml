@@ -1,0 +1,87 @@
+# Cortex control-plane MCP sandbox profiles (contract v0.1).
+#
+# Military/tactical context: a sandbox is the outer permission boundary for one client
+# session. The access token names exactly one sandbox; the control plane enforces it on
+# every call (and the Cortex client pre-checks it, so denied calls never leave the box).
+# Scopes say WHAT CLASS of action a client may attempt; the sandbox says WHERE and HOW
+# MUCH. Approval tokens still decide WHETHER each individual write happens.
+#
+# Selectors are shell-style globs over resource ids. deny wins over allow. A write whose
+# resource arguments match no allow selector is refused (default deny).
+
+version: "0.1"
+profiles:
+  sbx-observe:
+    description: Read-only discovery and telemetry. Safe default for new integrations.
+    environment: sandbox
+    scopes: [cortex.read]
+    classes: [A]
+    tools: {allow: ["*"], deny: []}
+    resources: {}
+    write_budget: {max_writes: 0, window_seconds: 3600}
+    rate_limit_per_minute: 120
+    obligations: {taint_untrusted_text: true, redact_fields: []}
+
+  sbx-simulate:
+    description: Discovery plus dry-run impact and policy simulation. No state change possible.
+    environment: sandbox
+    scopes: [cortex.read, cortex.simulate]
+    classes: [A, B]
+    tools: {allow: ["*"], deny: []}
+    resources: {}
+    write_budget: {max_writes: 0, window_seconds: 3600}
+    rate_limit_per_minute: 120
+    obligations: {taint_untrusted_text: true, redact_fields: []}
+
+  sbx-change-limited:
+    description: >
+      First live-write profile for a hypothetical XiiD sandbox tenant. Class C route changes
+      only, on user/perimeter/legacy routes; identity, jump-host and backup paths are
+      untouchable; every change must have an inverse tool; small hourly write budget.
+    environment: sandbox
+    scopes: [cortex.read, cortex.simulate, cortex.write.c]
+    classes: [A, B, C]
+    tools:
+      allow: ["inventory.*", "telemetry.*", "vuln.*", "audit.*", "contract.*", "change.*", "policy.*",
+              "route.narrow", "route.restore", "route.expire"]
+      deny: ["stlink.*", "access.*", "session.*", "host.*"]
+    resources:
+      route:
+        allow: ["rt-users-*", "rt-inet-*", "rt-mail-*", "rt-cams-*", "rt-erp-hrdb", "rt-ci-dc"]
+        deny: ["rt-users-dc", "rt-jump-*", "rt-admins-*", "rt-backup-*"]
+    require_inverse: true
+    min_approvals: 1
+    write_budget: {max_writes: 8, window_seconds: 3600}
+    rate_limit_per_minute: 60
+    obligations: {taint_untrusted_text: true, redact_fields: []}
+
+  sbx-range-full:
+    description: All classes inside the synthetic range only. Never valid against a real tenant.
+    environment: range
+    scopes: [cortex.read, cortex.simulate, cortex.write.c, cortex.write.d]
+    classes: [A, B, C, D]
+    tools: {allow: ["*"], deny: []}
+    resources:
+      route: {allow: ["*"], deny: []}
+      stlink: {allow: ["*"], deny: []}
+      host: {allow: ["*"], deny: ["srv-dc-*", "srv-pki-*"]}
+    require_inverse: false
+    min_approvals: 1
+    write_budget: {max_writes: 40, window_seconds: 3600}
+    rate_limit_per_minute: 240
+    obligations: {taint_untrusted_text: true, redact_fields: []}
+
+  sbx-agent-untrusted:
+    description: >
+      AgentShield profile for third-party or unvetted agents. A narrow read surface, host
+      addresses and user names redacted, all free text tainted. No simulation, no writes.
+    environment: sandbox
+    scopes: [cortex.read]
+    classes: [A]
+    tools:
+      allow: ["contract.manifest", "inventory.list_routes", "telemetry.health"]
+      deny: ["*"]
+    resources: {}
+    write_budget: {max_writes: 0, window_seconds: 3600}
+    rate_limit_per_minute: 10
+    obligations: {taint_untrusted_text: true, redact_fields: [user]}
