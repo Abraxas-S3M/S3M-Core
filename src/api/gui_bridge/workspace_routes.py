@@ -7,7 +7,7 @@ Response shapes match the TypeScript interfaces in S3M-GUI exactly.
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 from src.api.gui_bridge.adapters.command_adapter import CommandAdapter
@@ -45,6 +45,25 @@ _action_board = ActionBoard()
 
 
 # ── Request/Response helpers ────────────────────────────────
+# Restored from d000d14a24 (lost in the 2026-04-08 merge of PR #182).
+class ActionBoardCreateRequest(BaseModel):
+    title: str
+    urgency: int = Field(ge=1, le=5)
+    impact: int = Field(ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Literal["pending", "active", "complete"] = "pending"
+    linkedDecisionId: Optional[str] = None
+
+
+class ActionBoardUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    urgency: Optional[int] = Field(default=None, ge=1, le=5)
+    impact: Optional[int] = Field(default=None, ge=1, le=5)
+    assignee: Optional[str] = None
+    status: Optional[Literal["pending", "active", "complete"]] = None
+    linkedDecisionId: Optional[str] = None
+
+
 class DecisionActionRequest(BaseModel):
     comment: str = ""
 

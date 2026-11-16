@@ -229,3 +229,26 @@ class CommsAdapter:
         defaults = self._default_inbox()
         self._persist_rows("messages", defaults)
         return defaults
+
+    # Restored from 9309e1e1d6 (lost in merge db9cbca798).
+    @staticmethod
+    def _default_bearers() -> list[dict[str, Any]]:
+        return [
+            {
+                "type": "SATCOM",
+                "status": "operational",
+                "signal": 85,
+                "latency": 120,
+            },
+            {"type": "HF", "status": "degraded", "signal": 45, "latency": 800},
+            {"type": "VHF", "status": "operational", "signal": 92, "latency": 15},
+            {"type": "LTE", "status": "offline", "signal": 0, "latency": 0},
+        ]
+
+    @staticmethod
+    def _default_mesh_status() -> dict[str, Any]:
+        return {"nodes": [], "links": [], "topology": "mesh"}
+
+    @staticmethod
+    def _default_degradation_context() -> dict[str, Any]:
+        return {"degraded_links": [], "recommendations": []}
