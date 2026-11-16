@@ -19,7 +19,7 @@ disrupting the fewest observed sessions, then fewest irreversible changes, then 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from src.cortex.cybertwin import NARROW_FACTOR, CyberTwinGraph
 from src.cortex.reachability import MRCAction, plan_mrc
@@ -74,6 +74,10 @@ class ArchitectureOption:
     disrupted_sessions_30d: int
     irreversible_changes: int
     residual_top_paths: List[Dict[str, Any]] = field(default_factory=list)
+    target_threshold: Optional[float] = None
+    residual_exposure: List[Dict[str, Any]] = field(default_factory=list)
+    proven_optimal: bool = False
+    mission_violations: List[Dict[str, Any]] = field(default_factory=list)
     recommended: bool = False
     state: str = "simulated"
 
@@ -158,8 +162,53 @@ def apply_changes(twin: CyberTwinGraph, changes: List[ProposedChange]) -> CyberT
     return sim
 
 
+def _exact_option(twin: CyberTwinGraph, threshold: float, constraints: Any,
+                  expire_inverse: Optional[str]) -> ArchitectureOption:
+    """OPT-D: provably cheapest plan meeting the exposure target (BreachPath)."""
+    from src.cortex.breachpath.optimizer import PlanConstraints, optimize  # lazy: needs ortools
+
+    c = constraints or PlanConstraints(expire_policy="unused_only", expire_reversible=bool(expire_inverse))
+    plan = optimize(twin, threshold=threshold, constraints=c)
+    changes: List[ProposedChange] = []
+    sim = twin.clone()
+    for i, a in enumerate(plan.actions, start=1):
+        eid = twin.route_edge[a.route_id]
+        before = sim.system_risk()
+        mrc = MRCAction(edge_id=eid, action="remove" if a.action == "expire" else "harden",
+                        cost=a.cost, disruption=0.0, risk_before=before, risk_after=before)
+        sim = apply_changes(sim, [_to_change(twin, mrc, i, expire_inverse)])
+        mrc.risk_after = sim.system_risk()
+        changes.append(_to_change(twin, mrc, i, expire_inverse))
+    final = apply_changes(twin, changes)
+    return ArchitectureOption(
+        option_id="OPT-D",
+        label="exact-minimum",
+        expire_policy=c.expire_policy,
+        changes=changes,
+        initial_risk=round(twin.system_risk(), 6),
+        final_risk=round(final.system_risk(), 6),
+        asset_exposure_before=asset_exposure(twin),
+        asset_exposure_after=asset_exposure(final),
+        budget_spent=plan.total_cost,
+        required_flows_ok=final.required_flows_reachable(),
+        broken_flows=final.broken_flows(),
+        disrupted_sessions_30d=sum(ch.disrupted_sessions_30d for ch in changes),
+        irreversible_changes=sum(1 for ch in changes if not ch.reversible),
+        residual_top_paths=[{**p, "probability": round(p["probability"], 6)} for p in final.top_attack_paths(5)],
+        target_threshold=threshold,
+        residual_exposure=[r.__dict__ for r in plan.residual],
+        proven_optimal=plan.status in {"OPTIMAL", "NO_ACTION_NEEDED"},
+    )
+
+
 def propose_options(
-    twin: CyberTwinGraph, *, budget: float = DEFAULT_BUDGET, expire_inverse: Optional[str] = None
+    twin: CyberTwinGraph,
+    *,
+    budget: float = DEFAULT_BUDGET,
+    expire_inverse: Optional[str] = None,
+    exact_threshold: Optional[float] = None,
+    exact_constraints: Any = None,
+    validator: Optional[Callable[[ArchitectureOption], List[Dict[str, Any]]]] = None,
 ) -> List[ArchitectureOption]:
     before = asset_exposure(twin)
     options: List[ArchitectureOption] = []
@@ -188,12 +237,36 @@ def propose_options(
                 ],
             )
         )
-    _mark_recommended(options)
+    if exact_threshold is not None:
+        options.append(_exact_option(twin, exact_threshold, exact_constraints, expire_inverse))
+    if validator is not None:
+        for o in options:
+            o.mission_violations = validator(o)
+    if exact_threshold is not None:
+        _mark_recommended_by_target(options)
+    else:
+        _mark_recommended(options)
     return options
 
 
+def _mark_recommended_by_target(options: List[ArchitectureOption]) -> None:
+    """Target mode: cheapest option reaching the exposure OPT-D proved achievable."""
+    exact = next(o for o in options if o.option_id == "OPT-D")
+    goal = exact.asset_exposure_after
+    meeting = [
+        o for o in options
+        if o.required_flows_ok and not o.mission_violations and o.changes
+        and all(o.asset_exposure_after.get(a, 1.0) <= v + 1e-9 for a, v in goal.items())
+    ]
+    if not meeting:
+        return
+    choice = min(meeting, key=lambda o: (o.disrupted_sessions_30d, o.irreversible_changes, o.budget_spent,
+                                         len(o.changes), o.option_id))
+    choice.recommended = True
+
+
 def _mark_recommended(options: List[ArchitectureOption]) -> None:
-    viable = [o for o in options if o.required_flows_ok and o.changes]
+    viable = [o for o in options if o.required_flows_ok and o.changes and not o.mission_violations]
     if not viable:
         return
     best = max(o.risk_reduction for o in viable)

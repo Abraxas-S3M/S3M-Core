@@ -11,11 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
-COPY requirements-api.txt requirements-intel.txt requirements-security.txt ./
+COPY requirements-api.txt requirements-intel.txt requirements-security.txt requirements-cortex-planning.txt ./
 RUN pip install --no-cache-dir --prefix=/install \
     -r requirements-api.txt \
     -r requirements-intel.txt \
-    -r requirements-security.txt
+    -r requirements-security.txt \
+    -r requirements-cortex-planning.txt
 
 FROM python:3.11-slim-bookworm@${PYTHON_DIGEST} AS runtime
 

@@ -176,6 +176,12 @@ class DefenseCycle:
         xiid_label: str = "mock XiiD MCP server (range, streamable HTTP)",
         expire_inverse: Optional[str] = None,
         approval_sink: Optional[Callable[[str, Mapping[str, Any], List[str]], None]] = None,
+        exposure_target: Optional[float] = None,
+        mission_guard: Any = None,
+        clock: Optional[Callable[[], datetime]] = None,
+        intents: Optional[Sequence[Any]] = None,
+        calibration: Any = None,
+        calibration_quantile: Optional[float] = 0.9,
     ) -> None:
         self.broker = broker
         self.audit_log = audit_log
@@ -192,6 +198,20 @@ class DefenseCycle:
         # Called with (logical action, arguments, approval ids) once human approval is
         # satisfied, so an independent Approval Authority can mint a server-verifiable token.
         self.approval_sink = approval_sink
+        # When set, the architect adds the BreachPath exact option and recommends the
+        # cheapest plan reaching the exposure target (proven achievable).
+        self.exposure_target = exposure_target
+        # MissionGuardian: hard mission constraints, change windows, freezes; clock is
+        # injectable so drills can rehearse a Friday-night window on a Monday morning.
+        self.mission_guard = mission_guard
+        self.clock = clock or (lambda: datetime.now(timezone.utc))
+        # Intent2Fabric: when operator intents are given, they replace the architect's
+        # alternatives; the compiled, proved plan goes through the same gates.
+        self.intents = list(intents) if intents else None
+        # CyberTwin calibration: every twin (planning and post-change observation) is
+        # calibrated identically, so verification compares like with like.
+        self.calibration = calibration
+        self.calibration_quantile = calibration_quantile
 
     # ---- evidence ----------------------------------------------------------------
     def _stage(self, report: CycleReport, stage: str, status: str, **details: Any) -> None:
@@ -216,6 +236,12 @@ class DefenseCycle:
         stlinks = (await self.broker.invoke("list_stlinks")).result.get("stlinks", [])
         health = (await self.broker.invoke("telemetry_health")).result
         return {"routes": routes, "findings": findings, "stlinks": stlinks, "health": health}
+
+    def _twin(self, routes, findings):
+        twin = build_twin(routes, findings, self.mission)
+        if self.calibration is not None:
+            twin = self.calibration.apply_to(twin, self.clock(), quantile=self.calibration_quantile)
+        return twin
 
     @staticmethod
     def _route(observed: Mapping[str, Any], route_id: str) -> Optional[Dict[str, Any]]:
@@ -327,7 +353,7 @@ class DefenseCycle:
         self._stage(report, "discover", "ok", **{k: v for k, v in report.discovery.items() if k != "health"})
 
         # 2. Twin + analysis
-        twin = build_twin(observed["routes"], observed["findings"], self.mission)
+        twin = self._twin(observed["routes"], observed["findings"])
         report.twin = twin.summary()
         report.analysis = {
             "top_attack_paths": [{**p, "probability": round(p["probability"], 6)} for p in twin.top_attack_paths(8)],
@@ -338,15 +364,62 @@ class DefenseCycle:
             ],
             "prioritized_findings": prioritized_findings(twin, observed["findings"])[:8],
         }
+        if self.calibration is not None:
+            report.analysis["calibration"] = {
+                "planning_quantile": self.calibration_quantile,
+                "fitted_prior_strength": round(float(getattr(self.calibration, "last_prior_strength", 0.0)), 3),
+                "exposure_intervals": self.calibration.exposure_intervals(self.clock(), samples=200),
+            }
         self._stage(report, "analyze", "ok", system_risk=report.twin["system_risk"])
 
         # 3. Architect: alternatives, simulated on the twin
-        options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse)
+        now = self.clock()
+        guard = self.mission_guard
+        exact_constraints = None
+        validator = None
+        if guard is not None:
+            exact_constraints = guard.compile_constraints(now, expire_reversible=bool(self.expire_inverse))
+
+            def validator(o):
+                return [v.__dict__ for v in guard.validate(
+                    [{"route_id": c.route_id, "xiid_action": c.xiid_action, "reversible": c.reversible}
+                     for c in o.changes], now)]
+
+        if self.intents:
+            from src.cortex.intent2fabric.intents import as_option, compile_intents
+
+            compiled = compile_intents(twin, self.intents, expire_inverse=self.expire_inverse)
+            report.analysis["intents"] = compiled.to_dict()
+            opt = as_option(twin, compiled)
+            if validator is not None:
+                opt.mission_violations = validator(opt)
+            proof = compiled.proof
+            opt.recommended = bool(opt.changes) and not opt.mission_violations and proof["monotone_tightening"] \
+                and proof["required_flows_intact"] and proof["all_satisfied_or_conflicted"]
+            options = [opt]
+        else:
+            options = propose_options(twin, budget=self.budget, expire_inverse=self.expire_inverse,
+                                      exact_threshold=self.exposure_target, exact_constraints=exact_constraints,
+                                      validator=validator)
         report.options = [o.to_dict() for o in options]
         choice = recommended(options)
         if choice is None:
             report.outcome = "no_action"
-            self._stage(report, "architect", "no_viable_option")
+            if guard is not None and self.exposure_target is not None:
+                deferred = propose_options(
+                    twin, budget=self.budget, expire_inverse=self.expire_inverse, exact_threshold=self.exposure_target,
+                    exact_constraints=guard.compile_constraints(now, expire_reversible=bool(self.expire_inverse),
+                                                                ignore_windows=True),
+                )[-1]
+                if deferred.changes:
+                    sched = guard.schedule([{"route_id": c.route_id} for c in deferred.changes], now)
+                    report.analysis["deferred_plan"] = {
+                        "changes": [c.to_dict() for c in deferred.changes],
+                        "asset_exposure_after": deferred.asset_exposure_after,
+                        "schedule": sched,
+                    }
+                    report.outcome = "scheduled"
+            self._stage(report, "architect", report.outcome)
             return self._finish(report, t0)
         report.recommended_option = choice.option_id
         self._stage(report, "architect", "ok", recommended=choice.option_id, options=len(options))
@@ -393,6 +466,11 @@ class DefenseCycle:
             auth = auths[ch.change_id]
             try:
                 self.approvals.policy_gate.assert_writes_allowed()
+                if guard is not None:
+                    late = guard.validate([{"route_id": ch.route_id, "xiid_action": ch.xiid_action,
+                                            "reversible": ch.reversible}], self.clock())
+                    if late:
+                        raise RuntimeError("mission window closed: " + ", ".join(v.rule_id for v in late))
                 res = await self.broker.invoke(
                     ch.xiid_action,
                     ch.arguments,
@@ -418,7 +496,7 @@ class DefenseCycle:
 
         # 6. Whole-twin verification from observed state
         final_obs = await self._observe()
-        observed_twin = build_twin(final_obs["routes"], final_obs["findings"], self.mission)
+        observed_twin = self._twin(final_obs["routes"], final_obs["findings"])
         report.verification = {
             "predicted_system_risk": round(predicted_risk, 6),
             "observed_system_risk": round(observed_twin.system_risk(), 6),
@@ -495,7 +573,7 @@ class DefenseCycle:
                 ch.state = "rollback_failed"
                 steps.append({"change_id": ch.change_id, "status": "rollback_failed", "detail": str(exc)[:200]})
         obs = await self._observe()
-        twin_after = build_twin(obs["routes"], obs["findings"], self.mission)
+        twin_after = self._twin(obs["routes"], obs["findings"])
         # Restored only if every applied reversible change was undone and nothing
         # irreversible had actually been applied.
         restored = all(s["status"] in {"rolled_back", "not_applied"} for s in steps)

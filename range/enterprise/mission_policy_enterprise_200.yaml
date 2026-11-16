@@ -1,0 +1,67 @@
+# MissionGuardian policy for the synthetic enterprise_200 range.
+# Military/tactical context: what must keep running, when it may be touched, and what is
+# never touched by automation. Every rule has an id so refusals are traceable.
+version: "0.1"
+timezone: Asia/Riyadh
+
+missions:
+  - id: M-IDENTITY
+    tier: 1
+    description: Enterprise authentication and administration
+    flows: [F-AUTH, F-ADMIN, F-ADMIN-DC]
+    assets: [srv-dc-01, srv-pki-01, srv-jump-01]
+  - id: M-CCTV
+    tier: 1
+    description: "CCTV evidence capture (OT-like safety: recording must never stop)"
+    flows: [F-CCTV-INGEST, F-CCTV-VMS]
+    assets: [srv-nvr-01, srv-vms-01]
+  - id: M-FINANCE
+    tier: 2
+    description: ERP and partner API
+    flows: [F-ERP-UI, F-ERP-WEB, F-ERP-DB, F-API, F-BACKUP-ERP]
+    assets: [srv-erp-app-01, srv-erp-db-01, srv-api-01]
+  - id: M-REMOTE
+    tier: 2
+    description: Remote access
+    flows: [F-VPN, F-VPN-LAN]
+    assets: [srv-vpn-01]
+  - id: M-HR
+    tier: 3
+    description: HR system
+    flows: [F-HR-UI, F-HR-DB, F-BACKUP-HR]
+    assets: [srv-hr-app-01, srv-hr-db-01]
+
+# When automation may change a route touching each tier (local time). Untiered: any time.
+change_windows:
+  1: [{days: [fri], start: "22:00", end: "02:00"}]
+  2: [{days: [sun, mon, tue, wed, thu, fri, sat], start: "22:00", end: "05:00"}]
+  3: [{days: [sun, mon, tue, wed, thu, fri, sat], start: "18:00", end: "07:00"}]
+
+rules:
+  - id: R-NO-AUTO-IDENTITY
+    kind: protected_routes
+    description: No automated change to any route reaching identity infrastructure.
+    targets: [srv-dc-01, srv-pki-01]
+  - id: R-CCTV-SAFETY
+    kind: protected_routes
+    description: Recording paths are never changed by automation (evidence integrity).
+    targets: [srv-nvr-01]
+  - id: R-TIER-DISRUPTION
+    kind: disruption_cap
+    description: Maximum observed sessions (30 d) a plan may cut, by the tier it touches.
+    caps: {1: 0, 2: 100, 3: 1000, untiered: 5000}
+  - id: R-SEGMENT-CONCURRENCY
+    kind: concurrency
+    description: At most 2 changes per target segment in one window.
+    max_per_segment: 2
+  - id: R-PLAN-SIZE
+    kind: max_changes
+    description: At most 6 changes per automated plan.
+    max: 6
+  - id: R-NATIONAL-EVENT-FREEZE
+    kind: freeze
+    description: "National event - no irreversible changes, at most 2 changes."
+    start: "2026-11-20T00:00:00+03:00"
+    end: "2026-11-23T00:00:00+03:00"
+    max_changes: 2
+    allow_irreversible: false

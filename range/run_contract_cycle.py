@@ -105,7 +105,9 @@ def contract_range() -> Iterator[ContractRange]:
 
 
 async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str, board_policy=None,
-                             sandbox: str = "sbx-change-limited") -> tuple[CycleReport, ContractMCPTransport]:
+                             sandbox: str = "sbx-change-limited",
+                             exposure_target: float | None = None, mission_guard=None,
+                             clock=None, intents=None, calibration=None) -> tuple[CycleReport, ContractMCPTransport]:
     transport = rng.client(sandbox=sandbox)
     tool_map = XiidToolMap.from_yaml(TOOL_MAP)
     key = secrets.token_bytes(32)
@@ -127,11 +129,34 @@ async def run_contract_cycle(rng: ContractRange, *, workdir: Path, case_id: str,
         envelope_signing_key=key, session_id=session_id,
         xiid_label="S3M contract v0.1 reference control plane (range), DPoP client in " + sandbox,
         expire_inverse="restore_route", approval_sink=approval_sink,
+        exposure_target=exposure_target, mission_guard=mission_guard, clock=clock, intents=intents,
+        calibration=calibration,
     )
     try:
         return await cycle.run(case_id), transport
     finally:
         await transport.close()
+
+
+async def control_plane_changes(rng: ContractRange) -> list:
+    """Read the control-plane change ledger as an independent auditor (sbx-observe)."""
+    auditor = rng.client(f"auditor-{secrets.token_hex(3)}", sandbox="sbx-observe")
+    try:
+        return (await auditor.call_tool("telemetry.events", {"types": ["change.applied"], "limit": 1000}))["events"]
+    finally:
+        await auditor.close()
+
+
+def case_bundle(rng: ContractRange, report: CycleReport, transport: ContractMCPTransport, workdir: Path,
+                evidence_key) -> Dict[str, Any]:
+    from src.cortex.proofguard.bundle import build_bundle
+
+    return build_bundle(
+        report=report.to_dict(), audit_log_path=Path(report.audit["audit_log"]),
+        cortex_writes=transport.write_log, control_plane_events=asyncio.run(control_plane_changes(rng)),
+        cortex_client_id=transport.identity.client_id,
+        receipt_public_key_b64=rng.state.signer.public_key_b64, evidence_key=evidence_key,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

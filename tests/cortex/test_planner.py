@@ -133,3 +133,18 @@ def test_build_graph_from_knowledge_graph(planner):
         )
         assert "internet" in graph.nodes
         assert graph.system_risk() > 0.0
+
+
+def test_greedy_can_close_a_lone_attack_path():
+    """Regression: a removal that eliminates all remaining risk used to be skipped."""
+    from src.cortex.reachability import MRCReachabilityGraph
+
+    g = MRCReachabilityGraph()
+    for n in ("internet", "web", "db"):
+        g.add_node(n, "host")
+    g.add_edge("internet", "web", "route", 0.6, edge_id="e1")
+    g.add_edge("web", "db", "route", 0.5, edge_id="e2")
+    g.set_scope(["internet"], ["db"], [("internet", "web")])  # e1 carries a required flow
+    plan = plan_mrc(g, budget=5.0)
+    assert ("e2", "remove") in [(a.edge_id, a.action) for a in plan.actions]
+    assert plan.final_risk == 0.0 and plan.required_flows_ok

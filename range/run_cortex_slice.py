@@ -94,6 +94,7 @@ async def run_cycle(
     session_id: str = "cortex-slice",
     case_id: str | None = None,
     board_policy=None,
+    exposure_target: float | None = None,
 ) -> Tuple[CycleReport, XiidMCPBroker]:
     key = secrets.token_bytes(32)
     audit = MerkleAuditLog(str(workdir / f"{session_id}-audit.jsonl"))
@@ -117,6 +118,7 @@ async def run_cycle(
         approval_board=board,
         envelope_signing_key=key,
         session_id=session_id,
+        exposure_target=exposure_target,
     )
     try:
         return await cycle.run(case_id), broker
